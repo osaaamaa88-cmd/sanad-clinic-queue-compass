@@ -59,7 +59,6 @@ function PatientHome() {
           <Link
             key={s.id}
             to="/patient/search"
-            search={{ specialty: s.id }}
             className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center transition hover:shadow-soft"
           >
             <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-2xl">
