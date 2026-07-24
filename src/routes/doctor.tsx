@@ -1,8 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { MapPin, Save, UserPlus, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MapPin, Save, UserPlus, Zap, Clock, CheckCircle2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { specialties } from "@/lib/mock-data";
+import {
+  specialties,
+  upsertClinic,
+  getCurrentDoctorClinic,
+  setCurrentDoctorId,
+  type Clinic,
+} from "@/lib/mock-data";
 
 export const Route = createFileRoute("/doctor")({
   head: () => ({ meta: [{ title: "طبيبك — لوحة الطبيب" }] }),
@@ -10,22 +16,70 @@ export const Route = createFileRoute("/doctor")({
 });
 
 function Doctor() {
-  const [name, setName] = useState("د. أحمد السيد");
-  const [spec, setSpec] = useState("dental");
-  const [street, setStreet] = useState("شارع الهرم");
-  const [building, setBuilding] = useState("عمارة ٢٤");
-  const [floor, setFloor] = useState("الدور الثالث");
-  const [price, setPrice] = useState("200");
-  const [available, setAvailable] = useState(true);
+  const [clinicId, setClinicId] = useState<string | undefined>(undefined);
+  const [isVerified, setIsVerified] = useState(false);
+  const [name, setName] = useState("");
+  const [spec, setSpec] = useState(specialties[0].id);
+  const [street, setStreet] = useState("");
+  const [building, setBuilding] = useState("");
+  const [floor, setFloor] = useState("");
+  const [area, setArea] = useState("");
+  const [phone, setPhone] = useState("");
+  const [price, setPrice] = useState("");
+  const [available, setAvailable] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const [secName, setSecName] = useState("");
   const [secPhone, setSecPhone] = useState("");
-  const [secretaries, setSecretaries] = useState<{ name: string; phone: string }[]>([
-    { name: "منى صابر", phone: "01011223344" },
-  ]);
+  const [secretaries, setSecretaries] = useState<{ name: string; phone: string }[]>([]);
+
+  useEffect(() => {
+    const c = getCurrentDoctorClinic();
+    if (c) hydrate(c);
+  }, []);
+
+  const hydrate = (c: Clinic) => {
+    setClinicId(c.id);
+    setIsVerified(c.isVerified);
+    setName(c.doctor);
+    setSpec(c.specialtyId);
+    setArea(c.area);
+    setPhone(c.phone);
+    setPrice(String(c.price));
+    setAvailable(c.availableNow);
+    // address is stored as one string; keep as-is in street for editing
+    setStreet(c.address);
+  };
 
   const save = () => {
+    if (!name.trim() || !phone.trim() || !area.trim()) {
+      return;
+    }
+    const address = [street, building, floor].filter(Boolean).join("، ");
+    const created = upsertClinic({
+      id: clinicId,
+      doctor: name.trim(),
+      specialtyId: spec,
+      address: address || street.trim(),
+      area: area.trim(),
+      distanceKm: 0,
+      price: Number(price) || 0,
+      rating: 0,
+      reviews: 0,
+      availableNow: available,
+      phone: phone.trim().replace(/^0/, "20"),
+      nowServing: 0,
+      yourNumber: 0,
+      waitingCount: 0,
+      lat: 30.0444,
+      lng: 31.2357,
+    });
+    const isNew = !clinicId;
+    setClinicId(created.id);
+    setIsVerified(created.isVerified);
+    setCurrentDoctorId(created.id);
     setSaved(true);
+    if (isNew) setJustSubmitted(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -38,6 +92,39 @@ function Doctor() {
 
   return (
     <AppShell title="لوحة الطبيب" subtitle="بروفايل عيادتك" backTo="/">
+      {/* Verification status */}
+      {clinicId && !isVerified && (
+        <div className="mb-4 rounded-2xl border border-warning bg-warning/10 p-4">
+          <div className="flex items-start gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-warning/20 text-warning">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-extrabold text-foreground">حسابك قيد المراجعة والتوثيق</p>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                حسابك قيد المراجعة والتوثيق من قبل إدارة التطبيق، وسيتم تفعيله فور التأكد من البيانات.
+                لحد ما يتم التوثيق، عيادتك مش هتظهر للمرضى في البحث أو الخريطة.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {clinicId && isVerified && (
+        <div className="mb-4 rounded-2xl border border-success bg-success/10 p-4">
+          <div className="flex items-start gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success/20 text-success">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-extrabold text-foreground">حسابك موثّق ✓</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                عيادتك ظاهرة للمرضى في البحث والخريطة.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Availability */}
       <div className={`flex items-center gap-4 rounded-2xl p-4 shadow-soft ${
         available ? "gradient-primary text-white" : "bg-card border border-border"
@@ -70,7 +157,7 @@ function Doctor() {
       {/* Profile form */}
       <h2 className="mt-6 text-base font-bold">بيانات العيادة</h2>
       <div className="mt-3 space-y-4 rounded-2xl border border-border bg-card p-4">
-        <Field label="اسم الطبيب" value={name} onChange={setName} />
+        <Field label="اسم الطبيب" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
         <div>
           <label className="text-xs font-bold text-muted-foreground">التخصص</label>
           <div className="mt-2 -mx-1 overflow-x-auto px-1">
@@ -89,10 +176,21 @@ function Doctor() {
             </div>
           </div>
         </div>
-        <Field label="الشارع" value={street} onChange={setStreet} />
+        <Field label="المنطقة / الحي" value={area} onChange={setArea} placeholder="مثال: المهندسين" />
+        <Field label="الشارع" value={street} onChange={setStreet} placeholder="اسم الشارع" />
         <div className="grid grid-cols-2 gap-3">
-          <Field label="العمارة" value={building} onChange={setBuilding} />
-          <Field label="الدور" value={floor} onChange={setFloor} />
+          <Field label="العمارة" value={building} onChange={setBuilding} placeholder="عمارة رقم…" />
+          <Field label="الدور" value={floor} onChange={setFloor} placeholder="الدور…" />
+        </div>
+        <div>
+          <label className="text-xs font-bold text-muted-foreground">رقم الموبايل (واتساب)</label>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            inputMode="tel"
+            placeholder="01xxxxxxxxx"
+            className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+          />
         </div>
         <div>
           <label className="text-xs font-bold text-muted-foreground">سعر الكشف (جنيه)</label>
@@ -100,6 +198,7 @@ function Doctor() {
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             inputMode="numeric"
+            placeholder="مثال: 250"
             className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
           />
         </div>
@@ -168,19 +267,26 @@ function Doctor() {
         onClick={save}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft"
       >
-        <Save className="h-5 w-5" /> {saved ? "تم الحفظ ✓" : "حفظ البيانات"}
+        <Save className="h-5 w-5" /> {saved ? "تم الحفظ ✓" : clinicId ? "حفظ التعديلات" : "تسجيل العيادة"}
       </button>
+
+      {justSubmitted && !isVerified && (
+        <div className="mt-4 rounded-2xl border border-primary bg-primary-soft p-4 text-sm text-primary">
+          تم استلام طلبك بنجاح ✓ حسابك دلوقتي بانتظار التوثيق من إدارة التطبيق.
+        </div>
+      )}
     </AppShell>
   );
 }
 
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div>
       <label className="text-xs font-bold text-muted-foreground">{label}</label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
         className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base outline-none focus:border-primary"
       />
     </div>
