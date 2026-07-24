@@ -34,118 +34,93 @@ export type Clinic = {
   waitingCount: number;
   lat: number;
   lng: number;
+  isVerified: boolean;
+  submittedAt: number;
 };
 
-export const clinics: Clinic[] = [
-  {
-    id: "c1",
-    doctor: "د. أحمد السيد",
-    specialtyId: "dental",
-    address: "شارع الهرم، عمارة ٢٤، الدور الثالث",
-    area: "الجيزة",
-    distanceKm: 0.8,
-    price: 200,
-    rating: 4.8,
-    reviews: 214,
-    availableNow: true,
-    phone: "201001234567",
-    nowServing: 7,
-    yourNumber: 12,
-    waitingCount: 5,
-    lat: 30.0131,
-    lng: 31.2089,
-  },
-  {
-    id: "c2",
-    doctor: "د. منى فتحي",
-    specialtyId: "pediatrics",
-    address: "شارع مصطفى النحاس، برج النور، الدور الأول",
-    area: "مدينة نصر",
-    distanceKm: 1.5,
-    price: 250,
-    rating: 4.9,
-    reviews: 389,
-    availableNow: true,
-    phone: "201007654321",
-    nowServing: 3,
-    yourNumber: 6,
-    waitingCount: 3,
-    lat: 30.0626,
-    lng: 31.3486,
-  },
-  {
-    id: "c3",
-    doctor: "د. خالد عبد الرحمن",
-    specialtyId: "internal",
-    address: "شارع التحرير، عمارة ١٢، الدور الرابع",
-    area: "الدقي",
-    distanceKm: 2.3,
-    price: 300,
-    rating: 4.6,
-    reviews: 156,
-    availableNow: false,
-    phone: "201009876543",
-    nowServing: 0,
-    yourNumber: 0,
-    waitingCount: 0,
-    lat: 30.0378,
-    lng: 31.2117,
-  },
-  {
-    id: "c4",
-    doctor: "د. سارة إبراهيم",
-    specialtyId: "derma",
-    address: "شارع جامعة الدول العربية، عمارة ٧٨",
-    area: "المهندسين",
-    distanceKm: 3.1,
-    price: 350,
-    rating: 4.7,
-    reviews: 267,
-    availableNow: true,
-    phone: "201005555555",
-    nowServing: 14,
-    yourNumber: 18,
-    waitingCount: 4,
-    lat: 30.0561,
-    lng: 31.2003,
-  },
-  {
-    id: "c5",
-    doctor: "د. محمد رأفت",
-    specialtyId: "ortho",
-    address: "شارع أحمد عرابي، برج الأطباء، الدور ٥",
-    area: "المهندسين",
-    distanceKm: 3.4,
-    price: 400,
-    rating: 4.5,
-    reviews: 98,
-    availableNow: false,
-    phone: "201004444444",
-    nowServing: 0,
-    yourNumber: 0,
-    waitingCount: 0,
-    lat: 30.0605,
-    lng: 31.2094,
-  },
-  {
-    id: "c6",
-    doctor: "د. ياسمين علي",
-    specialtyId: "gyneco",
-    address: "شارع النزهة، عمارة ٥، الدور الثاني",
-    area: "مصر الجديدة",
-    distanceKm: 4.2,
-    price: 300,
-    rating: 4.9,
-    reviews: 412,
-    availableNow: true,
-    phone: "201003333333",
-    nowServing: 9,
-    yourNumber: 11,
-    waitingCount: 2,
-    lat: 30.0987,
-    lng: 31.3255,
-  },
-];
+// قاعدة البيانات فارغة — الأطباء يسجّلون من واجهة الطبيب ثم يتم توثيقهم من الأدمن.
+const STORAGE_KEY = "tabibak.clinics.v1";
+const CURRENT_DOCTOR_KEY = "tabibak.currentDoctorId.v1";
+
+function isBrowser() {
+  return typeof window !== "undefined";
+}
+
+export function getAllClinics(): Clinic[] {
+  if (!isBrowser()) return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Clinic[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveAll(list: Clinic[]) {
+  if (!isBrowser()) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  window.dispatchEvent(new Event("tabibak:clinics-changed"));
+}
+
+export function getVerifiedClinics(): Clinic[] {
+  return getAllClinics().filter((c) => c.isVerified);
+}
+
+export function getPendingClinics(): Clinic[] {
+  return getAllClinics().filter((c) => !c.isVerified);
+}
+
+export function getClinic(id: string): Clinic | undefined {
+  return getAllClinics().find((c) => c.id === id);
+}
+
+export function upsertClinic(input: Omit<Clinic, "id" | "isVerified" | "submittedAt"> & { id?: string }): Clinic {
+  const list = getAllClinics();
+  if (input.id) {
+    const idx = list.findIndex((c) => c.id === input.id);
+    if (idx >= 0) {
+      const merged: Clinic = { ...list[idx], ...input, id: input.id };
+      list[idx] = merged;
+      saveAll(list);
+      return merged;
+    }
+  }
+  const id = input.id ?? `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const created: Clinic = {
+    ...input,
+    id,
+    isVerified: false,
+    submittedAt: Date.now(),
+  };
+  list.push(created);
+  saveAll(list);
+  return created;
+}
+
+export function verifyClinic(id: string) {
+  const list = getAllClinics().map((c) => (c.id === id ? { ...c, isVerified: true } : c));
+  saveAll(list);
+}
+
+export function deleteClinic(id: string) {
+  saveAll(getAllClinics().filter((c) => c.id !== id));
+}
+
+export function getCurrentDoctorId(): string | null {
+  if (!isBrowser()) return null;
+  return localStorage.getItem(CURRENT_DOCTOR_KEY);
+}
+
+export function setCurrentDoctorId(id: string | null) {
+  if (!isBrowser()) return;
+  if (id) localStorage.setItem(CURRENT_DOCTOR_KEY, id);
+  else localStorage.removeItem(CURRENT_DOCTOR_KEY);
+}
+
+export function getCurrentDoctorClinic(): Clinic | undefined {
+  const id = getCurrentDoctorId();
+  return id ? getClinic(id) : undefined;
+}
 
 export const timeSlots = [
   "١٠:٠٠ ص",
@@ -171,10 +146,6 @@ export const days = [
   { label: "الأحد", date: "٢٧ يوليو" },
   { label: "الاثنين", date: "٢٨ يوليو" },
 ];
-
-export function getClinic(id: string) {
-  return clinics.find((c) => c.id === id);
-}
 
 export function getSpecialty(id: string) {
   return specialties.find((s) => s.id === id);
