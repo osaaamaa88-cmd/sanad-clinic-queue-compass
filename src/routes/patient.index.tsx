@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MapPin, Search, Bell, Clock, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MapPin, Search, Bell, Clock, Star, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { specialties, clinics } from "@/lib/mock-data";
+import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/")({
   head: () => ({
@@ -14,7 +15,18 @@ export const Route = createFileRoute("/patient/")({
 });
 
 function PatientHome() {
-  const active = clinics.filter((c) => c.availableNow).slice(0, 2);
+  const [clinics, setClinics] = useState<Clinic[]>([]);
+  useEffect(() => {
+    const refresh = () => setClinics(getVerifiedClinics());
+    refresh();
+    window.addEventListener("tabibak:clinics-changed", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("tabibak:clinics-changed", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+  const active = clinics.filter((c) => c.availableNow).slice(0, 4);
   return (
     <AppShell
       title="أهلاً بيك 👋"
@@ -77,6 +89,17 @@ function PatientHome() {
         </span>
       </div>
       <div className="mt-3 space-y-3">
+        {active.length === 0 && (
+          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-6 text-center">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
+              <Stethoscope className="h-6 w-6" />
+            </div>
+            <p className="mt-3 text-sm font-bold">لسه ما فيش عيادات موثّقة</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              العيادات بتظهر هنا بعد ما إدارة التطبيق توثّقها.
+            </p>
+          </div>
+        )}
         {active.map((c) => (
           <Link
             key={c.id}
