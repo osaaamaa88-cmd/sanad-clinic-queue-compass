@@ -9,10 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReceptionRouteImport } from './routes/reception'
+import { Route as DoctorRouteImport } from './routes/doctor'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PatientIndexRouteImport } from './routes/patient.index'
 import { Route as PatientSearchRouteImport } from './routes/patient.search'
+import { Route as PatientQueueIdRouteImport } from './routes/patient.queue.$id'
+import { Route as PatientClinicIdRouteImport } from './routes/patient.clinic.$id'
 
+const ReceptionRoute = ReceptionRouteImport.update({
+  id: '/reception',
+  path: '/reception',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorRoute = DoctorRouteImport.update({
+  id: '/doctor',
+  path: '/doctor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -28,39 +48,115 @@ const PatientSearchRoute = PatientSearchRouteImport.update({
   path: '/patient/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PatientQueueIdRoute = PatientQueueIdRouteImport.update({
+  id: '/patient/queue/$id',
+  path: '/patient/queue/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatientClinicIdRoute = PatientClinicIdRouteImport.update({
+  id: '/patient/clinic/$id',
+  path: '/patient/clinic/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/doctor': typeof DoctorRoute
+  '/reception': typeof ReceptionRoute
   '/patient/search': typeof PatientSearchRoute
   '/patient/': typeof PatientIndexRoute
+  '/patient/clinic/$id': typeof PatientClinicIdRoute
+  '/patient/queue/$id': typeof PatientQueueIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/doctor': typeof DoctorRoute
+  '/reception': typeof ReceptionRoute
   '/patient/search': typeof PatientSearchRoute
   '/patient': typeof PatientIndexRoute
+  '/patient/clinic/$id': typeof PatientClinicIdRoute
+  '/patient/queue/$id': typeof PatientQueueIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/doctor': typeof DoctorRoute
+  '/reception': typeof ReceptionRoute
   '/patient/search': typeof PatientSearchRoute
   '/patient/': typeof PatientIndexRoute
+  '/patient/clinic/$id': typeof PatientClinicIdRoute
+  '/patient/queue/$id': typeof PatientQueueIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/patient/search' | '/patient/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/doctor'
+    | '/reception'
+    | '/patient/search'
+    | '/patient/'
+    | '/patient/clinic/$id'
+    | '/patient/queue/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/patient/search' | '/patient'
-  id: '__root__' | '/' | '/patient/search' | '/patient/'
+  to:
+    | '/'
+    | '/admin'
+    | '/doctor'
+    | '/reception'
+    | '/patient/search'
+    | '/patient'
+    | '/patient/clinic/$id'
+    | '/patient/queue/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/doctor'
+    | '/reception'
+    | '/patient/search'
+    | '/patient/'
+    | '/patient/clinic/$id'
+    | '/patient/queue/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  DoctorRoute: typeof DoctorRoute
+  ReceptionRoute: typeof ReceptionRoute
   PatientSearchRoute: typeof PatientSearchRoute
   PatientIndexRoute: typeof PatientIndexRoute
+  PatientClinicIdRoute: typeof PatientClinicIdRoute
+  PatientQueueIdRoute: typeof PatientQueueIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reception': {
+      id: '/reception'
+      path: '/reception'
+      fullPath: '/reception'
+      preLoaderRoute: typeof ReceptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor': {
+      id: '/doctor'
+      path: '/doctor'
+      fullPath: '/doctor'
+      preLoaderRoute: typeof DoctorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -82,14 +178,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatientSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/patient/queue/$id': {
+      id: '/patient/queue/$id'
+      path: '/patient/queue/$id'
+      fullPath: '/patient/queue/$id'
+      preLoaderRoute: typeof PatientQueueIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patient/clinic/$id': {
+      id: '/patient/clinic/$id'
+      path: '/patient/clinic/$id'
+      fullPath: '/patient/clinic/$id'
+      preLoaderRoute: typeof PatientClinicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  DoctorRoute: DoctorRoute,
+  ReceptionRoute: ReceptionRoute,
   PatientSearchRoute: PatientSearchRoute,
   PatientIndexRoute: PatientIndexRoute,
+  PatientClinicIdRoute: PatientClinicIdRoute,
+  PatientQueueIdRoute: PatientQueueIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
