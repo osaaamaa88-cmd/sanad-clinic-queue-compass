@@ -77,12 +77,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "طبيبك — احجز عند أقرب طبيب لك" },
-      { name: "description", content: "طبيبك: تطبيق مصري لحجز مواعيد العيادات ومعرفة دورك أول بأول." },
-      { property: "og:title", content: "طبيبك — احجز عند أقرب طبيب لك" },
-      { property: "og:description", content: "احجز عند أقرب عيادة وشوف دورك كام قبل ما تنزل من البيت." },
+      { title: "طبيبك — اختر دورك" },
+      { name: "description", content: "طبيبك: احجز عند أقرب طبيب واعرف دورك أول بأول." },
+      { property: "og:title", content: "طبيبك — اختر دورك" },
+      { property: "og:description", content: "طبيبك: احجز عند أقرب طبيب واعرف دورك أول بأول." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "طبيبك — اختر دورك" },
+      { name: "twitter:description", content: "طبيبك: احجز عند أقرب طبيب واعرف دورك أول بأول." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/4a90882e-c3c7-4555-9c03-6c48e1e2674a" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/4a90882e-c3c7-4555-9c03-6c48e1e2674a" },
     ],
     links: [
       {
