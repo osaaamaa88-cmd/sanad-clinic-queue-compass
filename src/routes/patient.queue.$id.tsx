@@ -1,22 +1,28 @@
-import { createFileRoute, useParams, notFound } from "@tanstack/react-router";
+import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Users, Clock, Bell, MapPin } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { getClinic } from "@/lib/mock-data";
+import { getClinic, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/queue/$id")({
   head: () => ({ meta: [{ title: "طبيبك — دورك في العيادة" }] }),
-  loader: ({ params }) => {
-    if (!getClinic(params.id)) throw notFound();
-  },
   component: Queue,
 });
 
 function Queue() {
   const { id } = useParams({ from: "/patient/queue/$id" });
-  const clinic = getClinic(id)!;
-  const [current, setCurrent] = useState(clinic.nowServing);
-  const yourNumber = clinic.yourNumber;
+  const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const c = getClinic(id);
+    setClinic(c);
+    setLoaded(true);
+  }, [id]);
+  const [current, setCurrent] = useState(0);
+  useEffect(() => {
+    if (clinic) setCurrent(clinic.nowServing);
+  }, [clinic]);
+  const yourNumber = clinic?.yourNumber ?? 0;
   const ahead = Math.max(0, yourNumber - current - 1);
 
   useEffect(() => {
@@ -25,6 +31,17 @@ function Queue() {
     }, 8000);
     return () => clearInterval(t);
   }, [yourNumber]);
+
+  if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient"><div /></AppShell>;
+  if (!clinic) {
+    return (
+      <AppShell title="غير متاح" backTo="/patient">
+        <div className="mt-4 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          العيادة غير موجودة.
+        </div>
+      </AppShell>
+    );
+  }
 
   const arrived = current >= yourNumber;
 

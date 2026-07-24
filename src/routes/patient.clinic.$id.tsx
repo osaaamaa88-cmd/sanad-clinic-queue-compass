@@ -1,32 +1,42 @@
-import { createFileRoute, Link, useParams, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { MapPin, Star, Phone, MessageCircle, Users, Clock, Check } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { getClinic, getSpecialty, timeSlots, days, whatsappLink } from "@/lib/mock-data";
+import { getClinic, getSpecialty, timeSlots, days, whatsappLink, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/clinic/$id")({
-  head: ({ params }) => {
-    const c = getClinic(params.id);
-    return {
-      meta: [
-        { title: c ? `${c.doctor} — طبيبك` : "عيادة غير موجودة — طبيبك" },
-        { name: "description", content: c ? `احجز موعد عند ${c.doctor} — ${c.area}` : "عيادة غير موجودة" },
-      ],
-    };
-  },
-  loader: ({ params }) => {
-    if (!getClinic(params.id)) throw notFound();
-  },
+  head: () => ({
+    meta: [
+      { title: "تفاصيل العيادة — طبيبك" },
+      { name: "description", content: "احجز موعدك في العيادة." },
+    ],
+  }),
   component: ClinicDetail,
 });
 
 function ClinicDetail() {
   const { id } = useParams({ from: "/patient/clinic/$id" });
-  const clinic = getClinic(id)!;
-  const spec = getSpecialty(clinic.specialtyId);
+  const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    setClinic(getClinic(id));
+    setLoaded(true);
+  }, [id]);
   const [dayIdx, setDayIdx] = useState(0);
   const [slot, setSlot] = useState<string | null>(null);
   const [booked, setBooked] = useState(false);
+
+  if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient/search"><div /></AppShell>;
+  if (!clinic || !clinic.isVerified) {
+    return (
+      <AppShell title="عيادة غير متاحة" backTo="/patient/search">
+        <div className="mt-4 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          العيادة دي مش موجودة أو لسه ما تمّش توثيقها.
+        </div>
+      </AppShell>
+    );
+  }
+  const spec = getSpecialty(clinic.specialtyId);
 
   if (booked) {
     const msg = `أهلاً، حجزت عند ${clinic.doctor} يوم ${days[dayIdx].date} الساعة ${slot}. العنوان: ${clinic.address} — ${clinic.area}.`;

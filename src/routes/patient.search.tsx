@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Map as MapIcon, List, MapPin, Star, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { clinics, specialties, getSpecialty } from "@/lib/mock-data";
+import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/search")({
   head: () => ({
@@ -17,6 +17,17 @@ export const Route = createFileRoute("/patient/search")({
 function Search() {
   const [view, setView] = useState<"list" | "map">("list");
   const [spec, setSpec] = useState<string | null>(null);
+  const [clinics, setClinics] = useState<Clinic[]>([]);
+  useEffect(() => {
+    const refresh = () => setClinics(getVerifiedClinics());
+    refresh();
+    window.addEventListener("tabibak:clinics-changed", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("tabibak:clinics-changed", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
   const filtered = spec ? clinics.filter((c) => c.specialtyId === spec) : clinics;
 
   return (
@@ -81,6 +92,17 @@ function Search() {
       )}
 
       <div className="mt-4 space-y-3">
+        {filtered.length === 0 && (
+          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-8 text-center">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
+              <Stethoscope className="h-6 w-6" />
+            </div>
+            <p className="mt-3 text-sm font-bold">لا توجد عيادات موثّقة حالياً</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              العيادات الجديدة بتظهر هنا بعد توثيقها من إدارة التطبيق.
+            </p>
+          </div>
+        )}
         {filtered.map((c) => {
           const s = getSpecialty(c.specialtyId);
           return (
