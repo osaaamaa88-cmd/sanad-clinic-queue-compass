@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PatientIndexRouteImport } from './routes/patient.index'
+import { Route as PatientSearchRouteImport } from './routes/patient.search'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const PatientIndexRoute = PatientIndexRouteImport.update({
   path: '/patient/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PatientSearchRoute = PatientSearchRouteImport.update({
+  id: '/patient/search',
+  path: '/patient/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/patient/search': typeof PatientSearchRoute
   '/patient/': typeof PatientIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/patient/search': typeof PatientSearchRoute
   '/patient': typeof PatientIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/patient/search': typeof PatientSearchRoute
   '/patient/': typeof PatientIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/patient/'
+  fullPaths: '/' | '/patient/search' | '/patient/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/patient'
-  id: '__root__' | '/' | '/patient/'
+  to: '/' | '/patient/search' | '/patient'
+  id: '__root__' | '/' | '/patient/search' | '/patient/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PatientSearchRoute: typeof PatientSearchRoute
   PatientIndexRoute: typeof PatientIndexRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatientIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/patient/search': {
+      id: '/patient/search'
+      path: '/patient/search'
+      fullPath: '/patient/search'
+      preLoaderRoute: typeof PatientSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PatientSearchRoute: PatientSearchRoute,
   PatientIndexRoute: PatientIndexRoute,
 }
 export const routeTree = rootRouteImport
