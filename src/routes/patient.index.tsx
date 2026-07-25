@@ -7,7 +7,7 @@ import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 export const Route = createFileRoute("/patient/")({
   head: () => ({
     meta: [
-      { title: "طبيبك — الصفحة الرئيسية للمريض" },
+      { title: "سندي — الصفحة الرئيسية للمريض" },
       { name: "description", content: "دور على طبيب من التخصصات القريبة منك واحجز فوراً." },
     ],
   }),

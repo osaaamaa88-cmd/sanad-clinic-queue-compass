@@ -1,13 +1,13 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Star, Phone, MessageCircle, Users, Clock, Check } from "lucide-react";
+import { MapPin, Star, MessageCircle, Users, Check, Banknote } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { getClinic, getSpecialty, timeSlots, days, whatsappLink, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/clinic/$id")({
   head: () => ({
     meta: [
-      { title: "تفاصيل العيادة — طبيبك" },
+      { title: "تفاصيل العيادة — سندي" },
       { name: "description", content: "احجز موعدك في العيادة." },
     ],
   }),
@@ -25,6 +25,9 @@ function ClinicDetail() {
   const [dayIdx, setDayIdx] = useState(0);
   const [slot, setSlot] = useState<string | null>(null);
   const [booked, setBooked] = useState(false);
+  const [bookingCode] = useState(() =>
+    `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+  );
 
   if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient/search"><div /></AppShell>;
   if (!clinic || !clinic.isVerified) {
@@ -39,7 +42,7 @@ function ClinicDetail() {
   const spec = getSpecialty(clinic.specialtyId);
 
   if (booked) {
-    const msg = `أهلاً، حجزت عند ${clinic.doctor} يوم ${days[dayIdx].date} الساعة ${slot}. العنوان: ${clinic.address} — ${clinic.area}.`;
+    const msg = `أهلاً، حجزت عند ${clinic.doctor} يوم ${days[dayIdx].date} الساعة ${slot}.\nكود الحجز: ${bookingCode}\nالدفع نقداً في العيادة.\nالعنوان: ${clinic.address} — ${clinic.area}.`;
     return (
       <AppShell title="تم الحجز" backTo="/patient" tone="primary">
         <div className="-mt-6 rounded-3xl bg-card p-6 text-center shadow-soft">
@@ -48,15 +51,29 @@ function ClinicDetail() {
           </div>
           <h2 className="mt-4 text-xl font-extrabold">تم تأكيد حجزك 🎉</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            هنبعتلك تفاصيل الحجز واللوكيشن على الواتساب
+            احتفظ بكود الحجز واعرضه في العيادة
           </p>
+          <div className="mt-4 rounded-2xl border-2 border-dashed border-primary bg-primary-soft p-4 text-center">
+            <p className="text-xs font-bold text-primary">كود الحجز</p>
+            <p className="mt-1 text-2xl font-extrabold tracking-widest text-primary">{bookingCode}</p>
+          </div>
+          <div className="mt-3 flex items-center gap-3 rounded-2xl bg-success/10 p-3 text-right">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success/20 text-success">
+              <Banknote className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-foreground">الدفع نقداً في العيادة</p>
+              <p className="text-xs text-muted-foreground">مفيش أي رسوم على الحجز عبر سندي</p>
+            </div>
+          </div>
           <div className="mt-5 space-y-2 rounded-2xl bg-secondary p-4 text-right">
+            <Row label="كود الحجز" value={bookingCode} />
             <Row label="الطبيب" value={clinic.doctor} />
             <Row label="التخصص" value={spec?.name ?? ""} />
             <Row label="اليوم" value={`${days[dayIdx].label} — ${days[dayIdx].date}`} />
             <Row label="الساعة" value={slot ?? ""} />
             <Row label="العنوان" value={`${clinic.address} — ${clinic.area}`} />
-            <Row label="سعر الكشف" value={`${clinic.price} جنيه`} />
+            <Row label="سعر الكشف" value={`${clinic.price} جنيه — يُدفع نقداً`} />
           </div>
           <a
             href={whatsappLink(clinic.phone, msg)}
@@ -64,7 +81,7 @@ function ClinicDetail() {
             rel="noopener noreferrer"
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-success py-4 text-base font-extrabold text-success-foreground"
           >
-            <MessageCircle className="h-5 w-5" /> ابعت تأكيد على الواتساب
+            <MessageCircle className="h-5 w-5" /> تواصل مع العيادة على واتساب
           </a>
           <Link
             to="/patient/queue/$id"

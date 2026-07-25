@@ -13,8 +13,8 @@ import {
   type Clinic,
 } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "طبيبك — لوحة الأدمن" }] }),
+export const Route = createFileRoute("/admin-access")({
+  head: () => ({ meta: [{ title: "سندي — لوحة الأدمن" }] }),
   component: Admin,
 });
 
@@ -62,7 +62,7 @@ function Admin() {
   const total = getAllClinics().length;
 
   return (
-    <AppShell title="لوحة تحكم الأدمن" subtitle="طبيبك — الإدارة" backTo="/" tone="primary">
+    <AppShell title="لوحة تحكم الأدمن" subtitle="سندي — الإدارة" backTo="/" tone="primary">
       {/* Stats */}
       <div className="-mt-6 grid grid-cols-2 gap-3">
         <KPI icon={Building2} label="عيادات موثّقة" value={String(verified.length)} />
