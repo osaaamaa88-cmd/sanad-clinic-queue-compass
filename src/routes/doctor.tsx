@@ -272,7 +272,7 @@ function Doctor() {
 
       {justSubmitted && !isVerified && (
         <div className="mt-4 rounded-2xl border border-primary bg-primary-soft p-4 text-sm text-primary">
-          تم استلام طلبك بنجاح ✓ حسابك دلوقتي بانتظار التوثيق من إدارة التطبيق.
+          تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سندي.
         </div>
       )}
     </AppShell>
