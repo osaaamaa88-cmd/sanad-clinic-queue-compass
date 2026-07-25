@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Stethoscope, UserRound, ClipboardList, HeartPulse } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useRef } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,13 +20,28 @@ const roles = [
 ] as const;
 
 function Landing() {
+  const navigate = useNavigate();
+  const tapsRef = useRef<number[]>([]);
+  const handleLogoTap = () => {
+    const now = Date.now();
+    tapsRef.current = [...tapsRef.current, now].filter((t) => now - t < 1200);
+    if (tapsRef.current.length >= 3) {
+      tapsRef.current = [];
+      navigate({ to: "/admin-access" });
+    }
+  };
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-md px-5 py-10">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-white shadow-soft">
+          <button
+            type="button"
+            onClick={handleLogoTap}
+            aria-label="سندي"
+            className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-white shadow-soft select-none"
+          >
             <HeartPulse className="h-6 w-6" />
-          </div>
+          </button>
           <div>
             <h1 className="text-2xl font-extrabold">سندي</h1>
             <p className="text-sm text-muted-foreground">سندك الطبي في كل وقت</p>
