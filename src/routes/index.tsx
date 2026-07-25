@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Stethoscope, UserRound, ClipboardList, ShieldCheck, HeartPulse } from "lucide-react";
+import { Stethoscope, UserRound, ClipboardList, HeartPulse } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "سندي — اختر دورك" },
-      { name: "description", content: "سندي: احجز عند أقرب طبيب واعرف دورك أول بأول." },
+      { title: "سندي — سندك الطبي في كل وقت" },
+      { name: "description", content: "سندي: سندك الطبي في كل وقت — احجز عند أقرب طبيب." },
     ],
   }),
   component: Landing,
@@ -15,7 +15,6 @@ const roles = [
   { to: "/patient", title: "أنا مريض", desc: "دور على طبيب واحجز موعد", icon: UserRound, tone: "gradient-primary text-white" },
   { to: "/reception", title: "سكرتير عيادة", desc: "إدارة الحجوزات ودخول المرضى", icon: ClipboardList, tone: "bg-card text-foreground" },
   { to: "/doctor", title: "طبيب / عيادة", desc: "بروفايل العيادة ومواعيدها", icon: Stethoscope, tone: "bg-card text-foreground" },
-  { to: "/admin", title: "مالك التطبيق", desc: "توثيق العيادات والإحصائيات", icon: ShieldCheck, tone: "bg-card text-foreground" },
 ] as const;
 
 function Landing() {
@@ -28,12 +27,12 @@ function Landing() {
           </div>
           <div>
             <h1 className="text-2xl font-extrabold">سندي</h1>
-            <p className="text-sm text-muted-foreground">صحتك أهم حاجة، وإحنا معاك</p>
+            <p className="text-sm text-muted-foreground">سندك الطبي في كل وقت</p>
           </div>
         </div>
 
         <div className="mt-8 rounded-3xl gradient-primary p-6 text-white shadow-soft">
-          <h2 className="text-xl font-bold">أهلاً بيك</h2>
+          <h2 className="text-xl font-bold">سندي — سندك الطبي في كل وقت</h2>
           <p className="mt-1 text-sm opacity-90">
             اختار الواجهة اللي تخصك عشان تبدأ. التطبيق يشتغل بالكامل باللغة العربية ومظبوط لكبار السن.
           </p>
