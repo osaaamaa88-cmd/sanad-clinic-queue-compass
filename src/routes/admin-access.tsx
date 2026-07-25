@@ -13,7 +13,7 @@ import {
   type Clinic,
 } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin-access")({
   head: () => ({ meta: [{ title: "طبيبك — لوحة الأدمن" }] }),
   component: Admin,
 });
