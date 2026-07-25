@@ -4,7 +4,7 @@ import { UserPlus, Clock, Check, X, Phone } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/reception")({
-  head: () => ({ meta: [{ title: "طبيبك — لوحة السكرتير" }] }),
+  head: () => ({ meta: [{ title: "سندي — لوحة السكرتير" }] }),
   component: Reception,
 });
 

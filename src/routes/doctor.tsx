@@ -11,7 +11,7 @@ import {
 } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/doctor")({
-  head: () => ({ meta: [{ title: "طبيبك — لوحة الطبيب" }] }),
+  head: () => ({ meta: [{ title: "سندي — لوحة الطبيب" }] }),
   component: Doctor,
 });
 

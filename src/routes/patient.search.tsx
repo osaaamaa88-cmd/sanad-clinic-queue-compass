@@ -7,7 +7,7 @@ import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/li
 export const Route = createFileRoute("/patient/search")({
   head: () => ({
     meta: [
-      { title: "طبيبك — العيادات القريبة" },
+      { title: "سندي — العيادات القريبة" },
       { name: "description", content: "شوف أقرب العيادات على الخريطة وقائمة بالأسعار والتقييمات." },
     ],
   }),

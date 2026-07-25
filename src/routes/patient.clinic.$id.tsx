@@ -7,7 +7,7 @@ import { getClinic, getSpecialty, timeSlots, days, whatsappLink, type Clinic } f
 export const Route = createFileRoute("/patient/clinic/$id")({
   head: () => ({
     meta: [
-      { title: "تفاصيل العيادة — طبيبك" },
+      { title: "تفاصيل العيادة — سندي" },
       { name: "description", content: "احجز موعدك في العيادة." },
     ],
   }),

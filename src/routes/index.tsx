@@ -4,8 +4,8 @@ import { Stethoscope, UserRound, ClipboardList, ShieldCheck, HeartPulse } from "
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "طبيبك — اختر دورك" },
-      { name: "description", content: "طبيبك: احجز عند أقرب طبيب واعرف دورك أول بأول." },
+      { title: "سندي — اختر دورك" },
+      { name: "description", content: "سندي: احجز عند أقرب طبيب واعرف دورك أول بأول." },
     ],
   }),
   component: Landing,
@@ -27,7 +27,7 @@ function Landing() {
             <HeartPulse className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold">طبيبك</h1>
+            <h1 className="text-2xl font-extrabold">سندي</h1>
             <p className="text-sm text-muted-foreground">صحتك أهم حاجة، وإحنا معاك</p>
           </div>
         </div>

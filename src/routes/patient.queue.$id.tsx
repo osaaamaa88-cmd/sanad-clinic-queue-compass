@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { getClinic, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/queue/$id")({
-  head: () => ({ meta: [{ title: "طبيبك — دورك في العيادة" }] }),
+  head: () => ({ meta: [{ title: "سندي — دورك في العيادة" }] }),
   component: Queue,
 });
 
