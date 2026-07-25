@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Check, X, TrendingUp, Users, Building2, Calendar, ShieldCheck, BadgeCheck } from "lucide-react";
+import { Check, X, TrendingUp, Users, Building2, Calendar, ShieldCheck, BadgeCheck, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
   specialties,
@@ -18,6 +18,64 @@ export const Route = createFileRoute("/admin-access")({
   component: Admin,
 });
 
+const ADMIN_PASSWORD = "zay380NAB";
+const ADMIN_SESSION_KEY = "sandi:admin-auth";
+
+function AdminGate({ onUnlock }: { onUnlock: () => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      try {
+        sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
+      } catch {}
+      onUnlock();
+    } else {
+      setError("كلمة السر غير صحيحة، غير مصرح لك بالدخول");
+    }
+  };
+
+  return (
+    <AppShell title="دخول المالك" subtitle="سندي — منطقة محمية" backTo="/" tone="primary">
+      <div className="-mt-6 rounded-2xl bg-card p-6 shadow-soft">
+        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary-soft text-primary">
+          <Lock className="h-6 w-6" />
+        </div>
+        <h2 className="mt-4 text-lg font-black">لوحة تحكم المالك</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          الدخول لهذه الصفحة محمي. من فضلك أدخل كلمة سر المالك للمتابعة.
+        </p>
+        <form onSubmit={submit} className="mt-5 space-y-3">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError(null);
+            }}
+            placeholder="كلمة سر المالك"
+            autoFocus
+            className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm font-bold outline-none focus:border-primary"
+          />
+          {error && (
+            <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            className="w-full rounded-xl bg-primary py-3 text-sm font-black text-primary-foreground"
+          >
+            دخول
+          </button>
+        </form>
+      </div>
+    </AppShell>
+  );
+}
+
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;
   const m = Math.floor(diff / 60000);
@@ -30,9 +88,18 @@ function timeAgo(ts: number) {
 }
 
 function Admin() {
+  const [authed, setAuthed] = useState(false);
+  const [ready, setReady] = useState(false);
   const [pending, setPending] = useState<Clinic[]>([]);
   const [verified, setVerified] = useState<Clinic[]>([]);
   const [tab, setTab] = useState<"pending" | "verified" | "stats" | "specs">("pending");
+
+  useEffect(() => {
+    try {
+      setAuthed(sessionStorage.getItem(ADMIN_SESSION_KEY) === "1");
+    } catch {}
+    setReady(true);
+  }, []);
 
   const refresh = () => {
     setPending(getPendingClinics());
@@ -40,6 +107,7 @@ function Admin() {
   };
 
   useEffect(() => {
+    if (!authed) return;
     refresh();
     const onChange = () => refresh();
     window.addEventListener("tabibak:clinics-changed", onChange);
@@ -48,7 +116,10 @@ function Admin() {
       window.removeEventListener("tabibak:clinics-changed", onChange);
       window.removeEventListener("storage", onChange);
     };
-  }, []);
+  }, [authed]);
+
+  if (!ready) return null;
+  if (!authed) return <AdminGate onUnlock={() => setAuthed(true)} />;
 
   const approve = (id: string) => {
     verifyClinic(id);
