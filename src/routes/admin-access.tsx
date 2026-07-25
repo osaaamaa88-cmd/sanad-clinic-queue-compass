@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Check, X, TrendingUp, Users, Building2, Calendar, ShieldCheck, BadgeCheck, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
@@ -12,28 +13,35 @@ import {
   getSpecialty,
   type Clinic,
 } from "@/lib/mock-data";
+import { checkAdminUnlocked, unlockAdmin } from "@/lib/admin-gate.functions";
 
 export const Route = createFileRoute("/admin-access")({
   head: () => ({ meta: [{ title: "سندي — لوحة الأدمن" }] }),
   component: Admin,
 });
 
-const ADMIN_PASSWORD = "zay380NAB";
-const ADMIN_SESSION_KEY = "sandi:admin-auth";
-
 function AdminGate({ onUnlock }: { onUnlock: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const unlock = useServerFn(unlockAdmin);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      try {
-        sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
-      } catch {}
-      onUnlock();
-    } else {
-      setError("كلمة السر غير صحيحة، غير مصرح لك بالدخول");
+    if (submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await unlock({ data: { password } });
+      if (res.ok) {
+        onUnlock();
+      } else {
+        setError("كلمة السر غير صحيحة، غير مصرح لك بالدخول");
+      }
+    } catch {
+      setError("حصل خطأ أثناء التحقق. حاول تاني.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -66,9 +74,10 @@ function AdminGate({ onUnlock }: { onUnlock: () => void }) {
           )}
           <button
             type="submit"
+            disabled={submitting}
             className="w-full rounded-xl bg-primary py-3 text-sm font-black text-primary-foreground"
           >
-            دخول
+            {submitting ? "جاري التحقق..." : "دخول"}
           </button>
         </form>
       </div>
@@ -93,13 +102,22 @@ function Admin() {
   const [pending, setPending] = useState<Clinic[]>([]);
   const [verified, setVerified] = useState<Clinic[]>([]);
   const [tab, setTab] = useState<"pending" | "verified" | "stats" | "specs">("pending");
+  const check = useServerFn(checkAdminUnlocked);
 
   useEffect(() => {
-    try {
-      setAuthed(sessionStorage.getItem(ADMIN_SESSION_KEY) === "1");
-    } catch {}
-    setReady(true);
-  }, []);
+    let cancelled = false;
+    check()
+      .then((res) => {
+        if (!cancelled) setAuthed(res.unlocked === true);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [check]);
 
   const refresh = () => {
     setPending(getPendingClinics());
