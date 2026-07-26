@@ -14,7 +14,191 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          clinic_id: string
+          code: string
+          created_at: string
+          day_label: string
+          id: string
+          patient_name: string
+          patient_phone: string
+          queue_number: number
+          slot: string
+          status: string
+        }
+        Insert: {
+          clinic_id: string
+          code: string
+          created_at?: string
+          day_label?: string
+          id?: string
+          patient_name: string
+          patient_phone?: string
+          queue_number?: number
+          slot?: string
+          status?: string
+        }
+        Update: {
+          clinic_id?: string
+          code?: string
+          created_at?: string
+          day_label?: string
+          id?: string
+          patient_name?: string
+          patient_phone?: string
+          queue_number?: number
+          slot?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinics: {
+        Row: {
+          address: string
+          area: string
+          available_now: boolean
+          created_at: string
+          distance_km: number
+          doctor: string
+          id: string
+          is_verified: boolean
+          lat: number
+          lng: number
+          now_serving: number
+          phone: string
+          price: number
+          rating: number
+          reviews: number
+          specialty_id: string
+          submitted_at: string
+          updated_at: string
+          waiting_count: number
+          your_number: number
+        }
+        Insert: {
+          address?: string
+          area?: string
+          available_now?: boolean
+          created_at?: string
+          distance_km?: number
+          doctor: string
+          id?: string
+          is_verified?: boolean
+          lat?: number
+          lng?: number
+          now_serving?: number
+          phone?: string
+          price?: number
+          rating?: number
+          reviews?: number
+          specialty_id: string
+          submitted_at?: string
+          updated_at?: string
+          waiting_count?: number
+          your_number?: number
+        }
+        Update: {
+          address?: string
+          area?: string
+          available_now?: boolean
+          created_at?: string
+          distance_km?: number
+          doctor?: string
+          id?: string
+          is_verified?: boolean
+          lat?: number
+          lng?: number
+          now_serving?: number
+          phone?: string
+          price?: number
+          rating?: number
+          reviews?: number
+          specialty_id?: string
+          submitted_at?: string
+          updated_at?: string
+          waiting_count?: number
+          your_number?: number
+        }
+        Relationships: []
+      }
+      emergency_facilities: {
+        Row: {
+          address: string
+          area: string
+          created_at: string
+          distance_km: number
+          id: string
+          lat: number
+          lng: number
+          name: string
+          open_24h: boolean
+          open_now: boolean
+          phone: string
+          type: string
+        }
+        Insert: {
+          address?: string
+          area?: string
+          created_at?: string
+          distance_km?: number
+          id?: string
+          lat?: number
+          lng?: number
+          name: string
+          open_24h?: boolean
+          open_now?: boolean
+          phone?: string
+          type: string
+        }
+        Update: {
+          address?: string
+          area?: string
+          created_at?: string
+          distance_km?: number
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          open_24h?: boolean
+          open_now?: boolean
+          phone?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      patients: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string
+          phone?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string
+          phone?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
