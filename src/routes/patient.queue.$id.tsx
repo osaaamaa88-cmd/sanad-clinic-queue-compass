@@ -2,7 +2,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Users, Clock, Bell, MapPin } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { getClinic, type Clinic } from "@/lib/mock-data";
+import { getVerifiedClinic, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/queue/$id")({
   head: () => ({ meta: [{ title: "سندي — دورك في العيادة" }] }),
@@ -14,9 +14,15 @@ function Queue() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    const c = getClinic(id);
-    setClinic(c);
-    setLoaded(true);
+    let cancelled = false;
+    getVerifiedClinic(id).then((c) => {
+      if (cancelled) return;
+      setClinic(c);
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
   const [current, setCurrent] = useState(0);
   useEffect(() => {
