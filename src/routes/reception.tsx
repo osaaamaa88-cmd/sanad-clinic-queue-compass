@@ -1,76 +1,91 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { UserPlus, Clock, Check, X, Phone } from "lucide-react";
+import { useEffect, useState } from "react";
+import { UserPlus, Clock, Check, Phone, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import {
+  getCurrentDoctorClinic,
+  listBookingsForClinic,
+  updateBookingStatus,
+  createBooking,
+  type Booking,
+  type Clinic,
+} from "@/lib/mock-data";
 
 export const Route = createFileRoute("/reception")({
   head: () => ({ meta: [{ title: "سندي — لوحة السكرتير" }] }),
   component: Reception,
 });
 
-type Row = { id: number; name: string; phone: string; time: string; status: "waiting" | "in" | "done"; walkIn?: boolean };
-
-const initial: Row[] = [
-  { id: 1, name: "محمد علي", phone: "01001234567", time: "٤:٠٠ م", status: "done" },
-  { id: 2, name: "فاطمة السيد", phone: "01007654321", time: "٤:٣٠ م", status: "done" },
-  { id: 3, name: "أحمد فؤاد", phone: "01111112222", time: "٥:٠٠ م", status: "done" },
-  { id: 4, name: "منى إبراهيم", phone: "01223334444", time: "٥:٣٠ م", status: "done" },
-  { id: 5, name: "خالد سمير", phone: "01555556666", time: "٦:٠٠ م", status: "done" },
-  { id: 6, name: "ياسمين حسن", phone: "01099887766", time: "٦:٣٠ م", status: "done" },
-  { id: 7, name: "علي مصطفى", phone: "01011112222", time: "٧:٠٠ م", status: "in" },
-  { id: 8, name: "نور الدين", phone: "01033445566", time: "٧:١٥ م", status: "waiting" },
-  { id: 9, name: "سلمى أحمد", phone: "01077778888", time: "٧:٣٠ م", status: "waiting" },
-  { id: 10, name: "عمر شريف", phone: "01099990000", time: "٧:٤٥ م", status: "waiting" },
-  { id: 11, name: "هدى فتحي", phone: "01088776655", time: "٨:٠٠ م", status: "waiting" },
-];
-
-export default function _unused() {}
-
 function Reception() {
-  const [rows, setRows] = useState<Row[]>(initial);
+  const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
+  const [rows, setRows] = useState<Booking[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
-  const currentIdx = rows.findIndex((r) => r.status === "in");
-  const current = rows[currentIdx];
+  const refresh = async (clinicId: string) => {
+    const list = await listBookingsForClinic(clinicId);
+    setRows(list);
+  };
+
+  useEffect(() => {
+    getCurrentDoctorClinic().then(async (c) => {
+      setClinic(c);
+      if (c) await refresh(c.id);
+      setLoaded(true);
+    });
+  }, []);
+
+  const current = rows.find((r) => r.status === "in");
   const done = rows.filter((r) => r.status === "done").length;
   const waiting = rows.filter((r) => r.status === "waiting").length;
 
-  const next = () => {
-    setRows((rs) => {
-      const copy = [...rs];
-      const inIdx = copy.findIndex((r) => r.status === "in");
-      if (inIdx >= 0) copy[inIdx] = { ...copy[inIdx], status: "done" };
-      const nextIdx = copy.findIndex((r) => r.status === "waiting");
-      if (nextIdx >= 0) copy[nextIdx] = { ...copy[nextIdx], status: "in" };
-      return copy;
-    });
+  const next = async () => {
+    if (!clinic) return;
+    const inRow = rows.find((r) => r.status === "in");
+    if (inRow) await updateBookingStatus(inRow.id, "done");
+    const nextRow = rows.find((r) => r.status === "waiting");
+    if (nextRow) await updateBookingStatus(nextRow.id, "in");
+    await refresh(clinic.id);
   };
 
-  const addWalkIn = () => {
-    if (!name.trim()) return;
-    setRows((rs) => [
-      ...rs,
-      {
-        id: rs.length + 1,
-        name: name.trim(),
-        phone: phone.trim() || "—",
-        time: "الآن",
-        status: "waiting",
-        walkIn: true,
-      },
-    ]);
+  const addWalkIn = async () => {
+    if (!clinic || !name.trim()) return;
+    await createBooking({
+      clinicId: clinic.id,
+      patientName: name.trim(),
+      patientPhone: phone.trim(),
+      dayLabel: "اليوم",
+      slot: "الآن",
+    });
     setName("");
     setPhone("");
     setShowAdd(false);
+    await refresh(clinic.id);
   };
 
+  if (loaded && !clinic) {
+    return (
+      <AppShell title="لوحة السكرتير" backTo="/">
+        <div className="mt-6 rounded-2xl border-2 border-dashed border-border bg-card p-8 text-center">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
+            <Stethoscope className="h-6 w-6" />
+          </div>
+          <p className="mt-3 text-sm font-bold">لا توجد عيادة مربوطة بالجهاز</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            من فضلك سجّل عيادتك من واجهة الطبيب أولاً ثم افتح لوحة السكرتير.
+          </p>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
-    <AppShell title="لوحة السكرتير" subtitle="عيادة د. أحمد السيد — الأسنان" backTo="/">
+    <AppShell title="لوحة السكرتير" subtitle={clinic ? `عيادة ${clinic.doctor}` : ""} backTo="/">
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2">
-        <StatBox value={String(current?.id ?? "—")} label="النمرة دلوقتي" tone="primary" />
+        <StatBox value={String(current?.queueNumber ?? "—")} label="النمرة دلوقتي" tone="primary" />
         <StatBox value={String(waiting)} label="في الانتظار" />
         <StatBox value={String(done)} label="خلصوا" />
       </div>
@@ -93,11 +108,11 @@ function Reception() {
           <p className="text-xs font-bold text-primary">جوه دلوقتي</p>
           <div className="mt-2 flex items-center gap-3">
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary text-lg font-black text-primary-foreground">
-              {current.id}
+              {current.queueNumber}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-bold">{current.name}</p>
-              <p className="text-xs text-muted-foreground">{current.phone}</p>
+              <p className="truncate font-bold">{current.patientName}</p>
+              <p className="text-xs text-muted-foreground">{current.patientPhone || "—"}</p>
             </div>
           </div>
         </div>
@@ -144,6 +159,11 @@ function Reception() {
       {/* Queue list */}
       <h2 className="mt-6 text-base font-bold">حجوزات النهارده</h2>
       <div className="mt-3 space-y-2">
+        {rows.length === 0 && (
+          <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            لا توجد حجوزات لسه. لما مريض يحجز، هيظهر هنا فوراً.
+          </div>
+        )}
         {rows.slice().reverse().map((r) => (
           <div
             key={r.id}
@@ -158,15 +178,15 @@ function Reception() {
                 ? "bg-secondary text-muted-foreground"
                 : "bg-warning/20 text-foreground"
             }`}>
-              {r.id}
+              {r.queueNumber}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-bold">{r.name}</p>
-                {r.walkIn && <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold">حضوري</span>}
+                <p className="truncate text-sm font-bold">{r.patientName}</p>
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold">{r.code}</span>
               </div>
               <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <Clock className="h-3 w-3" /> {r.time} • <Phone className="h-3 w-3" /> {r.phone}
+                <Clock className="h-3 w-3" /> {r.slot || "—"} • <Phone className="h-3 w-3" /> {r.patientPhone || "—"}
               </div>
             </div>
             {r.status === "done" && <Check className="h-4 w-4 text-success" />}

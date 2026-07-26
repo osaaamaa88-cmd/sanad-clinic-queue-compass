@@ -1,18 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, X, TrendingUp, Users, Building2, Calendar, ShieldCheck, BadgeCheck, Lock } from "lucide-react";
+import { X, TrendingUp, Users, Building2, Calendar, ShieldCheck, BadgeCheck, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
 import {
-  specialties,
-  getAllClinics,
-  getPendingClinics,
-  getVerifiedClinics,
-  verifyClinic,
-  deleteClinic,
-  getSpecialty,
-  type Clinic,
-} from "@/lib/mock-data";
+  adminListClinics,
+  adminVerifyClinic,
+  adminDeleteClinic,
+  adminStats,
+} from "@/lib/admin.functions";
 import { checkAdminUnlocked, unlockAdmin } from "@/lib/admin-gate.functions";
 
 export const Route = createFileRoute("/admin-access")({
@@ -101,8 +98,18 @@ function Admin() {
   const [ready, setReady] = useState(false);
   const [pending, setPending] = useState<Clinic[]>([]);
   const [verified, setVerified] = useState<Clinic[]>([]);
+  const [stats, setStats] = useState<{ total: number; verified: number; pending: number; bookings: number }>({
+    total: 0,
+    verified: 0,
+    pending: 0,
+    bookings: 0,
+  });
   const [tab, setTab] = useState<"pending" | "verified" | "stats" | "specs">("pending");
   const check = useServerFn(checkAdminUnlocked);
+  const list = useServerFn(adminListClinics);
+  const verify = useServerFn(adminVerifyClinic);
+  const remove = useServerFn(adminDeleteClinic);
+  const stat = useServerFn(adminStats);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,36 +126,56 @@ function Admin() {
     };
   }, [check]);
 
-  const refresh = () => {
-    setPending(getPendingClinics());
-    setVerified(getVerifiedClinics());
+  const refresh = async () => {
+    try {
+      const { rows } = await list();
+      const mapped: Clinic[] = rows.map((r: Record<string, unknown>) => ({
+        id: r.id as string,
+        doctor: r.doctor as string,
+        specialtyId: r.specialty_id as string,
+        address: (r.address as string) ?? "",
+        area: (r.area as string) ?? "",
+        phone: (r.phone as string) ?? "",
+        price: Number(r.price) || 0,
+        rating: Number(r.rating) || 0,
+        reviews: Number(r.reviews) || 0,
+        availableNow: Boolean(r.available_now),
+        distanceKm: Number(r.distance_km) || 0,
+        nowServing: Number(r.now_serving) || 0,
+        yourNumber: Number(r.your_number) || 0,
+        waitingCount: Number(r.waiting_count) || 0,
+        lat: Number(r.lat) || 0,
+        lng: Number(r.lng) || 0,
+        isVerified: Boolean(r.is_verified),
+        submittedAt: r.submitted_at ? new Date(r.submitted_at as string).getTime() : Date.now(),
+      }));
+      setPending(mapped.filter((c) => !c.isVerified));
+      setVerified(mapped.filter((c) => c.isVerified));
+      const s = await stat();
+      setStats(s);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   useEffect(() => {
     if (!authed) return;
     refresh();
-    const onChange = () => refresh();
-    window.addEventListener("tabibak:clinics-changed", onChange);
-    window.addEventListener("storage", onChange);
-    return () => {
-      window.removeEventListener("tabibak:clinics-changed", onChange);
-      window.removeEventListener("storage", onChange);
-    };
   }, [authed]);
 
   if (!ready) return null;
   if (!authed) return <AdminGate onUnlock={() => setAuthed(true)} />;
 
-  const approve = (id: string) => {
-    verifyClinic(id);
-    refresh();
+  const approve = async (id: string) => {
+    await verify({ data: { id } });
+    await refresh();
   };
-  const reject = (id: string) => {
-    deleteClinic(id);
-    refresh();
+  const reject = async (id: string) => {
+    await remove({ data: { id } });
+    await refresh();
   };
 
-  const total = getAllClinics().length;
+  const total = stats.total;
 
   return (
     <AppShell title="لوحة تحكم الأدمن" subtitle="سندي — الإدارة" backTo="/" tone="primary">
@@ -156,7 +183,7 @@ function Admin() {
       <div className="-mt-6 grid grid-cols-2 gap-3">
         <KPI icon={Building2} label="عيادات موثّقة" value={String(verified.length)} />
         <KPI icon={Users} label="إجمالي العيادات" value={String(total)} />
-        <KPI icon={Calendar} label="حجوزات النهاردة" value="—" />
+        <KPI icon={Calendar} label="إجمالي الحجوزات" value={String(stats.bookings)} />
         <KPI icon={ShieldCheck} label="بانتظار التوثيق" value={String(pending.length)} tone="warn" />
       </div>
 
