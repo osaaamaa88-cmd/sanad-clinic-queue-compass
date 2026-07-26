@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Search, Bell, Clock, Star, Stethoscope } from "lucide-react";
+import { MapPin, Search, Bell, Clock, Star, Stethoscope, Siren, Phone } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 
@@ -51,6 +51,35 @@ function PatientHome() {
           <button className="rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold">تغيير</button>
         </div>
       </div>
+
+      {/* Emergency banner */}
+      <Link
+        to="/patient/emergency"
+        className="mt-4 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 transition hover:shadow-soft"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-destructive text-destructive-foreground">
+          <Siren className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="font-extrabold text-destructive">طوارئ وعيادات مفتوحة الآن</p>
+            <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">
+              24 ساعة
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            أقرب مستشفى ومركز أشعة وعيادة طوارئ + اتصال سريع
+          </p>
+        </div>
+        <a
+          href="tel:123"
+          onClick={(e) => e.stopPropagation()}
+          aria-label="اتصال بالإسعاف 123"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-destructive text-destructive-foreground"
+        >
+          <Phone className="h-5 w-5" />
+        </a>
+      </Link>
 
       {/* Search */}
       <Link
