@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export type Specialty = {
   id: string;
   name: string;
@@ -38,72 +40,124 @@ export type Clinic = {
   submittedAt: number;
 };
 
-// قاعدة البيانات فارغة — الأطباء يسجّلون من واجهة الطبيب ثم يتم توثيقهم من الأدمن.
-const STORAGE_KEY = "tabibak.clinics.v1";
 const CURRENT_DOCTOR_KEY = "tabibak.currentDoctorId.v1";
 
 function isBrowser() {
   return typeof window !== "undefined";
 }
 
-export function getAllClinics(): Clinic[] {
-  if (!isBrowser()) return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Clinic[]) : [];
-  } catch {
-    return [];
-  }
-}
+type Row = {
+  id: string;
+  doctor: string;
+  specialty_id: string;
+  address: string;
+  area: string;
+  phone: string;
+  price: number;
+  rating: number | string;
+  reviews: number;
+  available_now: boolean;
+  distance_km: number | string;
+  now_serving: number;
+  your_number: number;
+  waiting_count: number;
+  lat: number | string;
+  lng: number | string;
+  is_verified: boolean;
+  submitted_at: string;
+};
 
-function saveAll(list: Clinic[]) {
-  if (!isBrowser()) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  window.dispatchEvent(new Event("tabibak:clinics-changed"));
-}
-
-export function getVerifiedClinics(): Clinic[] {
-  return getAllClinics().filter((c) => c.isVerified);
-}
-
-export function getPendingClinics(): Clinic[] {
-  return getAllClinics().filter((c) => !c.isVerified);
-}
-
-export function getClinic(id: string): Clinic | undefined {
-  return getAllClinics().find((c) => c.id === id);
-}
-
-export function upsertClinic(input: Omit<Clinic, "id" | "isVerified" | "submittedAt"> & { id?: string }): Clinic {
-  const list = getAllClinics();
-  if (input.id) {
-    const idx = list.findIndex((c) => c.id === input.id);
-    if (idx >= 0) {
-      const merged: Clinic = { ...list[idx], ...input, id: input.id };
-      list[idx] = merged;
-      saveAll(list);
-      return merged;
-    }
-  }
-  const id = input.id ?? `c_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  const created: Clinic = {
-    ...input,
-    id,
-    isVerified: false,
-    submittedAt: Date.now(),
+function rowToClinic(r: Row): Clinic {
+  return {
+    id: r.id,
+    doctor: r.doctor,
+    specialtyId: r.specialty_id,
+    address: r.address,
+    area: r.area,
+    phone: r.phone,
+    price: Number(r.price) || 0,
+    rating: Number(r.rating) || 0,
+    reviews: r.reviews,
+    availableNow: r.available_now,
+    distanceKm: Number(r.distance_km) || 0,
+    nowServing: r.now_serving,
+    yourNumber: r.your_number,
+    waitingCount: r.waiting_count,
+    lat: Number(r.lat) || 0,
+    lng: Number(r.lng) || 0,
+    isVerified: r.is_verified,
+    submittedAt: new Date(r.submitted_at).getTime(),
   };
-  list.push(created);
-  saveAll(list);
-  return created;
 }
 
-export function verifyClinic(id: string) {
-  const list = getAllClinics().map((c) => (c.id === id ? { ...c, isVerified: true } : c));
-  saveAll(list);
+export async function getVerifiedClinics(): Promise<Clinic[]> {
+  const { data, error } = await supabase
+    .from("clinics")
+    .select("*")
+    .eq("is_verified", true)
+    .order("submitted_at", { ascending: false });
+  if (error) return [];
+  return (data as Row[]).map(rowToClinic);
 }
 
-export function deleteClinic(id: string) {
-  saveAll(getAllClinics().filter((c) => c.id !== id));
+export async function getVerifiedClinic(id: string): Promise<Clinic | undefined> {
+  const { data, error } = await supabase
+    .from("clinics")
+    .select("*")
+    .eq("id", id)
+    .eq("is_verified", true)
+    .maybeSingle();
+  if (error || !data) return undefined;
+  return rowToClinic(data as Row);
+}
+
+export async function getClinicById(id: string): Promise<Clinic | undefined> {
+  const { data, error } = await supabase
+    .from("clinics")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return undefined;
+  return rowToClinic(data as Row);
+}
+
+export async function upsertClinic(
+  input: Omit<Clinic, "id" | "isVerified" | "submittedAt"> & { id?: string },
+): Promise<Clinic | null> {
+  const payload = {
+    doctor: input.doctor,
+    specialty_id: input.specialtyId,
+    address: input.address,
+    area: input.area,
+    phone: input.phone,
+    price: input.price,
+    rating: input.rating,
+    reviews: input.reviews,
+    available_now: input.availableNow,
+    distance_km: input.distanceKm,
+    now_serving: input.nowServing,
+    your_number: input.yourNumber,
+    waiting_count: input.waitingCount,
+    lat: input.lat,
+    lng: input.lng,
+  };
+  if (input.id) {
+    const { data, error } = await supabase
+      .from("clinics")
+      .update(payload)
+      .eq("id", input.id)
+      .select()
+      .maybeSingle();
+    if (error || !data) return null;
+    return rowToClinic(data as Row);
+  }
+  const { data, error } = await supabase
+    .from("clinics")
+    .insert({ ...payload, is_verified: false })
+    .select()
+    .maybeSingle();
+  if (error || !data) return null;
+  return rowToClinic(data as Row);
 }
 
 export function getCurrentDoctorId(): string | null {
@@ -117,9 +171,96 @@ export function setCurrentDoctorId(id: string | null) {
   else localStorage.removeItem(CURRENT_DOCTOR_KEY);
 }
 
-export function getCurrentDoctorClinic(): Clinic | undefined {
+export async function getCurrentDoctorClinic(): Promise<Clinic | undefined> {
   const id = getCurrentDoctorId();
-  return id ? getClinic(id) : undefined;
+  return id ? getClinicById(id) : undefined;
+}
+
+// Bookings
+export type Booking = {
+  id: string;
+  code: string;
+  clinicId: string;
+  patientName: string;
+  patientPhone: string;
+  dayLabel: string;
+  slot: string;
+  queueNumber: number;
+  status: "waiting" | "in" | "done";
+  createdAt: number;
+};
+
+type BookingRow = {
+  id: string;
+  code: string;
+  clinic_id: string;
+  patient_name: string;
+  patient_phone: string;
+  day_label: string;
+  slot: string;
+  queue_number: number;
+  status: string;
+  created_at: string;
+};
+
+function rowToBooking(r: BookingRow): Booking {
+  return {
+    id: r.id,
+    code: r.code,
+    clinicId: r.clinic_id,
+    patientName: r.patient_name,
+    patientPhone: r.patient_phone,
+    dayLabel: r.day_label,
+    slot: r.slot,
+    queueNumber: r.queue_number,
+    status: (r.status as Booking["status"]) || "waiting",
+    createdAt: new Date(r.created_at).getTime(),
+  };
+}
+
+export async function createBooking(input: {
+  clinicId: string;
+  patientName: string;
+  patientPhone: string;
+  dayLabel: string;
+  slot: string;
+}): Promise<Booking | null> {
+  const code = `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+  const { count } = await supabase
+    .from("bookings")
+    .select("*", { count: "exact", head: true })
+    .eq("clinic_id", input.clinicId);
+  const queueNumber = (count ?? 0) + 1;
+  const { data, error } = await supabase
+    .from("bookings")
+    .insert({
+      code,
+      clinic_id: input.clinicId,
+      patient_name: input.patientName,
+      patient_phone: input.patientPhone,
+      day_label: input.dayLabel,
+      slot: input.slot,
+      queue_number: queueNumber,
+      status: "waiting",
+    })
+    .select()
+    .maybeSingle();
+  if (error || !data) return null;
+  return rowToBooking(data as BookingRow);
+}
+
+export async function listBookingsForClinic(clinicId: string): Promise<Booking[]> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("clinic_id", clinicId)
+    .order("queue_number", { ascending: true });
+  if (error || !data) return [];
+  return (data as BookingRow[]).map(rowToBooking);
+}
+
+export async function updateBookingStatus(id: string, status: Booking["status"]) {
+  await supabase.from("bookings").update({ status }).eq("id", id);
 }
 
 export const timeSlots = [

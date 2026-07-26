@@ -34,8 +34,9 @@ function Doctor() {
   const [secretaries, setSecretaries] = useState<{ name: string; phone: string }[]>([]);
 
   useEffect(() => {
-    const c = getCurrentDoctorClinic();
-    if (c) hydrate(c);
+    getCurrentDoctorClinic().then((c) => {
+      if (c) hydrate(c);
+    });
   }, []);
 
   const hydrate = (c: Clinic) => {
@@ -51,12 +52,12 @@ function Doctor() {
     setStreet(c.address);
   };
 
-  const save = () => {
+  const save = async () => {
     if (!name.trim() || !phone.trim() || !area.trim()) {
       return;
     }
     const address = [street, building, floor].filter(Boolean).join("، ");
-    const created = upsertClinic({
+    const created = await upsertClinic({
       id: clinicId,
       doctor: name.trim(),
       specialtyId: spec,
@@ -74,6 +75,7 @@ function Doctor() {
       lat: 30.0444,
       lng: 31.2357,
     });
+    if (!created) return;
     const isNew = !clinicId;
     setClinicId(created.id);
     setIsVerified(created.isVerified);

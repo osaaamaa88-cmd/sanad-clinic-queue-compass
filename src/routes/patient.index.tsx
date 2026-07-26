@@ -17,13 +17,12 @@ export const Route = createFileRoute("/patient/")({
 function PatientHome() {
   const [clinics, setClinics] = useState<Clinic[]>([]);
   useEffect(() => {
-    const refresh = () => setClinics(getVerifiedClinics());
-    refresh();
-    window.addEventListener("tabibak:clinics-changed", refresh);
-    window.addEventListener("storage", refresh);
+    let cancelled = false;
+    getVerifiedClinics().then((list) => {
+      if (!cancelled) setClinics(list);
+    });
     return () => {
-      window.removeEventListener("tabibak:clinics-changed", refresh);
-      window.removeEventListener("storage", refresh);
+      cancelled = true;
     };
   }, []);
   const active = clinics.filter((c) => c.availableNow).slice(0, 4);

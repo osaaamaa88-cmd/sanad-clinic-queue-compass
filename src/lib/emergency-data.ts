@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export type EmergencyFacility = {
   id: string;
   name: string;
@@ -19,112 +21,26 @@ export const emergencyHotlines = [
   { id: "poison", label: "التسمم", phone: "0225106603", emoji: "☠️" },
 ];
 
-export const emergencyFacilities: EmergencyFacility[] = [
-  {
-    id: "e1",
-    name: "مستشفى الشيخ زايد التخصصي",
-    type: "hospital",
-    area: "الشيخ زايد، الجيزة",
-    address: "المحور المركزي، الشيخ زايد",
-    phone: "01000000001",
-    distanceKm: 2.4,
-    open24h: true,
-    openNow: true,
-    lat: 30.0705,
-    lng: 30.9756,
-  },
-  {
-    id: "e2",
-    name: "مستشفى الدكتور سامي حنا للطوارئ",
-    type: "hospital",
-    area: "المهندسين، الجيزة",
-    address: "شارع جامعة الدول العربية",
-    phone: "01000000002",
-    distanceKm: 1.1,
-    open24h: true,
-    openNow: true,
-    lat: 30.0561,
-    lng: 31.2004,
-  },
-  {
-    id: "e3",
-    name: "مركز أشعة المقطم — 24 ساعة",
-    type: "radiology",
-    area: "المقطم، القاهرة",
-    address: "شارع 9، المقطم",
-    phone: "01000000003",
-    distanceKm: 6.8,
-    open24h: true,
-    openNow: true,
-    lat: 30.0131,
-    lng: 31.3086,
-  },
-  {
-    id: "e4",
-    name: "الألفا سكان — فرع مدينة نصر",
-    type: "radiology",
-    area: "مدينة نصر، القاهرة",
-    address: "شارع مكرم عبيد",
-    phone: "01000000004",
-    distanceKm: 4.3,
-    open24h: false,
-    openNow: true,
-    lat: 30.0596,
-    lng: 31.3401,
-  },
-  {
-    id: "e5",
-    name: "عيادة الحياة — طوارئ 24 ساعة",
-    type: "clinic",
-    area: "الدقي، الجيزة",
-    address: "شارع التحرير، الدقي",
-    phone: "01000000005",
-    distanceKm: 0.9,
-    open24h: true,
-    openNow: true,
-    lat: 30.0384,
-    lng: 31.2118,
-  },
-  {
-    id: "e6",
-    name: "صيدلية العزبي — فرع 24 ساعة",
-    type: "pharmacy",
-    area: "المهندسين، الجيزة",
-    address: "شارع شهاب",
-    phone: "19600",
-    distanceKm: 1.5,
-    open24h: true,
-    openNow: true,
-    lat: 30.0587,
-    lng: 31.2013,
-  },
-  {
-    id: "e7",
-    name: "مستشفى دار الفؤاد",
-    type: "hospital",
-    area: "مدينة 6 أكتوبر",
-    address: "المحور المركزي، 6 أكتوبر",
-    phone: "01000000007",
-    distanceKm: 12.2,
-    open24h: true,
-    openNow: true,
-    lat: 29.9668,
-    lng: 30.9445,
-  },
-  {
-    id: "e8",
-    name: "مركز أشعة المهندسين",
-    type: "radiology",
-    area: "المهندسين، الجيزة",
-    address: "شارع السودان",
-    phone: "01000000008",
-    distanceKm: 1.8,
-    open24h: false,
-    openNow: false,
-    lat: 30.0602,
-    lng: 31.2028,
-  },
-];
+export async function listEmergencyFacilities(): Promise<EmergencyFacility[]> {
+  const { data, error } = await supabase
+    .from("emergency_facilities")
+    .select("*")
+    .order("distance_km", { ascending: true });
+  if (error || !data) return [];
+  return data.map((r) => ({
+    id: r.id,
+    name: r.name,
+    type: r.type as EmergencyFacility["type"],
+    area: r.area,
+    address: r.address,
+    phone: r.phone,
+    distanceKm: Number(r.distance_km) || 0,
+    open24h: r.open_24h,
+    openNow: r.open_now,
+    lat: Number(r.lat) || 0,
+    lng: Number(r.lng) || 0,
+  }));
+}
 
 export const facilityTypeLabel: Record<EmergencyFacility["type"], { label: string; emoji: string }> = {
   hospital: { label: "مستشفى", emoji: "🏥" },

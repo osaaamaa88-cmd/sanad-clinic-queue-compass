@@ -2,7 +2,15 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MapPin, Star, MessageCircle, Users, Check, Banknote } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { getClinic, getSpecialty, timeSlots, days, whatsappLink, type Clinic } from "@/lib/mock-data";
+import {
+  getVerifiedClinic,
+  getSpecialty,
+  timeSlots,
+  days,
+  whatsappLink,
+  createBooking,
+  type Clinic,
+} from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/clinic/$id")({
   head: () => ({
@@ -19,15 +27,38 @@ function ClinicDetail() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    setClinic(getClinic(id));
-    setLoaded(true);
+    let cancelled = false;
+    getVerifiedClinic(id).then((c) => {
+      if (cancelled) return;
+      setClinic(c);
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
   const [dayIdx, setDayIdx] = useState(0);
   const [slot, setSlot] = useState<string | null>(null);
   const [booked, setBooked] = useState(false);
-  const [bookingCode] = useState(() =>
-    `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
-  );
+  const [bookingCode, setBookingCode] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const confirmBooking = async () => {
+    if (!clinic || !slot || submitting) return;
+    setSubmitting(true);
+    const b = await createBooking({
+      clinicId: clinic.id,
+      patientName: "مريض سندي",
+      patientPhone: "",
+      dayLabel: `${days[dayIdx].label} — ${days[dayIdx].date}`,
+      slot,
+    });
+    setSubmitting(false);
+    if (b) {
+      setBookingCode(b.code);
+      setBooked(true);
+    }
+  };
 
   if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient/search"><div /></AppShell>;
   if (!clinic || !clinic.isVerified) {
@@ -194,11 +225,11 @@ function ClinicDetail() {
       {/* Confirm */}
       <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-border bg-card/95 p-4 backdrop-blur">
         <button
-          disabled={!slot}
-          onClick={() => setBooked(true)}
+          disabled={!slot || submitting}
+          onClick={confirmBooking}
           className="w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-50"
         >
-          {slot ? `أكد الحجز — ${slot}` : "اختار الساعة الأول"}
+          {submitting ? "جاري الحفظ…" : slot ? `أكد الحجز — ${slot}` : "اختار الساعة الأول"}
         </button>
       </div>
     </AppShell>

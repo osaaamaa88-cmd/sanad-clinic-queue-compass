@@ -3,11 +3,12 @@ import { useMemo, useState } from "react";
 import { Phone, MapPin, Clock, Filter, MessageCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
-  emergencyFacilities,
+  listEmergencyFacilities,
   emergencyHotlines,
   facilityTypeLabel,
   type EmergencyFacility,
 } from "@/lib/emergency-data";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/patient/emergency")({
   head: () => ({
@@ -29,15 +30,25 @@ function EmergencyPage() {
   const [sort, setSort] = useState<SortMode>("near");
   const [type, setType] = useState<TypeFilter>("all");
   const [only24, setOnly24] = useState(false);
+  const [facilities, setFacilities] = useState<EmergencyFacility[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    listEmergencyFacilities().then((list) => {
+      if (!cancelled) setFacilities(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const list = useMemo(() => {
-    let items = [...emergencyFacilities];
+    let items = [...facilities];
     if (type !== "all") items = items.filter((f) => f.type === type);
     if (only24) items = items.filter((f) => f.open24h);
     if (sort === "near") items.sort((a, b) => a.distanceKm - b.distanceKm);
     if (sort === "open") items.sort((a, b) => Number(b.openNow) - Number(a.openNow));
     return items;
-  }, [sort, type, only24]);
+  }, [sort, type, only24, facilities]);
 
   return (
     <AppShell
