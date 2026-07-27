@@ -70,6 +70,7 @@ export type Database = {
           distance_km: number
           doctor: string
           id: string
+          is_disabled: boolean
           is_verified: boolean
           lat: number
           lng: number
@@ -92,6 +93,7 @@ export type Database = {
           distance_km?: number
           doctor: string
           id?: string
+          is_disabled?: boolean
           is_verified?: boolean
           lat?: number
           lng?: number
@@ -114,6 +116,7 @@ export type Database = {
           distance_km?: number
           doctor?: string
           id?: string
+          is_disabled?: boolean
           is_verified?: boolean
           lat?: number
           lng?: number
