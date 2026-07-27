@@ -116,7 +116,14 @@ export const adminEditClinic = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await assertAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      doctor?: string;
+      specialty_id?: string;
+      address?: string;
+      area?: string;
+      phone?: string;
+      price?: number;
+    } = {};
     if (typeof data.doctor === "string") patch.doctor = data.doctor;
     if (typeof data.specialtyId === "string") patch.specialty_id = data.specialtyId;
     if (typeof data.address === "string") patch.address = data.address;
