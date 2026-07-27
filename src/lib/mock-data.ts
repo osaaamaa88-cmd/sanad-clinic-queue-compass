@@ -1,4 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import {
+  svrCreateBooking,
+  svrListBookingsForClinic,
+  svrUpdateBookingStatus,
+  svrUpdateClinic,
+} from "@/lib/data.functions";
 
 export type Specialty = {
   id: string;
@@ -124,6 +130,27 @@ export async function getClinicById(id: string): Promise<Clinic | undefined> {
 export async function upsertClinic(
   input: Omit<Clinic, "id" | "isVerified" | "submittedAt"> & { id?: string },
 ): Promise<Clinic | null> {
+  if (input.id) {
+    try {
+      const { row } = await svrUpdateClinic({
+        data: {
+          id: input.id,
+          doctor: input.doctor,
+          specialtyId: input.specialtyId,
+          address: input.address,
+          area: input.area,
+          phone: input.phone,
+          price: input.price,
+          availableNow: input.availableNow,
+          lat: input.lat,
+          lng: input.lng,
+        },
+      });
+      return rowToClinic(row as Row);
+    } catch {
+      return null;
+    }
+  }
   const payload = {
     doctor: input.doctor,
     specialty_id: input.specialtyId,
@@ -141,16 +168,6 @@ export async function upsertClinic(
     lat: input.lat,
     lng: input.lng,
   };
-  if (input.id) {
-    const { data, error } = await supabase
-      .from("clinics")
-      .update(payload)
-      .eq("id", input.id)
-      .select()
-      .maybeSingle();
-    if (error || !data) return null;
-    return rowToClinic(data as Row);
-  }
   const { data, error } = await supabase
     .from("clinics")
     .insert({ ...payload, is_verified: false })
@@ -225,42 +242,40 @@ export async function createBooking(input: {
   dayLabel: string;
   slot: string;
 }): Promise<Booking | null> {
-  const code = `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-  const { count } = await supabase
-    .from("bookings")
-    .select("*", { count: "exact", head: true })
-    .eq("clinic_id", input.clinicId);
-  const queueNumber = (count ?? 0) + 1;
-  const { data, error } = await supabase
-    .from("bookings")
-    .insert({
-      code,
-      clinic_id: input.clinicId,
-      patient_name: input.patientName,
-      patient_phone: input.patientPhone,
-      day_label: input.dayLabel,
+  try {
+    const res = await svrCreateBooking({ data: input });
+    return {
+      id: res.id,
+      code: res.code,
+      clinicId: input.clinicId,
+      patientName: input.patientName,
+      patientPhone: input.patientPhone,
+      dayLabel: input.dayLabel,
       slot: input.slot,
-      queue_number: queueNumber,
+      queueNumber: res.queueNumber,
       status: "waiting",
-    })
-    .select()
-    .maybeSingle();
-  if (error || !data) return null;
-  return rowToBooking(data as BookingRow);
+      createdAt: Date.now(),
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function listBookingsForClinic(clinicId: string): Promise<Booking[]> {
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("*")
-    .eq("clinic_id", clinicId)
-    .order("queue_number", { ascending: true });
-  if (error || !data) return [];
-  return (data as BookingRow[]).map(rowToBooking);
+  try {
+    const { rows } = await svrListBookingsForClinic({ data: { clinicId } });
+    return (rows as BookingRow[]).map(rowToBooking);
+  } catch {
+    return [];
+  }
 }
 
 export async function updateBookingStatus(id: string, status: Booking["status"]) {
-  await supabase.from("bookings").update({ status }).eq("id", id);
+  try {
+    await svrUpdateBookingStatus({ data: { id, status } });
+  } catch {
+    // ignore
+  }
 }
 
 export const timeSlots = [
