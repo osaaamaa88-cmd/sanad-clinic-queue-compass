@@ -15,6 +15,7 @@ import { Route as AdminAccessRouteImport } from './routes/admin-access'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PatientIndexRouteImport } from './routes/patient.index'
 import { Route as PatientSearchRouteImport } from './routes/patient.search'
+import { Route as PatientMedsRouteImport } from './routes/patient.meds'
 import { Route as PatientHealthRouteImport } from './routes/patient.health'
 import { Route as PatientEmergencyRouteImport } from './routes/patient.emergency'
 import { Route as PatientQueueIdRouteImport } from './routes/patient.queue.$id'
@@ -50,6 +51,11 @@ const PatientSearchRoute = PatientSearchRouteImport.update({
   path: '/patient/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PatientMedsRoute = PatientMedsRouteImport.update({
+  id: '/patient/meds',
+  path: '/patient/meds',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PatientHealthRoute = PatientHealthRouteImport.update({
   id: '/patient/health',
   path: '/patient/health',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/reception': typeof ReceptionRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
+  '/patient/meds': typeof PatientMedsRoute
   '/patient/search': typeof PatientSearchRoute
   '/patient/': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/reception': typeof ReceptionRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
+  '/patient/meds': typeof PatientMedsRoute
   '/patient/search': typeof PatientSearchRoute
   '/patient': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/reception': typeof ReceptionRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
+  '/patient/meds': typeof PatientMedsRoute
   '/patient/search': typeof PatientSearchRoute
   '/patient/': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/patient/emergency'
     | '/patient/health'
+    | '/patient/meds'
     | '/patient/search'
     | '/patient/'
     | '/patient/clinic/$id'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/patient/emergency'
     | '/patient/health'
+    | '/patient/meds'
     | '/patient/search'
     | '/patient'
     | '/patient/clinic/$id'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/patient/emergency'
     | '/patient/health'
+    | '/patient/meds'
     | '/patient/search'
     | '/patient/'
     | '/patient/clinic/$id'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   ReceptionRoute: typeof ReceptionRoute
   PatientEmergencyRoute: typeof PatientEmergencyRoute
   PatientHealthRoute: typeof PatientHealthRoute
+  PatientMedsRoute: typeof PatientMedsRoute
   PatientSearchRoute: typeof PatientSearchRoute
   PatientIndexRoute: typeof PatientIndexRoute
   PatientClinicIdRoute: typeof PatientClinicIdRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatientSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/patient/meds': {
+      id: '/patient/meds'
+      path: '/patient/meds'
+      fullPath: '/patient/meds'
+      preLoaderRoute: typeof PatientMedsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/patient/health': {
       id: '/patient/health'
       path: '/patient/health'
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReceptionRoute: ReceptionRoute,
   PatientEmergencyRoute: PatientEmergencyRoute,
   PatientHealthRoute: PatientHealthRoute,
+  PatientMedsRoute: PatientMedsRoute,
   PatientSearchRoute: PatientSearchRoute,
   PatientIndexRoute: PatientIndexRoute,
   PatientClinicIdRoute: PatientClinicIdRoute,

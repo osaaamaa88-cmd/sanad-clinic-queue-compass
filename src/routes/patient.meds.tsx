@@ -125,7 +125,7 @@ function Meds() {
     if (meds.length === 0) return null;
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
-    let best: { med: Med; t: string; diff: number } | null = null;
+    let best: { med: Med; t: string; diff: number } | null = null as { med: Med; t: string; diff: number } | null;
     meds.forEach((m) =>
       m.times.forEach((t) => {
         const [h, mi] = t.split(":").map(Number);
