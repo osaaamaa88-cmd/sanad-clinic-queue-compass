@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Search, Bell, Clock, Star, Stethoscope, Siren, Phone } from "lucide-react";
+import { MapPin, Search, Bell, Clock, Star, Stethoscope, Siren, Phone, Activity } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 
@@ -87,6 +87,22 @@ function PatientHome() {
       >
         <Search className="h-5 w-5 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">دور على طبيب أو عيادة…</span>
+      </Link>
+
+      {/* Health tracker */}
+      <Link
+        to="/patient/health"
+        className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4 transition hover:shadow-soft"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
+          <Activity className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-extrabold">حاسبة ومؤشرات الصحة</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            احسب ضغط الدم والسكر واحفظ قراءاتك في ملفك الطبي
+          </p>
+        </div>
       </Link>
 
       {/* Specialties */}
