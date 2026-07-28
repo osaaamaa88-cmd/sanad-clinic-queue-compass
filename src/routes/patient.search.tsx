@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope, Search as SearchIcon, X, ArrowDownAZ } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
 
@@ -18,6 +18,8 @@ function Search() {
   const [view, setView] = useState<"list" | "map">("list");
   const [spec, setSpec] = useState<string | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [q, setQ] = useState("");
+  const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
   useEffect(() => {
     let cancelled = false;
     getVerifiedClinics().then((list) => {
@@ -27,12 +29,76 @@ function Search() {
       cancelled = true;
     };
   }, []);
-  const filtered = spec ? clinics.filter((c) => c.specialtyId === spec) : clinics;
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    let list = clinics;
+    if (spec) list = list.filter((c) => c.specialtyId === spec);
+    if (term) {
+      list = list.filter((c) => {
+        const s = getSpecialty(c.specialtyId);
+        return (
+          c.doctor.toLowerCase().includes(term) ||
+          c.area.toLowerCase().includes(term) ||
+          c.address.toLowerCase().includes(term) ||
+          (s?.name.toLowerCase().includes(term) ?? false)
+        );
+      });
+    }
+    const sorted = [...list];
+    if (sort === "price") sorted.sort((a, b) => a.price - b.price);
+    else if (sort === "reviews") sorted.sort((a, b) => b.reviews - a.reviews);
+    else if (sort === "rating") sorted.sort((a, b) => b.rating - a.rating);
+    else sorted.sort((a, b) => a.distanceKm - b.distanceKm);
+    return sorted;
+  }, [clinics, spec, q, sort]);
 
   return (
     <AppShell title="العيادات القريبة" subtitle={`${filtered.length} عيادة حواليك`} backTo="/patient">
+      {/* Search input */}
+      <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2.5">
+        <SearchIcon className="h-4 w-4 text-muted-foreground" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="ابحث بالطبيب، التخصص، أو المنطقة…"
+          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+        />
+        {q && (
+          <button onClick={() => setQ("")} aria-label="مسح" className="text-muted-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Sort */}
+      <div className="mt-3 -mx-5 overflow-x-auto px-5">
+        <div className="flex items-center gap-2">
+          <span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground">
+            <ArrowDownAZ className="h-3 w-3" /> ترتيب:
+          </span>
+          {(
+            [
+              { id: "nearest", label: "الأقرب" },
+              { id: "price", label: "الأقل سعراً" },
+              { id: "reviews", label: "الأكثر تقييماً" },
+              { id: "rating", label: "الأعلى تقييماً" },
+            ] as { id: typeof sort; label: string }[]
+          ).map((o) => (
+            <button
+              key={o.id}
+              onClick={() => setSort(o.id)}
+              className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${
+                sort === o.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Specialty chips */}
-      <div className="-mx-5 overflow-x-auto px-5 pb-1">
+      <div className="mt-3 -mx-5 overflow-x-auto px-5 pb-1">
         <div className="flex gap-2">
           <button
             onClick={() => setSpec(null)}

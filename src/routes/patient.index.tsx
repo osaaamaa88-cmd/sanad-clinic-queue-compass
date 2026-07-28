@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Search, Bell, Clock, Star, Stethoscope, Siren, Phone, Activity } from "lucide-react";
+import { MapPin, Search, Bell, Clock, Star, Stethoscope, Siren, Phone, Activity, Pill } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 
@@ -101,6 +101,22 @@ function PatientHome() {
           <p className="font-extrabold">حاسبة ومؤشرات الصحة</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             احسب ضغط الدم والسكر واحفظ قراءاتك في ملفك الطبي
+          </p>
+        </div>
+      </Link>
+
+      {/* Medication reminders */}
+      <Link
+        to="/patient/meds"
+        className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition hover:shadow-soft"
+      >
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-warning/20 text-warning">
+          <Pill className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-extrabold">تذكير مواعيد الأدوية</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            أضف أدويتك وجرعاتها ومواعيدها ليذكّرك التطبيق بها
           </p>
         </div>
       </Link>
