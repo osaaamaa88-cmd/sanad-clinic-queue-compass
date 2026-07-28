@@ -123,7 +123,7 @@ function HealthTracker() {
   function saveBP() {
     if (!bp) return;
     const next: Reading[] = [
-      { kind: "bp", sys: sysN, dia: diaN, label: bp.label, at: new Date().toISOString() },
+      { kind: "bp" as const, sys: sysN, dia: diaN, label: bp.label, at: new Date().toISOString() },
       ...readings,
     ].slice(0, 50);
     setReadings(next);
@@ -132,7 +132,7 @@ function HealthTracker() {
   function saveSugar() {
     if (!sug) return;
     const next: Reading[] = [
-      { kind: "sugar", value: sugarN, state: sugarState, label: sug.label, at: new Date().toISOString() },
+      { kind: "sugar" as const, value: sugarN, state: sugarState, label: sug.label, at: new Date().toISOString() },
       ...readings,
     ].slice(0, 50);
     setReadings(next);
