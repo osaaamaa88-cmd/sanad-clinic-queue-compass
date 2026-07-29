@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Star, MessageCircle, Users, Check, Banknote } from "lucide-react";
+import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
   getVerifiedClinic,
@@ -42,6 +42,7 @@ function ClinicDetail() {
   const [booked, setBooked] = useState(false);
   const [bookingCode, setBookingCode] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [tab, setTab] = useState<"about" | "book">("about");
 
   const confirmBooking = async () => {
     if (!clinic || !slot || submitting) return;
