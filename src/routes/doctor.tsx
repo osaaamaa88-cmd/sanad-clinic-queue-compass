@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Save, UserPlus, Zap, Clock, CheckCircle2 } from "lucide-react";
+import { MapPin, Save, UserPlus, Zap, Clock, CheckCircle2, Sparkles, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
   specialties,
@@ -32,10 +32,15 @@ function Doctor() {
   const [secName, setSecName] = useState("");
   const [secPhone, setSecPhone] = useState("");
   const [secretaries, setSecretaries] = useState<{ name: string; phone: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [pass, setPass] = useState("");
+  const [signupError, setSignupError] = useState("");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     getCurrentDoctorClinic().then((c) => {
       if (c) hydrate(c);
+      setLoading(false);
     });
   }, []);
 
@@ -53,7 +58,7 @@ function Doctor() {
   };
 
   const save = async () => {
-    if (!name.trim() || !phone.trim() || !area.trim()) {
+    if (!name.trim() || !phone.trim()) {
       return;
     }
     const address = [street, building, floor].filter(Boolean).join("، ");
@@ -84,6 +89,112 @@ function Doctor() {
     if (isNew) setJustSubmitted(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
+  const quickSignup = async () => {
+    setSignupError("");
+    if (!name.trim()) return setSignupError("من فضلك اكتب اسم الطبيب");
+    if (!phone.trim()) return setSignupError("من فضلك اكتب رقم الموبايل / الواتساب");
+    if (pass.trim().length < 4) return setSignupError("كلمة السر لازم تكون 4 حروف أو أرقام على الأقل");
+    setCreating(true);
+    const created = await upsertClinic({
+      doctor: name.trim(),
+      specialtyId: spec,
+      address: "",
+      area: "",
+      distanceKm: 0,
+      price: 0,
+      rating: 0,
+      reviews: 0,
+      availableNow: false,
+      phone: phone.trim().replace(/^0/, "20"),
+      nowServing: 0,
+      yourNumber: 0,
+      waitingCount: 0,
+      lat: 30.0444,
+      lng: 31.2357,
+    });
+    setCreating(false);
+    if (!created) return setSignupError("حصل خطأ، حاول تاني");
+    try {
+      localStorage.setItem(`sandi_doctor_pass_${created.id}`, pass.trim());
+    } catch { /* ignore */ }
+    setCurrentDoctorId(created.id);
+    hydrate(created);
+    setJustSubmitted(true);
+  };
+
+  if (!loading && !clinicId) {
+    return (
+      <AppShell title="إنشاء حساب العيادة" subtitle="خطوة واحدة وخلصنا" backTo="/">
+        <div className="rounded-2xl border border-primary bg-primary-soft p-4">
+          <div className="flex items-start gap-3">
+            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+            <p className="text-xs font-bold leading-relaxed text-primary">
+              4 بيانات بس وحسابك يبقى جاهز. تقدر تكمّل باقي بيانات بروفايلك (الصور، العنوان، المواعيد، سعر الكشف، والنبذة) بعد الدخول للوحة التحكم.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-4 rounded-2xl border border-border bg-card p-4">
+          <Field label="اسم الطبيب *" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
+          <div>
+            <label className="text-xs font-bold text-muted-foreground">التخصص *</label>
+            <div className="mt-2 -mx-1 overflow-x-auto px-1">
+              <div className="flex gap-2">
+                {specialties.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setSpec(s.id)}
+                    className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${
+                      spec === s.id ? "gradient-primary text-white" : "bg-secondary"
+                    }`}
+                  >
+                    {s.emoji} {s.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground">رقم الموبايل / الواتساب *</label>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              inputMode="tel"
+              placeholder="01xxxxxxxxx"
+              className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+            />
+          </div>
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" /> كلمة السر (رقم مرور سريع) *
+            </label>
+            <input
+              value={pass}
+              onChange={(e) => setPass(e.target.value)}
+              type="password"
+              placeholder="4 أرقام أو أكتر"
+              className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+            />
+          </div>
+          {signupError && (
+            <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive">{signupError}</p>
+          )}
+        </div>
+
+        <button
+          onClick={quickSignup}
+          disabled={creating}
+          className="mt-5 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-60"
+        >
+          {creating ? "جاري الإنشاء…" : "إنشاء حساب العيادة الآن"}
+        </button>
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          باقي البيانات كلها اختيارية — تقدر تضيفها في أي وقت من لوحة التحكم.
+        </p>
+      </AppShell>
+    );
+  }
 
   const addSec = () => {
     if (!secName.trim()) return;
@@ -157,9 +268,17 @@ function Doctor() {
       </div>
 
       {/* Profile form */}
-      <h2 className="mt-6 text-base font-bold">بيانات العيادة</h2>
+      <div className="mt-6 flex items-center justify-between gap-2">
+        <h2 className="text-base font-bold">بيانات العيادة</h2>
+        <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+          اختيارية — أضفها لاحقاً
+        </span>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">
+        يمكنك إكمال بقية بيانات بروفايلك في أي وقت من لوحة التحكم.
+      </p>
       <div className="mt-3 space-y-4 rounded-2xl border border-border bg-card p-4">
-        <Field label="اسم الطبيب" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
+        <Field label="اسم الطبيب *" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
         <div>
           <label className="text-xs font-bold text-muted-foreground">التخصص</label>
           <div className="mt-2 -mx-1 overflow-x-auto px-1">
@@ -178,14 +297,14 @@ function Doctor() {
             </div>
           </div>
         </div>
-        <Field label="المنطقة / الحي" value={area} onChange={setArea} placeholder="مثال: المهندسين" />
-        <Field label="الشارع" value={street} onChange={setStreet} placeholder="اسم الشارع" />
+        <Field label="المنطقة / الحي (اختياري)" value={area} onChange={setArea} placeholder="مثال: المهندسين" />
+        <Field label="الشارع (اختياري)" value={street} onChange={setStreet} placeholder="اسم الشارع" />
         <div className="grid grid-cols-2 gap-3">
-          <Field label="العمارة" value={building} onChange={setBuilding} placeholder="عمارة رقم…" />
-          <Field label="الدور" value={floor} onChange={setFloor} placeholder="الدور…" />
+          <Field label="العمارة (اختياري)" value={building} onChange={setBuilding} placeholder="عمارة رقم…" />
+          <Field label="الدور (اختياري)" value={floor} onChange={setFloor} placeholder="الدور…" />
         </div>
         <div>
-          <label className="text-xs font-bold text-muted-foreground">رقم الموبايل (واتساب)</label>
+          <label className="text-xs font-bold text-muted-foreground">رقم الموبايل (واتساب) *</label>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -195,7 +314,7 @@ function Doctor() {
           />
         </div>
         <div>
-          <label className="text-xs font-bold text-muted-foreground">سعر الكشف (جنيه)</label>
+          <label className="text-xs font-bold text-muted-foreground">سعر الكشف (اختياري)</label>
           <input
             value={price}
             onChange={(e) => setPrice(e.target.value)}
@@ -207,7 +326,7 @@ function Doctor() {
       </div>
 
       {/* Map picker */}
-      <h2 className="mt-6 text-base font-bold">حدد الموقع على الخريطة</h2>
+      <h2 className="mt-6 text-base font-bold">حدد الموقع على الخريطة (اختياري)</h2>
       <div className="mt-3 overflow-hidden rounded-2xl border border-border bg-card">
         <div className="relative">
           <iframe
@@ -227,7 +346,7 @@ function Doctor() {
       </div>
 
       {/* Secretaries */}
-      <h2 className="mt-6 text-base font-bold">حسابات السكرتير</h2>
+      <h2 className="mt-6 text-base font-bold">حسابات السكرتير (اختياري)</h2>
       <div className="mt-3 space-y-2">
         {secretaries.map((s, i) => (
           <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
