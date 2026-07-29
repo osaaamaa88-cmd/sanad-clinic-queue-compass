@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MapPin, Save, UserPlus, Zap, Clock, CheckCircle2, Sparkles, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
