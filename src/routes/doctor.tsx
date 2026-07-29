@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MapPin, Save, UserPlus, Zap, Clock, CheckCircle2, Sparkles, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -191,6 +191,13 @@ function Doctor() {
         </button>
         <p className="mt-3 text-center text-xs text-muted-foreground">
           باقي البيانات كلها اختيارية — تقدر تضيفها في أي وقت من لوحة التحكم.
+        </p>
+        <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+          بتسجيلك أنت موافق على{" "}
+          <Link to="/terms" className="font-bold text-primary underline">
+            شروط الاستخدام وإخلاء المسؤولية
+          </Link>
+          . سندي أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
         </p>
       </AppShell>
     );

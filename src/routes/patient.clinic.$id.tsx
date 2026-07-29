@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Star, MessageCircle, Users, Check, Banknote } from "lucide-react";
+import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
   getVerifiedClinic,
@@ -42,6 +42,7 @@ function ClinicDetail() {
   const [booked, setBooked] = useState(false);
   const [bookingCode, setBookingCode] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [tab, setTab] = useState<"about" | "book">("about");
 
   const confirmBooking = async () => {
     if (!clinic || !slot || submitting) return;
@@ -128,59 +129,121 @@ function ClinicDetail() {
 
   return (
     <AppShell title={clinic.doctor} subtitle={spec?.name} backTo="/patient/search">
-      {/* Header card */}
-      <div className="rounded-3xl gradient-primary p-5 text-white shadow-soft">
-        <div className="flex items-start gap-4">
-          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white/20 text-3xl">
-            {spec?.emoji}
+      {/* Facebook-style cover + avatar */}
+      <div className="-mx-5 -mt-5">
+        <div className="relative h-36 w-full gradient-primary">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.25),transparent_60%)]" />
+          <div className="absolute -bottom-10 right-5 grid h-24 w-24 place-items-center rounded-full border-4 border-background bg-card text-4xl shadow-soft">
+            {spec?.emoji ?? "🩺"}
           </div>
-          <div className="min-w-0 flex-1">
+        </div>
+        <div className="px-5 pt-12">
+          <div className="flex items-center gap-2">
             <h2 className="text-xl font-extrabold">{clinic.doctor}</h2>
-            <p className="text-sm opacity-90">{spec?.name}</p>
-            <div className="mt-2 flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1">
-                <Star className="h-3 w-3 fill-warning text-warning" /> {clinic.rating} ({clinic.reviews})
-              </span>
-              <span>•</span>
-              <span>{clinic.distanceKm} كم</span>
+            {clinic.isVerified && <BadgeCheck className="h-5 w-5 shrink-0 text-primary" aria-label="موثّق" />}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {spec?.name} • {clinic.area || "—"}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Star className="h-3 w-3 fill-warning text-warning" /> {clinic.rating} ({clinic.reviews})
+            </span>
+            {clinic.availableNow ? (
+              <span className="rounded-full bg-success/15 px-2 py-0.5 font-bold text-success">مفتوح دلوقتي</span>
+            ) : (
+              <span className="rounded-full bg-secondary px-2 py-0.5 font-bold">مغلق دلوقتي</span>
+            )}
+          </div>
+
+          {/* Quick actions */}
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <button
+              onClick={() => setTab("book")}
+              className="flex flex-col items-center justify-center gap-1 rounded-xl gradient-primary py-3 text-[11px] font-extrabold text-white shadow-soft"
+            >
+              <CalendarPlus className="h-4 w-4" /> حجز كشف
+            </button>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${clinic.lat},${clinic.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[11px] font-extrabold text-foreground"
+            >
+              <Navigation className="h-4 w-4 text-primary" /> موقع العيادة
+            </a>
+            <a
+              href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[11px] font-extrabold text-foreground"
+            >
+              <MessageCircle className="h-4 w-4 text-success" /> واتساب / اتصال
+            </a>
+          </div>
+
+          {/* Tabs */}
+          <div className="mt-4 grid grid-cols-2 gap-1 rounded-2xl bg-secondary p-1">
+            {([
+              ["about", "حول الطبيب"],
+              ["book", "نبذة ومواعيد الكشف"],
+            ] as const).map(([k, l]) => (
+              <button
+                key={k}
+                onClick={() => setTab(k)}
+                className={`rounded-xl py-2 text-xs font-bold ${
+                  tab === k ? "bg-card shadow-soft" : "text-muted-foreground"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {tab === "about" && (
+        <div className="mt-4 space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-sm font-bold">نبذة</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              {clinic.doctor} — أخصائي {spec?.name}. الحجز عن طريق سندي، والدفع نقداً في العيادة.
+            </p>
+            <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary p-3">
+              <span className="text-xs text-muted-foreground">سعر الكشف</span>
+              <span className="font-extrabold">{clinic.price ? `${clinic.price} جنيه` : "غير محدد"}</span>
+            </div>
+            <div className="mt-2 flex items-center gap-2 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
+              <Phone className="h-4 w-4 text-primary" /> {clinic.phone || "—"}
             </div>
           </div>
-        </div>
-        <div className="mt-4 flex items-center justify-between rounded-2xl bg-white/15 p-3">
-          <div>
-            <p className="text-xs opacity-80">سعر الكشف</p>
-            <p className="text-lg font-extrabold">{clinic.price} جنيه</p>
-          </div>
-          {clinic.availableNow ? (
-            <span className="rounded-full bg-success px-3 py-1 text-xs font-bold text-success-foreground">
-              مفتوح دلوقتي
-            </span>
-          ) : (
-            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">مغلق</span>
-          )}
-        </div>
-      </div>
 
-      {/* Address */}
-      <div className="mt-4 rounded-2xl border border-border bg-card p-4">
-        <div className="flex items-start gap-3">
-          <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold">العنوان</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">{clinic.address}</p>
-            <p className="text-sm text-muted-foreground">{clinic.area}</p>
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-start gap-3">
+              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold">العنوان</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">{clinic.address || "—"}</p>
+                <p className="text-sm text-muted-foreground">{clinic.area}</p>
+              </div>
+            </div>
+            <iframe
+              title="خريطة العيادة"
+              className="mt-3 h-40 w-full rounded-xl border border-border"
+              loading="lazy"
+              src={`https://maps.google.com/maps?q=${clinic.lat},${clinic.lng}&z=15&output=embed`}
+            />
           </div>
         </div>
-        <iframe
-          title="خريطة العيادة"
-          className="mt-3 h-40 w-full rounded-xl border border-border"
-          loading="lazy"
-          src={`https://maps.google.com/maps?q=${clinic.lat},${clinic.lng}&z=15&output=embed`}
-        />
-      </div>
+      )}
 
+      {tab === "book" && (
+      <>
       {/* Day picker */}
-      <div className="mt-6">
+      <div className="mt-4">
+        <div className="mb-3 flex items-center gap-2 rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground">
+          <Clock3 className="h-4 w-4 text-primary" /> مواعيد الكشف المتاحة — اختار اليوم والساعة.
+        </div>
         <h3 className="text-base font-bold">اختار اليوم</h3>
         <div className="-mx-5 mt-3 overflow-x-auto px-5">
           <div className="flex gap-2">
@@ -232,6 +295,8 @@ function ClinicDetail() {
           {submitting ? "جاري الحفظ…" : slot ? `أكد الحجز — ${slot}` : "اختار الساعة الأول"}
         </button>
       </div>
+      </>
+      )}
     </AppShell>
   );
 }

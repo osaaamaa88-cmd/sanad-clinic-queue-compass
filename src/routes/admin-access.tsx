@@ -26,6 +26,7 @@ import {
   adminDeleteClinic,
   adminStats,
   adminToggleDisableClinic,
+  adminSetVerified,
   adminEditClinic,
   adminListBookings,
   adminAnalytics,
@@ -168,6 +169,7 @@ function Admin() {
   const remove = useServerFn(adminDeleteClinic);
   const stat = useServerFn(adminStats);
   const toggleDisable = useServerFn(adminToggleDisableClinic);
+  const setVerified = useServerFn(adminSetVerified);
   const editClinic = useServerFn(adminEditClinic);
   const listBookings = useServerFn(adminListBookings);
   const analyticsFn = useServerFn(adminAnalytics);
@@ -247,6 +249,11 @@ function Admin() {
   };
   const togglePause = async (c: ClinicRow) => {
     await toggleDisable({ data: { id: c.id, disabled: !c.isDisabled } });
+    await refresh();
+  };
+  const toggleVerified = async (c: ClinicRow) => {
+    if (c.isVerified && !confirm("هتلغي شارة التوثيق؟ العيادة هتختفي من بحث المرضى.")) return;
+    await setVerified({ data: { id: c.id, verified: !c.isVerified } });
     await refresh();
   };
 
@@ -415,7 +422,13 @@ function Admin() {
                   </p>
                 </div>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => toggleVerified(c)}
+                  className="col-span-2 flex items-center justify-center gap-1 rounded-xl bg-warning/15 py-2 text-xs font-bold text-warning"
+                >
+                  <BadgeCheck className="h-3.5 w-3.5" /> إلغاء شارة التوثيق
+                </button>
                 <button
                   onClick={() => setEditing(c)}
                   className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card py-2 text-xs font-bold"
@@ -442,7 +455,7 @@ function Admin() {
                 </button>
                 <button
                   onClick={() => reject(c.id)}
-                  className="flex items-center justify-center gap-1 rounded-xl border border-border py-2 text-xs font-bold text-destructive"
+                  className="col-span-2 flex items-center justify-center gap-1 rounded-xl border border-border py-2 text-xs font-bold text-destructive"
                 >
                   <X className="h-3.5 w-3.5" /> حذف
                 </button>
