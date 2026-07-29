@@ -76,7 +76,7 @@ export const svrListBookingsForClinic = createServerFn({ method: "POST" })
 export const svrUpdateBookingStatus = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string; status: string }) => {
     if (!data || typeof data.id !== "string") throw new Error("Invalid input");
-    if (!["waiting", "in", "done"].includes(data.status)) throw new Error("Invalid status");
+    if (!["waiting", "in", "done", "cancelled"].includes(data.status)) throw new Error("Invalid status");
     return { id: data.id, status: data.status };
   })
   .handler(async ({ data }) => {

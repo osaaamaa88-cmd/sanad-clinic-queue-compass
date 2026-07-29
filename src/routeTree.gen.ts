@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ReceptionRouteImport } from './routes/reception'
 import { Route as DoctorRouteImport } from './routes/doctor'
 import { Route as AdminAccessRouteImport } from './routes/admin-access'
@@ -21,6 +22,11 @@ import { Route as PatientEmergencyRouteImport } from './routes/patient.emergency
 import { Route as PatientQueueIdRouteImport } from './routes/patient.queue.$id'
 import { Route as PatientClinicIdRouteImport } from './routes/patient.clinic.$id'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReceptionRoute = ReceptionRouteImport.update({
   id: '/reception',
   path: '/reception',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/admin-access': typeof AdminAccessRoute
   '/doctor': typeof DoctorRoute
   '/reception': typeof ReceptionRoute
+  '/terms': typeof TermsRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/admin-access': typeof AdminAccessRoute
   '/doctor': typeof DoctorRoute
   '/reception': typeof ReceptionRoute
+  '/terms': typeof TermsRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/admin-access': typeof AdminAccessRoute
   '/doctor': typeof DoctorRoute
   '/reception': typeof ReceptionRoute
+  '/terms': typeof TermsRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/admin-access'
     | '/doctor'
     | '/reception'
+    | '/terms'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/admin-access'
     | '/doctor'
     | '/reception'
+    | '/terms'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/admin-access'
     | '/doctor'
     | '/reception'
+    | '/terms'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   AdminAccessRoute: typeof AdminAccessRoute
   DoctorRoute: typeof DoctorRoute
   ReceptionRoute: typeof ReceptionRoute
+  TermsRoute: typeof TermsRoute
   PatientEmergencyRoute: typeof PatientEmergencyRoute
   PatientHealthRoute: typeof PatientHealthRoute
   PatientMedsRoute: typeof PatientMedsRoute
@@ -175,6 +188,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reception': {
       id: '/reception'
       path: '/reception'
@@ -260,6 +280,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAccessRoute: AdminAccessRoute,
   DoctorRoute: DoctorRoute,
   ReceptionRoute: ReceptionRoute,
+  TermsRoute: TermsRoute,
   PatientEmergencyRoute: PatientEmergencyRoute,
   PatientHealthRoute: PatientHealthRoute,
   PatientMedsRoute: PatientMedsRoute,

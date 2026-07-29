@@ -203,7 +203,7 @@ export type Booking = {
   dayLabel: string;
   slot: string;
   queueNumber: number;
-  status: "waiting" | "in" | "done";
+  status: "waiting" | "in" | "done" | "cancelled";
   createdAt: number;
 };
 

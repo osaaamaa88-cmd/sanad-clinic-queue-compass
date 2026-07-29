@@ -75,9 +75,15 @@ function Landing() {
           ))}
         </div>
 
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          نسخة تجريبية للعرض — بيانات نموذجية
-        </p>
+        <footer className="mt-8 space-y-2 border-t border-border pt-4 text-center">
+          <Link to="/terms" className="text-xs font-bold text-primary underline">
+            شروط الاستخدام وإخلاء المسؤولية
+          </Link>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            سندي أداة تقنية لتنظيم المواعيد وتسهيل التواصل بين المريض والعيادة، ولا تقدم استشارات
+            طبية ولا تتحمل المسؤولية عن الخدمات الطبية المقدمة من العيادات.
+          </p>
+        </footer>
       </div>
     </div>
   );
