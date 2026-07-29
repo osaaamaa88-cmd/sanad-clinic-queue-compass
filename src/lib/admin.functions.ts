@@ -84,19 +84,6 @@ export const adminSetVerified = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-const _unusedDeleteClinicPlaceholder = createServerFn({ method: "POST" })
-  .inputValidator((data: { id: string }) => {
-    if (!data || typeof data.id !== "string") throw new Error("Invalid input");
-    return { id: data.id };
-  })
-  .handler(async ({ data }) => {
-    await assertAdmin();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("clinics").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true as const };
-  });
-
 export const adminStats = createServerFn({ method: "GET" }).handler(async () => {
   await assertAdmin();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
