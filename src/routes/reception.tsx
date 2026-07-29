@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { UserPlus, Clock, Check, Phone, Stethoscope } from "lucide-react";
+import { UserPlus, Stethoscope, LogIn, Hourglass, X, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
   getCurrentDoctorClinic,
@@ -12,41 +12,60 @@ import {
 } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/reception")({
-  head: () => ({ meta: [{ title: "سندي — لوحة السكرتير" }] }),
+  head: () => ({
+    meta: [
+      { title: "دفتر الحجز — سندي" },
+      { name: "description", content: "دفتر حجز العيادة: تسجيل المرضى وإدارة الدخول والانتظار." },
+      { property: "og:title", content: "دفتر الحجز — سندي" },
+      { property: "og:description", content: "إدارة حجوزات العيادة بشكل دفتر ورقي بسيط." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Reception,
 });
+
+const CLOSED_KEY = "sandi.bookingClosed.";
 
 function Reception() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [rows, setRows] = useState<Booking[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [closed, setClosed] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
   const refresh = async (clinicId: string) => {
-    const list = await listBookingsForClinic(clinicId);
-    setRows(list);
+    setRows(await listBookingsForClinic(clinicId));
   };
 
   useEffect(() => {
     getCurrentDoctorClinic().then(async (c) => {
       setClinic(c);
-      if (c) await refresh(c.id);
+      if (c) {
+        await refresh(c.id);
+        try {
+          setClosed(localStorage.getItem(CLOSED_KEY + c.id) === "1");
+        } catch { /* ignore */ }
+      }
       setLoaded(true);
     });
   }, []);
 
-  const current = rows.find((r) => r.status === "in");
-  const done = rows.filter((r) => r.status === "done").length;
-  const waiting = rows.filter((r) => r.status === "waiting").length;
-
-  const next = async () => {
+  const toggleClosed = () => {
     if (!clinic) return;
-    const inRow = rows.find((r) => r.status === "in");
-    if (inRow) await updateBookingStatus(inRow.id, "done");
-    const nextRow = rows.find((r) => r.status === "waiting");
-    if (nextRow) await updateBookingStatus(nextRow.id, "in");
+    const v = !closed;
+    setClosed(v);
+    try {
+      localStorage.setItem(CLOSED_KEY + clinic.id, v ? "1" : "0");
+    } catch { /* ignore */ }
+  };
+
+  const setStatus = async (b: Booking, status: Booking["status"]) => {
+    if (!clinic) return;
+    if (status === "cancelled" && !confirm(`إلغاء حجز ${b.patientName}؟`)) return;
+    await updateBookingStatus(b.id, status);
     await refresh(clinic.id);
   };
 
@@ -57,7 +76,7 @@ function Reception() {
       patientName: name.trim(),
       patientPhone: phone.trim(),
       dayLabel: "اليوم",
-      slot: "الآن",
+      slot: new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" }),
     });
     setName("");
     setPhone("");
@@ -67,64 +86,50 @@ function Reception() {
 
   if (loaded && !clinic) {
     return (
-      <AppShell title="لوحة السكرتير" backTo="/">
+      <AppShell title="دفتر الحجز" backTo="/">
         <div className="mt-6 rounded-2xl border-2 border-dashed border-border bg-card p-8 text-center">
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
             <Stethoscope className="h-6 w-6" />
           </div>
           <p className="mt-3 text-sm font-bold">لا توجد عيادة مربوطة بالجهاز</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            من فضلك سجّل عيادتك من واجهة الطبيب أولاً ثم افتح لوحة السكرتير.
+            من فضلك سجّل عيادتك من واجهة الطبيب أولاً ثم افتح دفتر الحجز.
           </p>
         </div>
       </AppShell>
     );
   }
 
+  const active = rows.filter((r) => r.status !== "cancelled");
+  const waiting = active.filter((r) => r.status === "waiting").length;
+  const inside = active.filter((r) => r.status === "in").length;
+  const done = active.filter((r) => r.status === "done").length;
+  const sheet = rows.slice().sort((a, b) => a.queueNumber - b.queueNumber);
+
   return (
-    <AppShell title="لوحة السكرتير" subtitle={clinic ? `عيادة ${clinic.doctor}` : ""} backTo="/">
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2">
-        <StatBox value={String(current?.queueNumber ?? "—")} label="النمرة دلوقتي" tone="primary" />
-        <StatBox value={String(waiting)} label="في الانتظار" />
-        <StatBox value={String(done)} label="خلصوا" />
+    <AppShell title="دفتر الحجز" subtitle={clinic ? `عيادة ${clinic.doctor}` : ""} backTo="/">
+      {/* Top controls */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={() => setShowAdd((v) => !v)}
+          className="flex items-center justify-center gap-2 rounded-2xl gradient-primary py-3 text-sm font-extrabold text-white shadow-soft"
+        >
+          <UserPlus className="h-4 w-4" /> إضافة مريض يدوي
+        </button>
+        <button
+          onClick={toggleClosed}
+          className={`flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-extrabold ${
+            closed ? "bg-destructive text-destructive-foreground" : "border border-border bg-card text-foreground"
+          }`}
+        >
+          {closed ? "الحجز مقفول اليوم" : "إيقاف استقبال الحجوزات"}
+        </button>
       </div>
-
-      {/* Big Next button */}
-      <button
-        onClick={next}
-        disabled={waiting === 0}
-        className="mt-5 w-full rounded-3xl gradient-primary py-8 text-2xl font-black text-white shadow-soft transition active:scale-[0.98] disabled:opacity-50"
-      >
-        دخول المريض التالي →
-      </button>
-      <p className="mt-2 text-center text-xs text-muted-foreground">
-        اضغط لما يدخل مريض جديد لعند الدكتور
-      </p>
-
-      {/* Current */}
-      {current && (
-        <div className="mt-5 rounded-2xl border-2 border-primary bg-primary-soft p-4">
-          <p className="text-xs font-bold text-primary">جوه دلوقتي</p>
-          <div className="mt-2 flex items-center gap-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary text-lg font-black text-primary-foreground">
-              {current.queueNumber}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-bold">{current.patientName}</p>
-              <p className="text-xs text-muted-foreground">{current.patientPhone || "—"}</p>
-            </div>
-          </div>
-        </div>
+      {closed && (
+        <p className="mt-2 rounded-xl bg-destructive/10 px-3 py-2 text-center text-[11px] font-bold text-destructive">
+          استقبال الحجوزات موقوف لليوم — اضغط الزر تاني لفتحه.
+        </p>
       )}
-
-      {/* Add walk-in */}
-      <button
-        onClick={() => setShowAdd((v) => !v)}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-card py-4 text-sm font-bold text-primary"
-      >
-        <UserPlus className="h-5 w-5" /> إضافة مريض جه من غير حجز
-      </button>
 
       {showAdd && (
         <div className="mt-3 space-y-3 rounded-2xl border border-border bg-card p-4">
@@ -151,47 +156,97 @@ function Reception() {
             onClick={addWalkIn}
             className="w-full rounded-xl bg-success py-3 font-bold text-success-foreground"
           >
-            أضف للطابور
+            اكتبه في الدفتر
           </button>
         </div>
       )}
 
-      {/* Queue list */}
-      <h2 className="mt-6 text-base font-bold">حجوزات النهارده</h2>
-      <div className="mt-3 space-y-2">
-        {rows.length === 0 && (
-          <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            لا توجد حجوزات لسه. لما مريض يحجز، هيظهر هنا فوراً.
-          </div>
+      {/* Counters */}
+      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+        <Counter value={waiting} label="منتظر" />
+        <Counter value={inside} label="جوه" />
+        <Counter value={done} label="خلصوا" />
+      </div>
+
+      {/* Paper sheet */}
+      <div className="mt-4 overflow-hidden rounded-2xl border-2 border-border bg-card shadow-soft">
+        <div className="flex items-center gap-2 border-b-2 border-border bg-secondary px-4 py-3">
+          <BookOpen className="h-4 w-4 text-primary" />
+          <p className="text-sm font-extrabold">دفتر حجز النهارده</p>
+          <span className="mr-auto text-[11px] text-muted-foreground">{sheet.length} سطر</span>
+        </div>
+        <div className="grid grid-cols-[2.5rem_1fr_4.5rem] gap-2 border-b border-border bg-secondary/60 px-3 py-2 text-[11px] font-bold text-muted-foreground">
+          <span>م</span>
+          <span>اسم المريض / الهاتف</span>
+          <span>الوقت</span>
+        </div>
+
+        {sheet.length === 0 && (
+          <p className="p-6 text-center text-sm text-muted-foreground">
+            الدفتر فاضي — لسه محدش حجز النهارده.
+          </p>
         )}
-        {rows.slice().reverse().map((r) => (
+
+        {sheet.map((r, i) => (
           <div
             key={r.id}
-            className={`flex items-center gap-3 rounded-xl border p-3 ${
-              r.status === "in" ? "border-primary bg-primary-soft" : "border-border bg-card"
+            className={`border-b border-dashed border-border px-3 py-3 ${
+              r.status === "in"
+                ? "bg-primary-soft"
+                : r.status === "cancelled"
+                ? "opacity-50"
+                : r.status === "done"
+                ? "bg-secondary/40"
+                : ""
             }`}
           >
-            <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg text-sm font-black ${
-              r.status === "in"
-                ? "bg-primary text-primary-foreground"
-                : r.status === "done"
-                ? "bg-secondary text-muted-foreground"
-                : "bg-warning/20 text-foreground"
-            }`}>
-              {r.queueNumber}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-bold">{r.patientName}</p>
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold">{r.code}</span>
+            <div className="grid grid-cols-[2.5rem_1fr_4.5rem] items-center gap-2">
+              <span className="text-sm font-black text-muted-foreground">{i + 1}</span>
+              <div className="min-w-0">
+                <p
+                  className={`truncate text-sm font-bold ${
+                    r.status === "cancelled" ? "line-through" : ""
+                  }`}
+                >
+                  {r.patientName}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {r.patientPhone || "بدون رقم"} • {r.code}
+                </p>
               </div>
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <Clock className="h-3 w-3" /> {r.slot || "—"} • <Phone className="h-3 w-3" /> {r.patientPhone || "—"}
-              </div>
+              <span className="text-[11px] font-bold text-muted-foreground">{r.slot || "—"}</span>
             </div>
-            {r.status === "done" && <Check className="h-4 w-4 text-success" />}
-            {r.status === "waiting" && <span className="text-xs font-bold text-warning">منتظر</span>}
-            {r.status === "in" && <span className="rounded-full bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">جوه</span>}
+            <div className="mt-2 grid grid-cols-3 gap-1.5">
+              <SheetBtn
+                active={r.status === "in"}
+                onClick={() => setStatus(r, "in")}
+                tone="primary"
+                icon={LogIn}
+                label="تم الدخول"
+              />
+              <SheetBtn
+                active={r.status === "waiting"}
+                onClick={() => setStatus(r, "waiting")}
+                tone="warn"
+                icon={Hourglass}
+                label="انتظار"
+              />
+              <SheetBtn
+                active={r.status === "cancelled"}
+                onClick={() => setStatus(r, "cancelled")}
+                tone="danger"
+                icon={X}
+                label="إلغاء"
+              />
+            </div>
+            {r.status === "in" && (
+              <button
+                onClick={() => setStatus(r, "done")}
+                className="mt-1.5 w-full rounded-lg bg-success py-1.5 text-[11px] font-bold text-success-foreground"
+              >
+                خلص الكشف ✓
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -199,13 +254,48 @@ function Reception() {
   );
 }
 
-function StatBox({ value, label, tone }: { value: string; label: string; tone?: "primary" }) {
+function Counter({ value, label }: { value: number; label: string }) {
   return (
-    <div className={`rounded-2xl p-4 text-center ${
-      tone === "primary" ? "gradient-primary text-white shadow-soft" : "bg-card border border-border"
-    }`}>
-      <div className="text-2xl font-black">{value}</div>
-      <div className={`text-[11px] ${tone === "primary" ? "opacity-90" : "text-muted-foreground"}`}>{label}</div>
+    <div className="rounded-xl border border-border bg-card py-2">
+      <div className="text-lg font-black">{value}</div>
+      <div className="text-[11px] text-muted-foreground">{label}</div>
     </div>
+  );
+}
+
+function SheetBtn({
+  active,
+  onClick,
+  tone,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  tone: "primary" | "warn" | "danger";
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  const activeCls =
+    tone === "primary"
+      ? "bg-primary text-primary-foreground"
+      : tone === "warn"
+      ? "bg-warning text-warning-foreground"
+      : "bg-destructive text-destructive-foreground";
+  const idleCls =
+    tone === "primary"
+      ? "border border-border bg-card text-primary"
+      : tone === "warn"
+      ? "border border-border bg-card text-warning"
+      : "border border-border bg-card text-destructive";
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center justify-center gap-1 rounded-lg py-2 text-[11px] font-bold ${
+        active ? activeCls : idleCls
+      }`}
+    >
+      <Icon className="h-3.5 w-3.5" /> {label}
+    </button>
   );
 }
