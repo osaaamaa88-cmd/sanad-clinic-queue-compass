@@ -26,6 +26,7 @@ import {
   adminDeleteClinic,
   adminStats,
   adminToggleDisableClinic,
+  adminSetVerified,
   adminEditClinic,
   adminListBookings,
   adminAnalytics,
