@@ -344,7 +344,7 @@ function Reception() {
             {r.status === "in" && (
               <button
                 onClick={() => setStatus(r, "done")}
-                className="mt-1.5 w-full rounded-lg bg-success py-1.5 text-[11px] font-bold text-success-foreground"
+                className="mt-1.5 w-full rounded-lg bg-success py-1.5 text-[11px] font-bold text-success-foreground print:hidden"
               >
                 خلص الكشف ✓
               </button>
