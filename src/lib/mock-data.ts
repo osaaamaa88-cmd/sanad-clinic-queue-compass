@@ -260,6 +260,7 @@ export type Booking = {
   queueNumber: number;
   status: "waiting" | "in" | "done" | "cancelled";
   createdAt: number;
+  visitType: "new" | "followup";
 };
 
 type BookingRow = {
@@ -273,6 +274,7 @@ type BookingRow = {
   queue_number: number;
   status: string;
   created_at: string;
+  visit_type?: string | null;
 };
 
 function rowToBooking(r: BookingRow): Booking {
@@ -287,6 +289,7 @@ function rowToBooking(r: BookingRow): Booking {
     queueNumber: r.queue_number,
     status: (r.status as Booking["status"]) || "waiting",
     createdAt: new Date(r.created_at).getTime(),
+    visitType: r.visit_type === "followup" ? "followup" : "new",
   };
 }
 
@@ -296,6 +299,7 @@ export async function createBooking(input: {
   patientPhone: string;
   dayLabel: string;
   slot: string;
+  visitType?: "new" | "followup";
 }): Promise<Booking | null> {
   try {
     const res = await svrCreateBooking({ data: input });
@@ -310,9 +314,26 @@ export async function createBooking(input: {
       queueNumber: res.queueNumber,
       status: "waiting",
       createdAt: Date.now(),
+      visitType: input.visitType ?? "new",
     };
   } catch {
     return null;
+  }
+}
+
+/** Walk-in patients added by the clinic secretary (bypasses the closed-bookings flag). */
+export async function addWalkIn(input: {
+  clinicId: string;
+  patientName: string;
+  patientPhone: string;
+  slot: string;
+  visitType?: "new" | "followup";
+}): Promise<boolean> {
+  try {
+    await svrAddWalkIn({ data: input });
+    return true;
+  } catch {
+    return false;
   }
 }
 
