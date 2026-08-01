@@ -157,28 +157,34 @@ function ClinicDetail() {
           </div>
 
           {/* Quick actions */}
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="mt-4 grid grid-cols-4 gap-2">
             <button
               onClick={() => setTab("book")}
-              className="flex flex-col items-center justify-center gap-1 rounded-xl gradient-primary py-3 text-[11px] font-extrabold text-white shadow-soft"
+              className="flex flex-col items-center justify-center gap-1 rounded-xl gradient-primary py-3 text-[10px] font-extrabold text-white shadow-soft"
             >
               <CalendarPlus className="h-4 w-4" /> حجز كشف
             </button>
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${clinic.lat},${clinic.lng}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[11px] font-extrabold text-foreground"
+              href={clinic.phone ? `tel:${clinic.phone}` : "#"}
+              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[10px] font-extrabold text-foreground"
             >
-              <Navigation className="h-4 w-4 text-primary" /> موقع العيادة
+              <Phone className="h-4 w-4 text-primary" /> اتصال
             </a>
             <a
               href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[11px] font-extrabold text-foreground"
+              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[10px] font-extrabold text-foreground"
             >
-              <MessageCircle className="h-4 w-4 text-success" /> واتساب / اتصال
+              <MessageCircle className="h-4 w-4 text-success" /> واتساب
+            </a>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${clinic.lat},${clinic.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[10px] font-extrabold text-foreground"
+            >
+              <Navigation className="h-4 w-4 text-primary" /> الموقع
             </a>
           </div>
 
@@ -234,6 +240,53 @@ function ClinicDetail() {
               src={`https://maps.google.com/maps?q=${clinic.lat},${clinic.lng}&z=15&output=embed`}
             />
           </div>
+
+          {/* Reviews */}
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-sm font-bold">التقييم</p>
+            <div className="mt-2 flex items-center gap-3">
+              <div className="text-3xl font-black text-primary">{clinic.rating}</div>
+              <div>
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Star
+                      key={n}
+                      className={`h-4 w-4 ${
+                        n <= Math.round(clinic.rating) ? "fill-warning text-warning" : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {clinic.reviews > 0 ? `${clinic.reviews} تقييم من المرضى` : "لسه مفيش تقييمات"}
+                </p>
+              </div>
+            </div>
+            <p className="mt-3 rounded-xl bg-secondary p-3 text-[11px] text-muted-foreground">
+              التقييم بيتحدّث تلقائياً من تقييمات المرضى بعد الكشف.
+            </p>
+          </div>
+
+          {/* FAQ */}
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-sm font-bold">أسئلة شائعة</p>
+            <div className="mt-2 divide-y divide-border">
+              {[
+                ["إزاي أحجز؟", "اختار اليوم والساعة من تبويب مواعيد الكشف، وهيوصلك كود حجز تعرضه في العيادة."],
+                ["الدفع إزاي؟", "الدفع نقداً في العيادة، مفيش أي دفع أونلاين."],
+                ["أقدر أعرف دوري؟", "أيوه، من صفحة متابعة الدور بتشوف رقم الدور الحالي لحظياً."],
+                ["لو اتأخرت أو عايز ألغي؟", "كلّم العيادة على الواتساب أو الرقم المباشر وهيتم تعديل حجزك."],
+              ].map(([q, a]) => (
+                <details key={q} className="py-2">
+                  <summary className="cursor-pointer text-sm font-bold">{q}</summary>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+
+          {/* Print card + QR */}
+          <ClinicQrCard clinic={clinic} specName={spec?.name ?? ""} />
         </div>
       )}
 
