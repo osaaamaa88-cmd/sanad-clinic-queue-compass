@@ -2,6 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { ClinicQrCard } from "@/components/ClinicQrCard";
 import {
   getVerifiedClinic,
   getSpecialty,
