@@ -216,6 +216,9 @@ function Admin() {
         lng: Number(r.lng) || 0,
         isVerified: Boolean(r.is_verified),
         isDisabled: Boolean(r.is_disabled),
+        clinicStatus: ((r.clinic_status as string) || "normal") as ClinicRow["clinicStatus"],
+        delayMinutes: Number(r.delay_minutes) || 0,
+        bookingsClosed: Boolean(r.bookings_closed),
         submittedAt: r.submitted_at ? new Date(r.submitted_at as string).getTime() : Date.now(),
       }));
       setClinics(mapped);

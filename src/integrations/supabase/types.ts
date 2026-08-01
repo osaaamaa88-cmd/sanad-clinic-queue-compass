@@ -26,6 +26,7 @@ export type Database = {
           queue_number: number
           slot: string
           status: string
+          visit_type: string
         }
         Insert: {
           clinic_id: string
@@ -38,6 +39,7 @@ export type Database = {
           queue_number?: number
           slot?: string
           status?: string
+          visit_type?: string
         }
         Update: {
           clinic_id?: string
@@ -50,6 +52,7 @@ export type Database = {
           queue_number?: number
           slot?: string
           status?: string
+          visit_type?: string
         }
         Relationships: [
           {
@@ -66,7 +69,10 @@ export type Database = {
           address: string
           area: string
           available_now: boolean
+          bookings_closed: boolean
+          clinic_status: string
           created_at: string
+          delay_minutes: number
           distance_km: number
           doctor: string
           id: string
@@ -89,7 +95,10 @@ export type Database = {
           address?: string
           area?: string
           available_now?: boolean
+          bookings_closed?: boolean
+          clinic_status?: string
           created_at?: string
+          delay_minutes?: number
           distance_km?: number
           doctor: string
           id?: string
@@ -112,7 +121,10 @@ export type Database = {
           address?: string
           area?: string
           available_now?: boolean
+          bookings_closed?: boolean
+          clinic_status?: string
           created_at?: string
+          delay_minutes?: number
           distance_km?: number
           doctor?: string
           id?: string

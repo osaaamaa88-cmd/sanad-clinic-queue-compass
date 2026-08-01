@@ -4,6 +4,8 @@ import {
   svrListBookingsForClinic,
   svrUpdateBookingStatus,
   svrUpdateClinic,
+  svrSetClinicOps,
+  svrAddWalkIn,
 } from "@/lib/data.functions";
 
 export type Specialty = {
@@ -44,6 +46,17 @@ export type Clinic = {
   lng: number;
   isVerified: boolean;
   submittedAt: number;
+  clinicStatus: ClinicStatus;
+  delayMinutes: number;
+  bookingsClosed: boolean;
+};
+
+export type ClinicStatus = "normal" | "delayed" | "paused";
+
+export const clinicStatusLabels: Record<ClinicStatus, { label: string; dot: string }> = {
+  normal: { label: "تعمل كالمعتاد", dot: "🟢" },
+  delayed: { label: "تأخير في المواعيد", dot: "🟡" },
+  paused: { label: "متوقفة مؤقتاً", dot: "🔴" },
 };
 
 const CURRENT_DOCTOR_KEY = "tabibak.currentDoctorId.v1";
@@ -71,6 +84,9 @@ type Row = {
   lng: number | string;
   is_verified: boolean;
   submitted_at: string;
+  clinic_status?: string | null;
+  delay_minutes?: number | null;
+  bookings_closed?: boolean | null;
 };
 
 function rowToClinic(r: Row): Clinic {
@@ -93,6 +109,42 @@ function rowToClinic(r: Row): Clinic {
     lng: Number(r.lng) || 0,
     isVerified: r.is_verified,
     submittedAt: new Date(r.submitted_at).getTime(),
+    clinicStatus: (r.clinic_status as ClinicStatus) || "normal",
+    delayMinutes: Number(r.delay_minutes) || 0,
+    bookingsClosed: Boolean(r.bookings_closed),
+  };
+}
+
+export async function setClinicOps(input: {
+  id: string;
+  nowServing?: number;
+  clinicStatus?: ClinicStatus;
+  delayMinutes?: number;
+  bookingsClosed?: boolean;
+}): Promise<Clinic | null> {
+  try {
+    const { row } = await svrSetClinicOps({ data: input });
+    return rowToClinic(row as Row);
+  } catch {
+    return null;
+  }
+}
+
+/** Live updates for one clinic row (queue number, status, closed flag). */
+export function subscribeClinic(id: string, onChange: (c: Clinic) => void) {
+  const channel = supabase
+    .channel(`clinic-${id}`)
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "clinics", filter: `id=eq.${id}` },
+      (payload) => {
+        const row = payload.new as unknown as Row;
+        if (row?.id) onChange(rowToClinic(row));
+      },
+    )
+    .subscribe();
+  return () => {
+    supabase.removeChannel(channel);
   };
 }
 
@@ -128,7 +180,10 @@ export async function getClinicById(id: string): Promise<Clinic | undefined> {
 }
 
 export async function upsertClinic(
-  input: Omit<Clinic, "id" | "isVerified" | "submittedAt"> & { id?: string },
+  input: Omit<
+    Clinic,
+    "id" | "isVerified" | "submittedAt" | "clinicStatus" | "delayMinutes" | "bookingsClosed"
+  > & { id?: string },
 ): Promise<Clinic | null> {
   if (input.id) {
     try {
@@ -205,6 +260,7 @@ export type Booking = {
   queueNumber: number;
   status: "waiting" | "in" | "done" | "cancelled";
   createdAt: number;
+  visitType: "new" | "followup";
 };
 
 type BookingRow = {
@@ -218,6 +274,7 @@ type BookingRow = {
   queue_number: number;
   status: string;
   created_at: string;
+  visit_type?: string | null;
 };
 
 function rowToBooking(r: BookingRow): Booking {
@@ -232,6 +289,7 @@ function rowToBooking(r: BookingRow): Booking {
     queueNumber: r.queue_number,
     status: (r.status as Booking["status"]) || "waiting",
     createdAt: new Date(r.created_at).getTime(),
+    visitType: r.visit_type === "followup" ? "followup" : "new",
   };
 }
 
@@ -241,6 +299,7 @@ export async function createBooking(input: {
   patientPhone: string;
   dayLabel: string;
   slot: string;
+  visitType?: "new" | "followup";
 }): Promise<Booking | null> {
   try {
     const res = await svrCreateBooking({ data: input });
@@ -255,9 +314,26 @@ export async function createBooking(input: {
       queueNumber: res.queueNumber,
       status: "waiting",
       createdAt: Date.now(),
+      visitType: input.visitType ?? "new",
     };
   } catch {
     return null;
+  }
+}
+
+/** Walk-in patients added by the clinic secretary (bypasses the closed-bookings flag). */
+export async function addWalkIn(input: {
+  clinicId: string;
+  patientName: string;
+  patientPhone: string;
+  slot: string;
+  visitType?: "new" | "followup";
+}): Promise<boolean> {
+  try {
+    await svrAddWalkIn({ data: input });
+    return true;
+  } catch {
+    return false;
   }
 }
 
