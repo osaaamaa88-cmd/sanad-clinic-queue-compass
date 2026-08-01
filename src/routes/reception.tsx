@@ -1,12 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { UserPlus, Stethoscope, LogIn, Hourglass, X, BookOpen } from "lucide-react";
+import { UserPlus, Stethoscope, LogIn, Hourglass, X, BookOpen, Minus, Plus, Printer, Tv } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
   getCurrentDoctorClinic,
   listBookingsForClinic,
   updateBookingStatus,
-  createBooking,
+  addWalkIn,
+  setClinicOps,
+  clinicStatusLabels,
+  getSpecialty,
+  type ClinicStatus,
   type Booking,
   type Clinic,
 } from "@/lib/mock-data";
@@ -25,16 +29,14 @@ export const Route = createFileRoute("/reception")({
   component: Reception,
 });
 
-const CLOSED_KEY = "sandi.bookingClosed.";
-
 function Reception() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [rows, setRows] = useState<Booking[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
-  const [closed, setClosed] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [visitType, setVisitType] = useState<"new" | "followup">("new");
 
   const refresh = async (clinicId: string) => {
     setRows(await listBookingsForClinic(clinicId));
@@ -43,23 +45,20 @@ function Reception() {
   useEffect(() => {
     getCurrentDoctorClinic().then(async (c) => {
       setClinic(c);
-      if (c) {
-        await refresh(c.id);
-        try {
-          setClosed(localStorage.getItem(CLOSED_KEY + c.id) === "1");
-        } catch { /* ignore */ }
-      }
+      if (c) await refresh(c.id);
       setLoaded(true);
     });
   }, []);
 
-  const toggleClosed = () => {
+  const ops = async (patch: {
+    nowServing?: number;
+    clinicStatus?: ClinicStatus;
+    delayMinutes?: number;
+    bookingsClosed?: boolean;
+  }) => {
     if (!clinic) return;
-    const v = !closed;
-    setClosed(v);
-    try {
-      localStorage.setItem(CLOSED_KEY + clinic.id, v ? "1" : "0");
-    } catch { /* ignore */ }
+    const updated = await setClinicOps({ id: clinic.id, ...patch });
+    if (updated) setClinic(updated);
   };
 
   const setStatus = async (b: Booking, status: Booking["status"]) => {
@@ -69,17 +68,18 @@ function Reception() {
     await refresh(clinic.id);
   };
 
-  const addWalkIn = async () => {
+  const addManual = async () => {
     if (!clinic || !name.trim()) return;
-    await createBooking({
+    await addWalkIn({
       clinicId: clinic.id,
       patientName: name.trim(),
       patientPhone: phone.trim(),
-      dayLabel: "اليوم",
+      visitType,
       slot: new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" }),
     });
     setName("");
     setPhone("");
+    setVisitType("new");
     setShowAdd(false);
     await refresh(clinic.id);
   };
