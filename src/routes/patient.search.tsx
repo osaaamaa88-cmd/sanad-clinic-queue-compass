@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ClientOnly } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope, Search as SearchIcon, X, ArrowDownAZ } from "lucide-react";
+import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope, Search as SearchIcon, X, ArrowDownAZ, BadgeCheck, Users, ChevronLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { ClinicsMap } from "@/components/ClinicsMap";
 import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/search")({
@@ -20,6 +22,8 @@ function Search() {
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
+  const [selected, setSelected] = useState<Clinic | null>(null);
+  const [pos, setPos] = useState<{ lat: number; lng: number }>({ lat: 30.0444, lng: 31.2357 });
   useEffect(() => {
     let cancelled = false;
     getVerifiedClinics().then((list) => {
@@ -28,6 +32,14 @@ function Search() {
     return () => {
       cancelled = true;
     };
+  }, []);
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { timeout: 6000 },
+    );
   }, []);
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
