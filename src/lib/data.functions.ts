@@ -93,6 +93,96 @@ export const svrUpdateBookingStatus = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+export const svrAddWalkIn = createServerFn({ method: "POST" })
+  .inputValidator((data: {
+    clinicId: string;
+    patientName: string;
+    patientPhone: string;
+    slot: string;
+    visitType?: string;
+  }) => {
+    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+    return {
+      clinicId: data.clinicId,
+      patientName: String(data.patientName ?? "").slice(0, 120),
+      patientPhone: String(data.patientPhone ?? "").slice(0, 40),
+      slot: String(data.slot ?? "").slice(0, 40),
+      visitType: data.visitType === "followup" ? "followup" : "new",
+    };
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const code = `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const { count } = await supabaseAdmin
+      .from("bookings")
+      .select("*", { count: "exact", head: true })
+      .eq("clinic_id", data.clinicId);
+    const { data: row, error } = await supabaseAdmin
+      .from("bookings")
+      .insert({
+        code,
+        clinic_id: data.clinicId,
+        patient_name: data.patientName,
+        patient_phone: data.patientPhone,
+        day_label: "اليوم",
+        slot: data.slot,
+        queue_number: (count ?? 0) + 1,
+        visit_type: data.visitType,
+        status: "waiting",
+      })
+      .select()
+      .maybeSingle();
+    if (error || !row) throw new Error(error?.message || "Failed");
+    return { id: row.id, code: row.code, queueNumber: row.queue_number };
+  });
+
+export const svrSetClinicOps = createServerFn({ method: "POST" })
+  .inputValidator((data: {
+    id: string;
+    nowServing?: number;
+    clinicStatus?: string;
+    delayMinutes?: number;
+    bookingsClosed?: boolean;
+  }) => {
+    if (!data || typeof data.id !== "string") throw new Error("Invalid input");
+    if (data.clinicStatus && !["normal", "delayed", "paused"].includes(data.clinicStatus)) {
+      throw new Error("Invalid status");
+    }
+    return data;
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: Record<string, unknown> = {};
+    if (typeof data.nowServing === "number") patch.now_serving = Math.max(0, Math.floor(data.nowServing));
+    if (data.clinicStatus) patch.clinic_status = data.clinicStatus;
+    if (typeof data.delayMinutes === "number") patch.delay_minutes = Math.max(0, Math.floor(data.delayMinutes));
+    if (typeof data.bookingsClosed === "boolean") patch.bookings_closed = data.bookingsClosed;
+    const { data: row, error } = await supabaseAdmin
+      .from("clinics")
+      .update(patch)
+      .eq("id", data.id)
+      .select()
+      .maybeSingle();
+    if (error || !row) throw new Error(error?.message || "Failed to update clinic");
+    return { row };
+  });
+
+const _svrUpdateBookingStatusLegacy = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; status: string }) => {
+    if (!data || typeof data.id !== "string") throw new Error("Invalid input");
+    if (!["waiting", "in", "done", "cancelled"].includes(data.status)) throw new Error("Invalid status");
+    return { id: data.id, status: data.status };
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("bookings")
+      .update({ status: data.status })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
+
 export const svrUpdateClinic = createServerFn({ method: "POST" })
   .inputValidator((data: {
     id: string;
