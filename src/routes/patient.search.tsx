@@ -156,18 +156,27 @@ function Search() {
 
       {view === "map" && (
         <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">
-          <iframe
-            title="خريطة العيادات"
-            className="h-72 w-full"
-            loading="lazy"
-            src="https://maps.google.com/maps?q=cairo%20egypt&t=&z=12&ie=UTF8&iwloc=&output=embed"
-          />
+          <ClientOnly
+            fallback={<div className="grid h-[60vh] w-full place-items-center text-sm text-muted-foreground">جاري تحميل الخريطة…</div>}
+          >
+            <ClinicsMap
+              clinics={filtered}
+              center={pos}
+              selectedId={selected?.id}
+              onSelect={(c) => setSelected(c)}
+            />
+          </ClientOnly>
           <div className="border-t border-border p-3 text-xs text-muted-foreground">
-            الدبابيس الحمراء = عيادات قريبة منك
+            دوس على أي عيادة على الخريطة تشوف تفاصيلها ورقم الدور الحالي.
           </div>
         </div>
       )}
 
+      {view === "map" && selected && (
+        <ClinicSheet clinic={selected} onClose={() => setSelected(null)} />
+      )}
+
+      {view === "list" && (
       <div className="mt-4 space-y-3">
         {filtered.length === 0 && (
           <div className="rounded-2xl border-2 border-dashed border-border bg-card p-8 text-center">
@@ -226,6 +235,68 @@ function Search() {
           );
         })}
       </div>
+      )}
     </AppShell>
+  );
+}
+
+function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
+  const s = getSpecialty(clinic.specialtyId);
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md">
+      <div className="rounded-t-3xl border-t border-border bg-card p-5 shadow-[0_-8px_30px_rgba(0,0,0,.45)]">
+        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
+        <button
+          onClick={onClose}
+          aria-label="إغلاق"
+          className="absolute left-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-secondary text-muted-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <div className="flex items-start gap-3">
+          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary-soft text-3xl">
+            {s?.emoji ?? "🩺"}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate font-extrabold">{clinic.doctor}</p>
+              {clinic.isVerified && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="موثّق" />}
+            </div>
+            <p className="text-xs text-muted-foreground">{s?.name}</p>
+            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+              <MapPin className="h-3 w-3" /> {clinic.area || "—"} • {clinic.distanceKm} كم
+            </p>
+          </div>
+          <span className="rounded-lg bg-primary-soft px-2 py-1 text-sm font-extrabold text-primary">
+            {clinic.price ? `${clinic.price} ج` : "—"}
+          </span>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl bg-secondary p-2">
+            <div className="text-lg font-black text-primary">{clinic.nowServing}</div>
+            <div className="text-[10px] text-muted-foreground">الدور الحالي</div>
+          </div>
+          <div className="rounded-xl bg-secondary p-2">
+            <div className="flex items-center justify-center gap-1 text-lg font-black">
+              <Users className="h-4 w-4 text-muted-foreground" />{clinic.waitingCount}
+            </div>
+            <div className="text-[10px] text-muted-foreground">في الانتظار</div>
+          </div>
+          <div className="rounded-xl bg-secondary p-2">
+            <div className="flex items-center justify-center gap-1 text-lg font-black">
+              <Star className="h-4 w-4 fill-warning text-warning" />{clinic.rating}
+            </div>
+            <div className="text-[10px] text-muted-foreground">التقييم</div>
+          </div>
+        </div>
+        <Link
+          to="/patient/clinic/$id"
+          params={{ id: clinic.id }}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft"
+        >
+          عرض البروفايل والحجز <ChevronLeft className="h-5 w-5" />
+        </Link>
+      </div>
+    </div>
   );
 }
