@@ -152,7 +152,12 @@ export const svrSetClinicOps = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      now_serving?: number;
+      clinic_status?: string;
+      delay_minutes?: number;
+      bookings_closed?: boolean;
+    } = {};
     if (typeof data.nowServing === "number") patch.now_serving = Math.max(0, Math.floor(data.nowServing));
     if (data.clinicStatus) patch.clinic_status = data.clinicStatus;
     if (typeof data.delayMinutes === "number") patch.delay_minutes = Math.max(0, Math.floor(data.delayMinutes));
@@ -165,22 +170,6 @@ export const svrSetClinicOps = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error || !row) throw new Error(error?.message || "Failed to update clinic");
     return { row };
-  });
-
-const _svrUpdateBookingStatusLegacy = createServerFn({ method: "POST" })
-  .inputValidator((data: { id: string; status: string }) => {
-    if (!data || typeof data.id !== "string") throw new Error("Invalid input");
-    if (!["waiting", "in", "done", "cancelled"].includes(data.status)) throw new Error("Invalid status");
-    return { id: data.id, status: data.status };
-  })
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("bookings")
-      .update({ status: data.status })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true as const };
   });
 
 export const svrUpdateClinic = createServerFn({ method: "POST" })
