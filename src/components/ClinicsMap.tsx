@@ -34,7 +34,7 @@ export function ClinicsMap({
       L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
         maxZoom: 19,
       }).addTo(map);
-      const group = L.layerGroup().addTo(map);
+      const group: import("leaflet").LayerGroup = L.layerGroup().addTo(map);
       mapRef.current = map as unknown as LeafletMap;
       layerRef.current = group as unknown as { clearLayers: () => void };
       // Patient location marker
@@ -63,13 +63,13 @@ export function ClinicsMap({
       const L = (await import("leaflet")).default;
       const group = layerRef.current;
       if (!group) return;
-      group.clearLayers();
-      renderPins(L, group as never);
+      renderPins(L, group as unknown as import("leaflet").LayerGroup);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clinics, selectedId]);
 
-  function renderPins(L: typeof import("leaflet"), group: never) {
+  function renderPins(L: typeof import("leaflet"), group: import("leaflet").LayerGroup) {
+    group.clearLayers();
     clinics.forEach((c) => {
       if (!c.lat || !c.lng) return;
       const spec = getSpecialty(c.specialtyId);
@@ -87,7 +87,7 @@ export function ClinicsMap({
         }),
       });
       marker.on("click", () => onSelect(c));
-      marker.addTo(group as unknown as import("leaflet").LayerGroup);
+      marker.addTo(group);
     });
   }
 
