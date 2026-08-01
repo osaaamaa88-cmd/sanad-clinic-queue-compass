@@ -180,7 +180,10 @@ export async function getClinicById(id: string): Promise<Clinic | undefined> {
 }
 
 export async function upsertClinic(
-  input: Omit<Clinic, "id" | "isVerified" | "submittedAt"> & { id?: string },
+  input: Omit<
+    Clinic,
+    "id" | "isVerified" | "submittedAt" | "clinicStatus" | "delayMinutes" | "bookingsClosed"
+  > & { id?: string },
 ): Promise<Clinic | null> {
   if (input.id) {
     try {
