@@ -7,6 +7,7 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
     patientPhone: string;
     dayLabel: string;
     slot: string;
+    visitType?: string;
   }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     return {
@@ -15,6 +16,7 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
       patientPhone: String(data.patientPhone ?? "").slice(0, 40),
       dayLabel: String(data.dayLabel ?? "").slice(0, 80),
       slot: String(data.slot ?? "").slice(0, 40),
+      visitType: data.visitType === "followup" ? "followup" : "new",
     };
   })
   .handler(async ({ data }) => {
@@ -22,10 +24,11 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
     // Ensure the clinic exists and is verified before allowing a booking.
     const { data: clinic } = await supabaseAdmin
       .from("clinics")
-      .select("id, is_verified")
+      .select("id, is_verified, bookings_closed")
       .eq("id", data.clinicId)
       .maybeSingle();
     if (!clinic || !clinic.is_verified) throw new Error("Clinic not available");
+    if (clinic.bookings_closed) throw new Error("Bookings closed");
 
     const code = `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
     const { count } = await supabaseAdmin
@@ -44,6 +47,7 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
         day_label: data.dayLabel,
         slot: data.slot,
         queue_number: queueNumber,
+        visit_type: data.visitType,
         status: "waiting",
       })
       .select()
