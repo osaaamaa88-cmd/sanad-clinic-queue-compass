@@ -243,8 +243,14 @@ function Search() {
 function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
   const s = getSpecialty(clinic.specialtyId);
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md">
-      <div className="relative rounded-t-3xl border-t border-border bg-card p-5 shadow-[0_-8px_30px_rgba(0,0,0,.45)]">
+    <>
+      <button
+        onClick={onClose}
+        aria-label="إغلاق البطاقة"
+        className="fixed inset-0 z-20 bg-black/40 transition-opacity"
+      />
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md sm:max-w-xl">
+      <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-6 shadow-[0_-8px_30px_rgba(0,0,0,.45)] sm:p-5">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
         <button
           onClick={onClose}
@@ -298,5 +304,6 @@ function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void 
         </Link>
       </div>
     </div>
+    </>
   );
 }
