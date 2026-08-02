@@ -1,9 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { UserPlus, Stethoscope, LogIn, Hourglass, X, BookOpen, Minus, Plus, Printer, Tv } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
+import { useCallback, useEffect, useState } from "react";
 import {
-  getCurrentDoctorClinic,
+  UserPlus,
+  Stethoscope,
+  LogIn,
+  Hourglass,
+  X,
+  BookOpen,
+  Minus,
+  Plus,
+  Printer,
+  Tv,
+  RefreshCw,
+  LogOut,
+  Loader2,
+} from "lucide-react";
+import { AppShell } from "@/components/AppShell";
+import { StaffAuth } from "@/components/StaffAuth";
+import {
+  getMyClinicMembership,
+  signOutStaff,
   listBookingsForClinic,
   updateBookingStatus,
   addWalkIn,
@@ -14,6 +30,25 @@ import {
   type Booking,
   type Clinic,
 } from "@/lib/mock-data";
+
+const CACHE_PREFIX = "sandi.bookings.cache.v1.";
+
+function readCache(clinicId: string): Booking[] {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + clinicId);
+    return raw ? (JSON.parse(raw) as Booking[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCache(clinicId: string, rows: Booking[]) {
+  try {
+    localStorage.setItem(CACHE_PREFIX + clinicId, JSON.stringify(rows));
+  } catch {
+    /* ignore quota errors */
+  }
+}
 
 export const Route = createFileRoute("/reception")({
   head: () => ({
@@ -33,22 +68,49 @@ function Reception() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [rows, setRows] = useState<Booking[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [fromCache, setFromCache] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [visitType, setVisitType] = useState<"new" | "followup">("new");
 
-  const refresh = async (clinicId: string) => {
-    setRows(await listBookingsForClinic(clinicId));
-  };
+  const refresh = useCallback(async (clinicId: string) => {
+    setRefreshing(true);
+    const fresh = await listBookingsForClinic(clinicId);
+    if (fresh.length > 0) {
+      setRows(fresh);
+      setFromCache(false);
+      writeCache(clinicId, fresh);
+    } else {
+      const cached = readCache(clinicId);
+      if (cached.length > 0) {
+        // Network hiccup: keep the last known sheet instead of an empty screen.
+        setRows(cached);
+        setFromCache(true);
+      } else {
+        setRows([]);
+        setFromCache(false);
+      }
+    }
+    setRefreshing(false);
+  }, []);
+
+  const load = useCallback(async () => {
+    const { clinic: c, role } = await getMyClinicMembership();
+    setSignedIn(role !== null || Boolean(c));
+    setClinic(c);
+    if (c) {
+      setRows(readCache(c.id));
+      await refresh(c.id);
+    }
+    setLoaded(true);
+  }, [refresh]);
 
   useEffect(() => {
-    getCurrentDoctorClinic().then(async (c) => {
-      setClinic(c);
-      if (c) await refresh(c.id);
-      setLoaded(true);
-    });
-  }, []);
+    load();
+  }, [load]);
 
   const ops = async (patch: {
     nowServing?: number;
@@ -84,17 +146,53 @@ function Reception() {
     await refresh(clinic.id);
   };
 
-  if (loaded && !clinic) {
+  if (!loaded) {
+    return (
+      <AppShell title="دفتر الحجز" backTo="/">
+        <div className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> جاري التحميل…
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!signedIn) {
+    return (
+      <AppShell title="دفتر الحجز" subtitle="دخول السكرتير أو الطبيب" backTo="/">
+        <StaffAuth
+          title="دخول فريق العيادة"
+          hint="دفتر الحجز للسكرتير والطبيب فقط — المريض له الحجز والمتابعة فقط."
+          onSignedIn={load}
+          footer={
+            <p className="mt-1 text-center text-[11px] text-muted-foreground">
+              مفيش حساب؟ الطبيب هو اللي بينشئ حساب السكرتير من لوحة الطبيب.
+            </p>
+          }
+        />
+      </AppShell>
+    );
+  }
+
+  if (!clinic) {
     return (
       <AppShell title="دفتر الحجز" backTo="/">
         <div className="mt-6 rounded-2xl border-2 border-dashed border-border bg-card p-8 text-center">
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
             <Stethoscope className="h-6 w-6" />
           </div>
-          <p className="mt-3 text-sm font-bold">لا توجد عيادة مربوطة بالجهاز</p>
+          <p className="mt-3 text-sm font-bold">لا توجد عيادة مربوطة بحسابك</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            من فضلك سجّل عيادتك من واجهة الطبيب أولاً ثم افتح دفتر الحجز.
+            من فضلك سجّل عيادتك من واجهة الطبيب أولاً، أو اطلب من الطبيب ربط حسابك بالعيادة.
           </p>
+          <button
+            onClick={async () => {
+              await signOutStaff();
+              setSignedIn(false);
+            }}
+            className="mt-4 w-full rounded-xl border border-border py-2.5 text-xs font-bold"
+          >
+            خروج
+          </button>
         </div>
       </AppShell>
     );
@@ -110,7 +208,39 @@ function Reception() {
   const spec = clinic ? getSpecialty(clinic.specialtyId) : undefined;
 
   return (
-    <AppShell title="دفتر الحجز" subtitle={clinic ? `عيادة ${clinic.doctor}` : ""} backTo="/">
+    <AppShell
+      title="دفتر الحجز"
+      subtitle={clinic ? `عيادة ${clinic.doctor}` : ""}
+      backTo="/"
+      right={
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            onClick={() => clinic && refresh(clinic.id)}
+            aria-label="إعادة تحميل البيانات"
+            title="إعادة تحميل البيانات"
+            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-secondary"
+          >
+            <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
+          </button>
+          <button
+            onClick={async () => {
+              await signOutStaff();
+              setSignedIn(false);
+              setClinic(undefined);
+            }}
+            aria-label="خروج"
+            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-secondary"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        </div>
+      }
+    >
+      {fromCache && (
+        <p className="mb-3 rounded-xl bg-warning/15 px-3 py-2 text-center text-[11px] font-bold text-warning print:hidden">
+          بنعرض آخر نسخة محفوظة من الدفتر — اضغط 🔄 لإعادة التحميل.
+        </p>
+      )}
       {/* Live queue number control */}
       <div className="rounded-2xl border-2 border-border bg-card p-4 print:hidden">
         <p className="text-center text-xs font-bold text-muted-foreground">رقم الدور الحالي المباشر</p>
