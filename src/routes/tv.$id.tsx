@@ -1,5 +1,6 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { getClinicById, getSpecialty, subscribeClinic, clinicStatusLabels, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/tv/$id")({
@@ -22,6 +23,14 @@ function TvScreen() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [clock, setClock] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const reload = useCallback(async () => {
+    setRefreshing(true);
+    const fresh = await getClinicById(id);
+    if (fresh) setClinic(fresh);
+    setRefreshing(false);
+  }, [id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,7 +81,16 @@ function TvScreen() {
         </div>
         <div className="shrink-0 text-left">
           <div className="text-4xl font-black text-primary md:text-5xl">{clock}</div>
-          <div className="mt-1 text-xl text-muted-foreground">سندي</div>
+          <div className="mt-1 flex items-center justify-end gap-3 text-xl text-muted-foreground">
+            سندي
+            <button
+              onClick={reload}
+              aria-label="إعادة تحميل البيانات"
+              className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground"
+            >
+              <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
+            </button>
+          </div>
         </div>
       </header>
 

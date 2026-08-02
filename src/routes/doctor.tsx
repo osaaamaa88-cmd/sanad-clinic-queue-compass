@@ -1,21 +1,54 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { MapPin, Save, UserPlus, Zap, Clock, CheckCircle2, Sparkles, Lock } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+  MapPin,
+  Save,
+  UserPlus,
+  Zap,
+  Clock,
+  CheckCircle2,
+  Sparkles,
+  Lock,
+  LogOut,
+  BookOpen,
+  Loader2,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { svrAddSecretary, svrListSecretaries } from "@/lib/staff.functions";
 import {
   specialties,
   upsertClinic,
-  getCurrentDoctorClinic,
-  setCurrentDoctorId,
+  getMyClinicMembership,
+  registerDoctorAccount,
+  signOutStaff,
   type Clinic,
 } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/doctor")({
-  head: () => ({ meta: [{ title: "سندي — لوحة الطبيب" }] }),
+  head: () => ({
+    meta: [
+      { title: "لوحة الطبيب — سندي" },
+      { name: "description", content: "دخول الطبيب لإدارة بروفايل عيادته وحساب السكرتير ومتابعة التوثيق." },
+      { property: "og:title", content: "لوحة الطبيب — سندي" },
+      { property: "og:description", content: "سجّل عيادتك على سندي وأدر بياناتك وحساب السكرتير." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Doctor,
 });
 
+type Mode = "login" | "signup";
+
 function Doctor() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
+  const [role, setRole] = useState<"doctor" | "secretary" | null>(null);
+  const [mode, setMode] = useState<Mode>("login");
+
   const [clinicId, setClinicId] = useState<string | undefined>(undefined);
   const [isVerified, setIsVerified] = useState(false);
   const [name, setName] = useState("");
@@ -29,20 +62,20 @@ function Doctor() {
   const [available, setAvailable] = useState(false);
   const [saved, setSaved] = useState(false);
   const [justSubmitted, setJustSubmitted] = useState(false);
-  const [secName, setSecName] = useState("");
-  const [secPhone, setSecPhone] = useState("");
-  const [secretaries, setSecretaries] = useState<{ name: string; phone: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // signup fields
+  const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [signupError, setSignupError] = useState("");
   const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    getCurrentDoctorClinic().then((c) => {
-      if (c) hydrate(c);
-      setLoading(false);
-    });
-  }, []);
+  // secretary accounts
+  const [secretaries, setSecretaries] = useState<{ id: string; full_name: string }[]>([]);
+  const [secName, setSecName] = useState("");
+  const [secEmail, setSecEmail] = useState("");
+  const [secPass, setSecPass] = useState("");
+  const [secError, setSecError] = useState("");
+  const [secBusy, setSecBusy] = useState(false);
 
   const hydrate = (c: Clinic) => {
     setClinicId(c.id);
@@ -53,16 +86,43 @@ function Doctor() {
     setPhone(c.phone);
     setPrice(String(c.price));
     setAvailable(c.availableNow);
-    // address is stored as one string; keep as-is in street for editing
     setStreet(c.address);
   };
 
-  const save = async () => {
-    if (!name.trim() || !phone.trim()) {
+  const loadSecretaries = useCallback(async () => {
+    try {
+      const { rows } = await svrListSecretaries();
+      setSecretaries(rows as { id: string; full_name: string }[]);
+    } catch {
+      setSecretaries([]);
+    }
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
+      setSignedIn(false);
+      setRole(null);
+      setClinicId(undefined);
+      setLoading(false);
       return;
     }
+    setSignedIn(true);
+    const membership = await getMyClinicMembership();
+    setRole(membership.role);
+    if (membership.clinic) hydrate(membership.clinic);
+    if (membership.role === "doctor") await loadSecretaries();
+    setLoading(false);
+  }, [loadSecretaries]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const save = async () => {
+    if (!clinicId || !name.trim() || !phone.trim()) return;
     const address = [street, building, floor].filter(Boolean).join("، ");
-    const created = await upsertClinic({
+    const updated = await upsertClinic({
       id: clinicId,
       doctor: name.trim(),
       specialtyId: spec,
@@ -80,139 +140,232 @@ function Doctor() {
       lat: 30.0444,
       lng: 31.2357,
     });
-    if (!created) return;
-    const isNew = !clinicId;
-    setClinicId(created.id);
-    setIsVerified(created.isVerified);
-    setCurrentDoctorId(created.id);
+    if (!updated) return;
+    setIsVerified(updated.isVerified);
     setSaved(true);
-    if (isNew) setJustSubmitted(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const quickSignup = async () => {
+  const doSignup = async () => {
     setSignupError("");
     if (!name.trim()) return setSignupError("من فضلك اكتب اسم الطبيب");
     if (!phone.trim()) return setSignupError("من فضلك اكتب رقم الموبايل / الواتساب");
-    if (pass.trim().length < 4) return setSignupError("كلمة السر لازم تكون 4 حروف أو أرقام على الأقل");
+    if (!email.trim()) return setSignupError("من فضلك اكتب البريد الإلكتروني");
+    if (pass.length < 6) return setSignupError("كلمة السر لازم تكون ٦ حروف أو أرقام على الأقل");
     setCreating(true);
-    const created = await upsertClinic({
+    const res = await registerDoctorAccount({
+      email: email.trim(),
+      password: pass,
       doctor: name.trim(),
       specialtyId: spec,
-      address: "",
-      area: "",
-      distanceKm: 0,
-      price: 0,
-      rating: 0,
-      reviews: 0,
-      availableNow: false,
       phone: phone.trim().replace(/^0/, "20"),
-      nowServing: 0,
-      yourNumber: 0,
-      waitingCount: 0,
-      lat: 30.0444,
-      lng: 31.2357,
     });
     setCreating(false);
-    if (!created) return setSignupError("حصل خطأ، حاول تاني");
-    try {
-      localStorage.setItem(`sandi_doctor_pass_${created.id}`, pass.trim());
-    } catch { /* ignore */ }
-    setCurrentDoctorId(created.id);
-    hydrate(created);
+    if (!res.ok) return setSignupError(authErrorMessage(res.code));
     setJustSubmitted(true);
+    setPass("");
+    await refresh();
   };
 
-  if (!loading && !clinicId) {
+  const addSecretary = async () => {
+    setSecError("");
+    if (!secName.trim()) return setSecError("اكتب اسم السكرتير");
+    if (!secEmail.trim()) return setSecError("اكتب بريد السكرتير");
+    if (secPass.length < 6) return setSecError("كلمة السر لازم ٦ حروف أو أرقام على الأقل");
+    setSecBusy(true);
+    try {
+      await svrAddSecretary({
+        data: { email: secEmail.trim(), password: secPass, fullName: secName.trim() },
+      });
+      setSecName("");
+      setSecEmail("");
+      setSecPass("");
+      await loadSecretaries();
+    } catch (e) {
+      setSecError(authErrorMessage((e as Error)?.message));
+    }
+    setSecBusy(false);
+  };
+
+  const signOut = async () => {
+    await signOutStaff();
+    setSignedIn(false);
+    setRole(null);
+    setClinicId(undefined);
+  };
+
+  if (loading) {
     return (
-      <AppShell title="إنشاء حساب العيادة" subtitle="خطوة واحدة وخلصنا" backTo="/">
-        <div className="rounded-2xl border border-primary bg-primary-soft p-4">
-          <div className="flex items-start gap-3">
-            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <p className="text-xs font-bold leading-relaxed text-primary">
-              4 بيانات بس وحسابك يبقى جاهز. تقدر تكمّل باقي بيانات بروفايلك (الصور، العنوان، المواعيد، سعر الكشف، والنبذة) بعد الدخول للوحة التحكم.
-            </p>
-          </div>
+      <AppShell title="لوحة الطبيب" backTo="/">
+        <div className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> جاري التحميل…
         </div>
-
-        <div className="mt-4 space-y-4 rounded-2xl border border-border bg-card p-4">
-          <Field label="اسم الطبيب *" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
-          <div>
-            <label className="text-xs font-bold text-muted-foreground">التخصص *</label>
-            <div className="mt-2 -mx-1 overflow-x-auto px-1">
-              <div className="flex gap-2">
-                {specialties.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setSpec(s.id)}
-                    className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${
-                      spec === s.id ? "gradient-primary text-white" : "bg-secondary"
-                    }`}
-                  >
-                    {s.emoji} {s.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div>
-            <label className="text-xs font-bold text-muted-foreground">رقم الموبايل / الواتساب *</label>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              inputMode="tel"
-              placeholder="01xxxxxxxxx"
-              className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
-            />
-          </div>
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-              <Lock className="h-3.5 w-3.5" /> كلمة السر (رقم مرور سريع) *
-            </label>
-            <input
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
-              type="password"
-              placeholder="4 أرقام أو أكتر"
-              className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
-            />
-          </div>
-          {signupError && (
-            <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive">{signupError}</p>
-          )}
-        </div>
-
-        <button
-          onClick={quickSignup}
-          disabled={creating}
-          className="mt-5 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-60"
-        >
-          {creating ? "جاري الإنشاء…" : "إنشاء حساب العيادة الآن"}
-        </button>
-        <p className="mt-3 text-center text-xs text-muted-foreground">
-          باقي البيانات كلها اختيارية — تقدر تضيفها في أي وقت من لوحة التحكم.
-        </p>
-        <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-          بتسجيلك أنت موافق على{" "}
-          <Link to="/terms" className="font-bold text-primary underline">
-            شروط الاستخدام وإخلاء المسؤولية
-          </Link>
-          . سندي أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
-        </p>
       </AppShell>
     );
   }
 
-  const addSec = () => {
-    if (!secName.trim()) return;
-    setSecretaries((s) => [...s, { name: secName.trim(), phone: secPhone.trim() }]);
-    setSecName("");
-    setSecPhone("");
-  };
+  // Not signed in → login or create account
+  if (!signedIn) {
+    return (
+      <AppShell title="حساب الطبيب" subtitle="دخول أو إنشاء حساب" backTo="/">
+        <div className="grid grid-cols-2 gap-2">
+          {(
+            [
+              ["login", "تسجيل الدخول"],
+              ["signup", "حساب جديد"],
+            ] as const
+          ).map(([m, label]) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`rounded-xl py-2.5 text-sm font-bold ${
+                mode === m ? "gradient-primary text-white" : "border border-border bg-card"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          {mode === "login" ? (
+            <StaffAuth
+              title="دخول الطبيب أو السكرتير"
+              hint="استخدم البريد وكلمة السر اللي سجلت بيهم."
+              onSignedIn={refresh}
+            />
+          ) : (
+            <>
+              <div className="rounded-2xl border border-primary bg-primary-soft p-4">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <p className="text-xs font-bold leading-relaxed text-primary">
+                    ٥ بيانات بس وحسابك يبقى جاهز. تقدر تكمّل باقي بيانات بروفايلك بعد الدخول للوحة التحكم.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-4 rounded-2xl border border-border bg-card p-4">
+                <Field label="اسم الطبيب *" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground">التخصص *</label>
+                  <div className="mt-2 -mx-1 overflow-x-auto px-1">
+                    <div className="flex gap-2">
+                      {specialties.map((s) => (
+                        <button
+                          key={s.id}
+                          onClick={() => setSpec(s.id)}
+                          className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${
+                            spec === s.id ? "gradient-primary text-white" : "bg-secondary"
+                          }`}
+                        >
+                          {s.emoji} {s.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground">رقم الموبايل / الواتساب *</label>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    inputMode="tel"
+                    placeholder="01xxxxxxxxx"
+                    className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground">البريد الإلكتروني *</label>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    dir="ltr"
+                    placeholder="doctor@email.com"
+                    className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                    <Lock className="h-3.5 w-3.5" /> كلمة السر *
+                  </label>
+                  <input
+                    value={pass}
+                    onChange={(e) => setPass(e.target.value)}
+                    type="password"
+                    dir="ltr"
+                    placeholder="٦ حروف أو أرقام على الأقل"
+                    className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+                  />
+                </div>
+                {signupError && (
+                  <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive">
+                    {signupError}
+                  </p>
+                )}
+              </div>
+
+              <button
+                onClick={doSignup}
+                disabled={creating}
+                className="mt-5 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-60"
+              >
+                {creating ? "جاري الإنشاء…" : "إنشاء حساب العيادة الآن"}
+              </button>
+              <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+                بتسجيلك أنت موافق على{" "}
+                <Link to="/terms" className="font-bold text-primary underline">
+                  شروط الاستخدام وإخلاء المسؤولية
+                </Link>
+                . سندي أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
+              </p>
+            </>
+          )}
+        </div>
+      </AppShell>
+    );
+  }
+
+  // Signed in as secretary → send them to the booking sheet
+  if (role === "secretary") {
+    return (
+      <AppShell title="حساب السكرتير" backTo="/">
+        <div className="rounded-2xl border border-border bg-card p-5 text-center">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
+            <BookOpen className="h-6 w-6" />
+          </div>
+          <p className="mt-3 text-sm font-bold">أنت داخل بحساب سكرتير</p>
+          <p className="mt-1 text-xs text-muted-foreground">دفتر الحجز هو شاشتك الأساسية.</p>
+          <button
+            onClick={() => navigate({ to: "/reception" })}
+            className="mt-4 w-full rounded-xl gradient-primary py-3 text-sm font-extrabold text-white"
+          >
+            افتح دفتر الحجز
+          </button>
+          <button onClick={signOut} className="mt-2 w-full rounded-xl border border-border py-3 text-sm font-bold">
+            خروج
+          </button>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
-    <AppShell title="لوحة الطبيب" subtitle="بروفايل عيادتك" backTo="/">
-      {/* Verification status */}
+    <AppShell
+      title="لوحة الطبيب"
+      subtitle="بروفايل عيادتك"
+      backTo="/"
+      right={
+        <button
+          onClick={signOut}
+          aria-label="خروج"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border bg-secondary"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
+      }
+    >
       {clinicId && !isVerified && (
         <div className="mb-4 rounded-2xl border border-warning bg-warning/10 p-4">
           <div className="flex items-start gap-3">
@@ -221,7 +374,7 @@ function Doctor() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-extrabold text-foreground">حسابك قيد المراجعة والتوثيق</p>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 حسابك قيد المراجعة والتوثيق من قبل إدارة التطبيق، وسيتم تفعيله فور التأكد من البيانات.
                 لحد ما يتم التوثيق، عيادتك مش هتظهر للمرضى في البحث أو الخريطة.
               </p>
@@ -237,21 +390,23 @@ function Doctor() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-extrabold text-foreground">حسابك موثّق ✓</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                عيادتك ظاهرة للمرضى في البحث والخريطة.
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">عيادتك ظاهرة للمرضى في البحث والخريطة.</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Availability */}
-      <div className={`flex items-center gap-4 rounded-2xl p-4 shadow-soft ${
-        available ? "gradient-primary text-white" : "bg-card border border-border"
-      }`}>
-        <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${
-          available ? "bg-white/20" : "bg-primary-soft text-primary"
-        }`}>
+      <div
+        className={`flex items-center gap-3 rounded-2xl p-4 shadow-soft sm:gap-4 ${
+          available ? "gradient-primary text-white" : "border border-border bg-card"
+        }`}
+      >
+        <div
+          className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${
+            available ? "bg-white/20" : "bg-primary-soft text-primary"
+          }`}
+        >
           <Zap className="h-6 w-6" />
         </div>
         <div className="min-w-0 flex-1">
@@ -262,7 +417,8 @@ function Doctor() {
         </div>
         <button
           onClick={() => setAvailable((v) => !v)}
-          className={`relative h-7 w-12 rounded-full transition ${
+          aria-label="تبديل حالة الإتاحة"
+          className={`relative h-7 w-12 shrink-0 rounded-full transition ${
             available ? "bg-white/30" : "bg-secondary"
           }`}
         >
@@ -274,6 +430,14 @@ function Doctor() {
         </button>
       </div>
 
+      {/* Quick link to the booking sheet */}
+      <Link
+        to="/reception"
+        className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 text-sm font-extrabold"
+      >
+        <BookOpen className="h-4 w-4 text-primary" /> افتح دفتر الحجز
+      </Link>
+
       {/* Profile form */}
       <div className="mt-6 flex items-center justify-between gap-2">
         <h2 className="text-base font-bold">بيانات العيادة</h2>
@@ -281,9 +445,6 @@ function Doctor() {
           اختيارية — أضفها لاحقاً
         </span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">
-        يمكنك إكمال بقية بيانات بروفايلك في أي وقت من لوحة التحكم.
-      </p>
       <div className="mt-3 space-y-4 rounded-2xl border border-border bg-card p-4">
         <Field label="اسم الطبيب *" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
         <div>
@@ -346,24 +507,20 @@ function Doctor() {
             <MapPin className="h-10 w-10 fill-destructive text-destructive drop-shadow" />
           </div>
         </div>
-        <div className="border-t border-border p-3 text-xs">
-          <p className="text-muted-foreground">الإحداثيات المختارة</p>
-          <p className="mt-0.5 font-bold">30.0131° شمالاً — 31.2089° شرقاً</p>
-        </div>
       </div>
 
-      {/* Secretaries */}
-      <h2 className="mt-6 text-base font-bold">حسابات السكرتير (اختياري)</h2>
+      {/* Secretary accounts */}
+      <h2 className="mt-6 text-base font-bold">حسابات السكرتير</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        السكرتير بيدخل بالبريد وكلمة السر ويقدر يفتح دفتر الحجز ويعدّل رقم الدور — المرضى مش بيقدروا.
+      </p>
       <div className="mt-3 space-y-2">
-        {secretaries.map((s, i) => (
-          <div key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+        {secretaries.map((s) => (
+          <div key={s.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-soft font-bold text-primary">
-              {s.name.charAt(0)}
+              {(s.full_name || "س").charAt(0)}
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold">{s.name}</p>
-              <p className="text-xs text-muted-foreground">{s.phone}</p>
-            </div>
+            <p className="min-w-0 flex-1 truncate text-sm font-bold">{s.full_name || "سكرتير"}</p>
             <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">مفعّل</span>
           </div>
         ))}
@@ -373,29 +530,41 @@ function Doctor() {
           value={secName}
           onChange={(e) => setSecName(e.target.value)}
           placeholder="اسم السكرتير"
-          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
         />
         <input
-          value={secPhone}
-          onChange={(e) => setSecPhone(e.target.value)}
-          placeholder="رقم الموبايل"
-          inputMode="tel"
-          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          value={secEmail}
+          onChange={(e) => setSecEmail(e.target.value)}
+          placeholder="بريد السكرتير"
+          type="email"
+          dir="ltr"
+          className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
         />
+        <input
+          value={secPass}
+          onChange={(e) => setSecPass(e.target.value)}
+          placeholder="كلمة سر السكرتير"
+          type="password"
+          dir="ltr"
+          className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+        />
+        {secError && (
+          <p className="rounded-xl bg-destructive/10 px-3 py-2 text-[12px] font-bold text-destructive">{secError}</p>
+        )}
         <button
-          onClick={addSec}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary py-2 text-sm font-bold"
+          onClick={addSecretary}
+          disabled={secBusy}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-sm font-bold disabled:opacity-60"
         >
-          <UserPlus className="h-4 w-4" /> إضافة حساب سكرتير
+          {secBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} إضافة حساب سكرتير
         </button>
       </div>
 
-      {/* Save */}
       <button
         onClick={save}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft"
       >
-        <Save className="h-5 w-5" /> {saved ? "تم الحفظ ✓" : clinicId ? "حفظ التعديلات" : "تسجيل العيادة"}
+        <Save className="h-5 w-5" /> {saved ? "تم الحفظ ✓" : "حفظ التعديلات"}
       </button>
 
       {justSubmitted && !isVerified && (
@@ -407,7 +576,17 @@ function Doctor() {
   );
 }
 
-function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
   return (
     <div>
       <label className="text-xs font-bold text-muted-foreground">{label}</label>

@@ -106,6 +106,44 @@
   --font-sans: "Tajawal", "Cairo", ui-sans-serif, system-ui, sans-serif;
 }
 
+.light {
+  /* Light mode — soft clinical white with the same turquoise identity */
+  --background: oklch(0.985 0.004 240);
+  --foreground: oklch(0.24 0.035 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.035 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.035 265);
+  --primary: oklch(0.62 0.13 210);
+  --primary-foreground: oklch(1 0 0);
+  --primary-soft: oklch(0.94 0.03 210);
+  --secondary: oklch(0.955 0.008 240);
+  --secondary-foreground: oklch(0.26 0.035 265);
+  --muted: oklch(0.955 0.008 240);
+  --muted-foreground: oklch(0.50 0.02 255);
+  --accent: oklch(0.93 0.035 210);
+  --accent-foreground: oklch(0.24 0.035 265);
+  --success: oklch(0.62 0.14 155);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.78 0.15 75);
+  --warning-foreground: oklch(0.22 0.05 60);
+  --destructive: oklch(0.60 0.22 22);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.90 0.01 250);
+  --input: oklch(0.90 0.01 250);
+  --ring: oklch(0.62 0.13 210);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.24 0.035 265);
+  --sidebar-primary: oklch(0.62 0.13 210);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.94 0.03 210);
+  --sidebar-accent-foreground: oklch(0.24 0.035 265);
+  --sidebar-border: oklch(0.90 0.01 250);
+  --sidebar-ring: oklch(0.62 0.13 210);
+  --gradient-primary: linear-gradient(135deg, oklch(0.68 0.13 205), oklch(0.56 0.14 220));
+  --shadow-soft: 0 12px 32px -18px oklch(0.55 0.10 230 / 0.35);
+}
+
 .dark {
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
@@ -177,4 +215,20 @@
 
 @utility shadow-soft {
   box-shadow: var(--shadow-soft);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@utility animate-sheet-up {
+  animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }

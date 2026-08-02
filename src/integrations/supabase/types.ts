@@ -64,6 +64,44 @@ export type Database = {
           },
         ]
       }
+      clinic_staff: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          full_name: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_staff_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinics: {
         Row: {
           address: string
@@ -81,6 +119,7 @@ export type Database = {
           lat: number
           lng: number
           now_serving: number
+          owner_id: string | null
           phone: string
           price: number
           rating: number
@@ -107,6 +146,7 @@ export type Database = {
           lat?: number
           lng?: number
           now_serving?: number
+          owner_id?: string | null
           phone?: string
           price?: number
           rating?: number
@@ -133,6 +173,7 @@ export type Database = {
           lat?: number
           lng?: number
           now_serving?: number
+          owner_id?: string | null
           phone?: string
           price?: number
           rating?: number
