@@ -7,6 +7,7 @@ import {
   svrSetClinicOps,
   svrAddWalkIn,
 } from "@/lib/data.functions";
+import { svrMyClinic, svrRegisterDoctor } from "@/lib/staff.functions";
 
 export type Specialty = {
   id: string;
@@ -232,20 +233,60 @@ export async function upsertClinic(
   return rowToClinic(data as Row);
 }
 
-export function getCurrentDoctorId(): string | null {
+/** Identity now comes from the real signed-in session, not the device. */
+export async function getCurrentSession() {
   if (!isBrowser()) return null;
-  return localStorage.getItem(CURRENT_DOCTOR_KEY);
+  const { data } = await supabase.auth.getSession();
+  return data.session ?? null;
 }
 
-export function setCurrentDoctorId(id: string | null) {
-  if (!isBrowser()) return;
-  if (id) localStorage.setItem(CURRENT_DOCTOR_KEY, id);
-  else localStorage.removeItem(CURRENT_DOCTOR_KEY);
+export type ClinicMembership = {
+  clinic: Clinic | undefined;
+  role: "doctor" | "secretary" | null;
+};
+
+/** The clinic of the signed-in doctor/secretary (server-verified). */
+export async function getMyClinicMembership(): Promise<ClinicMembership> {
+  const session = await getCurrentSession();
+  if (!session) return { clinic: undefined, role: null };
+  try {
+    const res = await svrMyClinic();
+    return {
+      clinic: res.row ? rowToClinic(res.row as unknown as Row) : undefined,
+      role: (res.role as "doctor" | "secretary" | null) ?? null,
+    };
+  } catch {
+    return { clinic: undefined, role: null };
+  }
 }
 
 export async function getCurrentDoctorClinic(): Promise<Clinic | undefined> {
-  const id = getCurrentDoctorId();
-  return id ? getClinicById(id) : undefined;
+  return (await getMyClinicMembership()).clinic;
+}
+
+/** Creates the doctor login + the unverified clinic, then signs the doctor in. */
+export async function registerDoctorAccount(input: {
+  email: string;
+  password: string;
+  doctor: string;
+  specialtyId: string;
+  phone: string;
+}): Promise<{ ok: true } | { ok: false; code: string }> {
+  try {
+    await svrRegisterDoctor({ data: input });
+  } catch (e) {
+    return { ok: false, code: (e as Error)?.message || "SIGNUP_FAILED" };
+  }
+  const { error } = await supabase.auth.signInWithPassword({
+    email: input.email.trim().toLowerCase(),
+    password: input.password,
+  });
+  if (error) return { ok: false, code: error.message };
+  return { ok: true };
+}
+
+export async function signOutStaff() {
+  await supabase.auth.signOut();
 }
 
 // Bookings
