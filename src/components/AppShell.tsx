@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function AppShell({
   title,
@@ -9,6 +10,7 @@ export function AppShell({
   right,
   children,
   tone = "light",
+  showThemeToggle = true,
 }: {
   title: string;
   subtitle?: string;
@@ -16,13 +18,14 @@ export function AppShell({
   right?: ReactNode;
   children: ReactNode;
   tone?: "light" | "primary";
+  showThemeToggle?: boolean;
 }) {
   const isPrimary = tone === "primary";
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto w-full max-w-md sm:max-w-xl lg:max-w-2xl">
         <header
-          className={`sticky top-0 z-10 flex items-center gap-3 px-5 py-4 ${
+          className={`sticky top-0 z-10 flex items-center gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4 ${
             isPrimary ? "gradient-primary text-white" : "bg-card border-b border-border"
           }`}
         >
@@ -36,16 +39,17 @@ export function AppShell({
             <ArrowRight className="h-5 w-5" />
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-extrabold">{title}</h1>
+            <h1 className="truncate text-base font-extrabold sm:text-lg">{title}</h1>
             {subtitle && (
-              <p className={`truncate text-xs ${isPrimary ? "opacity-90" : "text-muted-foreground"}`}>
+              <p className={`truncate text-[11px] sm:text-xs ${isPrimary ? "opacity-90" : "text-muted-foreground"}`}>
                 {subtitle}
               </p>
             )}
           </div>
           {right}
+          {showThemeToggle && <ThemeToggle className={isPrimary ? "border-white/30 bg-white/20 text-white" : ""} />}
         </header>
-        <main className="px-5 py-5 pb-24">{children}</main>
+        <main className="px-4 py-4 pb-24 sm:px-5 sm:py-5">{children}</main>
       </div>
     </div>
   );
