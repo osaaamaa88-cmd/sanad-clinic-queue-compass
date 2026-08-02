@@ -60,8 +60,6 @@ export const clinicStatusLabels: Record<ClinicStatus, { label: string; dot: stri
   paused: { label: "متوقفة مؤقتاً", dot: "🔴" },
 };
 
-const CURRENT_DOCTOR_KEY = "tabibak.currentDoctorId.v1";
-
 function isBrowser() {
   return typeof window !== "undefined";
 }
