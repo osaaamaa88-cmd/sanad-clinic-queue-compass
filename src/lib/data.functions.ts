@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const svrCreateBooking = createServerFn({ method: "POST" })
   .inputValidator((data: {
@@ -62,12 +63,15 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
   });
 
 export const svrListBookingsForClinic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { clinicId: string }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     return { clinicId: data.clinicId };
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertClinicManager } = await import("@/lib/clinic-access.server");
+    await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
     const { data: rows, error } = await supabaseAdmin
       .from("bookings")
       .select("*")
@@ -78,13 +82,22 @@ export const svrListBookingsForClinic = createServerFn({ method: "POST" })
   });
 
 export const svrUpdateBookingStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string; status: string }) => {
     if (!data || typeof data.id !== "string") throw new Error("Invalid input");
     if (!["waiting", "in", "done", "cancelled"].includes(data.status)) throw new Error("Invalid status");
     return { id: data.id, status: data.status };
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertClinicManager } = await import("@/lib/clinic-access.server");
+    const { data: booking } = await supabaseAdmin
+      .from("bookings")
+      .select("id, clinic_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!booking) throw new Error("FORBIDDEN");
+    await assertClinicManager(supabaseAdmin, booking.clinic_id, context.userId);
     const { error } = await supabaseAdmin
       .from("bookings")
       .update({ status: data.status })
@@ -94,6 +107,7 @@ export const svrUpdateBookingStatus = createServerFn({ method: "POST" })
   });
 
 export const svrAddWalkIn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: {
     clinicId: string;
     patientName: string;
@@ -110,8 +124,10 @@ export const svrAddWalkIn = createServerFn({ method: "POST" })
       visitType: data.visitType === "followup" ? "followup" : "new",
     };
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertClinicManager } = await import("@/lib/clinic-access.server");
+    await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
     const code = `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
     const { count } = await supabaseAdmin
       .from("bookings")
@@ -137,6 +153,7 @@ export const svrAddWalkIn = createServerFn({ method: "POST" })
   });
 
 export const svrSetClinicOps = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: {
     id: string;
     nowServing?: number;
@@ -150,8 +167,10 @@ export const svrSetClinicOps = createServerFn({ method: "POST" })
     }
     return data;
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertClinicManager } = await import("@/lib/clinic-access.server");
+    await assertClinicManager(supabaseAdmin, data.id, context.userId);
     const patch: {
       now_serving?: number;
       clinic_status?: string;
@@ -173,6 +192,7 @@ export const svrSetClinicOps = createServerFn({ method: "POST" })
   });
 
 export const svrUpdateClinic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: {
     id: string;
     doctor: string;
@@ -188,8 +208,10 @@ export const svrUpdateClinic = createServerFn({ method: "POST" })
     if (!data || typeof data.id !== "string") throw new Error("Invalid input");
     return data;
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertClinicManager } = await import("@/lib/clinic-access.server");
+    await assertClinicManager(supabaseAdmin, data.id, context.userId);
     // Do NOT allow flipping is_verified from this endpoint.
     const { data: row, error } = await supabaseAdmin
       .from("clinics")
