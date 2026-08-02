@@ -216,3 +216,19 @@
 @utility shadow-soft {
   box-shadow: var(--shadow-soft);
 }
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@utility animate-sheet-up {
+  animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
