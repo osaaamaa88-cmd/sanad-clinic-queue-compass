@@ -26,7 +26,7 @@ import {
   type Clinic,
 } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/doctor")({
+export const Route = createFileRoute("/doctor-settings")({
   head: () => ({
     meta: [
       { title: "لوحة الطبيب — سندي" },
