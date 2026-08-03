@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3 } from "lucide-react";
+import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, Play } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClinicQrCard } from "@/components/ClinicQrCard";
 import {
@@ -361,6 +361,37 @@ function ClinicDetail() {
 
           {/* Print card + QR */}
           <ClinicQrCard clinic={clinic} specName={spec?.name ?? ""} />
+
+          {/* Instagram-style media grid */}
+          <div>
+            <p className="mb-2 text-sm font-bold">من العيادة</p>
+            <div className="-mx-4 grid grid-cols-3 gap-[3px] sm:mx-0">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="relative aspect-square overflow-hidden bg-surface-deep"
+                >
+                  <div
+                    className={`absolute inset-0 ${
+                      i % 3 === 0
+                        ? "bg-[radial-gradient(circle_at_30%_30%,var(--gold-soft),transparent_70%)]"
+                        : i % 3 === 1
+                          ? "bg-[radial-gradient(circle_at_70%_40%,var(--primary-soft),transparent_70%)]"
+                          : "bg-[linear-gradient(135deg,var(--secondary),var(--surface-deep))]"
+                    }`}
+                  />
+                  <div className="absolute inset-0 grid place-items-center text-2xl opacity-70">
+                    {["🦷", "🏥", "😁", "🩻", "✨", "👨‍⚕️", "💉", "📸", "⭐"][i]}
+                  </div>
+                  {i % 4 === 1 && (
+                    <span className="absolute left-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-background/70 text-gold">
+                      <Play className="h-3 w-3" />
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -429,6 +460,24 @@ function ClinicDetail() {
 }
 
 function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-left font-bold">{value}</span>
+    </div>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="px-1">
+      <p className="text-base font-black text-foreground">{value}</p>
+      <p className="text-[10px] font-bold text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+function LegacyRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3 text-sm">
       <span className="text-muted-foreground">{label}</span>
