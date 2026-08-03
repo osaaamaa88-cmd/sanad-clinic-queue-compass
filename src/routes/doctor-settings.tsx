@@ -29,20 +29,20 @@ import {
 export const Route = createFileRoute("/doctor-settings")({
   head: () => ({
     meta: [
-      { title: "لوحة الطبيب — سندي" },
+      { title: "إعدادات العيادة — سندي" },
       { name: "description", content: "دخول الطبيب لإدارة بروفايل عيادته وحساب السكرتير ومتابعة التوثيق." },
-      { property: "og:title", content: "لوحة الطبيب — سندي" },
+      { property: "og:title", content: "إعدادات العيادة — سندي" },
       { property: "og:description", content: "سجّل عيادتك على سندي وأدر بياناتك وحساب السكرتير." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: Doctor,
+  component: DoctorSettings,
 });
 
 type Mode = "login" | "signup";
 
-function Doctor() {
+function DoctorSettings() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
@@ -196,7 +196,7 @@ function Doctor() {
 
   if (loading) {
     return (
-      <AppShell title="لوحة الطبيب" backTo="/">
+      <AppShell title="إعدادات العيادة" backTo="/doctor">
         <div className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> جاري التحميل…
         </div>
@@ -207,7 +207,7 @@ function Doctor() {
   // Not signed in → login or create account
   if (!signedIn) {
     return (
-      <AppShell title="حساب الطبيب" subtitle="دخول أو إنشاء حساب" backTo="/">
+      <AppShell title="حساب الطبيب" subtitle="دخول أو إنشاء حساب" backTo="/doctor">
         <div className="grid grid-cols-2 gap-2">
           {(
             [
@@ -330,7 +330,7 @@ function Doctor() {
   // Signed in as secretary → send them to the booking sheet
   if (role === "secretary") {
     return (
-      <AppShell title="حساب السكرتير" backTo="/">
+      <AppShell title="حساب السكرتير" backTo="/doctor">
         <div className="rounded-2xl border border-border bg-card p-5 text-center">
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
             <BookOpen className="h-6 w-6" />
@@ -353,9 +353,9 @@ function Doctor() {
 
   return (
     <AppShell
-      title="لوحة الطبيب"
+      title="إعدادات العيادة"
       subtitle="بروفايل عيادتك"
-      backTo="/"
+      backTo="/doctor"
       right={
         <button
           onClick={signOut}
