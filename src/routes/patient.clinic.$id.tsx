@@ -130,67 +130,140 @@ function ClinicDetail() {
 
   return (
     <AppShell title={clinic.doctor} subtitle={spec?.name} backTo="/patient/search">
-      {/* Facebook-style cover + avatar */}
-      <div className="-mx-5 -mt-5">
-        <div className="relative h-36 w-full gradient-primary">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.25),transparent_60%)]" />
-          <div className="absolute -bottom-10 right-5 grid h-24 w-24 place-items-center rounded-full border-4 border-background bg-card text-4xl shadow-soft">
-            {spec?.emoji ?? "🩺"}
+      {/* Premium dark profile header */}
+      <div className="-mx-4 -mt-4 sm:-mx-5 sm:-mt-5">
+        {/* Cover */}
+        <div className="relative h-40 w-full bg-surface-deep sm:h-48">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_15%,var(--gold-soft),transparent_65%)] opacity-80" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_75%,var(--primary-soft),transparent_60%)] opacity-70" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+          <div className="absolute bottom-3 left-4 flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/70 px-3 py-1 text-[10px] font-extrabold text-gold backdrop-blur">
+            <Sparkles className="h-3 w-3" /> عيادة مميزة
           </div>
         </div>
-        <div className="px-5 pt-12">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-extrabold">{clinic.doctor}</h2>
-            {clinic.isVerified && <BadgeCheck className="h-5 w-5 shrink-0 text-primary" aria-label="موثّق" />}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {spec?.name} • {clinic.area || "—"}
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-warning text-warning" /> {clinic.rating} ({clinic.reviews})
-            </span>
+
+        <div className="px-4 sm:px-5">
+          {/* Avatar with story gradient ring */}
+          <div className="-mt-12 flex items-end justify-between gap-3">
+            <div className="relative">
+              <div className="gradient-story grid h-24 w-24 place-items-center rounded-full p-[3px] shadow-gold sm:h-28 sm:w-28">
+                <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-card text-4xl">
+                  {spec?.emoji ?? "🩺"}
+                </div>
+              </div>
+              {clinic.isVerified && (
+                <span
+                  className="absolute -left-1 bottom-1 grid h-7 w-7 place-items-center rounded-full border-2 border-background bg-[#1D9BF0]"
+                  aria-label="حساب موثّق"
+                >
+                  <BadgeCheck className="h-4 w-4 text-white" />
+                </span>
+              )}
+            </div>
             {clinic.availableNow ? (
-              <span className="rounded-full bg-success/15 px-2 py-0.5 font-bold text-success">مفتوح دلوقتي</span>
+              <span className="mb-1 rounded-full bg-success/15 px-3 py-1 text-[11px] font-extrabold text-success">
+                مفتوح دلوقتي
+              </span>
             ) : (
-              <span className="rounded-full bg-secondary px-2 py-0.5 font-bold">مغلق دلوقتي</span>
+              <span className="mb-1 rounded-full bg-secondary px-3 py-1 text-[11px] font-extrabold text-muted-foreground">
+                مغلق دلوقتي
+              </span>
             )}
           </div>
 
-          {/* Quick actions */}
-          <div className="mt-4 grid grid-cols-4 gap-2">
-            <button
-              onClick={() => setTab("book")}
-              className="flex flex-col items-center justify-center gap-1 rounded-xl gradient-primary py-3 text-[10px] font-extrabold text-white shadow-soft"
-            >
-              <CalendarPlus className="h-4 w-4" /> حجز كشف
+          {/* Name + specialty */}
+          <div className="mt-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-black tracking-tight text-foreground">{clinic.doctor}</h2>
+              {clinic.isVerified && <BadgeCheck className="h-5 w-5 shrink-0 text-[#1D9BF0]" aria-label="موثّق" />}
+            </div>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {spec?.name} • {clinic.area || "—"}
+            </p>
+          </div>
+
+          {/* Stats row */}
+          <div className="mt-4 grid grid-cols-3 divide-x divide-border/60 rounded-2xl border border-gold/20 bg-card/60 py-3 text-center [direction:ltr]">
+            <Stat value="2.4K" label="متابع" />
+            <Stat value="128" label="منشور" />
+            <Stat value={`${clinic.rating} ⭐`} label={`${clinic.reviews} تقييم`} />
+          </div>
+
+          {/* Action buttons */}
+          <div className="mt-4 flex items-center gap-2">
+            <button className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-gold/40 bg-card py-3 text-xs font-extrabold text-gold transition-colors hover:bg-gold/10">
+              <UserPlus className="h-4 w-4" /> متابعة
             </button>
-            <a
-              href={clinic.phone ? `tel:${clinic.phone}` : "#"}
-              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[10px] font-extrabold text-foreground"
-            >
-              <Phone className="h-4 w-4 text-primary" /> اتصال
-            </a>
             <a
               href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[10px] font-extrabold text-foreground"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border bg-card py-3 text-xs font-extrabold text-foreground transition-colors hover:bg-secondary"
             >
-              <MessageCircle className="h-4 w-4 text-success" /> واتساب
+              <MessageCircle className="h-4 w-4 text-success" /> رسالة
+            </a>
+            <button
+              onClick={() => setTab("book")}
+              className="gradient-gold flex flex-[1.4] items-center justify-center gap-1.5 rounded-2xl py-3 text-xs font-black text-gold-foreground shadow-gold"
+            >
+              <CalendarPlus className="h-4 w-4" /> احجز أونلاين
+            </button>
+          </div>
+
+          {/* Secondary quick actions */}
+          <div className="mt-2 flex items-center gap-2">
+            <a
+              href={clinic.phone ? `tel:${clinic.phone}` : "#"}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border bg-card py-2.5 text-[11px] font-bold text-foreground"
+            >
+              <Phone className="h-4 w-4 text-primary" /> اتصال مباشر
             </a>
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${clinic.lat},${clinic.lng}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card py-3 text-[10px] font-extrabold text-foreground"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border bg-card py-2.5 text-[11px] font-bold text-foreground"
             >
-              <Navigation className="h-4 w-4 text-primary" /> الموقع
+              <Navigation className="h-4 w-4 text-primary" /> الموقع على الخريطة
             </a>
           </div>
 
+          {/* Highlights */}
+          <div className="-mx-4 mt-5 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
+            <div className="flex gap-4 pb-1">
+              {[
+                ["قبل وبعد", "✨"],
+                ["جولة العيادة", "🏥"],
+                ["تصميم الابتسامة", "😁"],
+                ["آراء المرضى", "💬"],
+                ["الأجهزة", "🔬"],
+              ].map(([label, emoji]) => (
+                <button key={label} className="shrink-0 text-center">
+                  <span className="grid h-16 w-16 place-items-center rounded-full border border-gold/50 bg-card/70 text-2xl">
+                    {emoji}
+                  </span>
+                  <span className="mt-1.5 block max-w-[68px] truncate text-[10px] font-bold text-muted-foreground">
+                    {label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Live turn card */}
+          <div className="glow-gold mt-5 rounded-3xl border border-gold/30 bg-surface-deep p-5 text-center">
+            <p className="flex items-center justify-center gap-2 text-[11px] font-extrabold tracking-widest text-gold">
+              <span className="grid h-2 w-2 animate-pulse place-items-center rounded-full bg-destructive" />
+              الدور المباشر الآن
+            </p>
+            <p className="mt-1 text-6xl font-black leading-none text-foreground sm:text-7xl">{clinic.nowServing}</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              في الانتظار: {clinic.waitingCount} {clinic.delayMinutes ? `• تأخير ${clinic.delayMinutes} دقيقة` : ""}
+            </p>
+          </div>
+
           {/* Tabs */}
-          <div className="mt-4 grid grid-cols-2 gap-1 rounded-2xl bg-secondary p-1">
+          <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-secondary/60 p-1">
             {([
               ["about", "حول الطبيب"],
               ["book", "نبذة ومواعيد الكشف"],
@@ -199,7 +272,7 @@ function ClinicDetail() {
                 key={k}
                 onClick={() => setTab(k)}
                 className={`rounded-xl py-2 text-xs font-bold ${
-                  tab === k ? "bg-card shadow-soft" : "text-muted-foreground"
+                  tab === k ? "bg-card text-gold shadow-soft" : "text-muted-foreground"
                 }`}
               >
                 {l}
