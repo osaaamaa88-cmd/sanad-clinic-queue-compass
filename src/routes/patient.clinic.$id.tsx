@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, Play } from "lucide-react";
+import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, Play, Settings } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClinicQrCard } from "@/components/ClinicQrCard";
 import {
   getVerifiedClinic,
+  getClinicById,
+  getMyClinicMembership,
   getSpecialty,
   timeSlots,
   days,
@@ -27,13 +29,18 @@ function ClinicDetail() {
   const { id } = useParams({ from: "/patient/clinic/$id" });
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    getVerifiedClinic(id).then((c) => {
+    (async () => {
+      const membership = await getMyClinicMembership().catch(() => null);
+      const owner = membership?.clinic?.id === id;
+      const c = owner ? await getClinicById(id) : await getVerifiedClinic(id);
       if (cancelled) return;
+      setIsOwner(!!owner);
       setClinic(c);
       setLoaded(true);
-    });
+    })();
     return () => {
       cancelled = true;
     };
@@ -63,7 +70,7 @@ function ClinicDetail() {
   };
 
   if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient/search"><div /></AppShell>;
-  if (!clinic || !clinic.isVerified) {
+  if (!clinic || (!clinic.isVerified && !isOwner)) {
     return (
       <AppShell title="عيادة غير متاحة" backTo="/patient/search">
         <div className="mt-4 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
@@ -140,6 +147,15 @@ function ClinicDetail() {
           <div className="absolute bottom-3 left-4 flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/70 px-3 py-1 text-[10px] font-extrabold text-gold backdrop-blur">
             <Sparkles className="h-3 w-3" /> عيادة مميزة
           </div>
+          {isOwner && (
+            <Link
+              to="/doctor-settings"
+              aria-label="إعدادات العيادة"
+              className="absolute bottom-3 right-4 flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/70 px-3 py-1.5 text-[11px] font-extrabold text-gold backdrop-blur"
+            >
+              <Settings className="h-3.5 w-3.5" /> الإعدادات
+            </Link>
+          )}
         </div>
 
         <div className="px-4 sm:px-5">
