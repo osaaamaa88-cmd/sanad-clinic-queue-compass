@@ -476,12 +476,3 @@ function Stat({ value, label }: { value: string; label: string }) {
     </div>
   );
 }
-
-function LegacyRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between gap-3 text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-left font-bold">{value}</span>
-    </div>
-  );
-}
