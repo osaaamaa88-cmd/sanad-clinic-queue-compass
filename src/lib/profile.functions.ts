@@ -164,7 +164,13 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      doctor?: string;
+      specialty_id?: string;
+      price?: number;
+      phone?: string;
+      bio?: string;
+    } = {};
     if (typeof data.doctor === "string" && data.doctor.trim()) patch.doctor = data.doctor.trim().slice(0, 120);
     if (typeof data.specialtyId === "string" && data.specialtyId) patch.specialty_id = data.specialtyId;
     if (typeof data.price === "number" && Number.isFinite(data.price)) patch.price = Math.max(0, Math.floor(data.price));
@@ -223,10 +229,10 @@ export const svrUploadClinicMedia = createServerFn({ method: "POST" })
       });
       if (error) throw new Error(error.message);
     } else {
-      const column = data.kind === "avatar" ? "avatar_url" : "cover_url";
+      const patch = data.kind === "avatar" ? { avatar_url: path } : { cover_url: path };
       const { error } = await supabaseAdmin
         .from("clinics")
-        .update({ [column]: path })
+        .update(patch)
         .eq("id", data.clinicId);
       if (error) throw new Error(error.message);
     }
