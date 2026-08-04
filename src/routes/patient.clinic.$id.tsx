@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, Play, Settings } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClinicQrCard } from "@/components/ClinicQrCard";
 import {
@@ -8,12 +8,25 @@ import {
   getClinicById,
   getMyClinicMembership,
   getSpecialty,
+  specialties,
+  subscribeClinic,
   timeSlots,
   days,
   whatsappLink,
   createBooking,
   type Clinic,
 } from "@/lib/mock-data";
+import {
+  getClinicProfileExtras,
+  getQueueStats,
+  isFollowingClinic,
+  toggleFollowClinic,
+  saveClinicProfile,
+  uploadClinicMedia,
+  deleteClinicPost,
+  type ClinicProfileExtras,
+  type QueueStats,
+} from "@/lib/clinic-profile";
 
 export const Route = createFileRoute("/patient/clinic/$id")({
   head: () => ({
@@ -30,6 +43,17 @@ function ClinicDetail() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [extras, setExtras] = useState<ClinicProfileExtras | null>(null);
+  const [queue, setQueue] = useState<QueueStats | null>(null);
+  const [following, setFollowing] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const postInputRef = useRef<HTMLInputElement>(null);
+
+  const refreshExtras = useCallback(async () => {
+    setExtras(await getClinicProfileExtras(id));
+  }, [id]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -45,6 +69,33 @@ function ClinicDetail() {
       cancelled = true;
     };
   }, [id]);
+
+  // Profile extras (media, posts, followers, real rating) + live queue numbers.
+  useEffect(() => {
+    let cancelled = false;
+    const pull = async () => {
+      const q = await getQueueStats(id);
+      if (!cancelled && q) setQueue(q);
+    };
+    (async () => {
+      const [e, f] = await Promise.all([getClinicProfileExtras(id), isFollowingClinic(id)]);
+      if (cancelled) return;
+      setExtras(e);
+      setFollowing(f);
+    })();
+    pull();
+    const timer = window.setInterval(pull, 15000);
+    const unsub = subscribeClinic(id, (c) => {
+      setClinic(c);
+      pull();
+    });
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      unsub();
+    };
+  }, [id]);
+
   const [dayIdx, setDayIdx] = useState(0);
   const [slot, setSlot] = useState<string | null>(null);
   const [booked, setBooked] = useState(false);
