@@ -64,6 +64,102 @@ export type Database = {
           },
         ]
       }
+      clinic_followers: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          follower_key: string
+          id: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          follower_key: string
+          id?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          follower_key?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_followers_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_posts: {
+        Row: {
+          caption: string
+          clinic_id: string
+          created_at: string
+          id: string
+          media_type: string
+          media_url: string
+        }
+        Insert: {
+          caption?: string
+          clinic_id: string
+          created_at?: string
+          id?: string
+          media_type?: string
+          media_url: string
+        }
+        Update: {
+          caption?: string
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_posts_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_reviews: {
+        Row: {
+          clinic_id: string
+          comment: string
+          created_at: string
+          id: string
+          rating: number
+        }
+        Insert: {
+          clinic_id: string
+          comment?: string
+          created_at?: string
+          id?: string
+          rating: number
+        }
+        Update: {
+          clinic_id?: string
+          comment?: string
+          created_at?: string
+          id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_reviews_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_staff: {
         Row: {
           clinic_id: string
@@ -107,8 +203,11 @@ export type Database = {
           address: string
           area: string
           available_now: boolean
+          avatar_url: string
+          bio: string
           bookings_closed: boolean
           clinic_status: string
+          cover_url: string
           created_at: string
           delay_minutes: number
           distance_km: number
@@ -134,8 +233,11 @@ export type Database = {
           address?: string
           area?: string
           available_now?: boolean
+          avatar_url?: string
+          bio?: string
           bookings_closed?: boolean
           clinic_status?: string
+          cover_url?: string
           created_at?: string
           delay_minutes?: number
           distance_km?: number
@@ -161,8 +263,11 @@ export type Database = {
           address?: string
           area?: string
           available_now?: boolean
+          avatar_url?: string
+          bio?: string
           bookings_closed?: boolean
           clinic_status?: string
+          cover_url?: string
           created_at?: string
           delay_minutes?: number
           distance_km?: number
