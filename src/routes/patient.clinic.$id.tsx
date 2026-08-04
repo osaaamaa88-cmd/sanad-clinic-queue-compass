@@ -418,7 +418,9 @@ function ClinicDetail() {
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm font-bold">نبذة</p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {clinic.doctor} — أخصائي {spec?.name}. الحجز عن طريق سندي، والدفع نقداً في العيادة.
+              {extras?.bio
+                ? extras.bio
+                : `${clinic.doctor} — أخصائي ${spec?.name}. الحجز عن طريق سندي، والدفع نقداً في العيادة.`}
             </p>
             <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary p-3">
               <span className="text-xs text-muted-foreground">سعر الكشف</span>
@@ -450,20 +452,26 @@ function ClinicDetail() {
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm font-bold">التقييم</p>
             <div className="mt-2 flex items-center gap-3">
-              <div className="text-3xl font-black text-primary">{clinic.rating}</div>
+              <div className="text-3xl font-black text-primary">
+                {extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0}
+              </div>
               <div>
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <Star
                       key={n}
                       className={`h-4 w-4 ${
-                        n <= Math.round(clinic.rating) ? "fill-warning text-warning" : "text-muted-foreground"
+                        n <= Math.round(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)
+                          ? "fill-warning text-warning"
+                          : "text-muted-foreground"
                       }`}
                     />
                   ))}
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  {clinic.reviews > 0 ? `${clinic.reviews} تقييم من المرضى` : "لسه مفيش تقييمات"}
+                  {(extras?.reviewsCount ?? 0) > 0
+                    ? `${extras?.reviewsCount} تقييم من المرضى`
+                    : "لسه مفيش تقييمات"}
                 </p>
               </div>
             </div>
@@ -495,33 +503,57 @@ function ClinicDetail() {
 
           {/* Instagram-style media grid */}
           <div>
-            <p className="mb-2 text-sm font-bold">من العيادة</p>
-            <div className="-mx-4 grid grid-cols-3 gap-[3px] sm:mx-0">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="relative aspect-square overflow-hidden bg-surface-deep"
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-bold">من العيادة</p>
+              {isOwner && (
+                <button
+                  onClick={() => postInputRef.current?.click()}
+                  className="flex items-center gap-1 rounded-full border border-gold/40 px-2.5 py-1 text-[11px] font-extrabold text-gold"
                 >
-                  <div
-                    className={`absolute inset-0 ${
-                      i % 3 === 0
-                        ? "bg-[radial-gradient(circle_at_30%_30%,var(--gold-soft),transparent_70%)]"
-                        : i % 3 === 1
-                          ? "bg-[radial-gradient(circle_at_70%_40%,var(--primary-soft),transparent_70%)]"
-                          : "bg-[linear-gradient(135deg,var(--secondary),var(--surface-deep))]"
-                    }`}
-                  />
-                  <div className="absolute inset-0 grid place-items-center text-2xl opacity-70">
-                    {["🦷", "🏥", "😁", "🩻", "✨", "👨‍⚕️", "💉", "📸", "⭐"][i]}
-                  </div>
-                  {i % 4 === 1 && (
-                    <span className="absolute left-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-background/70 text-gold">
-                      <Play className="h-3 w-3" />
-                    </span>
-                  )}
-                </div>
-              ))}
+                  <ImagePlus className="h-3.5 w-3.5" /> إضافة منشور
+                </button>
+              )}
             </div>
+            {extras && extras.posts.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
+                {isOwner ? "لسه مفيش منشورات — اضغط «إضافة منشور» وارفع صور العيادة." : "العيادة لسه ما نشرتش صور."}
+              </div>
+            ) : (
+              <div className="-mx-4 grid grid-cols-3 gap-[3px] sm:mx-0">
+                {(extras?.posts ?? []).map((p) => (
+                  <div key={p.id} className="relative aspect-square overflow-hidden bg-surface-deep">
+                    {p.mediaType === "video" ? (
+                      <>
+                        <video src={p.url} className="h-full w-full object-cover" muted playsInline />
+                        <span className="absolute left-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-background/70 text-gold">
+                          <Play className="h-3 w-3" />
+                        </span>
+                      </>
+                    ) : (
+                      <img
+                        src={p.url}
+                        alt={p.caption || `منشور من عيادة ${clinic.doctor}`}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                    {isOwner && (
+                      <button
+                        aria-label="حذف المنشور"
+                        onClick={async () => {
+                          setBusy(p.id);
+                          if (await deleteClinicPost(p.id)) await refreshExtras();
+                          setBusy(null);
+                        }}
+                        className="absolute bottom-1.5 left-1.5 grid h-6 w-6 place-items-center rounded-full bg-background/80 text-destructive"
+                      >
+                        {busy === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
