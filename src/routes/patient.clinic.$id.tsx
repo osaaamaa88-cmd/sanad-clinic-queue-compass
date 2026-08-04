@@ -192,6 +192,9 @@ function ClinicDetail() {
       <div className="-mx-4 -mt-4 sm:-mx-5 sm:-mt-5">
         {/* Cover */}
         <div className="relative h-40 w-full bg-surface-deep sm:h-48">
+          {extras?.coverUrl ? (
+            <img src={extras.coverUrl} alt={`غلاف عيادة ${clinic.doctor}`} className="absolute inset-0 h-full w-full object-cover" />
+          ) : null}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_15%,var(--gold-soft),transparent_65%)] opacity-80" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_75%,var(--primary-soft),transparent_60%)] opacity-70" />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
@@ -199,14 +202,45 @@ function ClinicDetail() {
             <Sparkles className="h-3 w-3" /> عيادة مميزة
           </div>
           {isOwner && (
-            <Link
-              to="/doctor-settings"
-              aria-label="إعدادات العيادة"
-              className="absolute bottom-3 right-4 flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/70 px-3 py-1.5 text-[11px] font-extrabold text-gold backdrop-blur"
-            >
-              <Settings className="h-3.5 w-3.5" /> الإعدادات
-            </Link>
+            <div className="absolute bottom-3 right-4 flex items-center gap-2">
+              <button
+                onClick={() => setEditOpen(true)}
+                aria-label="تعديل البروفايل"
+                className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/70 px-3 py-1.5 text-[11px] font-extrabold text-gold backdrop-blur"
+              >
+                <Pencil className="h-3.5 w-3.5" /> تعديل البروفايل
+              </button>
+              <button
+                onClick={() => postInputRef.current?.click()}
+                aria-label="إضافة منشور"
+                className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
+              >
+                {busy === "post" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              </button>
+              <Link
+                to="/doctor-settings"
+                aria-label="إعدادات العيادة"
+                className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
+              >
+                <Settings className="h-4 w-4" />
+              </Link>
+            </div>
           )}
+          <input
+            ref={postInputRef}
+            type="file"
+            accept="image/*,video/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              setBusy("post");
+              const res = await uploadClinicMedia({ clinicId: id, kind: "post", file });
+              if (res.ok) await refreshExtras();
+              setBusy(null);
+            }}
+          />
         </div>
 
         <div className="px-4 sm:px-5">
@@ -214,9 +248,17 @@ function ClinicDetail() {
           <div className="-mt-12 flex items-end justify-between gap-3">
             <div className="relative">
               <div className="gradient-story grid h-24 w-24 place-items-center rounded-full p-[3px] shadow-gold sm:h-28 sm:w-28">
-                <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-card text-4xl">
-                  {spec?.emoji ?? "🩺"}
-                </div>
+                {extras?.avatarUrl ? (
+                  <img
+                    src={extras.avatarUrl}
+                    alt={`صورة ${clinic.doctor}`}
+                    className="h-full w-full rounded-full border-2 border-background object-cover"
+                  />
+                ) : (
+                  <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-card text-4xl">
+                    {spec?.emoji ?? "🩺"}
+                  </div>
+                )}
               </div>
               {clinic.isVerified && (
                 <span
@@ -251,15 +293,32 @@ function ClinicDetail() {
 
           {/* Stats row */}
           <div className="mt-4 grid grid-cols-3 divide-x divide-border/60 rounded-2xl border border-gold/20 bg-card/60 py-3 text-center [direction:ltr]">
-            <Stat value="2.4K" label="متابع" />
-            <Stat value="128" label="منشور" />
-            <Stat value={`${clinic.rating} ⭐`} label={`${clinic.reviews} تقييم`} />
+            <Stat value={String(extras?.followers ?? 0)} label="متابع" />
+            <Stat value={String(extras?.postsCount ?? 0)} label="منشور" />
+            <Stat
+              value={`${extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0} ⭐`}
+              label={`${extras?.reviewsCount ?? clinic.reviews ?? 0} تقييم`}
+            />
           </div>
 
           {/* Action buttons */}
           <div className="mt-4 flex items-center gap-2">
-            <button className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-gold/40 bg-card py-3 text-xs font-extrabold text-gold transition-colors hover:bg-gold/10">
-              <UserPlus className="h-4 w-4" /> متابعة
+            <button
+              onClick={async () => {
+                const next = !following;
+                setFollowing(next);
+                const res = await toggleFollowClinic(id, next);
+                if (res) setExtras((prev) => (prev ? { ...prev, followers: res.followers } : prev));
+                else setFollowing(!next);
+              }}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-2xl border py-3 text-xs font-extrabold transition-colors ${
+                following
+                  ? "border-gold/60 bg-gold/15 text-gold"
+                  : "border-gold/40 bg-card text-gold hover:bg-gold/10"
+              }`}
+            >
+              {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+              {following ? "بتتابعه" : "متابعة"}
             </button>
             <a
               href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
@@ -323,9 +382,14 @@ function ClinicDetail() {
               <span className="grid h-2 w-2 animate-pulse place-items-center rounded-full bg-destructive" />
               الدور المباشر الآن
             </p>
-            <p className="mt-1 text-6xl font-black leading-none text-foreground sm:text-7xl">{clinic.nowServing}</p>
+            <p className="mt-1 text-6xl font-black leading-none text-foreground sm:text-7xl">
+              {queue?.nowServing ?? clinic.nowServing}
+            </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              في الانتظار: {clinic.waitingCount} {clinic.delayMinutes ? `• تأخير ${clinic.delayMinutes} دقيقة` : ""}
+              في الانتظار: {queue?.waiting ?? clinic.waitingCount}
+              {(queue?.delayMinutes ?? clinic.delayMinutes)
+                ? ` • تأخير ${queue?.delayMinutes ?? clinic.delayMinutes} دقيقة`
+                : ""}
             </p>
           </div>
 
