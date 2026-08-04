@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, Play, Settings } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClinicQrCard } from "@/components/ClinicQrCard";
 import {
@@ -8,12 +8,25 @@ import {
   getClinicById,
   getMyClinicMembership,
   getSpecialty,
+  specialties,
+  subscribeClinic,
   timeSlots,
   days,
   whatsappLink,
   createBooking,
   type Clinic,
 } from "@/lib/mock-data";
+import {
+  getClinicProfileExtras,
+  getQueueStats,
+  isFollowingClinic,
+  toggleFollowClinic,
+  saveClinicProfile,
+  uploadClinicMedia,
+  deleteClinicPost,
+  type ClinicProfileExtras,
+  type QueueStats,
+} from "@/lib/clinic-profile";
 
 export const Route = createFileRoute("/patient/clinic/$id")({
   head: () => ({
@@ -30,6 +43,17 @@ function ClinicDetail() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [extras, setExtras] = useState<ClinicProfileExtras | null>(null);
+  const [queue, setQueue] = useState<QueueStats | null>(null);
+  const [following, setFollowing] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const postInputRef = useRef<HTMLInputElement>(null);
+
+  const refreshExtras = useCallback(async () => {
+    setExtras(await getClinicProfileExtras(id));
+  }, [id]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -45,6 +69,33 @@ function ClinicDetail() {
       cancelled = true;
     };
   }, [id]);
+
+  // Profile extras (media, posts, followers, real rating) + live queue numbers.
+  useEffect(() => {
+    let cancelled = false;
+    const pull = async () => {
+      const q = await getQueueStats(id);
+      if (!cancelled && q) setQueue(q);
+    };
+    (async () => {
+      const [e, f] = await Promise.all([getClinicProfileExtras(id), isFollowingClinic(id)]);
+      if (cancelled) return;
+      setExtras(e);
+      setFollowing(f);
+    })();
+    pull();
+    const timer = window.setInterval(pull, 15000);
+    const unsub = subscribeClinic(id, (c) => {
+      setClinic(c);
+      pull();
+    });
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      unsub();
+    };
+  }, [id]);
+
   const [dayIdx, setDayIdx] = useState(0);
   const [slot, setSlot] = useState<string | null>(null);
   const [booked, setBooked] = useState(false);
@@ -141,6 +192,9 @@ function ClinicDetail() {
       <div className="-mx-4 -mt-4 sm:-mx-5 sm:-mt-5">
         {/* Cover */}
         <div className="relative h-40 w-full bg-surface-deep sm:h-48">
+          {extras?.coverUrl ? (
+            <img src={extras.coverUrl} alt={`غلاف عيادة ${clinic.doctor}`} className="absolute inset-0 h-full w-full object-cover" />
+          ) : null}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_15%,var(--gold-soft),transparent_65%)] opacity-80" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_75%,var(--primary-soft),transparent_60%)] opacity-70" />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
@@ -148,14 +202,45 @@ function ClinicDetail() {
             <Sparkles className="h-3 w-3" /> عيادة مميزة
           </div>
           {isOwner && (
-            <Link
-              to="/doctor-settings"
-              aria-label="إعدادات العيادة"
-              className="absolute bottom-3 right-4 flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/70 px-3 py-1.5 text-[11px] font-extrabold text-gold backdrop-blur"
-            >
-              <Settings className="h-3.5 w-3.5" /> الإعدادات
-            </Link>
+            <div className="absolute bottom-3 right-4 flex items-center gap-2">
+              <button
+                onClick={() => setEditOpen(true)}
+                aria-label="تعديل البروفايل"
+                className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/70 px-3 py-1.5 text-[11px] font-extrabold text-gold backdrop-blur"
+              >
+                <Pencil className="h-3.5 w-3.5" /> تعديل البروفايل
+              </button>
+              <button
+                onClick={() => postInputRef.current?.click()}
+                aria-label="إضافة منشور"
+                className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
+              >
+                {busy === "post" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              </button>
+              <Link
+                to="/doctor-settings"
+                aria-label="إعدادات العيادة"
+                className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
+              >
+                <Settings className="h-4 w-4" />
+              </Link>
+            </div>
           )}
+          <input
+            ref={postInputRef}
+            type="file"
+            accept="image/*,video/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              setBusy("post");
+              const res = await uploadClinicMedia({ clinicId: id, kind: "post", file });
+              if (res.ok) await refreshExtras();
+              setBusy(null);
+            }}
+          />
         </div>
 
         <div className="px-4 sm:px-5">
@@ -163,9 +248,17 @@ function ClinicDetail() {
           <div className="-mt-12 flex items-end justify-between gap-3">
             <div className="relative">
               <div className="gradient-story grid h-24 w-24 place-items-center rounded-full p-[3px] shadow-gold sm:h-28 sm:w-28">
-                <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-card text-4xl">
-                  {spec?.emoji ?? "🩺"}
-                </div>
+                {extras?.avatarUrl ? (
+                  <img
+                    src={extras.avatarUrl}
+                    alt={`صورة ${clinic.doctor}`}
+                    className="h-full w-full rounded-full border-2 border-background object-cover"
+                  />
+                ) : (
+                  <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-card text-4xl">
+                    {spec?.emoji ?? "🩺"}
+                  </div>
+                )}
               </div>
               {clinic.isVerified && (
                 <span
@@ -200,15 +293,32 @@ function ClinicDetail() {
 
           {/* Stats row */}
           <div className="mt-4 grid grid-cols-3 divide-x divide-border/60 rounded-2xl border border-gold/20 bg-card/60 py-3 text-center [direction:ltr]">
-            <Stat value="2.4K" label="متابع" />
-            <Stat value="128" label="منشور" />
-            <Stat value={`${clinic.rating} ⭐`} label={`${clinic.reviews} تقييم`} />
+            <Stat value={String(extras?.followers ?? 0)} label="متابع" />
+            <Stat value={String(extras?.postsCount ?? 0)} label="منشور" />
+            <Stat
+              value={`${extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0} ⭐`}
+              label={`${extras?.reviewsCount ?? clinic.reviews ?? 0} تقييم`}
+            />
           </div>
 
           {/* Action buttons */}
           <div className="mt-4 flex items-center gap-2">
-            <button className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-gold/40 bg-card py-3 text-xs font-extrabold text-gold transition-colors hover:bg-gold/10">
-              <UserPlus className="h-4 w-4" /> متابعة
+            <button
+              onClick={async () => {
+                const next = !following;
+                setFollowing(next);
+                const res = await toggleFollowClinic(id, next);
+                if (res) setExtras((prev) => (prev ? { ...prev, followers: res.followers } : prev));
+                else setFollowing(!next);
+              }}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-2xl border py-3 text-xs font-extrabold transition-colors ${
+                following
+                  ? "border-gold/60 bg-gold/15 text-gold"
+                  : "border-gold/40 bg-card text-gold hover:bg-gold/10"
+              }`}
+            >
+              {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+              {following ? "بتتابعه" : "متابعة"}
             </button>
             <a
               href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
@@ -272,9 +382,14 @@ function ClinicDetail() {
               <span className="grid h-2 w-2 animate-pulse place-items-center rounded-full bg-destructive" />
               الدور المباشر الآن
             </p>
-            <p className="mt-1 text-6xl font-black leading-none text-foreground sm:text-7xl">{clinic.nowServing}</p>
+            <p className="mt-1 text-6xl font-black leading-none text-foreground sm:text-7xl">
+              {queue?.nowServing ?? clinic.nowServing}
+            </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              في الانتظار: {clinic.waitingCount} {clinic.delayMinutes ? `• تأخير ${clinic.delayMinutes} دقيقة` : ""}
+              في الانتظار: {queue?.waiting ?? clinic.waitingCount}
+              {(queue?.delayMinutes ?? clinic.delayMinutes)
+                ? ` • تأخير ${queue?.delayMinutes ?? clinic.delayMinutes} دقيقة`
+                : ""}
             </p>
           </div>
 
@@ -303,7 +418,9 @@ function ClinicDetail() {
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm font-bold">نبذة</p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {clinic.doctor} — أخصائي {spec?.name}. الحجز عن طريق سندي، والدفع نقداً في العيادة.
+              {extras?.bio
+                ? extras.bio
+                : `${clinic.doctor} — أخصائي ${spec?.name}. الحجز عن طريق سندي، والدفع نقداً في العيادة.`}
             </p>
             <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary p-3">
               <span className="text-xs text-muted-foreground">سعر الكشف</span>
@@ -335,20 +452,26 @@ function ClinicDetail() {
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm font-bold">التقييم</p>
             <div className="mt-2 flex items-center gap-3">
-              <div className="text-3xl font-black text-primary">{clinic.rating}</div>
+              <div className="text-3xl font-black text-primary">
+                {extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0}
+              </div>
               <div>
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <Star
                       key={n}
                       className={`h-4 w-4 ${
-                        n <= Math.round(clinic.rating) ? "fill-warning text-warning" : "text-muted-foreground"
+                        n <= Math.round(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)
+                          ? "fill-warning text-warning"
+                          : "text-muted-foreground"
                       }`}
                     />
                   ))}
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  {clinic.reviews > 0 ? `${clinic.reviews} تقييم من المرضى` : "لسه مفيش تقييمات"}
+                  {(extras?.reviewsCount ?? 0) > 0
+                    ? `${extras?.reviewsCount} تقييم من المرضى`
+                    : "لسه مفيش تقييمات"}
                 </p>
               </div>
             </div>
@@ -380,33 +503,57 @@ function ClinicDetail() {
 
           {/* Instagram-style media grid */}
           <div>
-            <p className="mb-2 text-sm font-bold">من العيادة</p>
-            <div className="-mx-4 grid grid-cols-3 gap-[3px] sm:mx-0">
-              {Array.from({ length: 9 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="relative aspect-square overflow-hidden bg-surface-deep"
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-bold">من العيادة</p>
+              {isOwner && (
+                <button
+                  onClick={() => postInputRef.current?.click()}
+                  className="flex items-center gap-1 rounded-full border border-gold/40 px-2.5 py-1 text-[11px] font-extrabold text-gold"
                 >
-                  <div
-                    className={`absolute inset-0 ${
-                      i % 3 === 0
-                        ? "bg-[radial-gradient(circle_at_30%_30%,var(--gold-soft),transparent_70%)]"
-                        : i % 3 === 1
-                          ? "bg-[radial-gradient(circle_at_70%_40%,var(--primary-soft),transparent_70%)]"
-                          : "bg-[linear-gradient(135deg,var(--secondary),var(--surface-deep))]"
-                    }`}
-                  />
-                  <div className="absolute inset-0 grid place-items-center text-2xl opacity-70">
-                    {["🦷", "🏥", "😁", "🩻", "✨", "👨‍⚕️", "💉", "📸", "⭐"][i]}
-                  </div>
-                  {i % 4 === 1 && (
-                    <span className="absolute left-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-background/70 text-gold">
-                      <Play className="h-3 w-3" />
-                    </span>
-                  )}
-                </div>
-              ))}
+                  <ImagePlus className="h-3.5 w-3.5" /> إضافة منشور
+                </button>
+              )}
             </div>
+            {extras && extras.posts.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
+                {isOwner ? "لسه مفيش منشورات — اضغط «إضافة منشور» وارفع صور العيادة." : "العيادة لسه ما نشرتش صور."}
+              </div>
+            ) : (
+              <div className="-mx-4 grid grid-cols-3 gap-[3px] sm:mx-0">
+                {(extras?.posts ?? []).map((p) => (
+                  <div key={p.id} className="relative aspect-square overflow-hidden bg-surface-deep">
+                    {p.mediaType === "video" ? (
+                      <>
+                        <video src={p.url} className="h-full w-full object-cover" muted playsInline />
+                        <span className="absolute left-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-background/70 text-gold">
+                          <Play className="h-3 w-3" />
+                        </span>
+                      </>
+                    ) : (
+                      <img
+                        src={p.url}
+                        alt={p.caption || `منشور من عيادة ${clinic.doctor}`}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                    {isOwner && (
+                      <button
+                        aria-label="حذف المنشور"
+                        onClick={async () => {
+                          setBusy(p.id);
+                          if (await deleteClinicPost(p.id)) await refreshExtras();
+                          setBusy(null);
+                        }}
+                        className="absolute bottom-1.5 left-1.5 grid h-6 w-6 place-items-center rounded-full bg-background/80 text-destructive"
+                      >
+                        {busy === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -471,7 +618,168 @@ function ClinicDetail() {
       </div>
       </>
       )}
+
+      {editOpen && isOwner && (
+        <EditProfileModal
+          clinic={clinic}
+          initialBio={extras?.bio ?? ""}
+          onClose={() => setEditOpen(false)}
+          onSaved={async () => {
+            const c = await getClinicById(id);
+            if (c) setClinic(c);
+            await refreshExtras();
+          }}
+        />
+      )}
     </AppShell>
+  );
+}
+
+function EditProfileModal({
+  clinic,
+  initialBio,
+  onClose,
+  onSaved,
+}: {
+  clinic: Clinic;
+  initialBio: string;
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+}) {
+  const [doctor, setDoctor] = useState(clinic.doctor);
+  const [specialtyId, setSpecialtyId] = useState(clinic.specialtyId);
+  const [price, setPrice] = useState(String(clinic.price || ""));
+  const [phone, setPhone] = useState(clinic.phone);
+  const [bio, setBio] = useState(initialBio);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<"avatar" | "cover" | null>(null);
+  const [msg, setMsg] = useState("");
+
+  const pick = (kind: "avatar" | "cover") => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(kind);
+    const res = await uploadClinicMedia({ clinicId: clinic.id, kind, file });
+    setUploading(null);
+    if (res.ok) {
+      setMsg(kind === "avatar" ? "تم تحديث الصورة الشخصية ✅" : "تم تحديث صورة الغلاف ✅");
+      await onSaved();
+    } else {
+      setMsg(res.error === "FILE_TOO_LARGE" ? "الصورة كبيرة جداً، جرب صورة أصغر." : "تعذر رفع الصورة، حاول تاني.");
+    }
+  };
+
+  const save = async () => {
+    setSaving(true);
+    const ok = await saveClinicProfile({
+      clinicId: clinic.id,
+      doctor,
+      specialtyId,
+      price: Number(price) || 0,
+      phone,
+      bio,
+    });
+    setSaving(false);
+    if (!ok) {
+      setMsg("تعذر الحفظ، حاول تاني.");
+      return;
+    }
+    await onSaved();
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 p-0 backdrop-blur sm:items-center sm:p-4">
+      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-gold/25 bg-card p-5 sm:rounded-3xl">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-black">تعديل البروفايل</h3>
+          <button onClick={onClose} aria-label="إغلاق" className="grid h-9 w-9 place-items-center rounded-full bg-secondary">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <label className="flex cursor-pointer flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-[11px] font-bold text-gold">
+            {uploading === "avatar" ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
+            صورة شخصية
+            <input type="file" accept="image/*" className="hidden" onChange={pick("avatar")} />
+          </label>
+          <label className="flex cursor-pointer flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-[11px] font-bold text-gold">
+            {uploading === "cover" ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
+            صورة الغلاف
+            <input type="file" accept="image/*" className="hidden" onChange={pick("cover")} />
+          </label>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <Field label="اسم الطبيب">
+            <input
+              value={doctor}
+              onChange={(e) => setDoctor(e.target.value)}
+              className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
+            />
+          </Field>
+          <Field label="التخصص">
+            <select
+              value={specialtyId}
+              onChange={(e) => setSpecialtyId(e.target.value)}
+              className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
+            >
+              {specialties.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.emoji} {s.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="سعر الكشف (جنيه)">
+            <input
+              inputMode="numeric"
+              value={price}
+              onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
+              className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
+            />
+          </Field>
+          <Field label="رقم الهاتف / واتساب">
+            <input
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
+            />
+          </Field>
+          <Field label="نبذة عن العيادة">
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={3}
+              placeholder="اكتب نبذة قصيرة تظهر للمرضى"
+              className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
+            />
+          </Field>
+        </div>
+
+        {msg && <p className="mt-3 rounded-xl bg-secondary p-3 text-xs font-bold">{msg}</p>}
+
+        <button
+          onClick={save}
+          disabled={saving}
+          className="gradient-gold mt-4 w-full rounded-2xl py-4 text-base font-black text-gold-foreground shadow-gold disabled:opacity-60"
+        >
+          {saving ? "جاري الحفظ…" : "حفظ التعديلات"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-bold text-muted-foreground">{label}</span>
+      {children}
+    </label>
   );
 }
 
