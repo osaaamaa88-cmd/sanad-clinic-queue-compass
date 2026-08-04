@@ -622,6 +622,7 @@ function ClinicDetail() {
       {editOpen && isOwner && (
         <EditProfileModal
           clinic={clinic}
+          initialBio={extras?.bio ?? ""}
           onClose={() => setEditOpen(false)}
           onSaved={async () => {
             const c = await getClinicById(id);
@@ -636,10 +637,12 @@ function ClinicDetail() {
 
 function EditProfileModal({
   clinic,
+  initialBio,
   onClose,
   onSaved,
 }: {
   clinic: Clinic;
+  initialBio: string;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
@@ -647,7 +650,7 @@ function EditProfileModal({
   const [specialtyId, setSpecialtyId] = useState(clinic.specialtyId);
   const [price, setPrice] = useState(String(clinic.price || ""));
   const [phone, setPhone] = useState(clinic.phone);
-  const [bio, setBio] = useState("");
+  const [bio, setBio] = useState(initialBio);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<"avatar" | "cover" | null>(null);
   const [msg, setMsg] = useState("");
