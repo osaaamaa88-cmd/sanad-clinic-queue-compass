@@ -65,6 +65,7 @@ export const Route = createFileRoute("/reception")({
 });
 
 function Reception() {
+  const navigate = useNavigate();
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [rows, setRows] = useState<Booking[]>([]);
   const [loaded, setLoaded] = useState(false);
