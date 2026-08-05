@@ -192,6 +192,7 @@ function DoctorSettings() {
     setSignedIn(false);
     setRole(null);
     setClinicId(undefined);
+    navigate({ to: "/doctor/login", replace: true });
   };
 
   if (loading) {
