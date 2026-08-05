@@ -223,6 +223,21 @@ export const svrUpdateClinic = createServerFn({ method: "POST" })
     if (!data || typeof data.id !== "string") throw new Error("Invalid input");
     return data;
   })
+  .inputValidator((data: {
+    id: string;
+    doctor: string;
+    specialtyId: string;
+    address: string;
+    area: string;
+    phone: string;
+    price: number;
+    availableNow: boolean;
+    lat: number;
+    lng: number;
+  }) => {
+    if (!data || typeof data.id !== "string") throw new Error("Invalid input");
+    return data;
+  })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
