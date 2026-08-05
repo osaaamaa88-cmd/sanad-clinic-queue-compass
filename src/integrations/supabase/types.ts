@@ -93,6 +93,86 @@ export type Database = {
           },
         ]
       }
+      clinic_post_comments: {
+        Row: {
+          author_key: string
+          author_name: string
+          body: string
+          clinic_id: string
+          created_at: string
+          id: string
+          is_clinic_reply: boolean
+          post_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_key: string
+          author_name?: string
+          body: string
+          clinic_id: string
+          created_at?: string
+          id?: string
+          is_clinic_reply?: boolean
+          post_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_key?: string
+          author_name?: string
+          body?: string
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          is_clinic_reply?: boolean
+          post_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_post_comments_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          liker_key: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          liker_key: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          liker_key?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_posts: {
         Row: {
           caption: string
