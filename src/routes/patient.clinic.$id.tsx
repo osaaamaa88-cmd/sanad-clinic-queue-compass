@@ -702,6 +702,27 @@ function ClinicDetail() {
           }}
         />
       )}
+
+      {viewerIndex !== null && (extras?.posts.length ?? 0) > 0 && (
+        <PostViewer
+          posts={extras!.posts}
+          startIndex={viewerIndex}
+          doctor={clinic.doctor}
+          isVerified={clinic.isVerified}
+          isOwner={isOwner}
+          onClose={async () => {
+            setViewerIndex(null);
+            const ids = (extras?.posts ?? []).map((p) => p.id);
+            if (ids.length) setSocial(await loadPostsSocial(ids));
+          }}
+        />
+      )}
+
+      {shareToast && (
+        <div className="fixed inset-x-0 bottom-6 z-[80] flex justify-center">
+          <span className="rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background">{shareToast}</span>
+        </div>
+      )}
     </AppShell>
   );
 }
