@@ -401,6 +401,12 @@ function ClinicDetail() {
             >
               <Navigation className="h-4 w-4 text-primary" /> الموقع على الخريطة
             </a>
+            <button
+              onClick={shareProfile}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-gold/40 bg-card py-2.5 text-[11px] font-bold text-gold"
+            >
+              <Share2 className="h-4 w-4" /> مشاركة
+            </button>
           </div>
 
           {/* Highlights */}
