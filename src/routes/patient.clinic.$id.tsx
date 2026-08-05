@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2, LogOut } from "lucide-react";
+import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2, LogOut, Heart, Share2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClinicQrCard } from "@/components/ClinicQrCard";
+import { PostViewer } from "@/components/PostViewer";
+import { clinicShareUrl, loadPostsSocial, shareLink, type PostSocial } from "@/lib/post-social";
 import {
   getVerifiedClinic,
   getClinicById,
@@ -51,6 +53,9 @@ function ClinicDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const postInputRef = useRef<HTMLInputElement>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [social, setSocial] = useState<PostSocial>({ likes: {}, liked: {}, comments: {} });
+  const [shareToast, setShareToast] = useState("");
 
   const refreshExtras = useCallback(async () => {
     setExtras(await getClinicProfileExtras(id));
@@ -97,6 +102,38 @@ function ClinicDetail() {
       unsub();
     };
   }, [id]);
+
+  // Real like / comment counters for the grid, plus deep-link (?post=) opening.
+  useEffect(() => {
+    const ids = (extras?.posts ?? []).map((p) => p.id);
+    if (!ids.length) return;
+    let cancelled = false;
+    (async () => {
+      const s = await loadPostsSocial(ids);
+      if (!cancelled) setSocial(s);
+    })();
+    const target = new URLSearchParams(window.location.search).get("post");
+    if (target) {
+      const idx = ids.indexOf(target);
+      if (idx >= 0) setViewerIndex(idx);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [extras]);
+
+  const shareProfile = async () => {
+    if (!clinic) return;
+    const res = await shareLink({
+      title: `${clinic.doctor} — سندي`,
+      text: `احجز مع ${clinic.doctor} على سندي`,
+      url: clinicShareUrl(clinic.id),
+    });
+    if (res === "copied") {
+      setShareToast("تم نسخ رابط العيادة ✅");
+      window.setTimeout(() => setShareToast(""), 1800);
+    }
+  };
 
   const [dayIdx, setDayIdx] = useState(0);
   const [slot, setSlot] = useState<string | null>(null);
@@ -532,8 +569,13 @@ function ClinicDetail() {
               </div>
             ) : (
               <div className="-mx-4 grid grid-cols-3 gap-[3px] sm:mx-0">
-                {(extras?.posts ?? []).map((p) => (
-                  <div key={p.id} className="relative aspect-square overflow-hidden bg-surface-deep">
+                {(extras?.posts ?? []).map((p, i) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setViewerIndex(i)}
+                    aria-label={p.mediaType === "video" ? "تشغيل الفيديو" : "فتح المنشور"}
+                    className="relative aspect-square overflow-hidden bg-surface-deep"
+                  >
                     {p.mediaType === "video" ? (
                       <>
                         <video src={p.url} className="h-full w-full object-cover" muted playsInline />
@@ -550,9 +592,12 @@ function ClinicDetail() {
                       />
                     )}
                     {isOwner && (
-                      <button
+                      <span
+                        role="button"
+                        tabIndex={0}
                         aria-label="حذف المنشور"
-                        onClick={async () => {
+                        onClick={async (e) => {
+                          e.stopPropagation();
                           setBusy(p.id);
                           if (await deleteClinicPost(p.id)) await refreshExtras();
                           setBusy(null);
@@ -560,9 +605,17 @@ function ClinicDetail() {
                         className="absolute bottom-1.5 left-1.5 grid h-6 w-6 place-items-center rounded-full bg-background/80 text-destructive"
                       >
                         {busy === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                      </button>
+                      </span>
                     )}
-                  </div>
+                    <span className="absolute bottom-1.5 right-1.5 flex items-center gap-2 rounded-full bg-background/70 px-2 py-0.5 text-[10px] font-extrabold backdrop-blur">
+                      <span className={`flex items-center gap-0.5 ${social.liked[p.id] ? "text-destructive" : ""}`}>
+                        <Heart className={`h-3 w-3 ${social.liked[p.id] ? "fill-current" : ""}`} /> {social.likes[p.id] ?? 0}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <MessageCircle className="h-3 w-3" /> {social.comments[p.id] ?? 0}
+                      </span>
+                    </span>
+                  </button>
                 ))}
               </div>
             )}
