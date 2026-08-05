@@ -12,15 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ReceptionRouteImport } from './routes/reception'
 import { Route as DoctorSettingsRouteImport } from './routes/doctor-settings'
-import { Route as DoctorRouteImport } from './routes/doctor'
 import { Route as AdminAccessRouteImport } from './routes/admin-access'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PatientIndexRouteImport } from './routes/patient.index'
+import { Route as DoctorIndexRouteImport } from './routes/doctor.index'
 import { Route as TvIdRouteImport } from './routes/tv.$id'
 import { Route as PatientSearchRouteImport } from './routes/patient.search'
 import { Route as PatientMedsRouteImport } from './routes/patient.meds'
 import { Route as PatientHealthRouteImport } from './routes/patient.health'
 import { Route as PatientEmergencyRouteImport } from './routes/patient.emergency'
+import { Route as DoctorLoginRouteImport } from './routes/doctor.login'
 import { Route as PatientQueueIdRouteImport } from './routes/patient.queue.$id'
 import { Route as PatientClinicIdRouteImport } from './routes/patient.clinic.$id'
 
@@ -39,11 +40,6 @@ const DoctorSettingsRoute = DoctorSettingsRouteImport.update({
   path: '/doctor-settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DoctorRoute = DoctorRouteImport.update({
-  id: '/doctor',
-  path: '/doctor',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminAccessRoute = AdminAccessRouteImport.update({
   id: '/admin-access',
   path: '/admin-access',
@@ -57,6 +53,11 @@ const IndexRoute = IndexRouteImport.update({
 const PatientIndexRoute = PatientIndexRouteImport.update({
   id: '/patient/',
   path: '/patient/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorIndexRoute = DoctorIndexRouteImport.update({
+  id: '/doctor/',
+  path: '/doctor/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TvIdRoute = TvIdRouteImport.update({
@@ -84,6 +85,11 @@ const PatientEmergencyRoute = PatientEmergencyRouteImport.update({
   path: '/patient/emergency',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DoctorLoginRoute = DoctorLoginRouteImport.update({
+  id: '/doctor/login',
+  path: '/doctor/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PatientQueueIdRoute = PatientQueueIdRouteImport.update({
   id: '/patient/queue/$id',
   path: '/patient/queue/$id',
@@ -98,15 +104,16 @@ const PatientClinicIdRoute = PatientClinicIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-access': typeof AdminAccessRoute
-  '/doctor': typeof DoctorRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
+  '/doctor/login': typeof DoctorLoginRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
+  '/doctor/': typeof DoctorIndexRoute
   '/patient/': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
@@ -114,15 +121,16 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-access': typeof AdminAccessRoute
-  '/doctor': typeof DoctorRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
+  '/doctor/login': typeof DoctorLoginRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
+  '/doctor': typeof DoctorIndexRoute
   '/patient': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
@@ -131,15 +139,16 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin-access': typeof AdminAccessRoute
-  '/doctor': typeof DoctorRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
+  '/doctor/login': typeof DoctorLoginRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
+  '/doctor/': typeof DoctorIndexRoute
   '/patient/': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
@@ -149,15 +158,16 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin-access'
-    | '/doctor'
     | '/doctor-settings'
     | '/reception'
     | '/terms'
+    | '/doctor/login'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
     | '/patient/search'
     | '/tv/$id'
+    | '/doctor/'
     | '/patient/'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
@@ -165,15 +175,16 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin-access'
-    | '/doctor'
     | '/doctor-settings'
     | '/reception'
     | '/terms'
+    | '/doctor/login'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
     | '/patient/search'
     | '/tv/$id'
+    | '/doctor'
     | '/patient'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
@@ -181,15 +192,16 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin-access'
-    | '/doctor'
     | '/doctor-settings'
     | '/reception'
     | '/terms'
+    | '/doctor/login'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
     | '/patient/search'
     | '/tv/$id'
+    | '/doctor/'
     | '/patient/'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
@@ -198,15 +210,16 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminAccessRoute: typeof AdminAccessRoute
-  DoctorRoute: typeof DoctorRoute
   DoctorSettingsRoute: typeof DoctorSettingsRoute
   ReceptionRoute: typeof ReceptionRoute
   TermsRoute: typeof TermsRoute
+  DoctorLoginRoute: typeof DoctorLoginRoute
   PatientEmergencyRoute: typeof PatientEmergencyRoute
   PatientHealthRoute: typeof PatientHealthRoute
   PatientMedsRoute: typeof PatientMedsRoute
   PatientSearchRoute: typeof PatientSearchRoute
   TvIdRoute: typeof TvIdRoute
+  DoctorIndexRoute: typeof DoctorIndexRoute
   PatientIndexRoute: typeof PatientIndexRoute
   PatientClinicIdRoute: typeof PatientClinicIdRoute
   PatientQueueIdRoute: typeof PatientQueueIdRoute
@@ -235,13 +248,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/doctor': {
-      id: '/doctor'
-      path: '/doctor'
-      fullPath: '/doctor'
-      preLoaderRoute: typeof DoctorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin-access': {
       id: '/admin-access'
       path: '/admin-access'
@@ -261,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/patient'
       fullPath: '/patient/'
       preLoaderRoute: typeof PatientIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor/': {
+      id: '/doctor/'
+      path: '/doctor'
+      fullPath: '/doctor/'
+      preLoaderRoute: typeof DoctorIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tv/$id': {
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatientEmergencyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doctor/login': {
+      id: '/doctor/login'
+      path: '/doctor/login'
+      fullPath: '/doctor/login'
+      preLoaderRoute: typeof DoctorLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/patient/queue/$id': {
       id: '/patient/queue/$id'
       path: '/patient/queue/$id'
@@ -318,15 +338,16 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminAccessRoute: AdminAccessRoute,
-  DoctorRoute: DoctorRoute,
   DoctorSettingsRoute: DoctorSettingsRoute,
   ReceptionRoute: ReceptionRoute,
   TermsRoute: TermsRoute,
+  DoctorLoginRoute: DoctorLoginRoute,
   PatientEmergencyRoute: PatientEmergencyRoute,
   PatientHealthRoute: PatientHealthRoute,
   PatientMedsRoute: PatientMedsRoute,
   PatientSearchRoute: PatientSearchRoute,
   TvIdRoute: TvIdRoute,
+  DoctorIndexRoute: DoctorIndexRoute,
   PatientIndexRoute: PatientIndexRoute,
   PatientClinicIdRoute: PatientClinicIdRoute,
   PatientQueueIdRoute: PatientQueueIdRoute,

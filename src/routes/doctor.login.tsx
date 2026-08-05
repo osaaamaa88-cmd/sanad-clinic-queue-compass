@@ -6,7 +6,7 @@ import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { specialties, getMyClinicMembership, registerDoctorAccount, signOutStaff } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/doctor")({
+export const Route = createFileRoute("/doctor/login")({
   head: () => ({
     meta: [
       { title: "دخول الطبيب — سندي" },
