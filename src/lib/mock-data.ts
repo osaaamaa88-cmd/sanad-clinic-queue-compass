@@ -4,6 +4,7 @@ import {
   svrListBookingsForClinic,
   svrUpdateBookingStatus,
   svrUpdateClinic,
+  svrCreateClinic,
   svrSetClinicOps,
   svrAddWalkIn,
 } from "@/lib/data.functions";
@@ -205,30 +206,24 @@ export async function upsertClinic(
       return null;
     }
   }
-  const payload = {
-    doctor: input.doctor,
-    specialty_id: input.specialtyId,
-    address: input.address,
-    area: input.area,
-    phone: input.phone,
-    price: input.price,
-    rating: input.rating,
-    reviews: input.reviews,
-    available_now: input.availableNow,
-    distance_km: input.distanceKm,
-    now_serving: input.nowServing,
-    your_number: input.yourNumber,
-    waiting_count: input.waitingCount,
-    lat: input.lat,
-    lng: input.lng,
-  };
-  const { data, error } = await supabase
-    .from("clinics")
-    .insert({ ...payload, is_verified: false })
-    .select()
-    .maybeSingle();
-  if (error || !data) return null;
-  return rowToClinic(data as Row);
+  try {
+    const { row } = await svrCreateClinic({
+      data: {
+        doctor: input.doctor,
+        specialtyId: input.specialtyId,
+        address: input.address,
+        area: input.area,
+        phone: input.phone,
+        price: input.price,
+        availableNow: input.availableNow,
+        lat: input.lat,
+        lng: input.lng,
+      },
+    });
+    return rowToClinic(row as Row);
+  } catch {
+    return null;
+  }
 }
 
 /** Identity now comes from the real signed-in session, not the device. */

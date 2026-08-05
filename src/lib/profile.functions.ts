@@ -177,7 +177,10 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
     if (typeof data.phone === "string") patch.phone = data.phone.trim().slice(0, 40);
     if (typeof data.bio === "string") patch.bio = data.bio.slice(0, 600);
     const { error } = await supabaseAdmin.from("clinics").update(patch).eq("id", data.clinicId);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[svrUpdateClinicProfile]", error.message);
+      throw new Error("UPDATE_FAILED");
+    }
     return { ok: true as const };
   });
 
@@ -218,7 +221,10 @@ export const svrUploadClinicMedia = createServerFn({ method: "POST" })
     const { error: upErr } = await supabaseAdmin.storage
       .from("clinic-media")
       .upload(path, bytes, { contentType: data.contentType, upsert: true });
-    if (upErr) throw new Error(upErr.message);
+    if (upErr) {
+      console.error("[svrUploadClinicMedia] upload", upErr.message);
+      throw new Error("UPLOAD_FAILED");
+    }
 
     if (data.kind === "post") {
       const { error } = await supabaseAdmin.from("clinic_posts").insert({
@@ -227,14 +233,20 @@ export const svrUploadClinicMedia = createServerFn({ method: "POST" })
         media_type: data.contentType.startsWith("video/") ? "video" : "image",
         caption: data.caption,
       });
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error("[svrUploadClinicMedia] post insert", error.message);
+        throw new Error("UPLOAD_FAILED");
+      }
     } else {
       const patch = data.kind === "avatar" ? { avatar_url: path } : { cover_url: path };
       const { error } = await supabaseAdmin
         .from("clinics")
         .update(patch)
         .eq("id", data.clinicId);
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error("[svrUploadClinicMedia] clinic update", error.message);
+        throw new Error("UPLOAD_FAILED");
+      }
     }
     return { ok: true as const };
   });
