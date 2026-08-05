@@ -4,6 +4,7 @@ import {
   svrListBookingsForClinic,
   svrUpdateBookingStatus,
   svrUpdateClinic,
+  svrCreateClinic,
   svrSetClinicOps,
   svrAddWalkIn,
 } from "@/lib/data.functions";
