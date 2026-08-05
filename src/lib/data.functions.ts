@@ -250,3 +250,60 @@ export const svrUpdateClinic = createServerFn({ method: "POST" })
     }
     return { row };
   });
+/** Signed-in doctor creates their clinic. Ownership + trust fields are set server-side. */
+export const svrCreateClinic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: {
+    doctor: string;
+    specialtyId: string;
+    address: string;
+    area: string;
+    phone: string;
+    price: number;
+    availableNow: boolean;
+    lat: number;
+    lng: number;
+  }) => {
+    if (!data || typeof data.doctor !== "string" || !data.doctor.trim()) {
+      throw new Error("Invalid input");
+    }
+    return {
+      doctor: data.doctor.trim().slice(0, 120),
+      specialtyId: String(data.specialtyId ?? "").slice(0, 60),
+      address: String(data.address ?? "").slice(0, 300),
+      area: String(data.area ?? "").slice(0, 120),
+      phone: String(data.phone ?? "").slice(0, 40),
+      price: Number.isFinite(data.price) ? Math.max(0, Math.floor(data.price)) : 0,
+      availableNow: Boolean(data.availableNow),
+      lat: Number.isFinite(data.lat) ? Number(data.lat) : 30.0444,
+      lng: Number.isFinite(data.lng) ? Number(data.lng) : 31.2357,
+    };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("clinics")
+      .insert({
+        doctor: data.doctor,
+        specialty_id: data.specialtyId,
+        address: data.address,
+        area: data.area,
+        phone: data.phone,
+        price: data.price,
+        available_now: data.availableNow,
+        lat: data.lat,
+        lng: data.lng,
+        // Trust + ownership fields are never client-controlled.
+        rating: 0,
+        reviews: 0,
+        is_verified: false,
+        owner_id: context.userId,
+      })
+      .select()
+      .maybeSingle();
+    if (error || !row) {
+      console.error("[svrCreateClinic]", error?.message ?? "no row returned");
+      throw new Error("CREATE_FAILED");
+    }
+    return { row };
+  });
