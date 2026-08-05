@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BadgeCheck, CalendarPlus, Loader2, Play, Share2 } from "lucide-react";
+import { BadgeCheck, CalendarPlus, Play, Share2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { PostViewer, type ViewerPost } from "@/components/PostViewer";
 import { svrGetPost } from "@/lib/post-social.functions";
@@ -150,5 +150,3 @@ function PostPage() {
   );
 }
 
-/** Kept so unused-import lint stays quiet if the loader spinner is reintroduced. */
-export const _spinner = Loader2;
