@@ -21,6 +21,7 @@ import { Route as PatientSearchRouteImport } from './routes/patient.search'
 import { Route as PatientMedsRouteImport } from './routes/patient.meds'
 import { Route as PatientHealthRouteImport } from './routes/patient.health'
 import { Route as PatientEmergencyRouteImport } from './routes/patient.emergency'
+import { Route as PPostIdRouteImport } from './routes/p.$postId'
 import { Route as DoctorLoginRouteImport } from './routes/doctor.login'
 import { Route as PatientQueueIdRouteImport } from './routes/patient.queue.$id'
 import { Route as PatientClinicIdRouteImport } from './routes/patient.clinic.$id'
@@ -85,6 +86,11 @@ const PatientEmergencyRoute = PatientEmergencyRouteImport.update({
   path: '/patient/emergency',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PPostIdRoute = PPostIdRouteImport.update({
+  id: '/p/$postId',
+  path: '/p/$postId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DoctorLoginRoute = DoctorLoginRouteImport.update({
   id: '/doctor/login',
   path: '/doctor/login',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/p/$postId': typeof PPostIdRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/p/$postId': typeof PPostIdRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/p/$postId': typeof PPostIdRoute
   '/patient/emergency': typeof PatientEmergencyRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/meds': typeof PatientMedsRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/terms'
     | '/doctor/login'
+    | '/p/$postId'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/terms'
     | '/doctor/login'
+    | '/p/$postId'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/terms'
     | '/doctor/login'
+    | '/p/$postId'
     | '/patient/emergency'
     | '/patient/health'
     | '/patient/meds'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   ReceptionRoute: typeof ReceptionRoute
   TermsRoute: typeof TermsRoute
   DoctorLoginRoute: typeof DoctorLoginRoute
+  PPostIdRoute: typeof PPostIdRoute
   PatientEmergencyRoute: typeof PatientEmergencyRoute
   PatientHealthRoute: typeof PatientHealthRoute
   PatientMedsRoute: typeof PatientMedsRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatientEmergencyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$postId': {
+      id: '/p/$postId'
+      path: '/p/$postId'
+      fullPath: '/p/$postId'
+      preLoaderRoute: typeof PPostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/doctor/login': {
       id: '/doctor/login'
       path: '/doctor/login'
@@ -342,6 +362,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReceptionRoute: ReceptionRoute,
   TermsRoute: TermsRoute,
   DoctorLoginRoute: DoctorLoginRoute,
+  PPostIdRoute: PPostIdRoute,
   PatientEmergencyRoute: PatientEmergencyRoute,
   PatientHealthRoute: PatientHealthRoute,
   PatientMedsRoute: PatientMedsRoute,
