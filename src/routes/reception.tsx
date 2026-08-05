@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   UserPlus,
@@ -188,6 +188,7 @@ function Reception() {
             onClick={async () => {
               await signOutStaff();
               setSignedIn(false);
+              navigate({ to: "/doctor/login", replace: true });
             }}
             className="mt-4 w-full rounded-xl border border-border py-2.5 text-xs font-bold"
           >
@@ -227,6 +228,7 @@ function Reception() {
               await signOutStaff();
               setSignedIn(false);
               setClinic(undefined);
+              navigate({ to: "/doctor/login", replace: true });
             }}
             aria-label="خروج"
             className="grid h-10 w-10 place-items-center rounded-full border border-border bg-secondary"
