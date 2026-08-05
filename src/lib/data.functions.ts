@@ -53,7 +53,10 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
       })
       .select()
       .maybeSingle();
-    if (error || !row) throw new Error(error?.message || "Failed to create booking");
+    if (error || !row) {
+      console.error("[svrCreateBooking]", error?.message ?? "no row returned");
+      throw new Error("BOOKING_FAILED");
+    }
     // Return only what the patient needs — not the whole row of other patients.
     return {
       id: row.id,
@@ -77,7 +80,10 @@ export const svrListBookingsForClinic = createServerFn({ method: "POST" })
       .select("*")
       .eq("clinic_id", data.clinicId)
       .order("queue_number", { ascending: true });
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[svrListBookingsForClinic]", error.message);
+      throw new Error("LOAD_FAILED");
+    }
     return { rows: rows ?? [] };
   });
 
@@ -102,7 +108,10 @@ export const svrUpdateBookingStatus = createServerFn({ method: "POST" })
       .from("bookings")
       .update({ status: data.status })
       .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[svrUpdateBookingStatus]", error.message);
+      throw new Error("UPDATE_FAILED");
+    }
     return { ok: true as const };
   });
 
@@ -148,7 +157,10 @@ export const svrAddWalkIn = createServerFn({ method: "POST" })
       })
       .select()
       .maybeSingle();
-    if (error || !row) throw new Error(error?.message || "Failed");
+    if (error || !row) {
+      console.error("[svrAddWalkIn]", error?.message ?? "no row returned");
+      throw new Error("SAVE_FAILED");
+    }
     return { id: row.id, code: row.code, queueNumber: row.queue_number };
   });
 
@@ -187,7 +199,10 @@ export const svrSetClinicOps = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .select()
       .maybeSingle();
-    if (error || !row) throw new Error(error?.message || "Failed to update clinic");
+    if (error || !row) {
+      console.error("[svrSetClinicOps]", error?.message ?? "no row returned");
+      throw new Error("UPDATE_FAILED");
+    }
     return { row };
   });
 
@@ -229,6 +244,9 @@ export const svrUpdateClinic = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .select()
       .maybeSingle();
-    if (error || !row) throw new Error(error?.message || "Failed to update clinic");
+    if (error || !row) {
+      console.error("[svrUpdateClinic]", error?.message ?? "no row returned");
+      throw new Error("UPDATE_FAILED");
+    }
     return { row };
   });
