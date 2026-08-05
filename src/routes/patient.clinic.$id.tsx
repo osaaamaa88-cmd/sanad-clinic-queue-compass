@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2, LogOut } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -14,6 +14,7 @@ import {
   days,
   whatsappLink,
   createBooking,
+  signOutStaff,
   type Clinic,
 } from "@/lib/mock-data";
 import {
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/patient/clinic/$id")({
 
 function ClinicDetail() {
   const { id } = useParams({ from: "/patient/clinic/$id" });
+  const navigate = useNavigate();
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
