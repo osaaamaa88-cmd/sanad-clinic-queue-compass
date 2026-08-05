@@ -365,10 +365,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_manage_clinic_media: {
-        Args: { _path: string; _user_id: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
