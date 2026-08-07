@@ -324,7 +324,16 @@ function ClinicDetail() {
           {/* Avatar with story gradient ring */}
           <div className="-mt-12 flex items-end justify-between gap-3">
             <div className="relative">
-              <div className="gradient-story grid h-24 w-24 place-items-center rounded-full p-[3px] shadow-gold sm:h-28 sm:w-28">
+              <button
+                onClick={() => {
+                  if (stories.stories.length) setStoryView({ items: stories.stories, title: clinic.doctor });
+                  else if (isOwner) storyInputRef.current?.click();
+                }}
+                aria-label={stories.stories.length ? "مشاهدة ستوري العيادة" : "إضافة ستوري"}
+                className={`grid h-24 w-24 place-items-center rounded-full p-[3px] shadow-gold sm:h-28 sm:w-28 ${
+                  stories.stories.length ? "gradient-story" : "bg-border"
+                }`}
+              >
                 {extras?.avatarUrl ? (
                   <img
                     src={extras.avatarUrl}
@@ -336,7 +345,19 @@ function ClinicDetail() {
                     {spec?.emoji ?? "🩺"}
                   </div>
                 )}
-              </div>
+              </button>
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    storyTargetHighlight.current = null;
+                    storyInputRef.current?.click();
+                  }}
+                  aria-label="إضافة ستوري جديدة"
+                  className="absolute -right-1 bottom-1 grid h-7 w-7 place-items-center rounded-full border-2 border-background gradient-gold text-gold-foreground"
+                >
+                  {busy === "story" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                </button>
+              )}
               {clinic.isVerified && (
                 <span
                   className="absolute -left-1 bottom-1 grid h-7 w-7 place-items-center rounded-full border-2 border-background bg-[#1D9BF0]"
@@ -346,7 +367,9 @@ function ClinicDetail() {
                 </span>
               )}
             </div>
-            {clinic.availableNow ? (
+            <div className="mb-1 flex items-center gap-2">
+              <NotificationsBell audience={isOwner ? "clinic" : "patient"} clinicId={clinic.id} tone="gold" />
+              {clinic.availableNow ? (
               <span className="mb-1 rounded-full bg-success/15 px-3 py-1 text-[11px] font-extrabold text-success">
                 مفتوح دلوقتي
               </span>
@@ -354,7 +377,8 @@ function ClinicDetail() {
               <span className="mb-1 rounded-full bg-secondary px-3 py-1 text-[11px] font-extrabold text-muted-foreground">
                 مغلق دلوقتي
               </span>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Name + specialty */}
