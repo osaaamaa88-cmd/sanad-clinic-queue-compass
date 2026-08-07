@@ -67,10 +67,27 @@ function ClinicDetail() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [social, setSocial] = useState<PostSocial>({ likes: {}, liked: {}, comments: {} });
   const [shareToast, setShareToast] = useState("");
+  const [stories, setStories] = useState<ClinicStories>({ stories: [], highlights: [] });
+  const [storyView, setStoryView] = useState<{ items: StoryItem[]; title: string } | null>(null);
+  const [newHighlight, setNewHighlight] = useState(false);
+  const [hlTitle, setHlTitle] = useState("");
+  const [hlEmoji, setHlEmoji] = useState("✨");
+  const [urgentOpen, setUrgentOpen] = useState(false);
+  const [urgentText, setUrgentText] = useState("");
+  const storyInputRef = useRef<HTMLInputElement>(null);
+  const storyTargetHighlight = useRef<string | null>(null);
+
+  const refreshStories = useCallback(async () => {
+    setStories(await getClinicStories(id));
+  }, [id]);
 
   const refreshExtras = useCallback(async () => {
     setExtras(await getClinicProfileExtras(id));
   }, [id]);
+
+  useEffect(() => {
+    refreshStories();
+  }, [refreshStories]);
 
   useEffect(() => {
     let cancelled = false;
