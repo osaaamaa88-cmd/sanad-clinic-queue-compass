@@ -2,6 +2,8 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Users, Clock, Bell, MapPin } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { NotificationsBell } from "@/components/NotificationsBell";
+import { checkQueueProximity, ensureNotificationPermission, pushLocalNotification } from "@/lib/notifications";
 import { getVerifiedClinic, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/queue/$id")({
@@ -32,11 +34,36 @@ function Queue() {
   const ahead = Math.max(0, yourNumber - current - 1);
 
   useEffect(() => {
-    const t = setInterval(() => {
-      setCurrent((c) => (c < yourNumber ? c + 1 : c));
-    }, 8000);
-    return () => clearInterval(t);
-  }, [yourNumber]);
+    ensureNotificationPermission();
+  }, []);
+
+  // Live turn watcher: refresh the served number and warn when the turn is close.
+  useEffect(() => {
+    if (!yourNumber) return;
+    let cancelled = false;
+    let lastAlert = "";
+    const tick = async () => {
+      const c = await getVerifiedClinic(id);
+      if (cancelled) return;
+      if (c) setCurrent(c.nowServing);
+      const res = await checkQueueProximity(id, yourNumber);
+      if (cancelled || res.ahead === null) return;
+      const key = `ahead-${res.ahead}`;
+      if (res.ahead <= 2 && key !== lastAlert) {
+        lastAlert = key;
+        pushLocalNotification(
+          res.ahead === 0 ? "دورك دلوقتي! 🎉" : `تبقى ${res.ahead} مرضى على دورك ⏳`,
+          c ? `عيادة ${c.doctor}` : "",
+        );
+      }
+    };
+    tick();
+    const t = window.setInterval(tick, 20000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(t);
+    };
+  }, [id, yourNumber]);
 
   if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient"><div /></AppShell>;
   if (!clinic) {
@@ -52,7 +79,13 @@ function Queue() {
   const arrived = current >= yourNumber;
 
   return (
-    <AppShell title="دورك كام؟" subtitle={clinic.doctor} backTo="/patient" tone="primary">
+    <AppShell
+      title="دورك كام؟"
+      subtitle={clinic.doctor}
+      backTo="/patient"
+      tone="primary"
+      right={<NotificationsBell audience="patient" />}
+    >
       <div className="-mt-6 rounded-3xl bg-card p-6 text-center shadow-soft">
         <p className="text-sm text-muted-foreground">دورك</p>
         <div className="mt-1 text-6xl font-black text-primary">
