@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { MapPin, Search, Bell, Clock, Star, Stethoscope, Siren, Phone, Activity, Pill } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 export const Route = createFileRoute("/patient/")({
   head: () => ({
@@ -31,11 +32,7 @@ function PatientHome() {
       title="أهلاً بيك 👋"
       subtitle="اختار التخصص وابدأ البحث"
       tone="primary"
-      right={
-        <button className="grid h-10 w-10 place-items-center rounded-full bg-white/20" aria-label="إشعارات">
-          <Bell className="h-5 w-5" />
-        </button>
-      }
+      right={<NotificationsBell audience="patient" />}
     >
       {/* Location card */}
       <div className="-mt-10 rounded-2xl bg-card p-4 shadow-soft">
