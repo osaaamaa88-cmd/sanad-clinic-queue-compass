@@ -16,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { NotificationsBell } from "@/components/NotificationsBell";
 import { StaffAuth } from "@/components/StaffAuth";
 import {
   getMyClinicMembership,
@@ -216,6 +217,7 @@ function Reception() {
       backTo="/"
       right={
         <div className="flex shrink-0 items-center gap-1.5">
+          {clinic && <NotificationsBell audience="clinic" clinicId={clinic.id} />}
           <button
             onClick={() => clinic && refresh(clinic.id)}
             aria-label="إعادة تحميل البيانات"
