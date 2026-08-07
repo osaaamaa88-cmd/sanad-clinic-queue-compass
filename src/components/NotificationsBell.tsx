@@ -115,7 +115,7 @@ export function NotificationsBell({
                       <button
                         onClick={() => {
                           setOpen(false);
-                          if (n.url) navigate({ to: n.url });
+                          if (n.url) navigate({ to: n.url } as never);
                         }}
                         className="flex w-full items-start gap-3 rounded-2xl border border-border bg-background p-3 text-right"
                       >
