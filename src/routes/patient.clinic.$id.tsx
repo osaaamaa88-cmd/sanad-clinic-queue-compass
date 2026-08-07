@@ -831,6 +831,130 @@ function ClinicDetail() {
           <span className="rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background">{shareToast}</span>
         </div>
       )}
+
+      {isOwner && (
+        <input
+          ref={storyInputRef}
+          type="file"
+          accept="image/*,video/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            setBusy("story");
+            const res = await addStory({
+              clinicId: id,
+              file,
+              highlightId: storyTargetHighlight.current,
+            });
+            storyTargetHighlight.current = null;
+            setBusy(null);
+            setShareToast(res.ok ? "تم نشر الستوري ✅" : "الرفع فشل، جرب صورة أصغر");
+            window.setTimeout(() => setShareToast(""), 2500);
+            if (res.ok) await refreshStories();
+          }}
+        />
+      )}
+
+      {storyView && (
+        <StoryViewer
+          items={storyView.items}
+          title={storyView.title}
+          isOwner={isOwner}
+          onClose={() => setStoryView(null)}
+          onDelete={async (storyId) => {
+            await deleteStory(storyId);
+            setStoryView(null);
+            await refreshStories();
+          }}
+        />
+      )}
+
+      {newHighlight && isOwner && (
+        <div className="fixed inset-0 z-[75] flex items-end bg-black/70 sm:items-center sm:justify-center" onClick={() => setNewHighlight(false)}>
+          <div className="w-full rounded-t-3xl border border-border bg-card p-5 sm:max-w-sm sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-base font-extrabold">هايلايت جديد</p>
+              <button onClick={() => setNewHighlight(false)} aria-label="إغلاق" className="grid h-8 w-8 place-items-center rounded-full bg-secondary">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <label className="text-xs font-bold text-muted-foreground">اسم الهايلايت</label>
+            <input
+              value={hlTitle}
+              onChange={(ev) => setHlTitle(ev.target.value)}
+              placeholder="مثال: قبل وبعد"
+              className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base outline-none focus:border-gold"
+            />
+            <label className="mt-4 block text-xs font-bold text-muted-foreground">إيموجي</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {["✨", "🏥", "😁", "💬", "🔬", "🦷", "❤️", "📸"].map((em) => (
+                <button
+                  key={em}
+                  onClick={() => setHlEmoji(em)}
+                  className={`grid h-10 w-10 place-items-center rounded-xl text-xl ${hlEmoji === em ? "gradient-gold" : "bg-secondary"}`}
+                >
+                  {em}
+                </button>
+              ))}
+            </div>
+            <button
+              disabled={!hlTitle.trim() || busy === "hl"}
+              onClick={async () => {
+                setBusy("hl");
+                const newId = await createHighlight(id, hlTitle.trim(), hlEmoji);
+                setBusy(null);
+                if (newId) {
+                  setHlTitle("");
+                  setNewHighlight(false);
+                  await refreshStories();
+                }
+              }}
+              className="mt-5 w-full rounded-2xl gradient-gold py-3.5 text-sm font-extrabold text-gold-foreground disabled:opacity-50"
+            >
+              {busy === "hl" ? "جاري الحفظ…" : "إنشاء وتثبيت"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {urgentOpen && isOwner && (
+        <div className="fixed inset-0 z-[75] flex items-end bg-black/70 sm:items-center sm:justify-center" onClick={() => setUrgentOpen(false)}>
+          <div className="w-full rounded-t-3xl border border-border bg-card p-5 sm:max-w-sm sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-base font-extrabold text-destructive">تنبيه عاجل</p>
+              <button onClick={() => setUrgentOpen(false)} aria-label="إغلاق" className="grid h-8 w-8 place-items-center rounded-full bg-secondary">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">هيوصل إشعار لكل متابعي العيادة، ويختفي بعد ٢٤ ساعة.</p>
+            <textarea
+              value={urgentText}
+              onChange={(ev) => setUrgentText(ev.target.value)}
+              rows={3}
+              placeholder="مثال: العيادة مقفولة النهارده لطارئ."
+              className="mt-3 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-destructive"
+            />
+            <button
+              disabled={!urgentText.trim() || busy === "urgent"}
+              onClick={async () => {
+                setBusy("urgent");
+                const res = await addStory({ clinicId: id, caption: urgentText.trim(), kind: "urgent" });
+                setBusy(null);
+                if (res.ok) {
+                  setUrgentText("");
+                  setUrgentOpen(false);
+                  await refreshStories();
+                }
+              }}
+              className="mt-4 w-full rounded-2xl bg-destructive py-3.5 text-sm font-extrabold text-white disabled:opacity-50"
+            >
+              {busy === "urgent" ? "جاري النشر…" : "نشر التنبيه"}
+            </button>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }
