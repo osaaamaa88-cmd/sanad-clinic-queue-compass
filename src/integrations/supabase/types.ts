@@ -93,6 +93,44 @@ export type Database = {
           },
         ]
       }
+      clinic_highlights: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          emoji: string
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_highlights_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_post_comments: {
         Row: {
           author_key: string
@@ -278,6 +316,60 @@ export type Database = {
           },
         ]
       }
+      clinic_stories: {
+        Row: {
+          caption: string
+          clinic_id: string
+          created_at: string
+          expires_at: string
+          highlight_id: string | null
+          id: string
+          is_pinned: boolean
+          kind: string
+          media_type: string
+          media_url: string
+        }
+        Insert: {
+          caption?: string
+          clinic_id: string
+          created_at?: string
+          expires_at?: string
+          highlight_id?: string | null
+          id?: string
+          is_pinned?: boolean
+          kind?: string
+          media_type?: string
+          media_url?: string
+        }
+        Update: {
+          caption?: string
+          clinic_id?: string
+          created_at?: string
+          expires_at?: string
+          highlight_id?: string | null
+          id?: string
+          is_pinned?: boolean
+          kind?: string
+          media_type?: string
+          media_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_stories_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_stories_highlight_id_fkey"
+            columns: ["highlight_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_highlights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinics: {
         Row: {
           address: string
@@ -415,6 +507,53 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          audience: string
+          body: string
+          clinic_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          kind: string
+          recipient_key: string
+          title: string
+          url: string
+        }
+        Insert: {
+          audience?: string
+          body?: string
+          clinic_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          kind?: string
+          recipient_key?: string
+          title: string
+          url?: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          clinic_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          kind?: string
+          recipient_key?: string
+          title?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patients: {
         Row: {
