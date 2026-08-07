@@ -464,24 +464,80 @@ function ClinicDetail() {
           {/* Highlights */}
           <div className="-mx-4 mt-5 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
             <div className="flex gap-4 pb-1">
-              {[
-                ["قبل وبعد", "✨"],
-                ["جولة العيادة", "🏥"],
-                ["تصميم الابتسامة", "😁"],
-                ["آراء المرضى", "💬"],
-                ["الأجهزة", "🔬"],
-              ].map(([label, emoji]) => (
-                <button key={label} className="shrink-0 text-center">
-                  <span className="grid h-16 w-16 place-items-center rounded-full border border-gold/50 bg-card/70 text-2xl">
-                    {emoji}
+              {isOwner && (
+                <button onClick={() => setNewHighlight(true)} className="shrink-0 text-center" aria-label="هايلايت جديد">
+                  <span className="grid h-16 w-16 place-items-center rounded-full border border-dashed border-gold/60 bg-card/70 text-gold">
+                    <Plus className="h-6 w-6" />
                   </span>
-                  <span className="mt-1.5 block max-w-[68px] truncate text-[10px] font-bold text-muted-foreground">
-                    {label}
-                  </span>
+                  <span className="mt-1.5 block max-w-[68px] truncate text-[10px] font-bold text-gold">هايلايت جديد</span>
                 </button>
+              )}
+              {stories.highlights.map((h) => (
+                <div key={h.id} className="relative shrink-0 text-center">
+                  <button
+                    onClick={() => {
+                      if (h.items.length) setStoryView({ items: h.items, title: h.title });
+                      else if (isOwner) {
+                        storyTargetHighlight.current = h.id;
+                        storyInputRef.current?.click();
+                      }
+                    }}
+                    className="block"
+                  >
+                    <span
+                      className={`grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-gold/50 bg-card/70 text-2xl ${
+                        h.items.length ? "" : "border-dashed"
+                      }`}
+                    >
+                      {h.items[0]?.url && h.items[0].mediaType === "image" ? (
+                        <img src={h.items[0].url} alt={h.title} className="h-full w-full object-cover" />
+                      ) : (
+                        h.emoji
+                      )}
+                    </span>
+                    <span className="mt-1.5 block max-w-[68px] truncate text-[10px] font-bold text-muted-foreground">
+                      {h.title}
+                    </span>
+                  </button>
+                  {isOwner && (
+                    <span className="absolute -top-1 right-0 flex flex-col gap-1">
+                      <button
+                        onClick={() => {
+                          storyTargetHighlight.current = h.id;
+                          storyInputRef.current?.click();
+                        }}
+                        aria-label={`إضافة لـ ${h.title}`}
+                        className="grid h-5 w-5 place-items-center rounded-full gradient-gold text-gold-foreground"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (await deleteHighlight(h.id)) await refreshStories();
+                        }}
+                        aria-label={`حذف ${h.title}`}
+                        className="grid h-5 w-5 place-items-center rounded-full bg-background/90 text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+                </div>
               ))}
+              {!isOwner && stories.highlights.length === 0 && (
+                <p className="py-4 text-[11px] text-muted-foreground">لسه مفيش هايلايتس من العيادة.</p>
+              )}
             </div>
           </div>
+
+          {isOwner && (
+            <button
+              onClick={() => setUrgentOpen(true)}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/50 bg-destructive/10 py-2.5 text-[11px] font-extrabold text-destructive"
+            >
+              <AlertTriangle className="h-4 w-4" /> نشر تنبيه عاجل للمتابعين (ستوري نصية)
+            </button>
+          )}
 
           {/* Live turn card */}
           <div className="glow-gold mt-5 rounded-3xl border border-gold/30 bg-surface-deep p-5 text-center">
