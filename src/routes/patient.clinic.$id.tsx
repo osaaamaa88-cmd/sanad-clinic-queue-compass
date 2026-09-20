@@ -16,6 +16,7 @@ import {
   type StoryItem,
 } from "@/lib/stories";
 import { clinicShareUrl, loadPostsSocial, shareLink, type PostSocial } from "@/lib/post-social";
+import { listClinicReviews, submitVerifiedReview, type ClinicReview } from "@/lib/reviews";
 import {
   getVerifiedClinic,
   getClinicById,
@@ -76,6 +77,15 @@ function ClinicDetail() {
   const [urgentText, setUrgentText] = useState("");
   const storyInputRef = useRef<HTMLInputElement>(null);
   const storyTargetHighlight = useRef<string | null>(null);
+  const [reviews, setReviews] = useState<ClinicReview[]>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewCode, setReviewCode] = useState("");
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewMsg, setReviewMsg] = useState("");
+
+  useEffect(() => {
+    listClinicReviews(id).then(setReviews);
+  }, [id]);
 
   const refreshStories = useCallback(async () => {
     setStories(await getClinicStories(id));
@@ -639,8 +649,98 @@ function ClinicDetail() {
               </div>
             </div>
             <p className="mt-3 rounded-xl bg-secondary p-3 text-[11px] text-muted-foreground">
-              التقييم بيتحدّث تلقائياً من تقييمات المرضى بعد الكشف.
+              التقييم بيتحدّث تلقائياً من تقييمات المرضى اللي خلصوا كشف فعلاً.
             </p>
+
+            {/* Real reviews */}
+            <div className="mt-3 space-y-2">
+              {reviews.length === 0 ? (
+                <p className="text-xs text-muted-foreground">لسه مفيش تعليقات من المرضى.</p>
+              ) : (
+                reviews.map((r) => (
+                  <div key={r.id} className="rounded-xl border border-border bg-secondary/50 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-extrabold">{r.patientName}</span>
+                        {r.visited && (
+                          <span className="flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">
+                            <BadgeCheck className="h-3 w-3" /> مريض قام بالزيارة
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Star
+                            key={n}
+                            className={`h-3 w-3 ${n <= r.rating ? "fill-warning text-warning" : "text-muted-foreground"}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {r.comment && <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{r.comment}</p>}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Verified review form */}
+            {!isOwner && (
+              <div className="mt-3 rounded-xl border border-dashed border-border p-3">
+                <p className="text-xs font-extrabold">قيّم الطبيب بعد الكشف</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  اكتب كود الحجز بتاعك (SND-XXXXX) — التقييم متاح بعد ما العيادة تسجّل إنك خلصت كشف.
+                </p>
+                <div className="mt-2 flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button key={n} onClick={() => setReviewRating(n)} aria-label={`${n} نجوم`}>
+                      <Star
+                        className={`h-6 w-6 ${n <= reviewRating ? "fill-warning text-warning" : "text-muted-foreground"}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <input
+                  value={reviewCode}
+                  onChange={(e) => setReviewCode(e.target.value)}
+                  placeholder="كود الحجز"
+                  className="mt-2 w-full rounded-xl border border-border bg-background p-2 text-sm"
+                />
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="رأيك في الدكتور والعيادة (اختياري)"
+                  rows={2}
+                  className="mt-2 w-full rounded-xl border border-border bg-background p-2 text-sm"
+                />
+                {reviewMsg && <p className="mt-2 text-[11px] font-bold text-primary">{reviewMsg}</p>}
+                <button
+                  disabled={busy === "review"}
+                  onClick={async () => {
+                    setReviewMsg("");
+                    setBusy("review");
+                    const res = await submitVerifiedReview({
+                      clinicId: id,
+                      bookingCode: reviewCode,
+                      rating: reviewRating,
+                      comment: reviewComment,
+                    });
+                    setBusy(null);
+                    if (res.ok) {
+                      setReviewMsg("تم إضافة تقييمك، شكراً ليك 🙏");
+                      setReviewCode("");
+                      setReviewComment("");
+                      setReviews(await listClinicReviews(id));
+                      refreshExtras();
+                    } else {
+                      setReviewMsg(res.error ?? "");
+                    }
+                  }}
+                  className="mt-2 w-full rounded-xl bg-primary p-2.5 text-sm font-extrabold text-primary-foreground disabled:opacity-60"
+                >
+                  {busy === "review" ? "جاري الإرسال…" : "إرسال التقييم"}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* FAQ */}
