@@ -16,6 +16,7 @@ import {
   type StoryItem,
 } from "@/lib/stories";
 import { clinicShareUrl, loadPostsSocial, shareLink, type PostSocial } from "@/lib/post-social";
+import { listClinicReviews, submitVerifiedReview, type ClinicReview } from "@/lib/reviews";
 import {
   getVerifiedClinic,
   getClinicById,
