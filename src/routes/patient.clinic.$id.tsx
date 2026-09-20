@@ -77,6 +77,15 @@ function ClinicDetail() {
   const [urgentText, setUrgentText] = useState("");
   const storyInputRef = useRef<HTMLInputElement>(null);
   const storyTargetHighlight = useRef<string | null>(null);
+  const [reviews, setReviews] = useState<ClinicReview[]>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewCode, setReviewCode] = useState("");
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewMsg, setReviewMsg] = useState("");
+
+  useEffect(() => {
+    listClinicReviews(id).then(setReviews);
+  }, [id]);
 
   const refreshStories = useCallback(async () => {
     setStories(await getClinicStories(id));
