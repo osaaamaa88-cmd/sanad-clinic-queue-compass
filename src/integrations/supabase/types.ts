@@ -248,27 +248,43 @@ export type Database = {
       }
       clinic_reviews: {
         Row: {
+          booking_id: string | null
           clinic_id: string
           comment: string
           created_at: string
           id: string
+          patient_name: string
           rating: number
+          visited: boolean
         }
         Insert: {
+          booking_id?: string | null
           clinic_id: string
           comment?: string
           created_at?: string
           id?: string
+          patient_name?: string
           rating: number
+          visited?: boolean
         }
         Update: {
+          booking_id?: string | null
           clinic_id?: string
           comment?: string
           created_at?: string
           id?: string
+          patient_name?: string
           rating?: number
+          visited?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "clinic_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clinic_reviews_clinic_id_fkey"
             columns: ["clinic_id"]
