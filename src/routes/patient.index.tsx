@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { Activity, ArrowLeft, Clock, MapPin, Phone, Pill, Search, Siren, Star, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
@@ -14,6 +15,10 @@ export const Route = createFileRoute("/patient/")({
     meta: [
       { title: "سندي — الصفحة الرئيسية للمريض" },
       { name: "description", content: "دور على طبيب من التخصصات القريبة منك واحجز فوراً." },
+      { property: "og:title", content: "سندي — سندك الطبي في كل وقت" },
+      { property: "og:description", content: "اكتشف العيادات القريبة وتابع تحديثاتها واحجز دورك بسهولة." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PatientHome,
@@ -113,7 +118,7 @@ function PatientHome() {
       </section>
 
       <section className="mt-6 grid gap-3 md:grid-cols-3">
-        <ServiceCard to="/patient/emergency" icon={<Siren />} title="طوارئ وعيادات مفتوحة" description="مساعدة طبية واتصال سريع 24 ساعة" tone="danger" action={<a href="tel:123" onClick={(event) => event.stopPropagation()} aria-label="اتصال بالإسعاف 123" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-destructive text-destructive-foreground"><Phone className="h-4 w-4" /></a>} />
+        <ServiceCard to="/patient/emergency" icon={<Siren />} title="طوارئ وعيادات مفتوحة" description="مساعدة طبية واتصال سريع 24 ساعة" tone="danger" />
         <ServiceCard to="/patient/health" icon={<Activity />} title="مؤشرات الصحة" description="تابع الضغط والسكر وسجّل قراءاتك" tone="primary" />
         <ServiceCard to="/patient/meds" icon={<Pill />} title="مواعيد الأدوية" description="نظّم الجرعات ولا تفوّت دواءك" tone="warning" />
       </section>
@@ -152,9 +157,9 @@ function PatientHome() {
   );
 }
 
-function ServiceCard({ to, icon, title, description, tone, action }: { to: "/patient/emergency" | "/patient/health" | "/patient/meds"; icon: React.ReactNode; title: string; description: string; tone: "danger" | "primary" | "warning"; action?: React.ReactNode }) {
+function ServiceCard({ to, icon, title, description, tone }: { to: "/patient/emergency" | "/patient/health" | "/patient/meds"; icon: ReactNode; title: string; description: string; tone: "danger" | "primary" | "warning" }) {
   const toneClasses = tone === "danger" ? "border-destructive/35 bg-destructive/10 text-destructive" : tone === "warning" ? "border-warning/30 bg-warning/10 text-warning" : "border-primary/35 bg-primary-soft/30 text-primary";
-  return <Link to={to} className={`group flex min-h-32 items-start gap-3 rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-soft ${toneClasses}`}><span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-card [&_svg]:h-6 [&_svg]:w-6">{icon}</span><span className="min-w-0 flex-1"><span className="block font-extrabold text-foreground">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{description}</span></span>{action}</Link>;
+  return <Link to={to} className={`group flex min-h-32 items-start gap-3 rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-soft ${toneClasses}`}><span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-card [&_svg]:h-6 [&_svg]:w-6">{icon}</span><span className="min-w-0 flex-1"><span className="block font-extrabold text-foreground">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{description}</span></span></Link>;
 }
 
 function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfileExtras }) {
