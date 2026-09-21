@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { Activity, ArrowLeft, Clock, MapPin, Phone, Pill, Search, Siren, Star, Stethoscope } from "lucide-react";
+import { Activity, ArrowLeft, Clock, MapPin, Pill, Search, Siren, Star, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
