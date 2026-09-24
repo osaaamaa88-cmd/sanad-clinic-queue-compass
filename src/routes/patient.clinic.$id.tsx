@@ -17,6 +17,13 @@ import {
 } from "@/lib/stories";
 import { clinicShareUrl, loadPostsSocial, shareLink, type PostSocial } from "@/lib/post-social";
 import { listClinicReviews, submitVerifiedReview, type ClinicReview } from "@/lib/reviews";
+import { PatientAuthModal } from "@/components/PatientAuthModal";
+import {
+  getPatientSession,
+  saveBookingLocally,
+  syncPatientSessionFromAuth,
+  type PatientSession,
+} from "@/lib/patient-session";
 import {
   getVerifiedClinic,
   getClinicById,
@@ -179,6 +186,15 @@ function ClinicDetail() {
   const [bookingCode, setBookingCode] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [tab, setTab] = useState<"about" | "book">("about");
+  const [patient, setPatient] = useState<PatientSession | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+
+  useEffect(() => {
+    setPatient(getPatientSession());
+    void syncPatientSessionFromAuth().then((s) => {
+      if (s) setPatient(s);
+    });
+  }, []);
 
   const doBooking = async (who: PatientSession) => {
     if (!clinic || !slot || submitting) return;
