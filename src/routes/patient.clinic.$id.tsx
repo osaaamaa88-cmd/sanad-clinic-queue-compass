@@ -17,6 +17,13 @@ import {
 } from "@/lib/stories";
 import { clinicShareUrl, loadPostsSocial, shareLink, type PostSocial } from "@/lib/post-social";
 import { listClinicReviews, submitVerifiedReview, type ClinicReview } from "@/lib/reviews";
+import { PatientAuthModal } from "@/components/PatientAuthModal";
+import {
+  getPatientSession,
+  saveBookingLocally,
+  syncPatientSessionFromAuth,
+  type PatientSession,
+} from "@/lib/patient-session";
 import {
   getVerifiedClinic,
   getClinicById,
@@ -179,22 +186,49 @@ function ClinicDetail() {
   const [bookingCode, setBookingCode] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [tab, setTab] = useState<"about" | "book">("about");
+  const [patient, setPatient] = useState<PatientSession | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
 
-  const confirmBooking = async () => {
+  useEffect(() => {
+    setPatient(getPatientSession());
+    void syncPatientSessionFromAuth().then((s) => {
+      if (s) setPatient(s);
+    });
+  }, []);
+
+  const doBooking = async (who: PatientSession) => {
     if (!clinic || !slot || submitting) return;
     setSubmitting(true);
+    const dayLabel = `${days[dayIdx].label} — ${days[dayIdx].date}`;
     const b = await createBooking({
       clinicId: clinic.id,
-      patientName: "مريض سندي",
-      patientPhone: "",
-      dayLabel: `${days[dayIdx].label} — ${days[dayIdx].date}`,
+      patientName: who.name,
+      patientPhone: who.phone,
+      dayLabel,
       slot,
     });
     setSubmitting(false);
     if (b) {
+      saveBookingLocally({
+        code: b.code,
+        clinicId: clinic.id,
+        clinicName: clinic.doctor,
+        dayLabel,
+        slot,
+      });
       setBookingCode(b.code);
       setBooked(true);
     }
+  };
+
+  const confirmBooking = async () => {
+    if (!clinic || !slot || submitting) return;
+    const who = patient ?? getPatientSession();
+    if (!who) {
+      setAuthOpen(true);
+      return;
+    }
+    await doBooking(who);
   };
 
   if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient/search"><div /></AppShell>;
@@ -896,6 +930,17 @@ function ClinicDetail() {
         </button>
       </div>
       </>
+      )}
+
+      {authOpen && (
+        <PatientAuthModal
+          onClose={() => setAuthOpen(false)}
+          onDone={(s) => {
+            setPatient(s);
+            setAuthOpen(false);
+            void doBooking(s);
+          }}
+        />
       )}
 
       {editOpen && isOwner && (
