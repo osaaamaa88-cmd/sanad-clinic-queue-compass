@@ -932,6 +932,17 @@ function ClinicDetail() {
       </>
       )}
 
+      {authOpen && (
+        <PatientAuthModal
+          onClose={() => setAuthOpen(false)}
+          onDone={(s) => {
+            setPatient(s);
+            setAuthOpen(false);
+            void doBooking(s);
+          }}
+        />
+      )}
+
       {editOpen && isOwner && (
         <EditProfileModal
           clinic={clinic}
