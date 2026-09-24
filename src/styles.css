@@ -265,7 +265,23 @@
   }
 }
 
+@keyframes sheet-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0.4;
+  }
+}
+
 @utility animate-sheet-up {
   animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+@utility animate-sheet-down {
+  animation: sheet-down 0.22s ease-in forwards;
   will-change: transform;
 }
