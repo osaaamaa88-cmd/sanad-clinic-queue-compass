@@ -244,7 +244,7 @@ function AllSpecialtiesSheet({ counts, selected, onSelect, onClose }: { counts: 
         <div className="min-w-0"><h2 id="specialties-title" className="text-lg font-extrabold">كل التخصصات الطبية</h2><p className="text-xs text-muted-foreground">اختار التخصص المناسب ليظهر أطباؤه فوراً</p></div>
         <Button type="button" variant="ghost" size="icon" onClick={requestClose} aria-label="إغلاق"><X className="h-5 w-5" /></Button>
       </div>
-      <div className="overflow-y-auto px-4 pb-8 pt-4 sm:px-6" style={{ maxHeight: "calc(88vh - 78px)" }}>
+      <div className="max-h-[calc(88vh-78px)] overflow-y-auto px-4 pb-8 pt-4 sm:px-6">
         <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-3 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/40">
           <Search className="h-5 w-5 shrink-0 text-primary" />
           <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ابحث عن تخصص…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
