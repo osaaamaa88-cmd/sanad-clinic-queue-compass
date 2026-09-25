@@ -31,11 +31,11 @@ export function AppShell({
     <div className="min-h-screen bg-background">
       <div className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-md sm:max-w-xl lg:max-w-2xl"}`}>
         <header
-          className={`sticky top-0 z-50 grid items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 ${centeredTitle ? "grid-cols-[1fr_minmax(0,2fr)_1fr]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
+          className={`sticky inset-x-0 top-0 z-50 grid min-h-16 items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 ${centeredTitle ? "grid-cols-[5.5rem_minmax(0,1fr)_5.5rem]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
             isPrimary ? "gradient-primary text-primary-foreground" : "border-b border-border bg-card"
           }`}
         >
-          {hideBack ? <span className="h-10 w-10" aria-hidden="true" /> : (
+          {hideBack ? <span className="h-10 w-full" aria-hidden="true" /> : (
             <Link
               to={backTo}
               className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${

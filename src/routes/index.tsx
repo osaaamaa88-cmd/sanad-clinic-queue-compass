@@ -7,14 +7,18 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "سندي — سندك الطبي في كل وقت" },
-      { name: "description", content: "سندي: سندك الطبي في كل وقت — احجز عند أقرب طبيب." },
+      { name: "description", content: "Welcome to Sanady — your primary destination for easy medical appointment bookings." },
+      { property: "og:title", content: "سندي — سندك الطبي في كل وقت" },
+      { property: "og:description", content: "Welcome to Sanady — your primary destination for easy medical appointment bookings." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Landing,
 });
 
 const roles = [
-  { to: "/patient", title: "أنا مريض", desc: "دور على طبيب واحجز موعد", icon: UserRound, tone: "gradient-primary text-white" },
+  { to: "/patient", title: "أنا مريض", desc: "دور على طبيب واحجز موعد", icon: UserRound, tone: "gradient-primary text-primary-foreground" },
   { to: "/reception", title: "سكرتير عيادة", desc: "إدارة الحجوزات ودخول المرضى", icon: ClipboardList, tone: "bg-card text-foreground" },
   { to: "/doctor", title: "طبيب / عيادة", desc: "بروفايل العيادة ومواعيدها", icon: Stethoscope, tone: "bg-card text-foreground" },
 ] as const;
@@ -38,7 +42,7 @@ function Landing() {
             type="button"
             onClick={handleLogoTap}
             aria-label="سندي"
-            className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-white shadow-soft select-none"
+            className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft select-none"
           >
             <HeartPulse className="h-6 w-6" />
           </button>
@@ -48,10 +52,10 @@ function Landing() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-3xl gradient-primary p-6 text-white shadow-soft">
-          <h2 className="text-xl font-bold">سندي — سندك الطبي في كل وقت</h2>
-          <p className="mt-1 text-sm opacity-90">
-            اختار الواجهة اللي تخصك عشان تبدأ. التطبيق يشتغل بالكامل باللغة العربية ومظبوط لكبار السن.
+        <div className="mt-8 rounded-3xl gradient-primary p-6 text-primary-foreground shadow-soft">
+          <h2 className="text-xl font-bold">مرحباً بك في سندي</h2>
+          <p className="mt-2 text-sm leading-6 opacity-90" dir="ltr">
+            Welcome to Sanady - Your primary destination for easy medical appointment bookings.
           </p>
         </div>
 
@@ -63,12 +67,12 @@ function Landing() {
               to={r.to}
               className={`flex items-center gap-4 rounded-2xl border border-border p-4 transition hover:shadow-soft ${r.tone}`}
             >
-              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/20">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary-foreground/20">
                 <r.icon className="h-6 w-6" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-lg font-bold">{r.title}</div>
-                <div className={`text-sm ${r.tone.includes("text-white") ? "opacity-90" : "text-muted-foreground"}`}>{r.desc}</div>
+                <div className={`text-sm ${r.tone.includes("text-primary-foreground") ? "opacity-90" : "text-muted-foreground"}`}>{r.desc}</div>
               </div>
               <div className="text-xl opacity-70">←</div>
             </Link>

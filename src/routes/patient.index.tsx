@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { Activity, ArrowLeft, Baby, Bone, Brain, Clock, Ear, Eye, Globe2, HeartPulse, MapPin, Pill, Search, Siren, Star, Stethoscope, X } from "lucide-react";
+import { Accessibility, Activity, Apple, ArrowLeft, AudioLines, Baby, BadgePlus, Bone, Brain, Building2, Clock, Droplets, Ear, Eye, FlaskConical, Globe2, HeartPulse, Hospital, HouseHeart, MapPin, Mars, MessageCircleHeart, PersonStanding, Pill, Ribbon, ScanLine, Scissors, Search, Siren, Sparkles, Star, Venus, WandSparkles, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -116,7 +116,7 @@ function PatientHome() {
               >
                 <span className={`mx-auto block h-[68px] w-[68px] rounded-full p-[3px] ${clinicStories.length ? "gradient-story" : "bg-border"}`}>
                   <span className="grid h-full w-full place-items-center overflow-hidden rounded-full border-[3px] border-background bg-card text-2xl">
-                    {profile?.avatarUrl ? <img src={profile.avatarUrl} alt={clinic.doctor} className="h-full w-full object-cover" /> : <Stethoscope className="h-7 w-7 text-primary" />}
+                     {profile?.avatarUrl ? <img src={profile.avatarUrl} alt={clinic.doctor} className="h-full w-full object-cover" /> : <ClinicPlaceholder compact />}
                   </span>
                 </span>
                 <span className="mt-1.5 block truncate text-xs font-bold group-hover:text-primary">{clinic.doctor.replace(/^د\.?\s*/, "د. ")}</span>
@@ -137,7 +137,7 @@ function PatientHome() {
         <div className="flex items-center justify-between"><h2 className="text-lg font-extrabold">اختار التخصص</h2><Button type="button" variant="link" size="sm" onClick={() => setSpecialtiesOpen(true)} className="h-auto p-0 text-xs font-bold">شوف الكل</Button></div>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
           {specialties.slice(0, 8).map((specialty, index) => {
-            const SpecialtyIcon = specialtyIcons[specialty.id] ?? Stethoscope;
+            const SpecialtyIcon = specialtyIcons[specialty.id] ?? Hospital;
             const isSelected = selectedSpecialty === specialty.id;
             return (
           <Button
@@ -146,10 +146,10 @@ function PatientHome() {
             variant="ghost"
             onClick={() => setSelectedSpecialty(specialty.id)}
             aria-pressed={isSelected}
-            className={`group h-auto min-w-0 justify-start gap-3 whitespace-normal rounded-xl border bg-card p-3 text-right transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-card hover:shadow-soft active:scale-[0.97] ${isSelected ? "border-primary shadow-soft ring-1 ring-primary/50" : "border-border hover:border-primary/50"}`}
+            className={`group min-h-20 min-w-0 items-start justify-start gap-3 whitespace-normal rounded-xl border bg-card p-3 text-right transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-card hover:shadow-soft active:scale-[0.97] ${isSelected ? "border-primary shadow-soft ring-1 ring-primary/50" : "border-border hover:border-primary/50"}`}
           >
             <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${index % 4 === 0 ? "bg-primary-soft text-primary" : index % 4 === 1 ? "bg-warning/15 text-warning" : index % 4 === 2 ? "bg-success/15 text-success" : "bg-destructive/10 text-destructive"}`}><SpecialtyIcon className="h-5 w-5" /></span>
-            <span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold group-hover:text-primary">{specialty.name}</span><span className="mt-0.5 block text-[10px] font-medium text-muted-foreground">{availableCounts[specialty.id] ?? 0} عيادة مفتوحة</span></span>
+            <span className="min-w-0 flex-1"><span className="block text-[13px] font-bold leading-5 break-words group-hover:text-primary sm:text-sm">{specialty.name}</span><span className="mt-0.5 block text-[10px] font-medium leading-4 text-muted-foreground">{availableCounts[specialty.id] ?? 0} عيادة مفتوحة</span></span>
           </Button>
           );})}
           <Button type="button" variant="ghost" onClick={() => setSpecialtiesOpen(true)} className="group h-auto min-w-0 justify-start gap-3 whitespace-normal rounded-xl border border-primary/35 bg-card p-3 text-right transition duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-card hover:shadow-soft active:scale-[0.97]">
@@ -164,9 +164,7 @@ function PatientHome() {
         {selectedSpecialtyData && <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-primary/35 bg-primary-soft/30 px-3 py-2"><span className="min-w-0 truncate text-xs font-bold text-primary">الفلتر: {selectedSpecialtyData.emoji} {selectedSpecialtyData.name}</span><Button type="button" variant="ghost" size="sm" onClick={() => setSelectedSpecialty(null)} className="h-7 shrink-0 px-2 text-xs text-primary"><X className="h-3.5 w-3.5" />إلغاء</Button></div>}
         {recommended.length === 0 ? (
           <div className="mt-3 rounded-xl border-2 border-dashed border-border bg-card p-7 text-center">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
-              <Stethoscope className="h-6 w-6" />
-            </div>
+             <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary"><Hospital className="h-6 w-6" /></div>
             <p className="mt-3 text-sm font-bold">{selectedSpecialtyData ? `لا توجد عيادات ${selectedSpecialtyData.name} متاحة حالياً` : "لسه ما فيش عيادات موثّقة"}</p>
             <p className="mt-1 text-xs text-muted-foreground">{selectedSpecialtyData ? "جرّب تخصصاً آخر أو ألغِ الفلتر." : "العيادات هتظهر هنا بعد توثيقها."}</p>
           </div>
@@ -184,16 +182,32 @@ function ServiceCard({ to, icon, title, description, tone }: { to: "/patient/eme
   return <Link to={to} className={`group flex min-h-32 items-start gap-3 rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-soft ${toneClasses}`}><span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-card [&_svg]:h-6 [&_svg]:w-6">{icon}</span><span className="min-w-0 flex-1"><span className="block font-extrabold text-foreground">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{description}</span></span></Link>;
 }
 
-const specialtyIcons: Record<string, typeof Stethoscope> = {
-  dental: Stethoscope,
+const specialtyIcons: Record<string, typeof Activity> = {
+  dental: BadgePlus,
   internal: Activity,
   pediatrics: Baby,
   ortho: Bone,
-  derma: Star,
+  derma: Sparkles,
   cardio: HeartPulse,
   eye: Eye,
   ent: Ear,
   neuro: Brain,
+  gyneco: Venus,
+  "general-surgery": Scissors,
+  urology: Droplets,
+  physiotherapy: Accessibility,
+  oncology: Ribbon,
+  endocrinology: FlaskConical,
+  gastro: ScanLine,
+  chest: Building2,
+  andrology: Mars,
+  "plastic-surgery": WandSparkles,
+  psychiatry: MessageCircleHeart,
+  rheumatology: PersonStanding,
+  neonatology: Hospital,
+  "speech-audiology": AudioLines,
+  nutrition: Apple,
+  "family-medicine": HouseHeart,
 };
 
 const specialtyTabs = [
@@ -255,11 +269,11 @@ function AllSpecialtiesSheet({ counts, selected, onSelect, onClose }: { counts: 
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {visibleSpecialties.map((specialty) => {
-            const SpecialtyIcon = specialtyIcons[specialty.id] ?? Stethoscope;
+            const SpecialtyIcon = specialtyIcons[specialty.id] ?? Hospital;
             const isSelected = selected === specialty.id;
-            return <Button key={specialty.id} type="button" variant="ghost" onClick={() => chooseSpecialty(specialty.id)} className={`h-auto min-w-0 justify-start gap-3 whitespace-normal rounded-xl border p-3 text-right transition active:scale-[0.97] ${isSelected ? "border-primary bg-primary-soft/30 shadow-soft" : "border-border bg-background hover:border-primary/50 hover:bg-background"}`}>
+            return <Button key={specialty.id} type="button" variant="ghost" onClick={() => chooseSpecialty(specialty.id)} className={`min-h-20 min-w-0 items-start justify-start gap-3 whitespace-normal rounded-xl border p-3 text-right transition active:scale-[0.97] ${isSelected ? "border-primary bg-primary-soft/30 shadow-soft" : "border-border bg-background hover:border-primary/50 hover:bg-background"}`}>
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary"><SpecialtyIcon className="h-5 w-5" /></span>
-              <span className="min-w-0"><span className="block text-xs font-bold leading-5">{specialty.name}</span><span className="block text-[10px] text-muted-foreground">{counts[specialty.id] ?? 0} عيادة مفتوحة</span></span>
+              <span className="min-w-0 flex-1"><span className="block text-xs font-bold leading-5 break-words sm:text-sm">{specialty.name}</span><span className="block text-[10px] leading-4 text-muted-foreground">{counts[specialty.id] ?? 0} عيادة مفتوحة</span></span>
             </Button>;
           })}
           {visibleSpecialties.length === 0 && <p className="col-span-full py-8 text-center text-sm text-muted-foreground">لا يوجد تخصص بهذا الاسم</p>}
@@ -275,18 +289,23 @@ function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfi
   return <article className="overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft">
     <Link to="/patient/clinic/$id" params={{ id: clinic.id }} className="block">
       <div className="relative aspect-[16/7] bg-primary-soft">
-        {profile?.coverUrl ? <img src={profile.coverUrl} alt={`عيادة ${clinic.doctor}`} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center"><Stethoscope className="h-10 w-10 text-primary" /></div>}
+        {profile?.coverUrl ? <img src={profile.coverUrl} alt={`عيادة ${clinic.doctor}`} className="h-full w-full object-cover" /> : <ClinicPlaceholder cover />}
         {clinic.availableNow && <span className="absolute right-3 top-3 rounded-full bg-success px-2.5 py-1 text-[10px] font-extrabold text-success-foreground">متاح الآن</span>}
       </div>
       <div className="flex min-w-0 items-start gap-3 p-4 pb-3">
-        <span className="-mt-9 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border-2 border-card bg-primary-soft text-primary">{profile?.avatarUrl ? <img src={profile.avatarUrl} alt={clinic.doctor} className="h-full w-full object-cover" /> : <Stethoscope className="h-6 w-6" />}</span>
+         <span className="-mt-9 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border-2 border-card bg-primary-soft text-primary">{profile?.avatarUrl ? <img src={profile.avatarUrl} alt={clinic.doctor} className="h-full w-full object-cover" /> : <ClinicPlaceholder compact />}</span>
         <span className="min-w-0 flex-1"><span className="block truncate font-extrabold">{clinic.doctor}</span><span className="block truncate text-xs text-muted-foreground">{specialty?.name} • {clinic.area}</span></span>
-        <span className="flex shrink-0 items-center gap-1 text-sm font-bold"><Star className="h-4 w-4 fill-warning text-warning" />{rating || "جديد"}</span>
+         <span className="shrink-0 text-left"><span className="flex items-center gap-0.5" aria-label={`التقييم ${rating || 0} من 5`}>{[1, 2, 3, 4, 5].map((star) => <Star key={star} className={`h-3.5 w-3.5 text-warning ${rating >= star - 0.5 ? "fill-warning" : "fill-transparent"}`} />)}</span><span className="mt-1 block text-xs font-bold">{rating ? rating.toFixed(1) : "جديد"}</span></span>
       </div>
     </Link>
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-border px-4 py-3">
-      <div className="min-w-0 text-xs text-muted-foreground"><span className="font-bold text-foreground">{clinic.price} ج</span><span> • </span><Clock className="inline h-3.5 w-3.5" /> <span>حوالي {clinic.waitingCount * 10} د</span></div>
-      <Button asChild size="sm"><Link to="/patient/clinic/$id" params={{ id: clinic.id }}>حجز دور الآن</Link></Button>
+       <div className="min-w-0 space-y-1 text-xs text-muted-foreground"><div><span className="font-bold text-foreground">{clinic.price} ج</span><span> • </span><Clock className="inline h-3.5 w-3.5" /> <span>حوالي {clinic.waitingCount * 10} د</span></div><div className="flex items-center gap-1 font-semibold text-primary"><MapPin className="h-3.5 w-3.5" /><span>{clinic.distanceKm.toFixed(1)} كم</span></div></div>
+       <Button asChild size="sm" className="gradient-primary px-5 font-extrabold text-primary-foreground shadow-soft transition hover:scale-[1.03]"><Link to="/patient/clinic/$id" params={{ id: clinic.id }}>حجز دور الآن</Link></Button>
     </div>
   </article>;
+}
+
+function ClinicPlaceholder({ compact = false, cover = false }: { compact?: boolean; cover?: boolean }) {
+  if (cover) return <div className="relative grid h-full place-items-center overflow-hidden bg-primary-soft"><Building2 className="h-16 w-16 text-primary/55" /><HeartPulse className="absolute h-7 w-7 translate-x-4 translate-y-2 rounded-full bg-card p-1.5 text-primary shadow-soft" /></div>;
+  return <span className="relative grid h-full w-full place-items-center bg-primary-soft text-primary"><Hospital className={compact ? "h-7 w-7" : "h-9 w-9"} /><HeartPulse className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full bg-card p-0.5" /></span>;
 }
