@@ -23,11 +23,14 @@ type Med = {
 };
 
 const KEY = "sanad_meds_v1";
+const LEGACY_KEY = "sandi_meds_v1";
 
 function load(): Med[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
+    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
+    if (raw && !localStorage.getItem(KEY)) localStorage.setItem(KEY, raw);
+    return JSON.parse(raw || "[]");
   } catch {
     return [];
   }

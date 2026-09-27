@@ -87,11 +87,14 @@ type Reading =
   | { kind: "sugar"; value: number; state: SugarState; label: string; at: string };
 
 const STORAGE_KEY = "sanad_health_readings_v1";
+const LEGACY_STORAGE_KEY = "sandi_health_readings_v1";
 
 function loadReadings(): Reading[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (raw && !localStorage.getItem(STORAGE_KEY)) localStorage.setItem(STORAGE_KEY, raw);
+    return JSON.parse(raw || "[]");
   } catch {
     return [];
   }

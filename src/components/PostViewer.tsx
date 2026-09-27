@@ -19,6 +19,7 @@ export type ViewerPost = {
 };
 
 const NAME_KEY = "sanad_commenter_name";
+const LEGACY_NAME_KEY = "sandi_commenter_name";
 
 export function PostViewer({
   posts,
