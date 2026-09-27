@@ -4,4 +4,4 @@
 - [x] Update local storage, export, and session namespaces while preserving patient data.
 - [x] Update package and mobile app identity to SANAD / com.sanad.app.
 - [x] Verify database notification definitions contain no legacy brand text.
-- [ ] Verify build output and mobile/desktop screens.
+- [x] Verify build output and mobile/desktop screens.
