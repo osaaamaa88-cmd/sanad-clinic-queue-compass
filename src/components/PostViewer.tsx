@@ -51,7 +51,9 @@ export function PostViewer({
   const post = posts[index];
 
   useEffect(() => {
-    setName(localStorage.getItem(NAME_KEY) ?? "");
+    const savedName = localStorage.getItem(NAME_KEY) ?? localStorage.getItem(LEGACY_NAME_KEY) ?? "";
+    if (savedName && !localStorage.getItem(NAME_KEY)) localStorage.setItem(NAME_KEY, savedName);
+    setName(savedName);
   }, []);
 
   const load = useCallback(async () => {
