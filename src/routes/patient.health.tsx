@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 export const Route = createFileRoute("/patient/health")({
   head: () => ({
     meta: [
-      { title: "سندي — حاسبة ومؤشرات الصحة" },
+      { title: "سَنَد — حاسبة ومؤشرات الصحة" },
       { name: "description", content: "احسب ضغط الدم والسكر واحفظ قراءاتك في ملفك الطبي." },
     ],
   }),
@@ -86,7 +86,7 @@ type Reading =
   | { kind: "bp"; sys: number; dia: number; label: string; at: string }
   | { kind: "sugar"; value: number; state: SugarState; label: string; at: string };
 
-const STORAGE_KEY = "sandi_health_readings_v1";
+const STORAGE_KEY = "sanad_health_readings_v1";
 
 function loadReadings(): Reading[] {
   if (typeof window === "undefined") return [];

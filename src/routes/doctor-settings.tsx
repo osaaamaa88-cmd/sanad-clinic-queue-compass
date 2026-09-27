@@ -29,10 +29,10 @@ import {
 export const Route = createFileRoute("/doctor-settings")({
   head: () => ({
     meta: [
-      { title: "إعدادات العيادة — سندي" },
+      { title: "إعدادات العيادة — سَنَد" },
       { name: "description", content: "دخول الطبيب لإدارة بروفايل عيادته وحساب السكرتير ومتابعة التوثيق." },
-      { property: "og:title", content: "إعدادات العيادة — سندي" },
-      { property: "og:description", content: "سجّل عيادتك على سندي وأدر بياناتك وحساب السكرتير." },
+      { property: "og:title", content: "إعدادات العيادة — سَنَد" },
+      { property: "og:description", content: "سجّل عيادتك على سَنَد وأدر بياناتك وحساب السكرتير." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -319,7 +319,7 @@ function DoctorSettings() {
                 <Link to="/terms" className="font-bold text-primary underline">
                   شروط الاستخدام وإخلاء المسؤولية
                 </Link>
-                . سندي أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
+                . سَنَد أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
               </p>
             </>
           )}
@@ -570,7 +570,7 @@ function DoctorSettings() {
 
       {justSubmitted && !isVerified && (
         <div className="mt-4 rounded-2xl border border-primary bg-primary-soft p-4 text-sm text-primary">
-          تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سندي.
+          تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سَنَد.
         </div>
       )}
     </AppShell>

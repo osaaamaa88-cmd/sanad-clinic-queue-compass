@@ -1,6 +1,6 @@
 # Current work
 
-- [x] Expand the medical specialties catalogue and categories.
-- [x] Add interactive specialty cards, live availability counts, and the all-specialties sheet.
-- [x] Filter the home clinic feed by the selected specialty with a removable filter.
-- [x] Verify desktop and mobile behavior.
+- [x] Replace the previous brand name across screens, metadata, sharing, and system copy.
+- [x] Update local storage, export, and session namespaces while preserving patient data.
+- [x] Update package and mobile app identity to SANAD / com.sanad.app.
+- [ ] Verify database messages, build output, and mobile/desktop screens.

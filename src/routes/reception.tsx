@@ -32,7 +32,7 @@ import {
   type Clinic,
 } from "@/lib/mock-data";
 
-const CACHE_PREFIX = "sandi.bookings.cache.v1.";
+const CACHE_PREFIX = "sanad.bookings.cache.v1.";
 
 function readCache(clinicId: string): Booking[] {
   try {
@@ -54,9 +54,9 @@ function writeCache(clinicId: string, rows: Booking[]) {
 export const Route = createFileRoute("/reception")({
   head: () => ({
     meta: [
-      { title: "دفتر الحجز — سندي" },
+      { title: "دفتر الحجز — سَنَد" },
       { name: "description", content: "دفتر حجز العيادة: تسجيل المرضى وإدارة الدخول والانتظار." },
-      { property: "og:title", content: "دفتر الحجز — سندي" },
+      { property: "og:title", content: "دفتر الحجز — سَنَد" },
       { property: "og:description", content: "إدارة حجوزات العيادة بشكل دفتر ورقي بسيط." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

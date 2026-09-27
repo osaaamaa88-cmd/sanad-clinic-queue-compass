@@ -33,7 +33,7 @@ export type QueueStats = {
   bookingsClosed: boolean;
 };
 
-const FOLLOW_KEY = "sandi_follower_key";
+const FOLLOW_KEY = "sanad_follower_key";
 
 /** Stable anonymous key per device, used to count real followers. */
 export function getFollowerKey(): string {

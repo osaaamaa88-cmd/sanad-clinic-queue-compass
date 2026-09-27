@@ -9,8 +9,8 @@ export type PatientSession = {
   savedAt: number;
 };
 
-const KEY = "sanady.patient.session";
-const BOOKINGS_KEY = "sanady.patient.bookings";
+const KEY = "sanad.patient.session";
+const BOOKINGS_KEY = "sanad.patient.bookings";
 
 export function getPatientSession(): PatientSession | null {
   if (typeof window === "undefined") return null;

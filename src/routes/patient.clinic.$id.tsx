@@ -53,7 +53,7 @@ import {
 export const Route = createFileRoute("/patient/clinic/$id")({
   head: () => ({
     meta: [
-      { title: "تفاصيل العيادة — سندي" },
+      { title: "تفاصيل العيادة — سَنَد" },
       { name: "description", content: "احجز موعدك في العيادة." },
     ],
   }),
@@ -170,8 +170,8 @@ function ClinicDetail() {
   const shareProfile = async () => {
     if (!clinic) return;
     const res = await shareLink({
-      title: `${clinic.doctor} — سندي`,
-      text: `احجز مع ${clinic.doctor} على سندي`,
+      title: `${clinic.doctor} — سَنَد`,
+      text: `احجز مع ${clinic.doctor} على سَنَد`,
       url: clinicShareUrl(clinic.id),
     });
     if (res === "copied") {
@@ -265,7 +265,7 @@ function ClinicDetail() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-foreground">الدفع نقداً في العيادة</p>
-              <p className="text-xs text-muted-foreground">مفيش أي رسوم على الحجز عبر سندي</p>
+              <p className="text-xs text-muted-foreground">مفيش أي رسوم على الحجز عبر سَنَد</p>
             </div>
           </div>
           <div className="mt-5 space-y-2 rounded-2xl bg-secondary p-4 text-right">
@@ -627,7 +627,7 @@ function ClinicDetail() {
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               {extras?.bio
                 ? extras.bio
-                : `${clinic.doctor} — أخصائي ${spec?.name}. الحجز عن طريق سندي، والدفع نقداً في العيادة.`}
+                : `${clinic.doctor} — أخصائي ${spec?.name}. الحجز عن طريق سَنَد، والدفع نقداً في العيادة.`}
             </p>
             <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary p-3">
               <span className="text-xs text-muted-foreground">سعر الكشف</span>

@@ -63,7 +63,7 @@
 
 :root {
   --radius: 0.625rem;
-  /* سندي — Dark obsidian theme with electric turquoise + neon red emergency */
+  /* سَنَد — Dark obsidian theme with electric turquoise + neon red emergency */
   --background: oklch(0.196 0.037 265);        /* #0F172A rich obsidian */
   --foreground: oklch(0.98 0.005 240);         /* near-white */
   --card: oklch(0.235 0.038 265);              /* elevated surface */

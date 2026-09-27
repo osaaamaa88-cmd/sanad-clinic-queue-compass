@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 export const Route = createFileRoute("/patient/meds")({
   head: () => ({
     meta: [
-      { title: "سندي — تذكير مواعيد الأدوية" },
+      { title: "سَنَد — تذكير مواعيد الأدوية" },
       { name: "description", content: "أضف أدويتك وجرعاتها ومواعيدها ليذكرك التطبيق بها." },
     ],
   }),
@@ -22,7 +22,7 @@ type Med = {
   createdAt: string;
 };
 
-const KEY = "sandi_meds_v1";
+const KEY = "sanad_meds_v1";
 
 function load(): Med[] {
   if (typeof window === "undefined") return [];
@@ -77,7 +77,7 @@ function Meds() {
               }
             } else {
               // Fallback in-app alert
-              console.info("[سندي]", title, body);
+              console.info("[سَنَد]", title, body);
             }
           }
         });

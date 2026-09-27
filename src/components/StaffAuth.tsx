@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 export function authErrorMessage(raw?: string) {
   const msg = (raw || "").toLowerCase();
   if (msg.includes("invalid login")) return "البريد أو كلمة السر غير صحيحة.";
-  if (msg.includes("email not confirmed")) return "الحساب غير مفعّل بعد، تواصل مع إدارة سندي.";
+  if (msg.includes("email not confirmed")) return "الحساب غير مفعّل بعد، تواصل مع إدارة سَنَد.";
   if (msg.includes("email_taken") || msg.includes("already")) return "البريد مستخدم بالفعل، جرّب تسجيل الدخول.";
   if (msg.includes("weak_password")) return "كلمة السر قصيرة — لازم ٦ حروف/أرقام على الأقل.";
   if (msg.includes("invalid_email")) return "البريد الإلكتروني غير صحيح.";

@@ -34,7 +34,7 @@ import {
 import { checkAdminUnlocked, unlockAdmin } from "@/lib/admin-gate.functions";
 
 export const Route = createFileRoute("/admin-access")({
-  head: () => ({ meta: [{ title: "سندي — لوحة الأدمن" }] }),
+  head: () => ({ meta: [{ title: "سَنَد — لوحة الأدمن" }] }),
   component: Admin,
 });
 
@@ -84,7 +84,7 @@ function AdminGate({ onUnlock }: { onUnlock: () => void }) {
   };
 
   return (
-    <AppShell title="دخول المالك" subtitle="سندي — منطقة محمية" backTo="/" tone="primary">
+    <AppShell title="دخول المالك" subtitle="سَنَد — منطقة محمية" backTo="/" tone="primary">
       <div className="-mt-6 rounded-2xl bg-card p-6 shadow-soft">
         <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary-soft text-primary">
           <Lock className="h-6 w-6" />
@@ -279,7 +279,7 @@ function Admin() {
       { key: "price", label: "السعر" },
       { key: "status", label: "الحالة" },
     ]);
-    downloadCSV(`sandi-clinics-${Date.now()}.csv`, csv);
+    downloadCSV(`sanad-clinics-${Date.now()}.csv`, csv);
   };
 
   const exportBookingsCSV = () => {
@@ -306,11 +306,11 @@ function Admin() {
       { key: "status", label: "الحالة" },
       { key: "created", label: "وقت الحجز" },
     ]);
-    downloadCSV(`sandi-bookings-${Date.now()}.csv`, csv);
+    downloadCSV(`sanad-bookings-${Date.now()}.csv`, csv);
   };
 
   return (
-    <AppShell title="لوحة تحكم الأدمن" subtitle="سندي — الإدارة" backTo="/" tone="primary">
+    <AppShell title="لوحة تحكم الأدمن" subtitle="سَنَد — الإدارة" backTo="/" tone="primary">
       {/* KPI */}
       <div className="-mt-6 grid grid-cols-2 gap-3">
         <KPI icon={Building2} label="عيادات موثّقة" value={String(verified.filter((c) => !c.isDisabled).length)} />

@@ -18,7 +18,7 @@ export type ViewerPost = {
   caption: string;
 };
 
-const NAME_KEY = "sandi_commenter_name";
+const NAME_KEY = "sanad_commenter_name";
 
 export function PostViewer({
   posts,
@@ -101,8 +101,8 @@ export function PostViewer({
   const onShare = async () => {
     if (!post) return;
     const res = await shareLink({
-      title: `${doctor} — سندي`,
-      text: post.caption ? `${post.caption}\nمن عيادة ${doctor} على سندي` : `شوف منشور عيادة ${doctor} على سندي`,
+      title: `${doctor} — سَنَد`,
+      text: post.caption ? `${post.caption}\nمن عيادة ${doctor} على سَنَد` : `شوف منشور عيادة ${doctor} على سَنَد`,
       url: postShareUrl(post.id),
     });
     if (res === "copied") flash("تم نسخ رابط المنشور ✅");

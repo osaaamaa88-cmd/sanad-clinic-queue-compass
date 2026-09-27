@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 export type ThemeMode = "dark" | "light";
-const KEY = "sandi.theme.v1";
+const KEY = "sanad.theme.v1";
 
 export function applyTheme(mode: ThemeMode) {
   if (typeof document === "undefined") return;
