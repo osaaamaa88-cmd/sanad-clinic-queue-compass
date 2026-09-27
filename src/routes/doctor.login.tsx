@@ -9,10 +9,10 @@ import { specialties, getMyClinicMembership, registerDoctorAccount, signOutStaff
 export const Route = createFileRoute("/doctor/login")({
   head: () => ({
     meta: [
-      { title: "دخول الطبيب — سندي" },
-      { name: "description", content: "دخول الطبيب لبروفايل عيادته على سندي، أو إنشاء حساب عيادة جديد." },
-      { property: "og:title", content: "دخول الطبيب — سندي" },
-      { property: "og:description", content: "سجّل عيادتك على سندي وافتح بروفايلك التفاعلي." },
+      { title: "دخول الطبيب — سَنَد" },
+      { name: "description", content: "دخول الطبيب لبروفايل عيادته على سَنَد، أو إنشاء حساب عيادة جديد." },
+      { property: "og:title", content: "دخول الطبيب — سَنَد" },
+      { property: "og:description", content: "سجّل عيادتك على سَنَد وافتح بروفايلك التفاعلي." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -233,7 +233,7 @@ function DoctorEntry() {
               <Link to="/terms" className="font-bold text-primary underline">
                 شروط الاستخدام وإخلاء المسؤولية
               </Link>
-              . سندي أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
+              . سَنَد أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
             </p>
           </>
         )}

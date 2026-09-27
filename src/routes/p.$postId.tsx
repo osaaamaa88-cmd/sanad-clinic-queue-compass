@@ -18,15 +18,15 @@ export const Route = createFileRoute("/p/$postId")({
     if (!post) {
       return {
         meta: [
-          { title: "المنشور غير متاح — سندي" },
+          { title: "المنشور غير متاح — سَنَد" },
           { name: "robots", content: "noindex" },
         ],
       };
     }
-    const title = `${post.doctor} — سندي`;
+    const title = `${post.doctor} — سَنَد`;
     const desc = post.caption
       ? post.caption.slice(0, 150)
-      : `شوف منشورات عيادة ${post.doctor} واحجز موعدك من تطبيق سندي.`;
+      : `شوف منشورات عيادة ${post.doctor} واحجز موعدك من تطبيق سَنَد.`;
     const url = `${SITE}/p/${params.postId}`;
     return {
       meta: [
@@ -124,8 +124,8 @@ function PostPage() {
             <button
               onClick={() =>
                 shareLink({
-                  title: `${post.doctor} — سندي`,
-                  text: `شوف منشور عيادة ${post.doctor} على سندي`,
+                  title: `${post.doctor} — سَنَد`,
+                  text: `شوف منشور عيادة ${post.doctor} على سَنَد`,
                   url: postShareUrl(post.id),
                 })
               }

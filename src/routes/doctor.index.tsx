@@ -8,10 +8,10 @@ import { getMyClinicMembership } from "@/lib/mock-data";
 export const Route = createFileRoute("/doctor/")({
   head: () => ({
     meta: [
-      { title: "لوحة الطبيب — سندي" },
-      { name: "description", content: "لوحة الطبيب على سندي: بروفايل العيادة وحجوزاتها." },
-      { property: "og:title", content: "لوحة الطبيب — سندي" },
-      { property: "og:description", content: "ادخل لبروفايل عيادتك وإدارة مواعيدك على سندي." },
+      { title: "لوحة الطبيب — سَنَد" },
+      { name: "description", content: "لوحة الطبيب على سَنَد: بروفايل العيادة وحجوزاتها." },
+      { property: "og:title", content: "لوحة الطبيب — سَنَد" },
+      { property: "og:description", content: "ادخل لبروفايل عيادتك وإدارة مواعيدك على سَنَد." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

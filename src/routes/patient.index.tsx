@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/patient/")({
   head: () => ({
     meta: [
-      { title: "سندي — الصفحة الرئيسية للمريض" },
+      { title: "سَنَد — الصفحة الرئيسية للمريض" },
       { name: "description", content: "دور على طبيب من التخصصات القريبة منك واحجز فوراً." },
-      { property: "og:title", content: "سندي — سندك الطبي في كل وقت" },
+      { property: "og:title", content: "سَنَد — سندك الطبي في كل وقت" },
       { property: "og:description", content: "اكتشف العيادات القريبة وتابع تحديثاتها واحجز دورك بسهولة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -70,8 +70,8 @@ function PatientHome() {
 
   return (
     <AppShell
-      title="أهلاً بيك 👋"
-      subtitle="صحتك أقرب وأسهل مع سندي"
+      title="أهلاً بك في سَنَد"
+      subtitle="SANAD — سندك الطبي في كل وقت"
       tone="primary"
       right={<NotificationsBell audience="patient" />}
       wide

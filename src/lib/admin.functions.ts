@@ -8,7 +8,7 @@ function getSessionConfig() {
   if (!password) throw new Error("SESSION_SECRET is not set");
   return {
     password,
-    name: "sandi-admin-gate",
+    name: "sanad-admin-gate",
     maxAge: 60 * 60 * 24 * 7,
     cookie: {
       httpOnly: true,

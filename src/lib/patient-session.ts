@@ -9,13 +9,23 @@ export type PatientSession = {
   savedAt: number;
 };
 
-const KEY = "sanady.patient.session";
-const BOOKINGS_KEY = "sanady.patient.bookings";
+const KEY = "sanad.patient.session";
+const BOOKINGS_KEY = "sanad.patient.bookings";
+const LEGACY_KEY = "sanady.patient.session";
+const LEGACY_BOOKINGS_KEY = "sanady.patient.bookings";
+
+function readAndMigrate(key: string, legacyKey: string): string | null {
+  const current = window.localStorage.getItem(key);
+  if (current) return current;
+  const legacy = window.localStorage.getItem(legacyKey);
+  if (legacy) window.localStorage.setItem(key, legacy);
+  return legacy;
+}
 
 export function getPatientSession(): PatientSession | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = readAndMigrate(KEY, LEGACY_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw) as PatientSession;
     if (!s?.name) return null;
@@ -49,6 +59,7 @@ export function savePatientSession(input: {
 export function clearPatientSession() {
   try {
     window.localStorage.removeItem(KEY);
+    window.localStorage.removeItem(LEGACY_KEY);
   } catch {
     // ignore
   }
@@ -87,7 +98,7 @@ export type SavedBooking = {
 export function getSavedBookings(): SavedBooking[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(BOOKINGS_KEY);
+    const raw = readAndMigrate(BOOKINGS_KEY, LEGACY_BOOKINGS_KEY);
     return raw ? (JSON.parse(raw) as SavedBooking[]) : [];
   } catch {
     return [];

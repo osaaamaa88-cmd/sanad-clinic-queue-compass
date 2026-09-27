@@ -6,9 +6,9 @@ import { getClinicById, getSpecialty, subscribeClinic, clinicStatusLabels, type 
 export const Route = createFileRoute("/tv/$id")({
   head: () => ({
     meta: [
-      { title: "شاشة صالة الانتظار — سندي" },
+      { title: "شاشة صالة الانتظار — سَنَد" },
       { name: "description", content: "شاشة عرض رقم الدور الحالي لمرضى العيادة على تلفزيون صالة الانتظار." },
-      { property: "og:title", content: "شاشة صالة الانتظار — سندي" },
+      { property: "og:title", content: "شاشة صالة الانتظار — سَنَد" },
       { property: "og:description", content: "عرض رقم الدور الحالي بخط كبير وواضح داخل صالة انتظار العيادة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -82,7 +82,7 @@ function TvScreen() {
         <div className="shrink-0 text-left">
           <div className="text-4xl font-black text-primary md:text-5xl">{clock}</div>
           <div className="mt-1 flex items-center justify-end gap-3 text-xl text-muted-foreground">
-            سندي
+            سَنَد
             <button
               onClick={reload}
               aria-label="إعادة تحميل البيانات"

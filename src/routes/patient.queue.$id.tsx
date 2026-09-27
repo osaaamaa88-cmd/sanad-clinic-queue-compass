@@ -7,7 +7,7 @@ import { checkQueueProximity, ensureNotificationPermission, pushLocalNotificatio
 import { getVerifiedClinic, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/queue/$id")({
-  head: () => ({ meta: [{ title: "سندي — دورك في العيادة" }] }),
+  head: () => ({ meta: [{ title: "سَنَد — دورك في العيادة" }] }),
   component: Queue,
 });
 

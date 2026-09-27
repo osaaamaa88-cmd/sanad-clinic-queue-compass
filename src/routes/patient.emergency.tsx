@@ -13,7 +13,7 @@ import { useEffect } from "react";
 export const Route = createFileRoute("/patient/emergency")({
   head: () => ({
     meta: [
-      { title: "طوارئ سندي — أقرب مستشفى ومركز أشعة مفتوح الآن" },
+      { title: "طوارئ سَنَد — أقرب مستشفى ومركز أشعة مفتوح الآن" },
       {
         name: "description",
         content: "المستشفيات ومراكز الأشعة والعيادات المفتوحة 24 ساعة قريب منك مع اتصال مباشر بالطوارئ.",
@@ -52,7 +52,7 @@ function EmergencyPage() {
 
   return (
     <AppShell
-      title="طوارئ سندي"
+      title="طوارئ سَنَد"
       subtitle="أقرب مستشفى وعيادة مفتوحة الآن"
       backTo="/patient"
       tone="primary"

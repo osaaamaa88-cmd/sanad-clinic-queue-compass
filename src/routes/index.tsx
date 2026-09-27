@@ -6,10 +6,10 @@ import { useRef } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "سندي — سندك الطبي في كل وقت" },
-      { name: "description", content: "Welcome to Sanady — your primary destination for easy medical appointment bookings." },
-      { property: "og:title", content: "سندي — سندك الطبي في كل وقت" },
-      { property: "og:description", content: "Welcome to Sanady — your primary destination for easy medical appointment bookings." },
+      { title: "سَنَد — سندك الطبي في كل وقت" },
+      { name: "description", content: "Welcome to SANAD - Your primary destination for easy medical appointment bookings." },
+      { property: "og:title", content: "سَنَد — سندك الطبي في كل وقت" },
+      { property: "og:description", content: "Welcome to SANAD - Your primary destination for easy medical appointment bookings." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -41,21 +41,21 @@ function Landing() {
           <button
             type="button"
             onClick={handleLogoTap}
-            aria-label="سندي"
+            aria-label="سَنَد"
             className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft select-none"
           >
             <HeartPulse className="h-6 w-6" />
           </button>
           <div>
-            <h1 className="text-2xl font-extrabold">سندي</h1>
+            <h1 className="text-2xl font-extrabold">سَنَد</h1>
             <p className="text-sm text-muted-foreground">سندك الطبي في كل وقت</p>
           </div>
         </div>
 
         <div className="mt-8 rounded-3xl gradient-primary p-6 text-primary-foreground shadow-soft">
-          <h2 className="text-xl font-bold">مرحباً بك في سندي</h2>
+          <h2 className="text-xl font-bold">أهلاً بك في سَنَد</h2>
           <p className="mt-2 text-sm leading-6 opacity-90" dir="ltr">
-            Welcome to Sanady - Your primary destination for easy medical appointment bookings.
+            Welcome to SANAD - Your primary destination for easy medical appointment bookings.
           </p>
         </div>
 
@@ -84,7 +84,7 @@ function Landing() {
             شروط الاستخدام وإخلاء المسؤولية
           </Link>
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            سندي أداة تقنية لتنظيم المواعيد وتسهيل التواصل بين المريض والعيادة، ولا تقدم استشارات
+            سَنَد أداة تقنية لتنظيم المواعيد وتسهيل التواصل بين المريض والعيادة، ولا تقدم استشارات
             طبية ولا تتحمل المسؤولية عن الخدمات الطبية المقدمة من العيادات.
           </p>
         </footer>
