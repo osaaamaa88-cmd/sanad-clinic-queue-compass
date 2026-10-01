@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { HeartPulse, LogOut } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -59,6 +59,11 @@ function PatientLogin() {
         ) : (
           <PatientAuthForm onDone={() => navigate({ to: "/patient" })} />
         )}
+        <div className="mt-4 border-t border-border pt-3 text-center">
+          <Link to="/developer" className="text-[11px] font-bold text-muted-foreground underline" dir="ltr">
+            About the Developer
+          </Link>
+        </div>
       </div>
     </AppShell>
   );

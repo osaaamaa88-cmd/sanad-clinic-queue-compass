@@ -80,9 +80,15 @@ function Landing() {
         </div>
 
         <footer className="mt-8 space-y-2 border-t border-border pt-4 text-center">
-          <Link to="/terms" className="text-xs font-bold text-primary underline">
-            شروط الاستخدام وإخلاء المسؤولية
-          </Link>
+          <div className="space-x-3">
+            <Link to="/terms" className="text-xs font-bold text-primary underline">
+              شروط الاستخدام وإخلاء المسؤولية
+            </Link>
+            <span className="text-xs text-muted-foreground">·</span>
+            <Link to="/developer" className="text-xs font-bold text-muted-foreground underline" dir="ltr">
+              About the Developer
+            </Link>
+          </div>
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             سَنَد أداة تقنية لتنظيم المواعيد وتسهيل التواصل بين المريض والعيادة، ولا تقدم استشارات
             طبية ولا تتحمل المسؤولية عن الخدمات الطبية المقدمة من العيادات.
