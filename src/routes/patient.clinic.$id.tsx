@@ -188,6 +188,14 @@ function ClinicDetail() {
   const [tab, setTab] = useState<"about" | "book">("about");
   const [patient, setPatient] = useState<PatientSession | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const pendingAction = useRef<((s: PatientSession) => void) | null>(null);
+  /** Run an action that needs patient identity; ask guests to sign in first, then resume it. */
+  const requirePatient = (action: (s: PatientSession) => void) => {
+    const current = patient ?? getPatientSession();
+    if (current) return action(current);
+    pendingAction.current = action;
+    setAuthOpen(true);
+  };
 
   useEffect(() => {
     setPatient(getPatientSession());
@@ -449,13 +457,13 @@ function ClinicDetail() {
           {/* Action buttons */}
           <div className="mt-4 flex items-center gap-2">
             <button
-              onClick={async () => {
+              onClick={() => requirePatient(async () => {
                 const next = !following;
                 setFollowing(next);
                 const res = await toggleFollowClinic(id, next);
                 if (res) setExtras((prev) => (prev ? { ...prev, followers: res.followers } : prev));
                 else setFollowing(!next);
-              }}
+              })}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-2xl border py-3 text-xs font-extrabold transition-colors ${
                 following
                   ? "border-gold/60 bg-gold/15 text-gold"
@@ -465,14 +473,12 @@ function ClinicDetail() {
               {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
               {following ? "بتتابعه" : "متابعة"}
             </button>
-            <a
-              href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => requirePatient(() => window.open(whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`), "_blank", "noopener"))}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border bg-card py-3 text-xs font-extrabold text-foreground transition-colors hover:bg-secondary"
             >
               <MessageCircle className="h-4 w-4 text-success" /> رسالة
-            </a>
+            </button>
             <button
               onClick={() => setTab("book")}
               className="gradient-gold flex flex-[1.4] items-center justify-center gap-1.5 rounded-2xl py-3 text-xs font-black text-gold-foreground shadow-gold"
@@ -483,12 +489,12 @@ function ClinicDetail() {
 
           {/* Secondary quick actions */}
           <div className="mt-2 flex items-center gap-2">
-            <a
-              href={clinic.phone ? `tel:${clinic.phone}` : "#"}
+            <button
+              onClick={() => requirePatient(() => { if (clinic.phone) window.location.href = `tel:${clinic.phone}`; })}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border bg-card py-2.5 text-[11px] font-bold text-foreground"
             >
               <Phone className="h-4 w-4 text-primary" /> اتصال مباشر
-            </a>
+            </button>
             <a
               href={`https://www.google.com/maps/search/?api=1&query=${clinic.lat},${clinic.lng}`}
               target="_blank"
@@ -749,7 +755,7 @@ function ClinicDetail() {
                 {reviewMsg && <p className="mt-2 text-[11px] font-bold text-primary">{reviewMsg}</p>}
                 <button
                   disabled={busy === "review"}
-                  onClick={async () => {
+                  onClick={() => requirePatient(async () => {
                     setReviewMsg("");
                     setBusy("review");
                     const res = await submitVerifiedReview({
@@ -768,7 +774,7 @@ function ClinicDetail() {
                     } else {
                       setReviewMsg(res.error ?? "");
                     }
-                  }}
+                  })}
                   className="mt-2 w-full rounded-xl bg-primary p-2.5 text-sm font-extrabold text-primary-foreground disabled:opacity-60"
                 >
                   {busy === "review" ? "جاري الإرسال…" : "إرسال التقييم"}
@@ -934,11 +940,15 @@ function ClinicDetail() {
 
       {authOpen && (
         <PatientAuthModal
-          onClose={() => setAuthOpen(false)}
+          title={pendingAction.current ? undefined : "بياناتك لتأكيد الدور"}
+          onClose={() => { pendingAction.current = null; setAuthOpen(false); }}
           onDone={(s) => {
             setPatient(s);
             setAuthOpen(false);
-            void doBooking(s);
+            const act = pendingAction.current;
+            pendingAction.current = null;
+            if (act) act(s);
+            else void doBooking(s);
           }}
         />
       )}

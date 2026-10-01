@@ -1,26 +1,49 @@
 import { useState } from "react";
 import { X, Loader2, UserRound, Phone as PhoneIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { savePatientSession, type PatientSession } from "@/lib/patient-session";
+import { lovable } from "@/integrations/lovable";
+import { savePatientSession, syncPatientSessionFromAuth, type PatientSession } from "@/lib/patient-session";
 
 type Props = {
   onDone: (s: PatientSession) => void;
   onClose: () => void;
+  title?: string;
 };
 
-/** Lightweight sign-in sheet shown only when the patient tries to book. */
-export function PatientAuthModal({ onDone, onClose }: Props) {
+/** Sign-in sheet shown when a guest tries an action that needs their identity. */
+export function PatientAuthModal({ onDone, onClose, title }: Props) {
+  return (
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md animate-in slide-in-from-bottom-10 fade-in duration-300 rounded-t-3xl border border-border bg-card p-5 shadow-soft sm:rounded-3xl"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-base font-extrabold leading-7">
+            {title ?? "سجل دخولك أو أنشئ حسابك للتفاعل واستخدام كافة المميزات 🚀"}
+          </h3>
+          <button onClick={onClose} aria-label="إغلاق" className="rounded-full p-2 text-muted-foreground">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <PatientAuthForm onDone={onDone} />
+      </div>
+    </div>
+  );
+}
+
+export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => void }) {
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
   const digits = phone.replace(/\D/g, "");
-  const valid = name.trim().length >= 3 && digits.length >= 10;
+  const valid = name.trim().length >= 3 && /^01\d{9}$/.test(digits);
 
   const submit = () => {
     if (!valid) {
-      setErr("اكتب اسمك الكامل ورقم موبايل صحيح (١١ رقم).");
+      setErr("اكتب اسمك الكامل ورقم موبايل مصري صحيح (١١ رقم يبدأ بـ 01).");
       return;
     }
     onDone(savePatientSession({ name, phone: digits, via: "guest" }));
@@ -29,85 +52,85 @@ export function PatientAuthModal({ onDone, onClose }: Props) {
   const google = async () => {
     setBusy(true);
     setErr("");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
-    });
-    if (error) {
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + window.location.pathname });
+    if (result.redirected) return;
+    if (result.error) {
       setBusy(false);
       setErr("الدخول بجوجل مش متاح دلوقتي، استخدم الاسم ورقم الموبايل.");
+      return;
     }
+    const s = await syncPatientSessionFromAuth();
+    setBusy(false);
+    if (s) onDone(s);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4">
-      <div className="w-full max-w-md rounded-t-3xl border border-border bg-card p-5 shadow-soft sm:rounded-3xl">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-extrabold">بياناتك لتأكيد الدور</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              محتاجين الاسم ورقم الموبايل بس — من غير كلمة سر ولا خطوات زيادة.
-            </p>
-          </div>
-          <button onClick={onClose} aria-label="إغلاق" className="rounded-full p-2 text-muted-foreground">
-            <X className="h-5 w-5" />
+    <>
+      <div className="mt-4 grid grid-cols-2 rounded-2xl bg-secondary p-1 text-sm font-extrabold">
+        {(["login", "signup"] as const).map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={`rounded-xl py-2 transition ${mode === m ? "bg-card text-primary shadow-soft" : "text-muted-foreground"}`}
+          >
+            {m === "login" ? "تسجيل الدخول" : "حساب جديد"}
           </button>
-        </div>
-
-        <div className="mt-4 space-y-3">
-          <label className="block">
-            <span className="mb-1 flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-              <UserRound className="h-3.5 w-3.5 text-primary" /> اسمك
-            </span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="مثال: أحمد محمد"
-              className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-              <PhoneIcon className="h-3.5 w-3.5 text-primary" /> رقم الموبايل
-            </span>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              inputMode="tel"
-              placeholder="01xxxxxxxxx"
-              dir="ltr"
-              className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-left text-sm outline-none focus:border-primary"
-            />
-          </label>
-        </div>
-
-        {err && <p className="mt-3 text-xs font-bold text-destructive">{err}</p>}
-
-        <button
-          onClick={submit}
-          className="mt-4 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft"
-        >
-          تأكيد ومتابعة الحجز
-        </button>
-
-        <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="h-px flex-1 bg-border" /> أو <span className="h-px flex-1 bg-border" />
-        </div>
-
-        <button
-          onClick={google}
-          disabled={busy}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background py-3.5 text-sm font-extrabold disabled:opacity-60"
-        >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleMark />}
-          الدخول بضغطة واحدة بجوجل
-        </button>
-
-        <p className="mt-3 text-center text-[11px] text-muted-foreground">
-          بياناتك محفوظة على جهازك فقط لمتابعة دورك وإشعاراتك.
-        </p>
+        ))}
       </div>
-    </div>
+
+      <div className="mt-4 space-y-3">
+        <label className="block">
+          <span className="mb-1 flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+            <UserRound className="h-3.5 w-3.5 text-primary" /> اسمك
+          </span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="مثال: أحمد محمد"
+            className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+            <PhoneIcon className="h-3.5 w-3.5 text-primary" /> رقم الموبايل
+          </span>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            inputMode="tel"
+            placeholder="01xxxxxxxxx"
+            dir="ltr"
+            className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-left text-sm outline-none focus:border-primary"
+          />
+        </label>
+      </div>
+
+      {err && <p className="mt-3 text-xs font-bold text-destructive">{err}</p>}
+
+      <button onClick={submit} className="mt-4 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-primary-foreground shadow-soft">
+        {mode === "login" ? "دخول ومتابعة" : "إنشاء الحساب ومتابعة"}
+      </button>
+
+      <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="h-px flex-1 bg-border" /> أو <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <button
+        onClick={google}
+        disabled={busy}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background py-3.5 text-sm font-extrabold disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleMark />}
+        المتابعة بحساب Google
+      </button>
+
+      <button
+        onClick={() => setMode(mode === "login" ? "signup" : "login")}
+        className="mt-4 block w-full text-center text-xs font-bold text-primary underline"
+      >
+        {mode === "login" ? "ليس لديك حساب؟ أنشئ حساباً جديداً" : "عندك حساب؟ سجل دخولك"}
+      </button>
+    </>
   );
 }
 

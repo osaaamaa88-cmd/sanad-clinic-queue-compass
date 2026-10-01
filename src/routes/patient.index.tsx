@@ -1,3 +1,4 @@
+import { CircleUser } from "lucide-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -73,7 +74,7 @@ function PatientHome() {
       title="أهلاً بك في سَنَد"
       subtitle="SANAD — سندك الطبي في كل وقت"
       tone="primary"
-      right={<NotificationsBell audience="patient" />}
+      right={<><Link to="/patient/login" aria-label="حسابي" className="grid h-10 w-10 place-items-center rounded-full bg-secondary"><CircleUser className="h-5 w-5" /></Link><NotificationsBell audience="patient" /></>}
       wide
       hideBack
       centeredTitle

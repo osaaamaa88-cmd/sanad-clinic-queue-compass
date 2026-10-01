@@ -5,3 +5,5 @@
 - [x] Update package and mobile app identity to SANAD / com.sanad.app.
 - [x] Verify database notification definitions contain no legacy brand text.
 - [x] Verify build output and mobile/desktop screens.
+- [x] Patient guest browsing + auth guard on follow/review/contact (resume action after sign-in)
+- [x] Dedicated patient login screen (/patient/login): Google + name/phone quick login, no SMS
