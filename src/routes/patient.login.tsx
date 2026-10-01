@@ -59,6 +59,11 @@ function PatientLogin() {
         ) : (
           <PatientAuthForm onDone={() => navigate({ to: "/patient" })} />
         )}
+        <div className="mt-4 border-t border-border pt-3 text-center">
+          <Link to="/developer" className="text-[11px] font-bold text-muted-foreground underline" dir="ltr">
+            About the Developer
+          </Link>
+        </div>
       </div>
     </AppShell>
   );
