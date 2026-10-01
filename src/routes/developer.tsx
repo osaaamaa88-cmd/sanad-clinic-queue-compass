@@ -10,7 +10,7 @@ export const Route = createFileRoute("/developer")({
       { property: "og:description", content: "Meet the founder of SANAD: Osama M. Sanad, Founder & CEO — dental student & coding enthusiast." },
       { property: "og:type", content: "profile" },
       { name: "twitter:card", content: "summary" },
-go  ],
+    ],
   }),
   component: DeveloperPage,
 });
