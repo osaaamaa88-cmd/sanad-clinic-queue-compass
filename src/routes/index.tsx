@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 });
 
 const roles = [
-  { to: "/patient", title: "أنا مريض", desc: "دور على طبيب واحجز موعد", icon: UserRound, tone: "gradient-primary text-primary-foreground" },
+  { to: "/patient", title: "أبحث عن عيادة", desc: "دور على طبيبك واحجز دورك بسهولة", icon: UserRound, tone: "gradient-primary text-primary-foreground" },
   { to: "/reception", title: "سكرتير عيادة", desc: "إدارة الحجوزات ودخول المرضى", icon: ClipboardList, tone: "bg-card text-foreground" },
   { to: "/doctor", title: "طبيب / عيادة", desc: "بروفايل العيادة ومواعيدها", icon: Stethoscope, tone: "bg-card text-foreground" },
 ] as const;
