@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
+import { LocateFixed } from "lucide-react";
 import type { Clinic } from "@/lib/mock-data";
 import { getSpecialty } from "@/lib/mock-data";
 
-type LeafletMap = { remove: () => void; setView: (c: [number, number], z?: number) => void };
+type L_ = typeof import("leaflet");
 
 export function ClinicsMap({
   clinics,
@@ -16,37 +17,36 @@ export function ClinicsMap({
   onSelect: (c: Clinic) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<LeafletMap | null>(null);
-  const layerRef = useRef<{ clearLayers: () => void } | null>(null);
+  const mapRef = useRef<import("leaflet").Map | null>(null);
+  const layerRef = useRef<import("leaflet").LayerGroup | null>(null);
+  const meRef = useRef<import("leaflet").Marker | null>(null);
+  const LRef = useRef<L_ | null>(null);
 
-  // Create the map once, on the client only.
   useEffect(() => {
     let disposed = false;
     (async () => {
       const L = (await import("leaflet")).default;
       if (disposed || !containerRef.current || mapRef.current) return;
+      LRef.current = L;
       const map = L.map(containerRef.current, {
         center: [center.lat, center.lng],
         zoom: 13,
         zoomControl: false,
         attributionControl: false,
       });
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        maxZoom: 19,
-      }).addTo(map);
-      const group: import("leaflet").LayerGroup = L.layerGroup().addTo(map);
-      mapRef.current = map as unknown as LeafletMap;
-      layerRef.current = group as unknown as { clearLayers: () => void };
-      // Patient location marker
-      L.marker([center.lat, center.lng], {
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(map);
+      layerRef.current = L.layerGroup().addTo(map);
+      mapRef.current = map;
+      meRef.current = L.marker([center.lat, center.lng], {
         icon: L.divIcon({
           className: "",
           html: `<span style="display:grid;place-items:center;width:22px;height:22px;border-radius:9999px;background:#06B6D4;border:3px solid #0F172A;box-shadow:0 0 0 6px rgba(6,182,212,.25)"></span>`,
           iconSize: [22, 22],
           iconAnchor: [11, 11],
         }),
+        zIndexOffset: 1000,
       }).addTo(map);
-      renderPins(L, group);
+      renderPins(true);
     })();
     return () => {
       disposed = true;
@@ -57,21 +57,31 @@ export function ClinicsMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-render pins when the clinic list or selection changes.
+  // Keep the patient dot in sync with the latest GPS position.
   useEffect(() => {
-    (async () => {
-      const L = (await import("leaflet")).default;
-      const group = layerRef.current;
-      if (!group) return;
-      renderPins(L, group as unknown as import("leaflet").LayerGroup);
-    })();
+    meRef.current?.setLatLng([center.lat, center.lng]);
+  }, [center.lat, center.lng]);
+
+  // Re-render pins; fit bounds when the result set changes.
+  const lastKey = useRef("");
+  useEffect(() => {
+    const key = clinics.map((c) => c.id).join(",");
+    const changed = key !== lastKey.current;
+    lastKey.current = key;
+    renderPins(changed);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clinics, selectedId]);
 
-  function renderPins(L: typeof import("leaflet"), group: import("leaflet").LayerGroup) {
+  function renderPins(fit: boolean) {
+    const L = LRef.current;
+    const group = layerRef.current;
+    const map = mapRef.current;
+    if (!L || !group || !map) return;
     group.clearLayers();
+    const pts: [number, number][] = [];
     clinics.forEach((c) => {
       if (!c.lat || !c.lng) return;
+      pts.push([c.lat, c.lng]);
       const spec = getSpecialty(c.specialtyId);
       const active = selectedId === c.id;
       const marker = L.marker([c.lat, c.lng], {
@@ -85,11 +95,32 @@ export function ClinicsMap({
           iconSize: [70, 28],
           iconAnchor: [35, 14],
         }),
+        zIndexOffset: active ? 500 : 0,
       });
-      marker.on("click", () => onSelect(c));
+      marker.on("click", () => {
+        onSelect(c);
+        map.panTo([c.lat!, c.lng!]);
+      });
       marker.addTo(group);
     });
+    if (fit && pts.length) {
+      map.fitBounds(L.latLngBounds([...pts, [center.lat, center.lng]]), { padding: [40, 40], maxZoom: 15 });
+    }
   }
 
-  return <div ref={containerRef} className="h-[60vh] w-full" dir="ltr" />;
+  const recenter = () => mapRef.current?.setView([center.lat, center.lng], 15);
+
+  return (
+    <div className="relative">
+      <div ref={containerRef} className="h-[60vh] w-full" dir="ltr" />
+      <button
+        type="button"
+        onClick={recenter}
+        aria-label="موقعي الحالي"
+        className="absolute bottom-4 left-4 z-[500] grid h-12 w-12 place-items-center rounded-full bg-card text-primary shadow-soft ring-1 ring-border"
+      >
+        <LocateFixed className="h-5 w-5" />
+      </button>
+    </div>
+  );
 }
