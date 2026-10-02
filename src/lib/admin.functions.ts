@@ -4,8 +4,8 @@ import { useSession } from "@tanstack/react-start/server";
 type GateSession = { unlocked?: boolean };
 
 function getSessionConfig() {
-  const password = process.env.SESSION_SECRET;
-  if (!password) throw new Error("SESSION_SECRET is not set");
+  const password = process.env.ADMIN_SESSION_KEY;
+  if (!password) throw new Error("ADMIN_SESSION_KEY is not set");
   return {
     password,
     name: "sanad-admin-gate",
