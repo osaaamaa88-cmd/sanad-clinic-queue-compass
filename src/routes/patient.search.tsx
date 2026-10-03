@@ -107,7 +107,7 @@ function Search() {
             متاح الآن
           </button>
           <span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground">
-            <ArrowDownAZ className="h-3 w-3" /> ترتيب:
+            <ArrowUpDown className="h-3.5 w-3.5" /> ترتيب:
           </span>
           {(
             [
@@ -135,23 +135,28 @@ function Search() {
         <div className="flex gap-2">
           <button
             onClick={() => setSpec(null)}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
               spec === null ? "gradient-primary text-white" : "bg-secondary text-foreground"
             }`}
           >
+            <LayoutGrid className="h-3.5 w-3.5" />
             الكل
           </button>
-          {specialties.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSpec(s.id)}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold ${
-                spec === s.id ? "gradient-primary text-white" : "bg-secondary text-foreground"
-              }`}
-            >
-              {s.emoji} {s.name}
-            </button>
-          ))}
+          {specialties.map((s) => {
+            const SpecIcon = specialtyIcons[s.id] ?? Stethoscope;
+            return (
+              <button
+                key={s.id}
+                onClick={() => setSpec(s.id)}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
+                  spec === s.id ? "gradient-primary text-white" : "bg-secondary text-foreground"
+                }`}
+              >
+                <SpecIcon className="h-3.5 w-3.5" />
+                {s.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
