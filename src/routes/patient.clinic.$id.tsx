@@ -460,6 +460,18 @@ function ClinicDetail() {
             {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
             {following ? "بتتابعه" : "متابعة"}
           </button>
+          {!isOwner && (
+            <button
+              onClick={() => requirePatient(async (s) => {
+                const convId = await openConversation(id, s.name);
+                if (convId) navigate({ to: "/messages/$id", params: { id: convId } });
+                else { pendingAction.current = null; setAuthOpen(true); }
+              })}
+              className="flex items-center justify-center gap-1 rounded-lg bg-primary/15 py-2 text-xs font-extrabold text-primary"
+            >
+              <MessagesSquare className="h-4 w-4" /> مراسلة
+            </button>
+          )}
           <button
             onClick={() => requirePatient(() => window.open(whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`), "_blank", "noopener"))}
             className="flex items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
