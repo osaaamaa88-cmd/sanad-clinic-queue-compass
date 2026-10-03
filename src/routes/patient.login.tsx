@@ -5,7 +5,8 @@ import { MessagesSquare } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { PatientAuthForm } from "@/components/PatientAuthModal";
 import { supabase } from "@/integrations/supabase/client";
-import { clearPatientSession, syncPatientSessionFromAuth, type PatientSession } from "@/lib/patient-session";
+import { clearPatientSession, getPatientSession, syncPatientSessionFromAuth, type PatientSession } from "@/lib/patient-session";
+import { clearAllLocalUserData } from "@/lib/user-profile-cache";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/patient/login")({
@@ -27,13 +28,17 @@ function PatientLogin() {
   const [patient, setPatient] = useState<PatientSession | null>(null);
 
   useEffect(() => {
+    // Instant: show locally saved profile, then revalidate silently.
+    setPatient(getPatientSession());
     void syncPatientSessionFromAuth().then(setPatient);
   }, []);
 
   const logout = async () => {
     clearPatientSession();
+    clearAllLocalUserData();
     await supabase.auth.signOut();
     setPatient(null);
+    navigate({ to: "/patient/login", replace: true });
   };
 
   return (
