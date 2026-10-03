@@ -1,3 +1,5 @@
+import { youtubeId } from "@/lib/youtube";
+import { PlayCircle } from "lucide-react";
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2, LogOut, Heart, Share2, Camera, AlertTriangle, Grid3x3, Clapperboard, Info } from "lucide-react";
@@ -682,6 +684,21 @@ function ClinicDetail() {
 
       {tab === "info" && (
         <div className="mt-4 space-y-4">
+          {clinic.youtubeUrl && youtubeId(clinic.youtubeUrl) && (
+            <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <p className="flex items-center gap-2 p-4 pb-3 text-sm font-bold"><PlayCircle className="h-4 w-4 text-primary" /> جولة داخل العيادة</p>
+              <div className="relative aspect-video w-full bg-secondary">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${youtubeId(clinic.youtubeUrl)}?rel=0`}
+                  title="فيديو العيادة"
+                  loading="lazy"
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 h-full w-full"
+                />
+              </div>
+            </div>
+          )}
           {/* Working hours */}
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="flex items-center gap-2 text-sm font-bold"><Clock3 className="h-4 w-4 text-primary" /> مواعيد وأيام العمل</p>
@@ -1148,6 +1165,7 @@ function EditProfileModal({
   const [phone, setPhone] = useState(clinic.phone);
   const [bio, setBio] = useState(initialBio);
   const [hours, setHours] = useState(clinic.workingHours ?? "");
+  const [yt, setYt] = useState(clinic.youtubeUrl ?? "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<"avatar" | "cover" | null>(null);
   const [msg, setMsg] = useState("");
@@ -1168,6 +1186,10 @@ function EditProfileModal({
   };
 
   const save = async () => {
+    if (yt.trim() && !youtubeId(yt)) {
+      setMsg("رابط يوتيوب غير صحيح — انسخ رابط الفيديو من يوتيوب.");
+      return;
+    }
     setSaving(true);
     const ok = await saveClinicProfile({
       clinicId: clinic.id,
@@ -1177,6 +1199,7 @@ function EditProfileModal({
       phone,
       bio,
       workingHours: hours,
+      youtubeUrl: yt,
     });
     setSaving(false);
     if (!ok) {
@@ -1255,6 +1278,16 @@ function EditProfileModal({
               placeholder="مثال: السبت للخميس 5م – 10م • الجمعة إجازة"
               className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
             />
+          </Field>
+          <Field label="فيديو العيادة (رابط يوتيوب)">
+            <input
+              dir="ltr"
+              value={yt}
+              onChange={(e) => setYt(e.target.value)}
+              placeholder="https://youtu.be/..."
+              className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">للفيديوهات الطويلة وجولات العيادة — ارفعه على يوتيوب والصق الرابط هنا.</p>
           </Field>
           <Field label="نبذة عن العيادة">
             <textarea

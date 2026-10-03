@@ -102,6 +102,7 @@ export async function saveClinicProfile(input: {
   phone?: string;
   bio?: string;
   workingHours?: string;
+  youtubeUrl?: string;
 }): Promise<boolean> {
   try {
     await svrUpdateClinicProfile({ data: input });

@@ -69,6 +69,7 @@ export type Clinic = {
   delayMinutes: number;
   bookingsClosed: boolean;
   workingHours?: string;
+  youtubeUrl?: string;
 };
 
 export type ClinicStatus = "normal" | "delayed" | "paused";
@@ -133,6 +134,7 @@ function rowToClinic(r: Row): Clinic {
     delayMinutes: Number(r.delay_minutes) || 0,
     bookingsClosed: Boolean(r.bookings_closed),
     workingHours: String((r as { working_hours?: string }).working_hours ?? ""),
+    youtubeUrl: String((r as { youtube_url?: string }).youtube_url ?? ""),
   };
 }
 
