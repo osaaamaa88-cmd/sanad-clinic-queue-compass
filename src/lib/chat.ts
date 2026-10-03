@@ -99,7 +99,7 @@ export async function markRead(conversationId: string, uid: string) {
 export type RxItem = { name: string; dose: string; notes?: string };
 export type RxPayload = {
   patient: string; age?: string; diagnosis?: string; items: RxItem[]; advice?: string; tests?: string;
-  doctor: string; specialty?: string; clinicAddress?: string; clinicPhone?: string; date: string;
+  doctor: string; specialty?: string; clinicAddress?: string; clinicPhone?: string; clinicHours?: string; date: string;
 };
 
 async function compressImage(file: File, max = 1280, quality = 0.75): Promise<Blob> {

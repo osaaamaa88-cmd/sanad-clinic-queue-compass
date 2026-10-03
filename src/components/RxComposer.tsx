@@ -51,6 +51,7 @@ ul{position:relative;list-style:none;padding:0;margin:0}
 .f{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 22px;font-size:12px}
 .f .addr b{display:block;font-size:14px;color:var(--ink)}.f .ph{direction:ltr;font-family:'Open Sans',sans-serif;font-weight:800;color:var(--gold);font-size:14px;text-align:left}
 .f .ph small{display:block;font-family:Cairo;font-weight:400;color:#666;font-size:11px}
+.f .hrs{margin-top:4px}.f .hrs b{display:inline;font-size:12.5px;margin-left:4px}
 .sanad{text-align:center;font-size:10.5px;color:#8a8a8a;padding:0 0 8px}.sanad b{color:var(--gold)}
 ${page}</style></head><body><div class="sheet">
 <div class="h"><div><h1>${esc(doc)}</h1>${rx.specialty ? `<p class="sp">${esc(rx.specialty)}</p>` : ""}</div>
@@ -63,7 +64,7 @@ ${rx.tests ? `<div class="box"><b>تحاليل / أشعة:</b> ${esc(rx.tests)}<
 ${rx.advice ? `<div class="box"><b>تعليمات:</b> ${esc(rx.advice)}</div>` : ""}
 </div>
 <div class="bar"></div>
-<div class="f"><div class="addr"><b>العنوان :</b>${esc(rx.clinicAddress || "—")}</div>
+<div class="f"><div class="addr"><b>العنوان :</b>${esc(rx.clinicAddress || "—")}${rx.clinicHours ? `<div class="hrs"><b>مواعيد العمل :</b>${esc(rx.clinicHours)}</div>` : ""}</div>
 ${rx.clinicPhone ? `<div class="ph">${esc(rx.clinicPhone)}<small>للحجز والاستعلام / واتساب</small></div>` : ""}</div>
 <div class="sanad">صادرة عبر <b>سَنَد | SANAD</b> — منظومتك الطبية</div>
 </div></body></html>`;
@@ -83,7 +84,7 @@ ${rx.clinicPhone ? `<div class="ph">${esc(rx.clinicPhone)}<small>للحجز وا
 }
 
 export function RxComposer({ defaults, onClose, onSend }: {
-  defaults: Pick<RxPayload, "patient" | "doctor" | "specialty" | "clinicAddress" | "clinicPhone">;
+  defaults: Pick<RxPayload, "patient" | "doctor" | "specialty" | "clinicAddress" | "clinicPhone"> & { clinicHours?: string };
   onClose: () => void;
   onSend?: (rx: RxPayload) => Promise<boolean>;
 }) {
@@ -95,6 +96,8 @@ export function RxComposer({ defaults, onClose, onSend }: {
   const [dose, setDose] = useState(DOSE_PRESETS[0]);
   const [advice, setAdvice] = useState("");
   const [tests, setTests] = useState("");
+  const [specialty, setSpecialty] = useState(defaults.specialty ?? "");
+  const [hours, setHours] = useState(() => (typeof window !== "undefined" && localStorage.getItem("sanad-rx-hours")) || defaults.clinicHours || "");
   const [busy, setBusy] = useState(false);
   const [btBusy, setBtBusy] = useState(false);
   const [favs, setFavs] = useState<string[]>(() => getFavorites());
@@ -107,7 +110,7 @@ export function RxComposer({ defaults, onClose, onSend }: {
     setItems((p) => [...p, { name: n, dose: d }]);
     addFavorite(n); setFavs(getFavorites()); setQ("");
   };
-  const build = (): RxPayload => ({ ...defaults, patient, age, diagnosis, items, advice, tests, date: new Date().toLocaleDateString("ar-EG") });
+  const build = (): RxPayload => { try { localStorage.setItem("sanad-rx-hours", hours); } catch { /* ignore */ } return { ...defaults, specialty: specialty || defaults.specialty, clinicHours: hours, patient, age, diagnosis, items, advice, tests, date: new Date().toLocaleDateString("ar-EG") }; };
   const valid = patient.trim() && items.length > 0;
   const need = () => { if (!patient.trim()) { toast.error("اكتب اسم المريض الأول"); return false; } if (!items.length) { toast.error("ضيف دواء واحد على الأقل"); return false; } return true; };
   const btn = "flex flex-col items-center justify-center gap-1 rounded-xl border border-primary py-2.5 text-xs font-bold text-primary disabled:opacity-50";
@@ -125,6 +128,10 @@ export function RxComposer({ defaults, onClose, onSend }: {
           <input className={input} placeholder="السن" value={age} onChange={(e) => setAge(e.target.value)} />
         </div>
         <input className={`${input} mt-2`} placeholder="التشخيص" value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)} />
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <input className={input} placeholder="تخصص الطبيب (اختياري)" value={specialty} onChange={(e) => setSpecialty(e.target.value)} />
+          <input className={input} placeholder="أيام ومواعيد العمل (اختياري)" value={hours} onChange={(e) => setHours(e.target.value)} />
+        </div>
 
         <p className="mt-4 mb-1 text-xs font-bold text-muted-foreground">الجرعة للدواء القادم</p>
         <select className={input} value={dose} onChange={(e) => setDose(e.target.value)}>

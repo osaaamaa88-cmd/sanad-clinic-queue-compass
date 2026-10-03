@@ -4,6 +4,7 @@ import { ListOrdered, MessagesSquare, Pill, Settings, Stethoscope } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 import { currentUserId, unreadCounts } from "@/lib/chat";
 import { RxComposer } from "@/components/RxComposer";
+import { getSpecialty } from "@/lib/mock-data";
 
 export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -35,7 +36,7 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
     void supabase.from("clinics").select("*").eq("id", clinicId).maybeSingle().then(({ data }) => {
       if (!data) return;
       const d = data as Record<string, unknown>;
-      setInfo({ doctor: String(d.doctor ?? ""), specialty: String(d.specialty ?? ""), clinicAddress: String(d.address ?? ""), clinicPhone: String(d.phone ?? "") });
+      setInfo({ doctor: String(d.doctor ?? ""), specialty: getSpecialty(String(d.specialty_id ?? ""))?.name ?? "", clinicAddress: [d.address, d.area].filter(Boolean).map(String).join(" — "), clinicPhone: String(d.phone ?? "") });
     });
   }, [clinicId]);
 

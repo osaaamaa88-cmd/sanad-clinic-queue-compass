@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Camera, Check, CheckCheck, FileText, ImageOff, Loader2, Phone, Pill, Printer, SendHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { RxComposer, printRx } from "@/components/RxComposer";
+import { getSpecialty } from "@/lib/mock-data";
 import { supabase } from "@/integrations/supabase/client";
 import { currentUserId, loadMessages, markRead, sendImage, sendMessage, sendRx, setAllowImages, signedImageUrl, type ChatMessage, type Conversation, type RxPayload } from "@/lib/chat";
 
@@ -14,20 +15,34 @@ function ChatImage({ path, onOpen }: { path: string; onOpen: (u: string) => void
 }
 
 function RxCard({ rx }: { rx: RxPayload }) {
+  const gold = "#b08d57";
   return (
-    <div className="w-64 rounded-xl bg-background p-3 text-foreground">
-      <div className="flex items-center gap-2 border-b border-border pb-2"><FileText className="h-5 w-5 text-primary" /><b>روشتة — {rx.doctor}</b></div>
-      <p className="mt-1 text-xs text-muted-foreground">{rx.patient} · {rx.date}{rx.diagnosis ? ` · ${rx.diagnosis}` : ""}</p>
-      <p className="mt-2 font-serif text-2xl font-bold italic text-primary">℞</p>
-      <ol className="divide-y divide-dashed divide-border text-sm">{rx.items.map((it, i) => (
-        <li key={i} className="py-2">
-          <div className="flex items-center gap-2" dir="ltr"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">{i + 1}</span><b className="text-[15px]">{it.name}</b></div>
-          <div className="mt-0.5 text-xs font-semibold text-primary">{it.dose}</div>
-        </li>
-      ))}</ol>
-      {rx.tests && <p className="mt-2 text-xs"><b>تحاليل:</b> {rx.tests}</p>}
-      {rx.advice && <p className="mt-1 text-xs"><b>تعليمات:</b> {rx.advice}</p>}
-      <button type="button" onClick={() => printRx(rx)} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary/10 py-2 text-sm font-bold text-primary"><Printer className="h-4 w-4" /> طباعة / حفظ PDF</button>
+    <div className="w-72 overflow-hidden rounded-xl text-[#3a3a3a] shadow-md" style={{ background: "#fff" }}>
+      <div className="px-3 pt-3 pb-2">
+        <b className="block text-base">{rx.doctor.trim().startsWith("د") ? rx.doctor : `د/ ${rx.doctor}`}</b>
+        {rx.specialty && <span className="text-xs text-[#666]">{rx.specialty}</span>}
+      </div>
+      <div className="h-1" style={{ background: `linear-gradient(90deg,${gold},#c9a96e,${gold})` }} />
+      <div className="px-3 py-2">
+        <p className="text-xs text-[#555]"><b style={{ color: gold }}>• الاسم:</b> {rx.patient} · {rx.date}{rx.diagnosis ? ` · ${rx.diagnosis}` : ""}</p>
+        <p className="mt-1 text-3xl italic" dir="ltr" style={{ color: gold, fontFamily: "'Great Vibes', cursive, serif" }}>R /</p>
+        <ol className="text-sm">{rx.items.map((it, i) => (
+          <li key={i} className="border-b border-dashed py-2 last:border-0" style={{ borderColor: "#cbbd9f" }}>
+            <div className="flex items-center gap-2" dir="ltr"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: gold }}>{i + 1}</span><b className="text-[15px] text-[#222]">{it.name}</b></div>
+            <div className="mt-0.5 text-xs font-semibold" style={{ color: "#7a5f33" }}>{it.dose}</div>
+          </li>
+        ))}</ol>
+        {rx.tests && <p className="mt-2 border-r-2 bg-[#faf7f1] px-2 py-1 text-xs" style={{ borderColor: gold }}><b>تحاليل:</b> {rx.tests}</p>}
+        {rx.advice && <p className="mt-1 border-r-2 bg-[#faf7f1] px-2 py-1 text-xs" style={{ borderColor: gold }}><b>تعليمات:</b> {rx.advice}</p>}
+      </div>
+      <div className="h-1" style={{ background: `linear-gradient(90deg,${gold},#c9a96e,${gold})` }} />
+      <div className="space-y-0.5 px-3 py-2 text-[11px] text-[#555]">
+        {rx.clinicAddress && <p>📍 {rx.clinicAddress}</p>}
+        {rx.clinicHours && <p>🕒 {rx.clinicHours}</p>}
+        {rx.clinicPhone && <p dir="ltr" className="text-right font-bold" style={{ color: gold }}>{rx.clinicPhone}</p>}
+        <p className="pt-1 text-center text-[10px] text-[#8a8a8a]">صادرة عبر <b style={{ color: gold }}>سَنَد | SANAD</b></p>
+      </div>
+      <div className="p-2 pt-0"><button type="button" onClick={() => printRx(rx)} className="flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-bold" style={{ background: "#faf7f1", color: "#7a5f33" }}><Printer className="h-4 w-4" /> طباعة / حفظ PDF</button></div>
     </div>
   );
 }
@@ -68,7 +83,7 @@ function ChatScreen() {
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [amClinic, setAmClinic] = useState(false);
-  const [clinicInfo, setClinicInfo] = useState({ doctor: "", address: "", phone: "" });
+  const [clinicInfo, setClinicInfo] = useState({ doctor: "", specialty: "", address: "", phone: "" });
   const [uploading, setUploading] = useState(false);
   const [rxOpen, setRxOpen] = useState(false);
   const [viewer, setViewer] = useState("");
@@ -82,10 +97,10 @@ function ChatScreen() {
       setUid(me);
       setConv(c as Conversation | null);
       if (c) {
-        const { data: clinic } = await supabase.from("clinics").select("doctor, avatar_url, phone, address, area").eq("id", c.clinic_id).maybeSingle();
+        const { data: clinic } = await supabase.from("clinics").select("doctor, avatar_url, phone, address, area, specialty_id").eq("id", c.clinic_id).maybeSingle();
         const amPatient = c.patient_id === me;
         setAmClinic(!amPatient);
-        setClinicInfo({ doctor: clinic?.doctor ?? "", address: [clinic?.address, clinic?.area].filter(Boolean).join(" — "), phone: clinic?.phone ?? "" });
+        setClinicInfo({ doctor: clinic?.doctor ?? "", specialty: getSpecialty(clinic?.specialty_id ?? "")?.name ?? "", address: [clinic?.address, clinic?.area].filter(Boolean).join(" — "), phone: clinic?.phone ?? "" });
         setPeer(amPatient
           ? { name: clinic?.doctor ?? "العيادة", avatar: clinic?.avatar_url ?? "", phone: clinic?.phone ?? "" }
           : { name: c.patient_name || "مريض", avatar: "", phone: "" });
@@ -264,7 +279,7 @@ function ChatScreen() {
       )}
       {rxOpen && (
         <RxComposer
-          defaults={{ patient: conv?.patient_name ?? "", doctor: clinicInfo.doctor, specialty: "", clinicAddress: clinicInfo.address, clinicPhone: clinicInfo.phone }}
+          defaults={{ patient: conv?.patient_name ?? "", doctor: clinicInfo.doctor, specialty: clinicInfo.specialty, clinicAddress: clinicInfo.address, clinicPhone: clinicInfo.phone }}
           onClose={() => setRxOpen(false)}
           onSend={async (rx) => { const ok = await sendRx(id, rx); if (ok) { toast.success("اتبعتت الروشتة للمريض"); setMsgs(await loadMessages(id)); } else toast.error("تعذر إرسال الروشتة"); return ok; }}
         />
