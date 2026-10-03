@@ -1,19 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { useSession } from "@tanstack/react-start/server";
 
 const PAGE = 20;
-type GateSession = { unlocked?: boolean };
 
 async function admin() {
-  const password = process.env.ADMIN_SESSION_KEY;
-  if (!password) throw new Error("ADMIN_SESSION_KEY is not set");
-  const session = await useSession<GateSession>({
-    password,
-    name: "sanad-admin-gate",
-    maxAge: 60 * 60 * 24 * 7,
-    cookie: { httpOnly: true, secure: true, sameSite: "lax", path: "/" },
-  });
-  if (session.data.unlocked !== true) throw new Error("Unauthorized");
+  const { assertAdminRequest } = await import("./admin-auth.server");
+  await assertAdminRequest();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
 }

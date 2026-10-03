@@ -1,29 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import { useSession } from "@tanstack/react-start/server";
-
-type GateSession = { unlocked?: boolean };
-
-function getSessionConfig() {
-  const password = process.env.ADMIN_SESSION_KEY;
-  if (!password) throw new Error("ADMIN_SESSION_KEY is not set");
-  return {
-    password,
-    name: "sanad-admin-gate",
-    maxAge: 60 * 60 * 24 * 7,
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax" as const,
-      path: "/",
-    },
-  };
-}
 
 async function assertAdmin() {
-  const session = await useSession<GateSession>(getSessionConfig());
-  if (session.data.unlocked !== true) {
-    throw new Error("Unauthorized");
-  }
+  const { assertAdminRequest } = await import("./admin-auth.server");
+  await assertAdminRequest();
 }
 
 export const adminListClinics = createServerFn({ method: "GET" }).handler(async () => {
