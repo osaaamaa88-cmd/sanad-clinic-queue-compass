@@ -7,47 +7,65 @@ import type { RxItem, RxPayload } from "@/lib/chat";
 
 const esc = (s = "") => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
+const TOOTH = `<path d="M30 8c-10 0-18 7-18 19 0 9 4 15 6 25 2 11 4 32 12 32 6 0 6-16 10-24 2-4 6-4 8 0 4 8 4 24 10 24 8 0 10-21 12-32 2-10 6-16 6-25 0-12-8-19-18-19-7 0-10 4-14 4s-7-4-14-4z" fill="currentColor"/>`;
+const CROSS = `<path d="M38 8h24v30h30v24H62v30H38V62H8V38h30z" fill="currentColor"/>`;
+
 export function printRx(rx: RxPayload, size: "A5" | "thermal" = "A5") {
   const items = rx.items.map((it, i) => `<li class="drug">
   <div class="dn"><span class="num">${i + 1}</span><span class="name" dir="ltr">${esc(it.name)}</span></div>
   <div class="sig">${esc(it.dose)}${it.notes ? `<small>${esc(it.notes)}</small>` : ""}</div>
 </li>`).join("");
-  const qr = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(location.origin)}`;
   const thermal = size === "thermal";
+  const dental = /أسنان|اسنان|dental|dent/i.test(`${rx.specialty} ${rx.doctor}`);
+  const icon = dental ? TOOTH : CROSS;
+  const en = dental ? "DENTAL<span>CLINIC</span>" : "MEDICAL<span>CLINIC</span>";
+  const doc = rx.doctor.trim().startsWith("د") ? rx.doctor : `د/ ${rx.doctor}`;
   const page = thermal
-    ? "@page{size:80mm auto;margin:3mm}body{width:74mm}.sheet{border:0;padding:0;min-height:0}.drug{flex-direction:column;gap:2px}.sig{text-align:right}.name{font-size:15px}.f{flex-direction:column;gap:6px}"
-    : "@page{size:A5;margin:7mm}";
+    ? "@page{size:80mm auto;margin:3mm}body{width:74mm}.sheet{min-height:0}.wm{display:none}.h{flex-direction:column-reverse;align-items:center;text-align:center}.drug{flex-direction:column;align-items:stretch;gap:2px}.sig{text-align:right;max-width:none}.f{flex-direction:column;gap:6px;text-align:center}"
+    : "@page{size:A5;margin:0}.sheet{min-height:210mm}";
   const html = `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>روشتة ${esc(rx.patient)}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Lora:ital,wght@1,700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Great+Vibes&family=Open+Sans:wght@400;700;800&display=swap" rel="stylesheet">
 <style>*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{font-family:Cairo,Tahoma,sans-serif;color:#0f172a;margin:0;font-size:13px}
-.sheet{border:1.5px solid #0e7490;border-radius:10px;padding:14px 16px;min-height:190mm;display:flex;flex-direction:column}
-.h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-bottom:10px;border-bottom:3px double #0e7490}
-.h h1{margin:0;font-size:21px;font-weight:800;color:#0e7490;line-height:1.3}.h .sp{margin:2px 0 0;font-size:13px;font-weight:600;color:#334155}
-.brand{text-align:left;font-size:11px;color:#64748b}.brand b{display:block;font-size:14px;color:#0e7490}
-.pt{display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px 12px;margin:10px 0 4px;padding:8px 10px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;font-size:12.5px}
-.pt span{color:#64748b}.pt b{color:#0f172a;font-weight:700}.pt .dx{grid-column:1/-1}
-.rx{font-family:Lora,Georgia,serif;font-style:italic;font-size:40px;font-weight:700;color:#0e7490;line-height:1;margin:6px 0 2px}
-ul{list-style:none;padding:0;margin:0;flex:1}
-.drug{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px dashed #94a3b8;page-break-inside:avoid}
+:root{--gold:#b08d57;--gold2:#c9a96e;--ink:#3a3a3a}
+body{font-family:Cairo,Tahoma,sans-serif;color:var(--ink);margin:0;font-size:13px;background:#fff}
+.sheet{position:relative;display:flex;flex-direction:column;overflow:hidden}
+.h{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 10px}
+.h h1{margin:0;font-size:22px;font-weight:600;color:var(--ink)}.h .sp{margin:2px 0 0;font-size:15px;color:#555}
+.logo{text-align:center;color:var(--gold);font-family:'Open Sans',sans-serif}.logo svg{width:44px;height:44px}
+.logo .t{font-size:12px;font-weight:800;letter-spacing:.5px;color:#222}.logo .t span{font-weight:400;margin-left:3px}
+.bar{height:5px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold))}
+.body{position:relative;flex:1;padding:12px 26px}
+.wm{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:#d8d2c6;opacity:.35}.wm svg{width:55%;max-width:260px}
+.pt{position:relative;direction:ltr;font-family:'Open Sans',sans-serif;font-size:12.5px;line-height:2}
+.pt div{display:flex;gap:8px;align-items:baseline}.pt label{color:var(--gold);font-weight:700;min-width:72px}.pt label:before{content:"• "}
+.pt b{flex:1;max-width:260px;border-bottom:1.5px dotted #999;font-weight:600;color:#222;font-family:Cairo,'Open Sans',sans-serif;text-align:left}
+.rx{position:relative;direction:ltr;font-family:'Great Vibes',cursive;font-size:46px;color:var(--gold);line-height:1;margin:8px 0 4px}
+ul{position:relative;list-style:none;padding:0;margin:0}
+.drug{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px dashed #cbbd9f;page-break-inside:avoid;direction:ltr}
 .drug:last-child{border-bottom:0}
-.dn{display:flex;align-items:center;gap:8px;flex-direction:row-reverse;direction:ltr}
-.num{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#0e7490;color:#fff;font-size:11px;font-weight:800;flex:none}
-.name{font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:16px;letter-spacing:.2px}
-.sig{font-size:13px;font-weight:600;color:#0e7490;text-align:left;max-width:55%}.sig small{display:block;font-weight:400;color:#475569;font-size:11.5px}
-.box{margin-top:8px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:12.5px}.box b{color:#0e7490}
-.f{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:12px;padding-top:8px;border-top:2px solid #0e7490;font-size:11px;color:#334155}
-.sign{text-align:center;min-width:110px}.sign div{border-top:1px solid #94a3b8;margin-top:28px;padding-top:2px}
-.wish{text-align:center;font-size:11px;color:#64748b;margin-top:6px}
+.dn{display:flex;align-items:center;gap:8px}
+.num{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:800;flex:none}
+.name{font-family:'Open Sans',Arial,sans-serif;font-weight:800;font-size:15.5px;color:#222}
+.sig{direction:rtl;font-size:13px;font-weight:600;color:#7a5f33;text-align:right;max-width:55%}.sig small{display:block;font-weight:400;color:#666;font-size:11.5px}
+.box{position:relative;margin-top:8px;padding:6px 10px;border-right:3px solid var(--gold);background:#faf7f1;font-size:12.5px}.box b{color:#7a5f33}
+.f{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 22px;font-size:12px}
+.f .addr b{display:block;font-size:14px;color:var(--ink)}.f .ph{direction:ltr;font-family:'Open Sans',sans-serif;font-weight:800;color:var(--gold);font-size:14px;text-align:left}
+.f .ph small{display:block;font-family:Cairo;font-weight:400;color:#666;font-size:11px}
+.sanad{text-align:center;font-size:10.5px;color:#8a8a8a;padding:0 0 8px}.sanad b{color:var(--gold)}
 ${page}</style></head><body><div class="sheet">
-<div class="h"><div><h1>${esc(rx.doctor)}</h1>${rx.specialty ? `<p class="sp">${esc(rx.specialty)}</p>` : ""}</div><div class="brand"><b>سَنَد | SANAD</b>${esc(rx.date)}</div></div>
-<div class="pt"><div><span>الاسم: </span><b>${esc(rx.patient)}</b></div><div><span>السن: </span><b>${esc(rx.age || "—")}</b></div><div><span>التاريخ: </span><b>${esc(rx.date)}</b></div>${rx.diagnosis ? `<div class="dx"><span>التشخيص: </span><b>${esc(rx.diagnosis)}</b></div>` : ""}</div>
-<div class="rx">℞</div><ul>${items}</ul>
+<div class="h"><div><h1>${esc(doc)}</h1>${rx.specialty ? `<p class="sp">${esc(rx.specialty)}</p>` : ""}</div>
+<div class="logo"><svg viewBox="0 0 100 100">${icon}</svg><div class="t">${en}</div></div></div>
+<div class="bar"></div>
+<div class="body"><div class="wm"><svg viewBox="0 0 100 100">${icon}</svg></div>
+<div class="pt"><div><label>Name</label><b>${esc(rx.patient)}</b></div><div><label>Date</label><b>${esc(rx.date)}</b></div>${rx.age ? `<div><label>Age</label><b>${esc(rx.age)}</b></div>` : ""}${rx.diagnosis ? `<div><label>Diagnosis</label><b>${esc(rx.diagnosis)}</b></div>` : ""}</div>
+<div class="rx">R /</div><ul>${items}</ul>
 ${rx.tests ? `<div class="box"><b>تحاليل / أشعة:</b> ${esc(rx.tests)}</div>` : ""}
 ${rx.advice ? `<div class="box"><b>تعليمات:</b> ${esc(rx.advice)}</div>` : ""}
-<div class="f"><div>${esc(rx.clinicAddress || "")}${rx.clinicPhone ? `<br>📞 <span dir="ltr">${esc(rx.clinicPhone)}</span>` : ""}</div>
-<div class="sign"><div>توقيع وختم الطبيب</div></div><img src="${qr}" width="56" height="56"></div>
-<div class="wish">مع تمنياتنا بالشفاء العاجل</div>
+</div>
+<div class="bar"></div>
+<div class="f"><div class="addr"><b>العنوان :</b>${esc(rx.clinicAddress || "—")}</div>
+${rx.clinicPhone ? `<div class="ph">${esc(rx.clinicPhone)}<small>للحجز والاستعلام / واتساب</small></div>` : ""}</div>
+<div class="sanad">صادرة عبر <b>سَنَد | SANAD</b> — منظومتك الطبية</div>
 </div></body></html>`;
   document.getElementById("sanad-rx-print")?.remove();
   const f = document.createElement("iframe");
