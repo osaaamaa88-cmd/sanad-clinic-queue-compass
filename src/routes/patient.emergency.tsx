@@ -9,6 +9,10 @@ import {
   type EmergencyFacility,
 } from "@/lib/emergency-data";
 import { useEffect } from "react";
+import { Siren, ShieldAlert, Flame, Skull, Hospital, ScanLine, Stethoscope, Pill, LayoutGrid, type LucideIcon } from "lucide-react";
+
+const hotlineIcons: Record<string, LucideIcon> = { amb: Siren, pol: ShieldAlert, fire: Flame, poison: Skull };
+const typeIcons: Record<string, LucideIcon> = { hospital: Hospital, radiology: ScanLine, clinic: Stethoscope, pharmacy: Pill };
 
 export const Route = createFileRoute("/patient/emergency")({
   head: () => ({
@@ -75,7 +79,7 @@ function EmergencyPage() {
               href={`tel:${h.phone}`}
               className="flex items-center gap-2 rounded-2xl border border-border bg-secondary p-3"
             >
-              <span className="text-xl">{h.emoji}</span>
+              {(() => { const I = hotlineIcons[h.id] ?? Siren; return <span className="grid h-9 w-9 place-items-center rounded-xl bg-destructive/15 text-destructive"><I className="h-5 w-5" /></span>; })()}
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">{h.label}</p>
                 <p className="text-xs text-muted-foreground">{h.phone}</p>
@@ -95,21 +99,23 @@ function EmergencyPage() {
           <div className="flex gap-2">
             {(
               [
-                { id: "all", label: "الكل", emoji: "✨" },
-                { id: "hospital", label: "مستشفيات", emoji: "🏥" },
-                { id: "radiology", label: "أشعة", emoji: "🩻" },
-                { id: "clinic", label: "عيادات", emoji: "🩺" },
-                { id: "pharmacy", label: "صيدليات", emoji: "💊" },
-              ] as { id: TypeFilter; label: string; emoji: string }[]
-            ).map((t) => (
+                { id: "all", label: "الكل" },
+                { id: "hospital", label: "مستشفيات" },
+                { id: "radiology", label: "أشعة" },
+                { id: "clinic", label: "عيادات" },
+                { id: "pharmacy", label: "صيدليات" },
+              ] as { id: TypeFilter; label: string }[]
+            ).map((t) => {
+              const I = t.id === "all" ? LayoutGrid : typeIcons[t.id];
+              return (
               <button
                 key={t.id}
                 onClick={() => setType(t.id)}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
                   type === t.id ? "gradient-primary text-white" : "bg-secondary text-foreground"
                 }`}
               >
-                {t.emoji} {t.label}
+                <I className="h-3.5 w-3.5" /> {t.label}
               </button>
             ))}
           </div>
@@ -157,7 +163,7 @@ function EmergencyPage() {
             <div key={f.id} className="rounded-2xl border border-border bg-card p-4">
               <div className="flex items-start gap-3">
                 <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary-soft text-2xl">
-                  {meta.emoji}
+                  {(() => { const I = typeIcons[f.type] ?? Stethoscope; return <I className="h-6 w-6 text-primary" />; })()}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
