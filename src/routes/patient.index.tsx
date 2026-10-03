@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Accessibility, Activity, Apple, ArrowLeft, AudioLines, Baby, BadgePlus, Bone, Brain, Building2, Clock, Droplets, Ear, Eye, FlaskConical, Globe2, HeartPulse, Hospital, HouseHeart, MapPin, Mars, MessageCircleHeart, PersonStanding, Ribbon, ScanLine, Scissors, Search, Sparkles, Star, Venus, WandSparkles, X } from "lucide-react";
+import { ArrowLeft, Building2, Clock, Globe2, HeartPulse, Hospital, MapPin, Search, Star, X } from "lucide-react";
+import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -169,34 +170,6 @@ function PatientHome() {
     </AppShell>
   );
 }
-
-const specialtyIcons: Record<string, typeof Activity> = {
-  dental: BadgePlus,
-  internal: Activity,
-  pediatrics: Baby,
-  ortho: Bone,
-  derma: Sparkles,
-  cardio: HeartPulse,
-  eye: Eye,
-  ent: Ear,
-  neuro: Brain,
-  gyneco: Venus,
-  "general-surgery": Scissors,
-  urology: Droplets,
-  physiotherapy: Accessibility,
-  oncology: Ribbon,
-  endocrinology: FlaskConical,
-  gastro: ScanLine,
-  chest: Building2,
-  andrology: Mars,
-  "plastic-surgery": WandSparkles,
-  psychiatry: MessageCircleHeart,
-  rheumatology: PersonStanding,
-  neonatology: Hospital,
-  "speech-audiology": AudioLines,
-  nutrition: Apple,
-  "family-medicine": HouseHeart,
-};
 
 const specialtyTabs = [
   { id: "popular", label: "الشائعة 🔥" },
