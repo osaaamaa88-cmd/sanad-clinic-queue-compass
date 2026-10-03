@@ -3,6 +3,8 @@ import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PatientBottomNav } from "@/components/PatientBottomNav";
+import { DoctorBottomNav } from "@/components/DoctorBottomNav";
+import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 
 export function AppShell({
   title,
@@ -28,7 +30,13 @@ export function AppShell({
   centeredTitle?: boolean;
 }) {
   const isPrimary = tone === "primary";
-  const showPatientNav = useRouterState({ select: (state) => state.location.pathname.startsWith("/patient") });
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const doctorClinicId = useDoctorClinicId();
+  const onOwnClinic = !!doctorClinicId && pathname === `/patient/clinic/${doctorClinicId}`;
+  const showDoctorNav =
+    !!doctorClinicId &&
+    (onOwnClinic || pathname.startsWith("/messages") || pathname.startsWith("/reception") || pathname.startsWith("/doctor-settings"));
+  const showPatientNav = !showDoctorNav && (pathname.startsWith("/patient") || pathname.startsWith("/messages"));
   return (
     <div className="min-h-screen bg-background">
       <div className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-md sm:max-w-xl lg:max-w-2xl"}`}>
@@ -61,9 +69,10 @@ export function AppShell({
             {showThemeToggle && <ThemeToggle className={isPrimary ? "border-primary-foreground/25 bg-primary-foreground/15 text-primary-foreground" : ""} />}
           </div>
         </header>
-        <main className={`px-4 py-4 ${showPatientNav ? "pb-28" : "pb-24"} sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}>{children}</main>
+        <main className={`px-4 py-4 ${showPatientNav || showDoctorNav ? "pb-28" : "pb-24"} sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}>{children}</main>
       </div>
       {showPatientNav && <PatientBottomNav />}
+      {showDoctorNav && <DoctorBottomNav clinicId={doctorClinicId ?? undefined} />}
     </div>
   );
 }
