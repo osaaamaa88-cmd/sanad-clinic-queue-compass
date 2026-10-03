@@ -5,6 +5,7 @@ import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope, Search as Searc
 import { AppShell } from "@/components/AppShell";
 import { ClinicsMap } from "@/components/ClinicsMap";
 import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
+import { getPatientLocation } from "@/lib/patient-location";
 
 export const Route = createFileRoute("/patient/search")({
   head: () => ({
@@ -29,6 +30,10 @@ function Search() {
   const [openNow, setOpenNow] = useState(false);
   const [selected, setSelected] = useState<Clinic | null>(null);
   const [pos, setPos] = useState<{ lat: number; lng: number }>({ lat: 30.0444, lng: 31.2357 });
+  useEffect(() => {
+    const saved = getPatientLocation();
+    setPos({ lat: saved.lat, lng: saved.lng });
+  }, []);
   useEffect(() => {
     let cancelled = false;
     getVerifiedClinics().then((list) => {
