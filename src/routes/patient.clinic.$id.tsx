@@ -1044,7 +1044,7 @@ function ClinicDetail() {
       )}
 
       {newHighlight && isOwner && (
-        <div className="fixed inset-0 z-[75] flex items-end bg-black/70 sm:items-center sm:justify-center" onClick={() => setNewHighlight(false)}>
+        <div className="fixed inset-0 z-[100] flex items-end bg-black/70 sm:items-center sm:justify-center" onClick={() => setNewHighlight(false)}>
           <div className="w-full rounded-t-3xl border border-border bg-card p-5 sm:max-w-sm sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <p className="text-base font-extrabold">هايلايت جديد</p>
@@ -1092,7 +1092,7 @@ function ClinicDetail() {
       )}
 
       {urgentOpen && isOwner && (
-        <div className="fixed inset-0 z-[75] flex items-end bg-black/70 sm:items-center sm:justify-center" onClick={() => setUrgentOpen(false)}>
+        <div className="fixed inset-0 z-[100] flex items-end bg-black/70 sm:items-center sm:justify-center" onClick={() => setUrgentOpen(false)}>
           <div className="w-full rounded-t-3xl border border-border bg-card p-5 sm:max-w-sm sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-base font-extrabold text-destructive">تنبيه عاجل</p>
@@ -1188,8 +1188,8 @@ function EditProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 p-0 backdrop-blur sm:items-center sm:p-4">
-      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-gold/25 bg-card p-5 sm:rounded-3xl">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-background/80 p-0 backdrop-blur sm:items-center sm:p-4">
+      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-gold/25 bg-card p-5 pb-[calc(env(safe-area-inset-bottom)+2rem)] sm:rounded-3xl">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-black">تعديل البروفايل</h3>
           <button onClick={onClose} aria-label="إغلاق" className="grid h-9 w-9 place-items-center rounded-full bg-secondary">
