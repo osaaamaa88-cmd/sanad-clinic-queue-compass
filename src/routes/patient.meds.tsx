@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { startAlarm } from "@/lib/sounds";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pill, Plus, Trash2, Bell, BellOff, Clock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -72,6 +73,7 @@ function Meds() {
             firedRef.current.add(fireKey);
             const title = `تذكير دواء: ${m.name}`;
             const body = `الجرعة: ${m.dose || "-"}`;
+            startAlarm();
             if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
               try {
                 new Notification(title, { body });
