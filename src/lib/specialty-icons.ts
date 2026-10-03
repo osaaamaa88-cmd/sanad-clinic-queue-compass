@@ -1,0 +1,32 @@
+import {
+  Accessibility, Activity, Apple, AudioLines, Baby, BadgePlus, Bone, Brain, Building2, Droplets, Ear, Eye, FlaskConical, HeartPulse, Hospital, HouseHeart, Mars, MessageCircleHeart, PersonStanding, Ribbon, ScanLine, Scissors, Sparkles, Venus, WandSparkles,
+  type LucideIcon,
+} from "lucide-react";
+
+export const specialtyIcons: Record<string, LucideIcon> = {
+  dental: BadgePlus,
+  internal: Activity,
+  pediatrics: Baby,
+  ortho: Bone,
+  derma: Sparkles,
+  cardio: HeartPulse,
+  eye: Eye,
+  ent: Ear,
+  neuro: Brain,
+  gyneco: Venus,
+  "general-surgery": Scissors,
+  urology: Droplets,
+  physiotherapy: Accessibility,
+  oncology: Ribbon,
+  endocrinology: FlaskConical,
+  gastro: ScanLine,
+  chest: Building2,
+  andrology: Mars,
+  "plastic-surgery": WandSparkles,
+  psychiatry: MessageCircleHeart,
+  rheumatology: PersonStanding,
+  neonatology: Hospital,
+  "speech-audiology": AudioLines,
+  nutrition: Apple,
+  "family-medicine": HouseHeart,
+};
