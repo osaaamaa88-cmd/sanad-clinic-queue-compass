@@ -171,7 +171,7 @@ export async function getVerifiedClinics(): Promise<Clinic[]> {
   const { data, error } = await supabase
     .from("clinics")
     .select("*")
-    .eq("is_verified", true)
+    .eq("is_disabled", false)
     .order("submitted_at", { ascending: false });
   if (error) return [];
   return (data as Row[]).map(rowToClinic);
@@ -182,7 +182,7 @@ export async function getVerifiedClinic(id: string): Promise<Clinic | undefined>
     .from("clinics")
     .select("*")
     .eq("id", id)
-    .eq("is_verified", true)
+    .eq("is_disabled", false)
     .maybeSingle();
   if (error || !data) return undefined;
   return rowToClinic(data as Row);

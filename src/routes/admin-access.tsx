@@ -240,7 +240,7 @@ function Admin() {
   if (!authed) return <AdminGate onUnlock={() => setAuthed(true)} />;
 
   const pending = clinics.filter((c) => !c.isVerified);
-  const verified = clinics.filter((c) => c.isVerified);
+  const verified = clinics;
 
   const approve = async (id: string) => {
     await verify({ data: { id } });
@@ -256,7 +256,7 @@ function Admin() {
     await refresh();
   };
   const toggleVerified = async (c: ClinicRow) => {
-    if (c.isVerified && !confirm("هتلغي شارة التوثيق؟ العيادة هتختفي من بحث المرضى.")) return;
+    if (c.isVerified && !confirm("هتلغي شارة التوثيق؟ العيادة هتفضل ظاهرة بدون الشارة.")) return;
     await setVerified({ data: { id: c.id, verified: !c.isVerified } });
     await refresh();
   };
@@ -314,7 +314,7 @@ function Admin() {
     <AppShell title="لوحة تحكم الأدمن" subtitle="سَنَد — الإدارة" backTo="/" tone="primary">
       {/* KPI */}
       <div className="-mt-6 grid grid-cols-2 gap-3">
-        <KPI icon={Building2} label="عيادات موثّقة" value={String(verified.filter((c) => !c.isDisabled).length)} />
+        <KPI icon={Building2} label="عيادات موثّقة" value={String(clinics.filter((c) => c.isVerified && !c.isDisabled).length)} />
         <KPI icon={Users} label="إجمالي العيادات" value={String(stats.total)} />
         <KPI icon={Calendar} label="إجمالي الحجوزات" value={String(stats.bookings)} />
         <KPI icon={ShieldCheck} label="بانتظار التوثيق" value={String(pending.length)} tone="warn" />
@@ -325,7 +325,7 @@ function Admin() {
         {([
           ["analytics", "التحليلات"],
           ["pending", `التوثيق (${pending.length})`],
-          ["verified", `العيادات (${verified.length})`],
+          ["verified", `كل العيادات (${verified.length})`],
           ["bookings", "الحجوزات"],
         ] as const).map(([k, l]) => (
           <button
@@ -346,7 +346,7 @@ function Admin() {
         <div className="mt-4 space-y-3">
           {pending.length === 0 && (
             <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-              ما فيش عيادات بانتظار التوثيق دلوقتي ✅
+              ما فيش أطباء بانتظار شارة التوثيق ✅
             </div>
           )}
           {pending.map((p) => (
@@ -370,13 +370,13 @@ function Admin() {
                   onClick={() => approve(p.id)}
                   className="flex items-center justify-center gap-1 rounded-xl bg-success py-2.5 text-sm font-bold text-success-foreground"
                 >
-                  <BadgeCheck className="h-4 w-4" /> تفعيل وتوثيق
+                  <BadgeCheck className="h-4 w-4" /> منح شارة التوثيق
                 </button>
                 <button
                   onClick={() => reject(p.id)}
                   className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card py-2.5 text-sm font-bold text-destructive"
                 >
-                  <X className="h-4 w-4" /> رفض
+                  <X className="h-4 w-4" /> حذف
                 </button>
               </div>
             </div>
@@ -411,7 +411,11 @@ function Admin() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="truncate font-bold">{c.doctor}</p>
-                    <BadgeCheck className="h-4 w-4 shrink-0 text-success" />
+                    {c.isVerified ? (
+                      <BadgeCheck className="h-4 w-4 shrink-0 text-success" />
+                    ) : (
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">غير موثّق</span>
+                    )}
                     {c.isDisabled && (
                       <span className="rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-bold text-warning">
                         معطلة مؤقتاً

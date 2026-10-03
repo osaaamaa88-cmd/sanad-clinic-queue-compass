@@ -240,7 +240,7 @@ function ClinicDetail() {
   };
 
   if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient/search"><div /></AppShell>;
-  if (!clinic || (!clinic.isVerified && !isOwner)) {
+  if (!clinic) {
     return (
       <AppShell title="عيادة غير متاحة" backTo="/patient/search">
         <div className="mt-4 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
