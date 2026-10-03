@@ -8,6 +8,8 @@ import { StoryViewer } from "@/components/StoryViewer";
 import { getClinicProfileExtras, type ClinicProfileExtras } from "@/lib/clinic-profile";
 import { getClinicStories, type StoryItem } from "@/lib/stories";
 import { Button } from "@/components/ui/button";
+import { LocationPickerModal } from "@/components/LocationPickerModal";
+import { defaultLocation, distanceKm, getPatientLocation, savePatientLocation, type PatientLocation } from "@/lib/patient-location";
 
 export const Route = createFileRoute("/patient/")({
   head: () => ({
@@ -30,6 +32,9 @@ function PatientHome() {
   const [viewer, setViewer] = useState<{ clinic: Clinic; items: StoryItem[] } | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
   const [specialtiesOpen, setSpecialtiesOpen] = useState(false);
+  const [location, setLocation] = useState<PatientLocation>(defaultLocation);
+  const [locOpen, setLocOpen] = useState(false);
+  useEffect(() => setLocation(getPatientLocation()), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,11 +65,12 @@ function PatientHome() {
   }, {}), [clinics]);
   const selectedSpecialtyData = specialties.find((item) => item.id === selectedSpecialty);
   const recommended = useMemo(
-    () => [...clinics]
+    () => clinics
+      .map((clinic) => (typeof clinic.lat === "number" && typeof clinic.lng === "number" ? { ...clinic, distanceKm: Math.round(distanceKm(location, { lat: clinic.lat, lng: clinic.lng }) * 10) / 10 } : clinic))
       .filter((clinic) => !selectedSpecialty || clinic.specialtyId === selectedSpecialty)
-      .sort((a, b) => b.rating - a.rating || a.distanceKm - b.distanceKm)
+      .sort((a, b) => a.distanceKm - b.distanceKm || b.rating - a.rating)
       .slice(0, selectedSpecialty ? undefined : 6),
-    [clinics, selectedSpecialty],
+    [clinics, selectedSpecialty, location],
   );
 
   return (
@@ -77,18 +83,12 @@ function PatientHome() {
       hideBack
       centeredTitle
     >
-      <section className="grid gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
-            <MapPin className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground">موقعك الحالي</p>
-            <p className="truncate text-sm font-bold">المهندسين، الجيزة</p>
-          </div>
-        </div>
-        <Button variant="secondary" size="sm">تغيير الموقع</Button>
-      </section>
+      <button type="button" onClick={() => setLocOpen(true)} className="flex w-full items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-right shadow-soft transition hover:border-primary/50">
+        <MapPin className="h-4 w-4 shrink-0 text-primary" />
+        <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.name}، {location.city}</span>
+        <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-[11px] font-bold text-primary">تغيير ▾</span>
+      </button>
+      {locOpen && <LocationPickerModal current={location} onClose={() => setLocOpen(false)} onSelect={(l) => { savePatientLocation(l); setLocation(l); setLocOpen(false); }} />}
 
       <Link to="/patient/search" className="mt-4 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition hover:border-primary/50">
         <Search className="h-5 w-5 shrink-0 text-primary" />
