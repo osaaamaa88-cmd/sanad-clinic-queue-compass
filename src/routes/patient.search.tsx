@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope, Search as SearchIcon, X, ArrowDownAZ, BadgeCheck, Users, ChevronLeft, Navigation } from "lucide-react";
+import { Map as MapIcon, List, MapPin, Star, Stethoscope, Search as SearchIcon, X, ArrowUpDown, BadgeCheck, Users, ChevronLeft, Navigation, LayoutGrid, Route } from "lucide-react";
+import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
 import { ClinicsMap } from "@/components/ClinicsMap";
 import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
@@ -98,11 +99,12 @@ function Search() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setOpenNow((v) => !v)}
-            className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${
               openNow ? "bg-success text-success-foreground" : "bg-secondary text-foreground"
             }`}
           >
-            🟢 متاح الآن
+            <span className={`h-2 w-2 shrink-0 rounded-full ${openNow ? "animate-pulse bg-success-foreground" : "bg-success"}`} />
+            متاح الآن
           </button>
           <span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground">
             <ArrowDownAZ className="h-3 w-3" /> ترتيب:
