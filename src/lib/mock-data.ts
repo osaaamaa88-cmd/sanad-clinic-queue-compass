@@ -68,7 +68,7 @@ export type Clinic = {
   clinicStatus: ClinicStatus;
   delayMinutes: number;
   bookingsClosed: boolean;
-  workingHours: string;
+  workingHours?: string;
 };
 
 export type ClinicStatus = "normal" | "delayed" | "paused";

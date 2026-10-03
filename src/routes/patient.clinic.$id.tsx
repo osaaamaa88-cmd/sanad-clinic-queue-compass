@@ -1147,7 +1147,7 @@ function EditProfileModal({
   const [price, setPrice] = useState(String(clinic.price || ""));
   const [phone, setPhone] = useState(clinic.phone);
   const [bio, setBio] = useState(initialBio);
-  const [hours, setHours] = useState(clinic.workingHours);
+  const [hours, setHours] = useState(clinic.workingHours ?? "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<"avatar" | "cover" | null>(null);
   const [msg, setMsg] = useState("");
