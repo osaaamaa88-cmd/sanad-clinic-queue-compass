@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { startAlarm } from "@/lib/sounds";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pill, Plus, Trash2, Bell, BellOff, Clock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
