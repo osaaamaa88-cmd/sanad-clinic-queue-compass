@@ -8,33 +8,58 @@ import type { RxItem, RxPayload } from "@/lib/chat";
 const esc = (s = "") => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 export function printRx(rx: RxPayload, size: "A5" | "thermal" = "A5") {
-  const items = rx.items.map((it, i) => `<li><b>${i + 1}. ${esc(it.name)}</b><div class="dose">${esc(it.dose)}</div>${it.notes ? `<div class="dose">${esc(it.notes)}</div>` : ""}</li>`).join("");
+  const items = rx.items.map((it, i) => `<li class="drug">
+  <div class="dn"><span class="num">${i + 1}</span><span class="name" dir="ltr">${esc(it.name)}</span></div>
+  <div class="sig">${esc(it.dose)}${it.notes ? `<small>${esc(it.notes)}</small>` : ""}</div>
+</li>`).join("");
   const qr = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(location.origin)}`;
-  const page = size === "A5" ? "@page{size:A5;margin:10mm}" : "@page{size:80mm auto;margin:3mm}body{width:74mm;font-size:12px}.f{position:static!important;margin-top:10px}";
+  const thermal = size === "thermal";
+  const page = thermal
+    ? "@page{size:80mm auto;margin:3mm}body{width:74mm}.sheet{border:0;padding:0;min-height:0}.drug{flex-direction:column;gap:2px}.sig{text-align:right}.name{font-size:15px}.f{flex-direction:column;gap:6px}"
+    : "@page{size:A5;margin:7mm}";
   const html = `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>روشتة ${esc(rx.patient)}</title>
-<style>body{font-family:Tahoma,Arial,sans-serif;color:#111;margin:0}
-.h{display:flex;justify-content:space-between;border-bottom:3px solid #0e7490;padding-bottom:8px}
-.h h1{margin:0;font-size:20px;color:#0e7490}.h p{margin:2px 0;font-size:12px}
-.pt{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin:10px 0;padding:6px;background:#f1f5f9;border-radius:6px}
-.rx{font-size:34px;color:#0e7490;font-family:serif;margin:4px 0}ul{list-style:none;padding:0;margin:0}li{margin:0 0 10px;font-size:15px}
-.dose{font-size:13px;color:#334155;margin-right:18px}.sec{font-size:13px;margin-top:10px}
-.f{position:fixed;bottom:0;left:0;right:0;border-top:2px solid #0e7490;padding-top:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center}
-${page}</style></head><body>
-<div class="h"><div><h1>${esc(rx.doctor)}</h1><p>${esc(rx.specialty || "")}</p></div><div style="text-align:left"><p><b>سَنَد | SANAD</b></p><p>${esc(rx.date)}</p></div></div>
-<div class="pt"><span>المريض: <b>${esc(rx.patient)}</b></span>${rx.age ? `<span>السن: ${esc(rx.age)}</span>` : ""}${rx.diagnosis ? `<span>التشخيص: ${esc(rx.diagnosis)}</span>` : ""}</div>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Lora:ital,wght@1,700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:Cairo,Tahoma,sans-serif;color:#0f172a;margin:0;font-size:13px}
+.sheet{border:1.5px solid #0e7490;border-radius:10px;padding:14px 16px;min-height:190mm;display:flex;flex-direction:column}
+.h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-bottom:10px;border-bottom:3px double #0e7490}
+.h h1{margin:0;font-size:21px;font-weight:800;color:#0e7490;line-height:1.3}.h .sp{margin:2px 0 0;font-size:13px;font-weight:600;color:#334155}
+.brand{text-align:left;font-size:11px;color:#64748b}.brand b{display:block;font-size:14px;color:#0e7490}
+.pt{display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px 12px;margin:10px 0 4px;padding:8px 10px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;font-size:12.5px}
+.pt span{color:#64748b}.pt b{color:#0f172a;font-weight:700}.pt .dx{grid-column:1/-1}
+.rx{font-family:Lora,Georgia,serif;font-style:italic;font-size:40px;font-weight:700;color:#0e7490;line-height:1;margin:6px 0 2px}
+ul{list-style:none;padding:0;margin:0;flex:1}
+.drug{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px dashed #94a3b8;page-break-inside:avoid}
+.drug:last-child{border-bottom:0}
+.dn{display:flex;align-items:center;gap:8px;flex-direction:row-reverse;direction:ltr}
+.num{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#0e7490;color:#fff;font-size:11px;font-weight:800;flex:none}
+.name{font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:16px;letter-spacing:.2px}
+.sig{font-size:13px;font-weight:600;color:#0e7490;text-align:left;max-width:55%}.sig small{display:block;font-weight:400;color:#475569;font-size:11.5px}
+.box{margin-top:8px;padding:7px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:12.5px}.box b{color:#0e7490}
+.f{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:12px;padding-top:8px;border-top:2px solid #0e7490;font-size:11px;color:#334155}
+.sign{text-align:center;min-width:110px}.sign div{border-top:1px solid #94a3b8;margin-top:28px;padding-top:2px}
+.wish{text-align:center;font-size:11px;color:#64748b;margin-top:6px}
+${page}</style></head><body><div class="sheet">
+<div class="h"><div><h1>${esc(rx.doctor)}</h1>${rx.specialty ? `<p class="sp">${esc(rx.specialty)}</p>` : ""}</div><div class="brand"><b>سَنَد | SANAD</b>${esc(rx.date)}</div></div>
+<div class="pt"><div><span>الاسم: </span><b>${esc(rx.patient)}</b></div><div><span>السن: </span><b>${esc(rx.age || "—")}</b></div><div><span>التاريخ: </span><b>${esc(rx.date)}</b></div>${rx.diagnosis ? `<div class="dx"><span>التشخيص: </span><b>${esc(rx.diagnosis)}</b></div>` : ""}</div>
 <div class="rx">℞</div><ul>${items}</ul>
-${rx.tests ? `<div class="sec"><b>تحاليل / أشعة:</b> ${esc(rx.tests)}</div>` : ""}
-${rx.advice ? `<div class="sec"><b>تعليمات:</b> ${esc(rx.advice)}</div>` : ""}
-<div class="f"><div>${esc(rx.clinicAddress || "")}<br>${rx.clinicPhone ? "📞 " + esc(rx.clinicPhone) : ""}</div><img src="${qr}" width="60" height="60"></div>
-</body></html>`;
+${rx.tests ? `<div class="box"><b>تحاليل / أشعة:</b> ${esc(rx.tests)}</div>` : ""}
+${rx.advice ? `<div class="box"><b>تعليمات:</b> ${esc(rx.advice)}</div>` : ""}
+<div class="f"><div>${esc(rx.clinicAddress || "")}${rx.clinicPhone ? `<br>📞 <span dir="ltr">${esc(rx.clinicPhone)}</span>` : ""}</div>
+<div class="sign"><div>توقيع وختم الطبيب</div></div><img src="${qr}" width="56" height="56"></div>
+<div class="wish">مع تمنياتنا بالشفاء العاجل</div>
+</div></body></html>`;
   document.getElementById("sanad-rx-print")?.remove();
   const f = document.createElement("iframe");
   f.id = "sanad-rx-print";
   f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
-  f.onload = () => setTimeout(() => {
-    try { f.contentWindow?.focus(); f.contentWindow?.print(); }
-    catch { toast.error("المتصفح منع الطباعة. جرّب «تنزيل» واطبع الصورة."); }
-  }, 500);
+  f.onload = async () => {
+    try { await Promise.race([f.contentDocument?.fonts?.ready, new Promise((r) => setTimeout(r, 1500))]); } catch { /* ignore */ }
+    setTimeout(() => {
+      try { f.contentWindow?.focus(); f.contentWindow?.print(); }
+      catch { toast.error("المتصفح منع الطباعة. جرّب «تنزيل» واطبع الصورة."); }
+    }, 200);
+  };
   f.srcdoc = html;
   document.body.appendChild(f);
 }
