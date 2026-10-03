@@ -54,12 +54,23 @@ export function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
   return c;
 }
 
-export function downloadRx(rx: RxPayload) {
+export async function downloadRx(rx: RxPayload): Promise<"shared" | "downloaded"> {
   const c = renderRxCanvas(rx, 1000);
+  const blob: Blob = await new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("blob"))), "image/png"));
+  const name = `roshta-${(rx.patient || "patient").replace(/\s+/g, "-")}.png`;
+  const file = new File([blob], name, { type: "image/png" });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const nav = navigator as any;
+  if (nav.canShare?.({ files: [file] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    try { await nav.share({ files: [file], title: "روشتة سَنَد" }); return "shared"; }
+    catch (e) { if ((e as Error).name === "AbortError") return "shared"; }
+  }
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.download = `روشتة-${rx.patient || "مريض"}.png`;
-  a.href = c.toDataURL("image/png");
-  a.click();
+  a.download = name; a.href = url; a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return "downloaded";
 }
 
 export const bluetoothSupported = () => typeof navigator !== "undefined" && "bluetooth" in navigator;

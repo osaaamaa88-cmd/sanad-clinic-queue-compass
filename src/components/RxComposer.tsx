@@ -7,28 +7,36 @@ import type { RxItem, RxPayload } from "@/lib/chat";
 
 const esc = (s = "") => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-export function printRx(rx: RxPayload) {
-  const w = window.open("", "_blank", "width=600,height=800");
-  if (!w) return;
+export function printRx(rx: RxPayload, size: "A5" | "thermal" = "A5") {
   const items = rx.items.map((it, i) => `<li><b>${i + 1}. ${esc(it.name)}</b><div class="dose">${esc(it.dose)}</div>${it.notes ? `<div class="dose">${esc(it.notes)}</div>` : ""}</li>`).join("");
   const qr = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(location.origin)}`;
-  w.document.write(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>روشتة ${esc(rx.patient)}</title>
-<style>@page{size:A5;margin:10mm}body{font-family:Tahoma,Arial,sans-serif;color:#111;margin:0}
+  const page = size === "A5" ? "@page{size:A5;margin:10mm}" : "@page{size:80mm auto;margin:3mm}body{width:74mm;font-size:12px}.f{position:static!important;margin-top:10px}";
+  const html = `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>روشتة ${esc(rx.patient)}</title>
+<style>body{font-family:Tahoma,Arial,sans-serif;color:#111;margin:0}
 .h{display:flex;justify-content:space-between;border-bottom:3px solid #0e7490;padding-bottom:8px}
 .h h1{margin:0;font-size:20px;color:#0e7490}.h p{margin:2px 0;font-size:12px}
 .pt{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin:10px 0;padding:6px;background:#f1f5f9;border-radius:6px}
 .rx{font-size:34px;color:#0e7490;font-family:serif;margin:4px 0}ul{list-style:none;padding:0;margin:0}li{margin:0 0 10px;font-size:15px}
 .dose{font-size:13px;color:#334155;margin-right:18px}.sec{font-size:13px;margin-top:10px}
 .f{position:fixed;bottom:0;left:0;right:0;border-top:2px solid #0e7490;padding-top:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center}
-</style></head><body>
+${page}</style></head><body>
 <div class="h"><div><h1>${esc(rx.doctor)}</h1><p>${esc(rx.specialty || "")}</p></div><div style="text-align:left"><p><b>سَنَد | SANAD</b></p><p>${esc(rx.date)}</p></div></div>
 <div class="pt"><span>المريض: <b>${esc(rx.patient)}</b></span>${rx.age ? `<span>السن: ${esc(rx.age)}</span>` : ""}${rx.diagnosis ? `<span>التشخيص: ${esc(rx.diagnosis)}</span>` : ""}</div>
 <div class="rx">℞</div><ul>${items}</ul>
 ${rx.tests ? `<div class="sec"><b>تحاليل / أشعة:</b> ${esc(rx.tests)}</div>` : ""}
 ${rx.advice ? `<div class="sec"><b>تعليمات:</b> ${esc(rx.advice)}</div>` : ""}
 <div class="f"><div>${esc(rx.clinicAddress || "")}<br>${rx.clinicPhone ? "📞 " + esc(rx.clinicPhone) : ""}</div><img src="${qr}" width="60" height="60"></div>
-<script>window.onload=()=>setTimeout(()=>window.print(),400)</script></body></html>`);
-  w.document.close();
+</body></html>`;
+  document.getElementById("sanad-rx-print")?.remove();
+  const f = document.createElement("iframe");
+  f.id = "sanad-rx-print";
+  f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+  f.onload = () => setTimeout(() => {
+    try { f.contentWindow?.focus(); f.contentWindow?.print(); }
+    catch { toast.error("المتصفح منع الطباعة. جرّب «تنزيل» واطبع الصورة."); }
+  }, 500);
+  f.srcdoc = html;
+  document.body.appendChild(f);
 }
 
 export function RxComposer({ defaults, onClose, onSend }: {
@@ -58,6 +66,8 @@ export function RxComposer({ defaults, onClose, onSend }: {
   };
   const build = (): RxPayload => ({ ...defaults, patient, age, diagnosis, items, advice, tests, date: new Date().toLocaleDateString("ar-EG") });
   const valid = patient.trim() && items.length > 0;
+  const need = () => { if (!patient.trim()) { toast.error("اكتب اسم المريض الأول"); return false; } if (!items.length) { toast.error("ضيف دواء واحد على الأقل"); return false; } return true; };
+  const btn = "flex flex-col items-center justify-center gap-1 rounded-xl border border-primary py-2.5 text-xs font-bold text-primary disabled:opacity-50";
 
   const input = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary";
   return (
@@ -119,20 +129,25 @@ export function RxComposer({ defaults, onClose, onSend }: {
         <textarea className={`${input} mt-3`} rows={2} placeholder="تحاليل أو أشعة مطلوبة" value={tests} onChange={(e) => setTests(e.target.value)} />
         <textarea className={`${input} mt-2`} rows={2} placeholder="تعليمات (أكل، راحة، ميعاد المتابعة…)" value={advice} onChange={(e) => setAdvice(e.target.value)} />
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <button type="button" disabled={!valid} onClick={() => printRx(build())} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-primary py-2.5 text-xs font-bold text-primary disabled:opacity-50">
+        {!valid && <p className="mt-4 text-center text-xs text-muted-foreground">اكتب اسم المريض وضيف دواء واحد على الأقل علشان تطبع أو تنزّل</p>}
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button type="button" onClick={() => need() && printRx(build(), "A5")} className={btn}>
             <Printer className="h-4 w-4" /> طباعة A5
           </button>
-          <button type="button" disabled={!valid || btBusy} onClick={async () => {
+          <button type="button" onClick={() => need() && printRx(build(), "thermal")} className={btn}>
+            <Printer className="h-4 w-4" /> طابعة حرارية (إيصال)
+          </button>
+          <button type="button" disabled={btBusy} onClick={async () => {
+            if (!need()) return;
             setBtBusy(true);
             try { await printRxBluetooth(build()); toast.success("تمت الطباعة بالبلوتوث"); }
             catch (e) { const m = (e as Error).message; if (!/cancel/i.test(m)) toast.error(m || "تعذر الاتصال بالطابعة"); }
             finally { setBtBusy(false); }
-          }} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-primary py-2.5 text-xs font-bold text-primary disabled:opacity-50">
-            {btBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bluetooth className="h-4 w-4" />} طابعة بلوتوث
+          }} className={btn}>
+            {btBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bluetooth className="h-4 w-4" />} طابعة بلوتوث مباشرة
           </button>
-          <button type="button" disabled={!valid} onClick={() => downloadRx(build())} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-primary py-2.5 text-xs font-bold text-primary disabled:opacity-50">
-            <Download className="h-4 w-4" /> تنزيل
+          <button type="button" onClick={async () => { if (!need()) return; try { const r = await downloadRx(build()); toast.success(r === "shared" ? "تمت المشاركة" : "اتنزلت الروشتة"); } catch { toast.error("تعذر التنزيل"); } }} className={btn}>
+            <Download className="h-4 w-4" /> تنزيل / مشاركة
           </button>
         </div>
         {onSend && (
