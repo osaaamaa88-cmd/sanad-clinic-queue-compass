@@ -132,8 +132,9 @@ function AdminGate({ onUnlock }: { onUnlock: () => void }) {
 
 function toCSV(rows: Record<string, unknown>[], headers: { key: string; label: string }[]): string {
   const escape = (v: unknown) => {
-    const s = v === null || v === undefined ? "" : String(v);
-    if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    let s = v === null || v === undefined ? "" : String(v);
+    if (/^[\s]*[=+\-@\t\r]/.test(s)) s = "'" + s;
+    if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
     return s;
   };
   const head = headers.map((h) => escape(h.label)).join(",");
