@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Stethoscope, UserRound, ClipboardList, HeartPulse } from "lucide-react";
+import { Stethoscope, UserRound, ClipboardList, HeartPulse, Siren } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef } from "react";
 
@@ -8,9 +8,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "سَنَد — سندك الطبي في كل وقت" },
-      { name: "description", content: "Welcome to SANAD - Your primary destination for easy medical appointment bookings." },
+      { name: "description", content: "دليلك الطبي للوصول المباشر لأفضل الأطباء والعيادات في مصر" },
       { property: "og:title", content: "سَنَد — سندك الطبي في كل وقت" },
-      { property: "og:description", content: "Welcome to SANAD - Your primary destination for easy medical appointment bookings." },
+      { property: "og:description", content: "دليلك الطبي للوصول المباشر لأفضل الأطباء والعيادات في مصر" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -19,9 +19,9 @@ export const Route = createFileRoute("/")({
 });
 
 const roles = [
-  { to: "/patient", title: "أبحث عن عيادة", desc: "دور على طبيبك واحجز دورك بسهولة", icon: UserRound, tone: "gradient-primary text-primary-foreground" },
-  { to: "/reception", title: "سكرتير عيادة", desc: "إدارة الحجوزات ودخول المرضى", icon: ClipboardList, tone: "bg-card text-foreground" },
-  { to: "/doctor", title: "طبيب / عيادة", desc: "بروفايل العيادة ومواعيدها", icon: Stethoscope, tone: "bg-card text-foreground" },
+  { to: "/patient", title: "أبحث عن عيادة", desc: "اعثر على أقرب عيادة وتواصل مباشرة", icon: UserRound, tone: "gradient-primary text-primary-foreground" },
+  { to: "/reception", title: "سكرتير عيادة", desc: "دفتر حضور المرضى وتنظيم العيادة", icon: ClipboardList, tone: "bg-card text-foreground" },
+  { to: "/doctor", title: "طبيب / عيادة", desc: "بروفايل العيادة والروشتات والتواصل مع المرضى", icon: Stethoscope, tone: "bg-card text-foreground" },
 ] as const;
 
 function Landing() {
@@ -55,10 +55,17 @@ function Landing() {
 
         <div className="mt-8 rounded-3xl gradient-primary p-6 text-primary-foreground shadow-soft">
           <h2 className="text-xl font-bold">أهلاً بك في سَنَد</h2>
-          <p className="mt-2 text-sm leading-6 opacity-90" dir="ltr">
-            Welcome to SANAD - Your primary destination for easy medical appointment bookings.
+          <p className="mt-2 text-sm leading-6 opacity-90">
+            دليلك الطبي للوصول المباشر لأفضل الأطباء والعيادات في مصر
           </p>
         </div>
+
+        <Link
+          to="/patient/emergency"
+          className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-destructive p-4 text-lg font-extrabold text-destructive-foreground shadow-soft"
+        >
+          <Siren className="h-6 w-6" /> طوارئ سَنَد — وصول فوري للإسعاف
+        </Link>
 
         <div className="mt-6 space-y-3">
           <p className="text-sm font-semibold text-muted-foreground">اختار دورك</p>
@@ -78,6 +85,7 @@ function Landing() {
               <div className="text-xl opacity-70">←</div>
             </Link>
           ))}
+          <p className="text-center text-xs text-muted-foreground">تصفح واكتشف العيادات بدون الحاجة لتسجيل حساب</p>
         </div>
 
         <footer className="mt-8 space-y-2 border-t border-border pt-4 text-center">
