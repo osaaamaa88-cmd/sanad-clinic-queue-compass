@@ -503,6 +503,7 @@ export type Database = {
           submitted_at: string
           updated_at: string
           waiting_count: number
+          working_hours: string
           your_number: number
         }
         Insert: {
@@ -533,6 +534,7 @@ export type Database = {
           submitted_at?: string
           updated_at?: string
           waiting_count?: number
+          working_hours?: string
           your_number?: number
         }
         Update: {
@@ -563,6 +565,7 @@ export type Database = {
           submitted_at?: string
           updated_at?: string
           waiting_count?: number
+          working_hours?: string
           your_number?: number
         }
         Relationships: []

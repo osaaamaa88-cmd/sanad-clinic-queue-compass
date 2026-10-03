@@ -68,6 +68,7 @@ export type Clinic = {
   clinicStatus: ClinicStatus;
   delayMinutes: number;
   bookingsClosed: boolean;
+  workingHours?: string;
 };
 
 export type ClinicStatus = "normal" | "delayed" | "paused";
@@ -131,6 +132,7 @@ function rowToClinic(r: Row): Clinic {
     clinicStatus: (r.clinic_status as ClinicStatus) || "normal",
     delayMinutes: Number(r.delay_minutes) || 0,
     bookingsClosed: Boolean(r.bookings_closed),
+    workingHours: String((r as { working_hours?: string }).working_hours ?? ""),
   };
 }
 
