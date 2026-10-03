@@ -28,7 +28,7 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
       .select("id, is_verified, bookings_closed")
       .eq("id", data.clinicId)
       .maybeSingle();
-    if (!clinic || !clinic.is_verified) throw new Error("Clinic not available");
+    if (!clinic) throw new Error("Clinic not available");
     if (clinic.bookings_closed) throw new Error("Bookings closed");
 
     const code = `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
