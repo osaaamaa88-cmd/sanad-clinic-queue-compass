@@ -1,8 +1,30 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, CheckCheck, Loader2, Phone, SendHorizontal } from "lucide-react";
+import { ArrowRight, Camera, Check, CheckCheck, FileText, ImageOff, Loader2, Phone, Pill, Printer, SendHorizontal, X } from "lucide-react";
+import { toast } from "sonner";
+import { RxComposer, printRx } from "@/components/RxComposer";
 import { supabase } from "@/integrations/supabase/client";
-import { currentUserId, loadMessages, markRead, sendMessage, type ChatMessage, type Conversation } from "@/lib/chat";
+import { currentUserId, loadMessages, markRead, sendImage, sendMessage, sendRx, setAllowImages, signedImageUrl, type ChatMessage, type Conversation, type RxPayload } from "@/lib/chat";
+
+function ChatImage({ path, onOpen }: { path: string; onOpen: (u: string) => void }) {
+  const [url, setUrl] = useState("");
+  useEffect(() => { void signedImageUrl(path).then(setUrl); }, [path]);
+  if (!url) return <div className="grid h-48 w-56 place-items-center"><Loader2 className="h-5 w-5 animate-spin" /></div>;
+  return <img src={url} alt="صورة مرسلة" onClick={() => onOpen(url)} className="max-h-72 w-56 cursor-zoom-in rounded-xl object-cover" />;
+}
+
+function RxCard({ rx }: { rx: RxPayload }) {
+  return (
+    <div className="w-64 rounded-xl bg-background p-3 text-foreground">
+      <div className="flex items-center gap-2 border-b border-border pb-2"><FileText className="h-5 w-5 text-primary" /><b>روشتة — {rx.doctor}</b></div>
+      <p className="mt-1 text-xs text-muted-foreground">{rx.patient} · {rx.date}{rx.diagnosis ? ` · ${rx.diagnosis}` : ""}</p>
+      <ol className="mt-2 space-y-1 text-sm">{rx.items.map((it, i) => <li key={i}><b dir="ltr">{it.name}</b><div className="text-xs text-muted-foreground">{it.dose}</div></li>)}</ol>
+      {rx.tests && <p className="mt-2 text-xs"><b>تحاليل:</b> {rx.tests}</p>}
+      {rx.advice && <p className="mt-1 text-xs"><b>تعليمات:</b> {rx.advice}</p>}
+      <button type="button" onClick={() => printRx(rx)} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary/10 py-2 text-sm font-bold text-primary"><Printer className="h-4 w-4" /> طباعة / حفظ PDF</button>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/messages/$id")({
   head: () => ({
@@ -38,6 +60,12 @@ function ChatScreen() {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [amClinic, setAmClinic] = useState(false);
+  const [clinicInfo, setClinicInfo] = useState({ doctor: "", address: "", phone: "" });
+  const [uploading, setUploading] = useState(false);
+  const [rxOpen, setRxOpen] = useState(false);
+  const [viewer, setViewer] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -48,8 +76,10 @@ function ChatScreen() {
       setUid(me);
       setConv(c as Conversation | null);
       if (c) {
-        const { data: clinic } = await supabase.from("clinics").select("doctor, avatar_url, phone").eq("id", c.clinic_id).maybeSingle();
+        const { data: clinic } = await supabase.from("clinics").select("doctor, avatar_url, phone, address, area").eq("id", c.clinic_id).maybeSingle();
         const amPatient = c.patient_id === me;
+        setAmClinic(!amPatient);
+        setClinicInfo({ doctor: clinic?.doctor ?? "", address: [clinic?.address, clinic?.area].filter(Boolean).join(" — "), phone: clinic?.phone ?? "" });
         setPeer(amPatient
           ? { name: clinic?.doctor ?? "العيادة", avatar: clinic?.avatar_url ?? "", phone: clinic?.phone ?? "" }
           : { name: c.patient_name || "مريض", avatar: "", phone: "" });
@@ -68,6 +98,9 @@ function ChatScreen() {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "clinic_messages", filter: `conversation_id=eq.${id}` }, (p) => {
         const m = p.new as ChatMessage;
         setMsgs((prev) => prev.map((x) => (x.id === m.id ? m : x)));
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "clinic_conversations", filter: `id=eq.${id}` }, (p) => {
+        setConv(p.new as Conversation);
       })
       .subscribe();
     return () => {
@@ -91,6 +124,22 @@ function ChatScreen() {
     setSending(false);
   };
 
+  const allow = !!conv?.allow_images;
+  const pickImage = async (f: File | undefined) => {
+    if (!f) return;
+    if (!f.type.startsWith("image/")) { toast.error("اختار صورة بس"); return; }
+    setUploading(true);
+    const ok = await sendImage(id, f);
+    setUploading(false);
+    if (!ok) toast.error("تعذر إرسال الصورة"); else setMsgs(await loadMessages(id));
+  };
+  const toggleAllow = async () => {
+    if (!conv) return;
+    const ok = await setAllowImages(id, !allow);
+    if (ok) { setConv({ ...conv, allow_images: !allow }); setMsgs(await loadMessages(id)); }
+    else toast.error("تعذر تغيير الإذن");
+  };
+
   return (
     <div className="flex h-[100dvh] flex-col bg-background">
       <header className="flex items-center gap-3 bg-card px-3 py-2.5 shadow-sm">
@@ -106,6 +155,12 @@ function ChatScreen() {
           <p className="truncate font-extrabold">{peer.name || "…"}</p>
           <p className="text-[11px] text-muted-foreground">بترد عادةً خلال ساعات العمل</p>
         </div>
+        {amClinic && conv && (
+          <button type="button" onClick={toggleAllow} aria-label="إذن الصور"
+            className={`flex h-9 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold ${allow ? "bg-success/15 text-success" : "bg-secondary text-muted-foreground"}`}>
+            {allow ? <Camera className="h-4 w-4" /> : <ImageOff className="h-4 w-4" />} {allow ? "الصور مسموحة" : "الصور مقفولة"}
+          </button>
+        )}
         {peer.phone && (
           <a href={`tel:${peer.phone}`} aria-label="اتصال" className="grid h-9 w-9 place-items-center rounded-full text-primary hover:bg-secondary">
             <Phone className="h-5 w-5" />
@@ -145,7 +200,13 @@ function ChatScreen() {
                         mine ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm bg-card text-foreground"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">{m.body}</p>
+                      {m.kind === "image" && m.attachment_path ? (
+                        <ChatImage path={m.attachment_path} onOpen={setViewer} />
+                      ) : m.kind === "rx" && m.payload ? (
+                        <RxCard rx={m.payload as RxPayload} />
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">{m.body}</p>
+                      )}
                       <div className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
                         {timeOf(m.created_at)}
                         {mine && (m.read_at ? <CheckCheck className="h-3.5 w-3.5 text-success" /> : <Check className="h-3.5 w-3.5" />)}
@@ -165,6 +226,17 @@ function ChatScreen() {
           onSubmit={(e) => { e.preventDefault(); void send(); }}
           className="flex items-end gap-2 bg-background px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
         >
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { void pickImage(e.target.files?.[0]); e.target.value = ""; }} />
+          {amClinic && (
+            <button type="button" onClick={() => setRxOpen(true)} aria-label="كتابة روشتة" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary text-primary">
+              <Pill className="h-5 w-5" />
+            </button>
+          )}
+          <button type="button" aria-label="إرسال صورة" disabled={uploading}
+            onClick={() => (amClinic || allow ? fileRef.current?.click() : toast("إرسال الصور متاح لما الطبيب يسمح بيه"))}
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary ${amClinic || allow ? "text-primary" : "text-muted-foreground opacity-60"}`}>
+            {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : amClinic || allow ? <Camera className="h-5 w-5" /> : <ImageOff className="h-5 w-5" />}
+          </button>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -183,6 +255,19 @@ function ChatScreen() {
             {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizontal className="h-5 w-5 rotate-180" />}
           </button>
         </form>
+      )}
+      {rxOpen && (
+        <RxComposer
+          defaults={{ patient: conv?.patient_name ?? "", doctor: clinicInfo.doctor, specialty: "", clinicAddress: clinicInfo.address, clinicPhone: clinicInfo.phone }}
+          onClose={() => setRxOpen(false)}
+          onSend={async (rx) => { const ok = await sendRx(id, rx); if (ok) { toast.success("اتبعتت الروشتة للمريض"); setMsgs(await loadMessages(id)); } else toast.error("تعذر إرسال الروشتة"); return ok; }}
+        />
+      )}
+      {viewer && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/90 p-3" onClick={() => setViewer("")}>
+          <button aria-label="إغلاق" className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-card/20 text-primary-foreground"><X className="h-6 w-6" /></button>
+          <img src={viewer} alt="" className="max-h-full max-w-full object-contain" />
+        </div>
       )}
     </div>
   );

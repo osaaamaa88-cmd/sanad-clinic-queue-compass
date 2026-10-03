@@ -22,6 +22,13 @@
       "when": 1791042456512,
       "tag": "0002_clinic_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791047176048,
+      "tag": "0003_chat_images_and_rx",
+      "breakpoints": true
     }
   ]
 }
