@@ -7,10 +7,7 @@ import {
   Hourglass,
   X,
   BookOpen,
-  Minus,
-  Plus,
   Printer,
-  Tv,
   RefreshCw,
   LogOut,
   Loader2,
@@ -250,85 +247,29 @@ function Reception() {
           بنعرض آخر نسخة محفوظة من الدفتر — اضغط 🔄 لإعادة التحميل.
         </p>
       )}
-      {/* Live queue number control */}
-      <div className="rounded-2xl border-2 border-border bg-card p-4 print:hidden">
-        <p className="text-center text-xs font-bold text-muted-foreground">رقم الدور الحالي المباشر</p>
-        <div className="mt-2 flex items-center justify-center gap-4">
-          <button
-            onClick={() => ops({ nowServing: Math.max(0, nowServing - 1) })}
-            aria-label="نقصان رقم الدور"
-            className="grid h-12 w-12 place-items-center rounded-2xl border border-border bg-secondary text-foreground"
-          >
-            <Minus className="h-5 w-5" />
-          </button>
-          <div className="min-w-24 text-center text-5xl font-black text-primary">{nowServing}</div>
-          <button
-            onClick={() => ops({ nowServing: nowServing + 1 })}
-            aria-label="زيادة رقم الدور"
-            className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-white shadow-soft"
-          >
-            <Plus className="h-5 w-5" />
-          </button>
+      {/* Live queue + TV screen: coming soon */}
+      <div className="rounded-2xl border-2 border-dashed border-border bg-card p-4 text-center print:hidden">
+        <div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-secondary text-muted-foreground">
+          <Hourglass className="h-5 w-5" />
         </div>
-
-        {/* Clinic status */}
-        <p className="mt-4 text-xs font-bold text-muted-foreground">حالة العيادة</p>
-        <div className="mt-2 grid grid-cols-3 gap-1.5">
-          {(["normal", "delayed", "paused"] as ClinicStatus[]).map((st) => (
-            <button
-              key={st}
-              onClick={() => ops({ clinicStatus: st, delayMinutes: st === "delayed" ? 15 : 0 })}
-              className={`rounded-xl py-2 text-[11px] font-bold ${
-                clinic?.clinicStatus === st
-                  ? st === "normal"
-                    ? "bg-success text-success-foreground"
-                    : st === "delayed"
-                      ? "bg-warning text-warning-foreground"
-                      : "bg-destructive text-destructive-foreground"
-                  : "border border-border bg-card text-foreground"
-              }`}
-            >
-              {clinicStatusLabels[st].dot}{" "}
-              {st === "delayed" ? "تأخير ١٥ دقيقة" : clinicStatusLabels[st].label}
-            </button>
-          ))}
-        </div>
-
-        {/* TV screen link */}
-        {clinic && (
-          <Link
-            to="/tv/$id"
-            params={{ id: clinic.id }}
-            target="_blank"
-            className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary py-2.5 text-xs font-bold"
-          >
-            <Tv className="h-4 w-4 text-primary" /> افتح شاشة صالة الانتظار (TV)
-          </Link>
-        )}
+        <p className="mt-2 text-sm font-extrabold">
+          الطابور المباشر وشاشة صالة الانتظار{" "}
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold">قريباً</span>
+        </p>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+          حالياً الدفتر للمرضى الحاضرين في العيادة فقط — سجّلهم يدوي واطبع كشف اليوم.
+        </p>
       </div>
 
       {/* Top controls */}
-      <div className="mt-3 grid grid-cols-2 gap-2 print:hidden">
+      <div className="mt-3 print:hidden">
         <button
           onClick={() => setShowAdd((v) => !v)}
-          className="flex items-center justify-center gap-2 rounded-2xl gradient-primary py-3 text-sm font-extrabold text-white shadow-soft"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-3 text-sm font-extrabold text-white shadow-soft"
         >
-          <UserPlus className="h-4 w-4" /> إضافة مريض يدوي
-        </button>
-        <button
-          onClick={() => ops({ bookingsClosed: !closed })}
-          className={`flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-extrabold ${
-            closed ? "bg-destructive text-destructive-foreground" : "border border-border bg-card text-foreground"
-          }`}
-        >
-          {closed ? "الحجز مقفول اليوم" : "إيقاف استقبال الحجوزات"}
+          <UserPlus className="h-4 w-4" /> إضافة مريض حاضر
         </button>
       </div>
-      {closed && (
-        <p className="mt-2 rounded-xl bg-destructive/10 px-3 py-2 text-center text-[11px] font-bold text-destructive print:hidden">
-          استقبال الحجوزات موقوف لليوم — اضغط الزر تاني لفتحه.
-        </p>
-      )}
       <button
         onClick={() => window.print()}
         className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 text-sm font-extrabold print:hidden"
