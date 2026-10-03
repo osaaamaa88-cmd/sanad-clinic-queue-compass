@@ -10,3 +10,5 @@
 
 - [x] Search/map upgrade: GPS recenter, auto-fit, open-now filter, directions, book CTA
 - [x] Test the doctor search section end-to-end
+- [x] Patient bottom navigation: home, search, emergency, account
+- [x] Move health indicators and medication reminders into the patient account

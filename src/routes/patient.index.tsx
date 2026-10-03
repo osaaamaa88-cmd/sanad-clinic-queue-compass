@@ -1,8 +1,6 @@
-import { CircleUser } from "lucide-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import { Accessibility, Activity, Apple, ArrowLeft, AudioLines, Baby, BadgePlus, Bone, Brain, Building2, Clock, Droplets, Ear, Eye, FlaskConical, Globe2, HeartPulse, Hospital, HouseHeart, MapPin, Mars, MessageCircleHeart, PersonStanding, Pill, Ribbon, ScanLine, Scissors, Search, Siren, Sparkles, Star, Venus, WandSparkles, X } from "lucide-react";
+import { Accessibility, Activity, Apple, ArrowLeft, AudioLines, Baby, BadgePlus, Bone, Brain, Building2, Clock, Droplets, Ear, Eye, FlaskConical, Globe2, HeartPulse, Hospital, HouseHeart, MapPin, Mars, MessageCircleHeart, PersonStanding, Ribbon, ScanLine, Scissors, Search, Sparkles, Star, Venus, WandSparkles, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -74,7 +72,7 @@ function PatientHome() {
       title="أهلاً بك في سَنَد"
       subtitle="SANAD — سندك الطبي في كل وقت"
       tone="primary"
-      right={<><Link to="/patient/login" aria-label="حسابي" className="grid h-10 w-10 place-items-center rounded-full bg-secondary"><CircleUser className="h-5 w-5" /></Link><NotificationsBell audience="patient" /></>}
+      right={<NotificationsBell audience="patient" />}
       wide
       hideBack
       centeredTitle
@@ -128,12 +126,6 @@ function PatientHome() {
         </div>
       </section>
 
-      <section className="mt-6 grid gap-3 md:grid-cols-3">
-        <ServiceCard to="/patient/emergency" icon={<Siren />} title="طوارئ وعيادات مفتوحة" description="مساعدة طبية واتصال سريع 24 ساعة" tone="danger" />
-        <ServiceCard to="/patient/health" icon={<Activity />} title="مؤشرات الصحة" description="تابع الضغط والسكر وسجّل قراءاتك" tone="primary" />
-        <ServiceCard to="/patient/meds" icon={<Pill />} title="مواعيد الأدوية" description="نظّم الجرعات ولا تفوّت دواءك" tone="warning" />
-      </section>
-
       <section className="mt-8">
         <div className="flex items-center justify-between"><h2 className="text-lg font-extrabold">اختار التخصص</h2><Button type="button" variant="link" size="sm" onClick={() => setSpecialtiesOpen(true)} className="h-auto p-0 text-xs font-bold">شوف الكل</Button></div>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
@@ -176,11 +168,6 @@ function PatientHome() {
       {viewer && <StoryViewer items={viewer.items} title={viewer.clinic.doctor} onClose={() => setViewer(null)} />}
     </AppShell>
   );
-}
-
-function ServiceCard({ to, icon, title, description, tone }: { to: "/patient/emergency" | "/patient/health" | "/patient/meds"; icon: ReactNode; title: string; description: string; tone: "danger" | "primary" | "warning" }) {
-  const toneClasses = tone === "danger" ? "border-destructive/35 bg-destructive/10 text-destructive" : tone === "warning" ? "border-warning/30 bg-warning/10 text-warning" : "border-primary/35 bg-primary-soft/30 text-primary";
-  return <Link to={to} className={`group flex min-h-32 items-start gap-3 rounded-2xl border p-4 transition hover:-translate-y-0.5 hover:shadow-soft ${toneClasses}`}><span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-card [&_svg]:h-6 [&_svg]:w-6">{icon}</span><span className="min-w-0 flex-1"><span className="block font-extrabold text-foreground">{title}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{description}</span></span></Link>;
 }
 
 const specialtyIcons: Record<string, typeof Activity> = {
