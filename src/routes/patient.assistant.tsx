@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -7,8 +6,7 @@ import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, type PatientLocation } from "@/lib/patient-location";
 import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
-import { triageNeed } from "@/lib/triage.functions";
-import type { TriageResult } from "@/lib/triage.functions";
+import { runLocalTriage, type TriageResult } from "@/lib/triage-local";
 
 export const Route = createFileRoute("/patient/assistant")({
   head: () => ({
@@ -27,7 +25,6 @@ export const Route = createFileRoute("/patient/assistant")({
 const examples = ["سناني بتوجعني ولثتي وارمة", "ابني عنده سخونية وكحة من يومين", "ركبتي بتوجعني لما بطلع السلم"];
 
 function Assistant() {
-  const triage = useServerFn(triageNeed);
   const [need, setNeed] = useState("");
   const [loc, setLoc] = useState<PatientLocation>(defaultLocation);
   const [picker, setPicker] = useState(false);
@@ -43,18 +40,8 @@ function Assistant() {
 
   async function submit() {
     if (need.trim().length < 3 || loading) return;
-    setLoading(true);
     setError(null);
-    setResult(null);
-    try {
-      const r = await triage({ data: { need, location: `${loc.name}، ${loc.city}` } });
-      if (r.ok) setResult(r.result);
-      else setError(r.error);
-    } catch {
-      setError("تعذّر الاتصال، تأكد من الإنترنت وجرّب تاني.");
-    } finally {
-      setLoading(false);
-    }
+    setResult(runLocalTriage(need));
   }
 
   const matches = result
