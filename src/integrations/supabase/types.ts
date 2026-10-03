@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          broadcast: string
+          broadcast_tone: string
+          id: number
+          maintenance: boolean
+          updated_at: string
+        }
+        Insert: {
+          broadcast?: string
+          broadcast_tone?: string
+          id?: number
+          maintenance?: boolean
+          updated_at?: string
+        }
+        Update: {
+          broadcast?: string
+          broadcast_tone?: string
+          id?: number
+          maintenance?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           clinic_id: string
@@ -490,6 +514,7 @@ export type Database = {
           doctor: string
           id: string
           is_disabled: boolean
+          is_featured: boolean
           is_verified: boolean
           lat: number
           lng: number
@@ -505,6 +530,7 @@ export type Database = {
           waiting_count: number
           working_hours: string
           your_number: number
+          youtube_url: string
         }
         Insert: {
           address?: string
@@ -521,6 +547,7 @@ export type Database = {
           doctor: string
           id?: string
           is_disabled?: boolean
+          is_featured?: boolean
           is_verified?: boolean
           lat?: number
           lng?: number
@@ -536,6 +563,7 @@ export type Database = {
           waiting_count?: number
           working_hours?: string
           your_number?: number
+          youtube_url?: string
         }
         Update: {
           address?: string
@@ -552,6 +580,7 @@ export type Database = {
           doctor?: string
           id?: string
           is_disabled?: boolean
+          is_featured?: boolean
           is_verified?: boolean
           lat?: number
           lng?: number
@@ -567,6 +596,7 @@ export type Database = {
           waiting_count?: number
           working_hours?: string
           your_number?: number
+          youtube_url?: string
         }
         Relationships: []
       }
