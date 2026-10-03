@@ -15,6 +15,13 @@
       "when": 1790986226869,
       "tag": "0001_delete_registered_doctors_data",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791042456512,
+      "tag": "0002_clinic_chat",
+      "breakpoints": true
     }
   ]
 }

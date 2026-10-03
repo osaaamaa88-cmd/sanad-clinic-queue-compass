@@ -64,6 +64,44 @@ export type Database = {
           },
         ]
       }
+      clinic_conversations: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          id: string
+          last_message: string
+          last_message_at: string
+          patient_id: string
+          patient_name: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          id?: string
+          last_message?: string
+          last_message_at?: string
+          patient_id: string
+          patient_name?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          last_message?: string
+          last_message_at?: string
+          patient_id?: string
+          patient_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_conversations_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_followers: {
         Row: {
           clinic_id: string
@@ -127,6 +165,44 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+          sender_role: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+          sender_role?: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -600,7 +676,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_access_conversation: {
+        Args: { _conv: string; _user: string }
+        Returns: boolean
+      }
+      is_clinic_member: {
+        Args: { _clinic_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
