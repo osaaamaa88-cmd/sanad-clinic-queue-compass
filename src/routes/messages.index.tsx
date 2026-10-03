@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { currentUserId, listConversations, unreadCounts, type Conversation } from "@/lib/chat";
 
 export const Route = createFileRoute("/messages/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "الرسائل — سَنَد" },

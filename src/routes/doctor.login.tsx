@@ -8,6 +8,7 @@ import { specialties, getMyClinicMembership, registerDoctorAccount, signOutStaff
 import { getCachedProfile, saveCachedProfile } from "@/lib/user-profile-cache";
 
 export const Route = createFileRoute("/doctor/login")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "دخول الطبيب — سَنَد" },

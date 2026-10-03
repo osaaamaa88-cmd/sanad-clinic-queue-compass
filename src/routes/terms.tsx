@@ -3,6 +3,7 @@ import { ShieldAlert } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/terms")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "شروط الاستخدام وإخلاء المسؤولية — سَنَد" },

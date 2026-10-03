@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useRef } from "react";
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — سندك الطبي في كل وقت" },
@@ -47,7 +48,7 @@ function Landing() {
             <HeartPulse className="h-6 w-6" />
           </button>
           <div>
-            <h1 className="text-2xl font-extrabold">سَنَد</h1>
+            <h1 className="text-2xl font-extrabold">سَنَد <span className="sr-only">— دليلك للعيادات والأطباء في مصر</span></h1>
             <p className="text-sm text-muted-foreground">سندك الطبي في كل وقت</p>
           </div>
         </div>

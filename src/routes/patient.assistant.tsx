@@ -9,6 +9,7 @@ import { specialtyIcons } from "@/lib/specialty-icons";
 import { runLocalTriage, type TriageResult } from "@/lib/triage-local";
 
 export const Route = createFileRoute("/patient/assistant")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — المساعد الذكي لاختيار الطبيب" },

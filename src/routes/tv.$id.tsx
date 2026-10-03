@@ -4,6 +4,7 @@ import { RefreshCw } from "lucide-react";
 import { getClinicById, getSpecialty, subscribeClinic, clinicStatusLabels, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/tv/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "شاشة صالة الانتظار — سَنَد" },

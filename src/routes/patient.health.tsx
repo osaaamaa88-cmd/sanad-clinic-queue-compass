@@ -4,6 +4,7 @@ import { Activity, Droplet, Heart, Save, Siren, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/patient/health")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — حاسبة ومؤشرات الصحة" },

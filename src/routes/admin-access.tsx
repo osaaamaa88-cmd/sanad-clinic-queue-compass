@@ -37,6 +37,7 @@ import { checkAdminUnlocked, unlockAdmin } from "@/lib/admin-gate.functions";
 import { saveAdminToken } from "@/lib/admin-token";
 
 export const Route = createFileRoute("/admin-access")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [{ title: "سَنَد — لوحة الأدمن" }] }),
   component: Admin,
 });
