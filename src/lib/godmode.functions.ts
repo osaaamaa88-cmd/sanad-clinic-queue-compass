@@ -54,7 +54,7 @@ export const godSetSettings = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const sb = await admin();
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const patch: { updated_at: string; maintenance?: boolean; broadcast?: string; broadcast_tone?: string } = { updated_at: new Date().toISOString() };
     if (data.maintenance !== undefined) patch.maintenance = data.maintenance;
     if (data.broadcast !== undefined) patch.broadcast = data.broadcast;
     if (data.tone) patch.broadcast_tone = data.tone;
@@ -149,7 +149,7 @@ export const godUpdateBooking = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const sb = await admin();
-    const patch: Record<string, string> = {};
+    const patch: { status?: string; day_label?: string; slot?: string } = {};
     if (data.status) patch.status = data.status;
     if (data.dayLabel !== undefined) patch.day_label = data.dayLabel;
     if (data.slot !== undefined) patch.slot = data.slot;
