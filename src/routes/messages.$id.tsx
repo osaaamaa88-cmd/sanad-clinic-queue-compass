@@ -18,7 +18,13 @@ function RxCard({ rx }: { rx: RxPayload }) {
     <div className="w-64 rounded-xl bg-background p-3 text-foreground">
       <div className="flex items-center gap-2 border-b border-border pb-2"><FileText className="h-5 w-5 text-primary" /><b>روشتة — {rx.doctor}</b></div>
       <p className="mt-1 text-xs text-muted-foreground">{rx.patient} · {rx.date}{rx.diagnosis ? ` · ${rx.diagnosis}` : ""}</p>
-      <ol className="mt-2 space-y-1 text-sm">{rx.items.map((it, i) => <li key={i}><b dir="ltr">{it.name}</b><div className="text-xs text-muted-foreground">{it.dose}</div></li>)}</ol>
+      <p className="mt-2 font-serif text-2xl font-bold italic text-primary">℞</p>
+      <ol className="divide-y divide-dashed divide-border text-sm">{rx.items.map((it, i) => (
+        <li key={i} className="py-2">
+          <div className="flex items-center gap-2" dir="ltr"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">{i + 1}</span><b className="text-[15px]">{it.name}</b></div>
+          <div className="mt-0.5 text-xs font-semibold text-primary">{it.dose}</div>
+        </li>
+      ))}</ol>
       {rx.tests && <p className="mt-2 text-xs"><b>تحاليل:</b> {rx.tests}</p>}
       {rx.advice && <p className="mt-1 text-xs"><b>تعليمات:</b> {rx.advice}</p>}
       <button type="button" onClick={() => printRx(rx)} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary/10 py-2 text-sm font-bold text-primary"><Printer className="h-4 w-4" /> طباعة / حفظ PDF</button>
