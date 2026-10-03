@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Brand identity is **سَنَد | SANAD**; use `sanad` for technical namespaces and `com.sanad.app` for the mobile bundle ID. This keeps customer-facing and platform identity consistent.
+- Patient routes share a fixed bottom navigation through `AppShell`; keep health and medication tools grouped under the account destination.

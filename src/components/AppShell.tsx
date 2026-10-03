@@ -1,7 +1,8 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PatientBottomNav } from "@/components/PatientBottomNav";
 
 export function AppShell({
   title,
@@ -27,6 +28,7 @@ export function AppShell({
   centeredTitle?: boolean;
 }) {
   const isPrimary = tone === "primary";
+  const showPatientNav = useRouterState({ select: (state) => state.location.pathname.startsWith("/patient") });
   return (
     <div className="min-h-screen bg-background">
       <div className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-md sm:max-w-xl lg:max-w-2xl"}`}>
@@ -59,8 +61,9 @@ export function AppShell({
             {showThemeToggle && <ThemeToggle className={isPrimary ? "border-primary-foreground/25 bg-primary-foreground/15 text-primary-foreground" : ""} />}
           </div>
         </header>
-        <main className={`px-4 py-4 pb-24 sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}>{children}</main>
+        <main className={`px-4 py-4 ${showPatientNav ? "pb-28" : "pb-24"} sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}>{children}</main>
       </div>
+      {showPatientNav && <PatientBottomNav />}
     </div>
   );
 }
