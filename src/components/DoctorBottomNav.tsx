@@ -44,7 +44,7 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
     { key: "profile", label: "عيادتي", icon: Stethoscope, active: pathname.startsWith("/patient/clinic/") || pathname.startsWith("/doctor"), node: clinicId ? { to: "/patient/clinic/$id" as const, params: { id: clinicId } } : { to: "/doctor" as const } },
     { key: "msgs", label: "الرسائل", icon: MessagesSquare, active: pathname.startsWith("/messages"), node: { to: "/messages" as const }, badge: unread },
     { key: "rx" },
-    { key: "queue", label: "الطابور", icon: ListOrdered, active: pathname.startsWith("/reception"), node: { to: "/reception" as const } },
+    { key: "queue", label: "الطابور", icon: ListOrdered, active: false, soon: true },
     { key: "settings", label: "الإعدادات", icon: Settings, active: pathname.startsWith("/doctor-settings"), node: { to: "/doctor-settings" as const } },
   ];
 
@@ -64,6 +64,17 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
               );
             }
             const Icon = it.icon!;
+            if ((it as { soon?: boolean }).soon) {
+              return (
+                <button key={it.key} type="button" onClick={() => alert("إدارة الطابور والحجوزات قريباً ⏳")} className="relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold text-muted-foreground opacity-70">
+                  <span className="relative grid h-8 w-11 place-items-center rounded-xl">
+                    <Icon className="h-5 w-5" />
+                    <span className="absolute -top-1.5 -left-2 rounded-full bg-secondary px-1 text-[8px] font-extrabold text-foreground">قريباً</span>
+                  </span>
+                  {it.label}
+                </button>
+              );
+            }
             return (
               <Link
                 key={it.key}

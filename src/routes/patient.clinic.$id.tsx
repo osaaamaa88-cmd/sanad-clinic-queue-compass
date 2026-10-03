@@ -827,8 +827,13 @@ function ClinicDetail() {
               )}
             </div>
 
-            {/* Verified review form */}
             {!isOwner && (
+              <p className="mt-3 rounded-xl border border-dashed border-border p-3 text-center text-[11px] font-bold text-muted-foreground">
+                التقييم بكود الحجز قريباً ⏳
+              </p>
+            )}
+            {/* Verified review form (coming soon) */}
+            {false && !isOwner && (
               <div className="mt-3 rounded-xl border border-dashed border-border p-3">
                 <p className="text-xs font-extrabold">قيّم الطبيب بعد الكشف</p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
