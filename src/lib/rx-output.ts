@@ -56,8 +56,63 @@ export function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
   return c;
 }
 
+
+const GOLD = "#b08d57", INK = "#3a3a3a";
+/** Gold "real clinic paper" design used for the downloaded image. */
+export function renderRxFancy(rx: RxPayload): HTMLCanvasElement {
+  const W = 1000, P = 56;
+  const m = document.createElement("canvas").getContext("2d")!;
+  const wrap = (t: string, font: string, max: number) => {
+    m.font = font; const out: string[] = []; let cur = "";
+    for (const w of t.split(" ")) { const n = cur ? `${cur} ${w}` : w; if (m.measureText(n).width > max && cur) { out.push(cur); cur = w; } else cur = n; }
+    out.push(cur); return out;
+  };
+  const F = (sz: number, b = false) => `${b ? "bold " : ""}${sz}px Cairo, Tahoma, Arial, sans-serif`;
+  type Op = (g: CanvasRenderingContext2D, y: number) => void;
+  const ops: { h: number; draw: Op }[] = [];
+  const text = (t: string, sz: number, opt: { b?: boolean; c?: string; ltr?: boolean; x?: number; max?: number } = {}) => {
+    for (const line of wrap(t, F(sz, opt.b), opt.max ?? W - P * 2)) ops.push({ h: sz * 1.55, draw: (g, y) => {
+      g.font = F(sz, opt.b); g.fillStyle = opt.c ?? INK; g.direction = opt.ltr ? "ltr" : "rtl"; g.textAlign = opt.ltr ? "left" : "right";
+      g.fillText(line, opt.ltr ? (opt.x ?? P) : W - (opt.x ?? P), y + sz * 1.15);
+    } });
+  };
+  const bar = () => ops.push({ h: 26, draw: (g, y) => { const gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, GOLD); gr.addColorStop(.5, "#c9a96e"); gr.addColorStop(1, GOLD); g.fillStyle = gr; g.fillRect(0, y + 8, W, 10); } });
+  const gap = (h: number) => ops.push({ h, draw: () => {} });
+  const doc = rx.doctor.trim().startsWith("د") ? rx.doctor : `د/ ${rx.doctor}`;
+  const dental = /أسنان|اسنان|dental|dent/i.test(`${rx.specialty} ${rx.doctor}`);
+  gap(24); text(doc, 44, { b: true }); if (rx.specialty) text(rx.specialty, 28, { c: "#555" });
+  ops.push({ h: 0, draw: (g) => { g.font = "bold 22px Arial"; g.fillStyle = "#222"; g.textAlign = "left"; g.direction = "ltr"; g.fillText(dental ? "DENTAL CLINIC" : "MEDICAL CLINIC", P, 120); g.font = "64px serif"; g.fillStyle = GOLD; g.fillText(dental ? "🦷" : "✚", P + 40, 80); } });
+  gap(12); bar(); gap(14);
+  const field = (label: string, val: string) => ops.push({ h: 50, draw: (g, y) => {
+    g.direction = "ltr"; g.textAlign = "left"; g.font = F(24, true); g.fillStyle = GOLD; g.fillText(`• ${label}`, P, y + 34);
+    g.font = F(26, true); g.fillStyle = "#222"; g.fillText(val, P + 170, y + 32);
+    g.fillStyle = "#999"; for (let x = P + 165; x < W - P - 200; x += 9) g.fillRect(x, y + 42, 3, 3);
+  } });
+  field("Name", rx.patient); field("Date", rx.date); if (rx.age) field("Age", rx.age); if (rx.diagnosis) field("Diagnosis", rx.diagnosis);
+  gap(10); ops.push({ h: 80, draw: (g, y) => { g.font = "italic 72px 'Great Vibes', Georgia, serif"; g.fillStyle = GOLD; g.direction = "ltr"; g.textAlign = "left"; g.fillText("R /", P, y + 66); } });
+  rx.items.forEach((it, i) => {
+    ops.push({ h: 52, draw: (g, y) => { g.fillStyle = GOLD; g.beginPath(); g.arc(P + 16, y + 28, 16, 0, Math.PI * 2); g.fill(); g.fillStyle = "#fff"; g.font = F(18, true); g.textAlign = "center"; g.direction = "ltr"; g.fillText(String(i + 1), P + 16, y + 35); g.textAlign = "left"; g.font = "800 32px 'Open Sans', Arial, sans-serif"; g.fillStyle = "#222"; g.fillText(it.name, P + 46, y + 40); } });
+    text(it.dose, 26, { b: true, c: "#7a5f33", x: P + 10 });
+    if (it.notes) text(it.notes, 22, { c: "#666", x: P + 10 });
+    if (i < rx.items.length - 1) ops.push({ h: 18, draw: (g, y) => { g.fillStyle = "#cbbd9f"; for (let x = P; x < W - P; x += 14) g.fillRect(x, y + 8, 7, 2); } });
+  });
+  const box = (label: string, val: string) => { gap(12); text(`${label}: ${val}`, 23, { c: "#5a4626", x: P + 14 }); };
+  if (rx.tests) box("تحاليل / أشعة", rx.tests); if (rx.advice) box("تعليمات", rx.advice);
+  gap(40); bar(); gap(6);
+  if (rx.clinicAddress) text(`العنوان: ${rx.clinicAddress}`, 23, { b: true });
+  if (rx.clinicHours) text(`مواعيد العمل: ${rx.clinicHours}`, 23);
+  if (rx.clinicPhone) text(`${rx.clinicPhone}  :للحجز والاستعلام`, 26, { b: true, c: GOLD });
+  gap(6); text("صادرة عبر سَنَد | SANAD — منظومتك الطبية", 19, { c: "#8a8a8a" }); gap(20);
+  const H = Math.ceil(ops.reduce((a, o) => a + o.h, 0));
+  const c = document.createElement("canvas"); c.width = W; c.height = Math.max(H, 1300);
+  const g = c.getContext("2d")!; g.fillStyle = "#fff"; g.fillRect(0, 0, W, c.height);
+  g.save(); g.globalAlpha = .07; g.font = "520px serif"; g.fillStyle = GOLD; g.textAlign = "center"; g.fillText(dental ? "🦷" : "✚", W / 2, c.height / 2 + 180); g.restore();
+  let y = 0; for (const o of ops) { o.draw(g, y); y += o.h; }
+  return c;
+}
+
 export async function downloadRx(rx: RxPayload): Promise<"shared" | "downloaded"> {
-  const c = renderRxCanvas(rx, 1000);
+  const c = renderRxFancy(rx);
   const blob: Blob = await new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("blob"))), "image/png"));
   const name = `roshta-${(rx.patient || "patient").replace(/\s+/g, "-")}.png`;
   const file = new File([blob], name, { type: "image/png" });
