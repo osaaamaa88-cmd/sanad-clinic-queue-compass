@@ -369,6 +369,7 @@ function ClinicDetail() {
                   <BadgeCheck className="h-4 w-4 text-white" />
                 </span>
               )}
+            </div>
           </div>
           <div className="grid flex-1 grid-cols-3 text-center">
             <Stat value={String(extras?.postsCount ?? 0)} label="منشور" />
