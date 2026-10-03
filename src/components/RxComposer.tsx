@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Bluetooth, Download, Loader2, Plus, Printer, Send, Star, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { downloadRx, printRxBluetooth } from "@/lib/rx-output";
-import { DOSE_PRESETS, addFavorite, getFavorites, searchDrugs } from "@/lib/egypt-drugs";
+import { DOSE_PRESETS, addFavorite, doseForForm, getFavorites, searchDrugs } from "@/lib/egypt-drugs";
 import type { RxItem, RxPayload } from "@/lib/chat";
 
 const esc = (s = "") => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -49,10 +49,11 @@ export function RxComposer({ defaults, onClose, onSend }: {
   const [favs, setFavs] = useState<string[]>(() => getFavorites());
   const results = searchDrugs(q);
 
-  const add = (name: string) => {
+  const add = (name: string, form?: string) => {
     const n = name.trim();
     if (!n) return;
-    setItems((p) => [...p, { name: n, dose }]);
+    const d = (form && dose === DOSE_PRESETS[0] && doseForForm(form)) || dose;
+    setItems((p) => [...p, { name: n, dose: d }]);
     addFavorite(n); setFavs(getFavorites()); setQ("");
   };
   const build = (): RxPayload => ({ ...defaults, patient, age, diagnosis, items, advice, tests, date: new Date().toLocaleDateString("ar-EG") });
@@ -60,8 +61,8 @@ export function RxComposer({ defaults, onClose, onSend }: {
 
   const input = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary";
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center" onClick={onClose}>
-      <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-card p-4 sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 sm:items-center" onClick={onClose}>
+      <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-card p-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-extrabold">💊 روشتة جديدة</h2>
           <button onClick={onClose} aria-label="إغلاق" className="grid h-9 w-9 place-items-center rounded-full hover:bg-secondary"><X className="h-5 w-5" /></button>
@@ -78,13 +79,13 @@ export function RxComposer({ defaults, onClose, onSend }: {
         </select>
 
         <div className="relative mt-2">
-          <input dir="ltr" className={input} placeholder="ابحث عن دواء… (Aug, Panadol)" value={q}
+          <input dir="ltr" className={input} placeholder="ابحث بالاسم أو المادة… (Aug, بانادول)" value={q}
             onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(q); } }} />
           {(results.length > 0 || q.trim().length >= 2) && (
             <div className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
               {results.map((d) => (
-                <button key={d.n} type="button" onClick={() => add(d.n)} className="block w-full px-3 py-2 text-start hover:bg-secondary" dir="ltr">
-                  <span className="font-bold">{d.n}</span> <span className="text-xs text-muted-foreground">— {d.a} · {d.f}</span>
+                <button key={d.n} type="button" onClick={() => add(d.n, d.f)} className="block w-full px-3 py-2 text-start hover:bg-secondary" dir="ltr">
+                  <span className="font-bold">{d.n}</span>{d.ar && <span className="ms-1 text-xs text-primary" dir="rtl">({d.ar})</span>} <span className="text-xs text-muted-foreground">— {d.a} · {d.f}</span>
                 </button>
               ))}
               <button type="button" onClick={() => add(q)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-secondary">
