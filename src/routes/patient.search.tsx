@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope, Search as SearchIcon, X, ArrowDownAZ, BadgeCheck, Users, ChevronLeft } from "lucide-react";
+import { Map as MapIcon, List, MapPin, Star, Clock, Stethoscope, Search as SearchIcon, X, ArrowDownAZ, BadgeCheck, Users, ChevronLeft, Navigation } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ClinicsMap } from "@/components/ClinicsMap";
 import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
@@ -9,8 +9,12 @@ import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/li
 export const Route = createFileRoute("/patient/search")({
   head: () => ({
     meta: [
-      { title: "سَنَد — العيادات القريبة" },
-      { name: "description", content: "شوف أقرب العيادات على الخريطة وقائمة بالأسعار والتقييمات." },
+      { title: "سَنَد — ابحث عن عيادة قريبة" },
+      { name: "description", content: "شوف أقرب العيادات على الخريطة وقائمة بالأسعار والتقييمات واحجز دورك." },
+      { property: "og:title", content: "سَنَد — ابحث عن عيادة قريبة" },
+      { property: "og:description", content: "شوف أقرب العيادات على الخريطة واحجز دورك وتابعه لحظياً." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Search,
@@ -22,6 +26,7 @@ function Search() {
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
+  const [openNow, setOpenNow] = useState(false);
   const [selected, setSelected] = useState<Clinic | null>(null);
   const [pos, setPos] = useState<{ lat: number; lng: number }>({ lat: 30.0444, lng: 31.2357 });
   useEffect(() => {
@@ -45,6 +50,7 @@ function Search() {
     const term = q.trim().toLowerCase();
     let list = clinics;
     if (spec) list = list.filter((c) => c.specialtyId === spec);
+    if (openNow) list = list.filter((c) => c.availableNow);
     if (term) {
       list = list.filter((c) => {
         const s = getSpecialty(c.specialtyId);
@@ -62,7 +68,7 @@ function Search() {
     else if (sort === "rating") sorted.sort((a, b) => b.rating - a.rating);
     else sorted.sort((a, b) => a.distanceKm - b.distanceKm);
     return sorted;
-  }, [clinics, spec, q, sort]);
+  }, [clinics, spec, q, sort, openNow]);
 
   return (
     <AppShell title="العيادات القريبة" subtitle={`${filtered.length} عيادة حواليك`} backTo="/patient">
@@ -85,6 +91,14 @@ function Search() {
       {/* Sort */}
       <div className="mt-3 -mx-5 overflow-x-auto px-5">
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setOpenNow((v) => !v)}
+            className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${
+              openNow ? "bg-success text-success-foreground" : "bg-secondary text-foreground"
+            }`}
+          >
+            🟢 متاح الآن
+          </button>
           <span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground">
             <ArrowDownAZ className="h-3 w-3" /> ترتيب:
           </span>
@@ -229,6 +243,9 @@ function Search() {
                       {c.price} ج
                     </span>
                   </div>
+                  <span className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl gradient-primary py-2.5 text-sm font-extrabold text-primary-foreground shadow-soft">
+                    احجز دورك الآن <ChevronLeft className="h-4 w-4" />
+                  </span>
                 </div>
               </div>
             </Link>
@@ -295,13 +312,25 @@ function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void 
             <div className="text-[10px] text-muted-foreground">التقييم</div>
           </div>
         </div>
-        <Link
-          to="/patient/clinic/$id"
-          params={{ id: clinic.id }}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft"
-        >
-          عرض البروفايل والحجز <ChevronLeft className="h-5 w-5" />
-        </Link>
+        <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-2">
+          {clinic.lat && clinic.lng ? (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.lat},${clinic.lng}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary px-4 py-4 text-sm font-bold"
+            >
+              <Navigation className="h-4 w-4" /> الاتجاهات
+            </a>
+          ) : <span />}
+          <Link
+            to="/patient/clinic/$id"
+            params={{ id: clinic.id }}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-primary-foreground shadow-soft"
+          >
+            احجز دورك <ChevronLeft className="h-5 w-5" />
+          </Link>
+        </div>
       </div>
     </div>
     </>

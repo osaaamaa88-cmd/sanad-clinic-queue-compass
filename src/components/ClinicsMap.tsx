@@ -34,7 +34,7 @@ export function ClinicsMap({
         zoomControl: false,
         attributionControl: false,
       });
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(map);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, className: "sanad-dark-tiles" }).addTo(map);
       layerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       meRef.current = L.marker([center.lat, center.lng], {
@@ -111,8 +111,9 @@ export function ClinicsMap({
   const recenter = () => mapRef.current?.setView([center.lat, center.lng], 15);
 
   return (
-    <div className="relative">
+    <div className="relative isolate">
       <div ref={containerRef} className="h-[60vh] w-full" dir="ltr" />
+      <span className="pointer-events-none absolute bottom-1 right-2 z-[500] text-[9px] text-muted-foreground" dir="ltr">© OpenStreetMap</span>
       <button
         type="button"
         onClick={recenter}

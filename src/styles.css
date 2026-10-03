@@ -285,3 +285,5 @@
   animation: sheet-down 0.22s ease-in forwards;
   will-change: transform;
 }
+
+.sanad-dark-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9); }
