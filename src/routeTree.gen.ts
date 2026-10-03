@@ -16,6 +16,7 @@ import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as AdminAccessRouteImport } from './routes/admin-access'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PatientIndexRouteImport } from './routes/patient.index'
+import { Route as MessagesIndexRouteImport } from './routes/messages.index'
 import { Route as DoctorIndexRouteImport } from './routes/doctor.index'
 import { Route as TvIdRouteImport } from './routes/tv.$id'
 import { Route as PatientSearchRouteImport } from './routes/patient.search'
@@ -25,6 +26,7 @@ import { Route as PatientHealthRouteImport } from './routes/patient.health'
 import { Route as PatientEmergencyRouteImport } from './routes/patient.emergency'
 import { Route as PatientAssistantRouteImport } from './routes/patient.assistant'
 import { Route as PPostIdRouteImport } from './routes/p.$postId'
+import { Route as MessagesIdRouteImport } from './routes/messages.$id'
 import { Route as DoctorLoginRouteImport } from './routes/doctor.login'
 import { Route as PatientQueueIdRouteImport } from './routes/patient.queue.$id'
 import { Route as PatientClinicIdRouteImport } from './routes/patient.clinic.$id'
@@ -62,6 +64,11 @@ const IndexRoute = IndexRouteImport.update({
 const PatientIndexRoute = PatientIndexRouteImport.update({
   id: '/patient/',
   path: '/patient/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesIndexRoute = MessagesIndexRouteImport.update({
+  id: '/messages/',
+  path: '/messages/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DoctorIndexRoute = DoctorIndexRouteImport.update({
@@ -109,6 +116,11 @@ const PPostIdRoute = PPostIdRouteImport.update({
   path: '/p/$postId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MessagesIdRoute = MessagesIdRouteImport.update({
+  id: '/messages/$id',
+  path: '/messages/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DoctorLoginRoute = DoctorLoginRouteImport.update({
   id: '/doctor/login',
   path: '/doctor/login',
@@ -133,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
   '/patient/emergency': typeof PatientEmergencyRoute
@@ -142,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
   '/doctor/': typeof DoctorIndexRoute
+  '/messages/': typeof MessagesIndexRoute
   '/patient/': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
@@ -154,6 +168,7 @@ export interface FileRoutesByTo {
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
   '/patient/emergency': typeof PatientEmergencyRoute
@@ -163,6 +178,7 @@ export interface FileRoutesByTo {
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
   '/doctor': typeof DoctorIndexRoute
+  '/messages': typeof MessagesIndexRoute
   '/patient': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
@@ -176,6 +192,7 @@ export interface FileRoutesById {
   '/reception': typeof ReceptionRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
   '/patient/emergency': typeof PatientEmergencyRoute
@@ -185,6 +202,7 @@ export interface FileRoutesById {
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
   '/doctor/': typeof DoctorIndexRoute
+  '/messages/': typeof MessagesIndexRoute
   '/patient/': typeof PatientIndexRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
@@ -199,6 +217,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/terms'
     | '/doctor/login'
+    | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
     | '/patient/emergency'
@@ -208,6 +227,7 @@ export interface FileRouteTypes {
     | '/patient/search'
     | '/tv/$id'
     | '/doctor/'
+    | '/messages/'
     | '/patient/'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
@@ -220,6 +240,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/terms'
     | '/doctor/login'
+    | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
     | '/patient/emergency'
@@ -229,6 +250,7 @@ export interface FileRouteTypes {
     | '/patient/search'
     | '/tv/$id'
     | '/doctor'
+    | '/messages'
     | '/patient'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
@@ -241,6 +263,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/terms'
     | '/doctor/login'
+    | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
     | '/patient/emergency'
@@ -250,6 +273,7 @@ export interface FileRouteTypes {
     | '/patient/search'
     | '/tv/$id'
     | '/doctor/'
+    | '/messages/'
     | '/patient/'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
@@ -263,6 +287,7 @@ export interface RootRouteChildren {
   ReceptionRoute: typeof ReceptionRoute
   TermsRoute: typeof TermsRoute
   DoctorLoginRoute: typeof DoctorLoginRoute
+  MessagesIdRoute: typeof MessagesIdRoute
   PPostIdRoute: typeof PPostIdRoute
   PatientAssistantRoute: typeof PatientAssistantRoute
   PatientEmergencyRoute: typeof PatientEmergencyRoute
@@ -272,6 +297,7 @@ export interface RootRouteChildren {
   PatientSearchRoute: typeof PatientSearchRoute
   TvIdRoute: typeof TvIdRoute
   DoctorIndexRoute: typeof DoctorIndexRoute
+  MessagesIndexRoute: typeof MessagesIndexRoute
   PatientIndexRoute: typeof PatientIndexRoute
   PatientClinicIdRoute: typeof PatientClinicIdRoute
   PatientQueueIdRoute: typeof PatientQueueIdRoute
@@ -326,6 +352,13 @@ declare module '@tanstack/react-router' {
       path: '/patient'
       fullPath: '/patient/'
       preLoaderRoute: typeof PatientIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages/': {
+      id: '/messages/'
+      path: '/messages'
+      fullPath: '/messages/'
+      preLoaderRoute: typeof MessagesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doctor/': {
@@ -391,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PPostIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/messages/$id': {
+      id: '/messages/$id'
+      path: '/messages/$id'
+      fullPath: '/messages/$id'
+      preLoaderRoute: typeof MessagesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/doctor/login': {
       id: '/doctor/login'
       path: '/doctor/login'
@@ -423,6 +463,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReceptionRoute: ReceptionRoute,
   TermsRoute: TermsRoute,
   DoctorLoginRoute: DoctorLoginRoute,
+  MessagesIdRoute: MessagesIdRoute,
   PPostIdRoute: PPostIdRoute,
   PatientAssistantRoute: PatientAssistantRoute,
   PatientEmergencyRoute: PatientEmergencyRoute,
@@ -432,6 +473,7 @@ const rootRouteChildren: RootRouteChildren = {
   PatientSearchRoute: PatientSearchRoute,
   TvIdRoute: TvIdRoute,
   DoctorIndexRoute: DoctorIndexRoute,
+  MessagesIndexRoute: MessagesIndexRoute,
   PatientIndexRoute: PatientIndexRoute,
   PatientClinicIdRoute: PatientClinicIdRoute,
   PatientQueueIdRoute: PatientQueueIdRoute,

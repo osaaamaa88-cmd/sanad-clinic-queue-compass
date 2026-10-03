@@ -5,7 +5,7 @@ const items = [
   { to: "/patient", label: "الرئيسية", icon: House, matches: (path: string) => path === "/patient" || path === "/patient/" },
   { to: "/patient/search", label: "البحث", icon: Search, matches: (path: string) => path.startsWith("/patient/search") || path.startsWith("/patient/clinic/") },
   { to: "/patient/emergency", label: "الطوارئ", icon: Siren, matches: (path: string) => path.startsWith("/patient/emergency") },
-  { to: "/patient/login", label: "حسابي", icon: CircleUserRound, matches: (path: string) => path.startsWith("/patient/login") || path.startsWith("/patient/health") || path.startsWith("/patient/meds") },
+  { to: "/patient/login", label: "حسابي", icon: CircleUserRound, matches: (path: string) => path.startsWith("/patient/login") || path.startsWith("/patient/health") || path.startsWith("/patient/meds") || path.startsWith("/messages") },
 ] as const;
 
 export function PatientBottomNav() {
