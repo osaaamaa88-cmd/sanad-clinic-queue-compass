@@ -66,6 +66,7 @@ export type Database = {
       }
       clinic_conversations: {
         Row: {
+          allow_images: boolean
           clinic_id: string
           created_at: string
           id: string
@@ -75,6 +76,7 @@ export type Database = {
           patient_name: string
         }
         Insert: {
+          allow_images?: boolean
           clinic_id: string
           created_at?: string
           id?: string
@@ -84,6 +86,7 @@ export type Database = {
           patient_name?: string
         }
         Update: {
+          allow_images?: boolean
           clinic_id?: string
           created_at?: string
           id?: string
@@ -171,28 +174,37 @@ export type Database = {
       }
       clinic_messages: {
         Row: {
+          attachment_path: string
           body: string
           conversation_id: string
           created_at: string
           id: string
+          kind: string
+          payload: Json | null
           read_at: string | null
           sender_id: string
           sender_role: string
         }
         Insert: {
+          attachment_path?: string
           body: string
           conversation_id: string
           created_at?: string
           id?: string
+          kind?: string
+          payload?: Json | null
           read_at?: string | null
           sender_id: string
           sender_role?: string
         }
         Update: {
+          attachment_path?: string
           body?: string
           conversation_id?: string
           created_at?: string
           id?: string
+          kind?: string
+          payload?: Json | null
           read_at?: string | null
           sender_id?: string
           sender_role?: string
@@ -678,6 +690,10 @@ export type Database = {
     Functions: {
       can_access_conversation: {
         Args: { _conv: string; _user: string }
+        Returns: boolean
+      }
+      can_send_kind: {
+        Args: { _conv: string; _kind: string; _user: string }
         Returns: boolean
       }
       is_clinic_member: {
