@@ -31,7 +31,7 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
     if (!clinic) throw new Error("Clinic not available");
     if (clinic.bookings_closed) throw new Error("Bookings closed");
 
-    const code = `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const code = `SND-${(await import("@/lib/device-key.server")).randomCode(8)}`;
     const { count } = await supabaseAdmin
       .from("bookings")
       .select("*", { count: "exact", head: true })
@@ -137,7 +137,7 @@ export const svrAddWalkIn = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
-    const code = `SND-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const code = `SND-${(await import("@/lib/device-key.server")).randomCode(8)}`;
     const { count } = await supabaseAdmin
       .from("bookings")
       .select("*", { count: "exact", head: true })

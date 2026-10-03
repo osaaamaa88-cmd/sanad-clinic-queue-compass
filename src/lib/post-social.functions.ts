@@ -33,6 +33,7 @@ export const svrGetPost = createServerFn({ method: "POST" })
     return { postId: data.postId, viewerKey: String(data.viewerKey ?? "").slice(0, 80) };
   })
   .handler(async ({ data }) => {
+    data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: post } = await supabaseAdmin
@@ -101,6 +102,7 @@ export const svrPostsSocialCounts = createServerFn({ method: "POST" })
     return { postIds: ids, viewerKey: String(data?.viewerKey ?? "").slice(0, 80) };
   })
   .handler(async ({ data }) => {
+    data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
     if (!data.postIds.length) return { likes: {} as Record<string, number>, liked: {} as Record<string, boolean>, comments: {} as Record<string, number> };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: likeRows }, { data: commentRows }] = await Promise.all([
@@ -127,6 +129,7 @@ export const svrTogglePostLike = createServerFn({ method: "POST" })
     return { postId: data.postId, viewerKey: key, like: Boolean(data.like) };
   })
   .handler(async ({ data }) => {
+    data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.like) {
       const { error } = await supabaseAdmin
@@ -160,6 +163,7 @@ export const svrAddPostComment = createServerFn({ method: "POST" })
     return { postId: data.postId, viewerKey: key, name: String(data.name ?? "").trim().slice(0, 60), body };
   })
   .handler(async ({ data }) => {
+    data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: post } = await supabaseAdmin
       .from("clinic_posts")
@@ -198,6 +202,7 @@ export const svrAddClinicReply = createServerFn({ method: "POST" })
     return { postId: data.postId, body, viewerKey: String(data.viewerKey ?? "").slice(0, 80) };
   })
   .handler(async ({ data, context }) => {
+    data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     const { data: post } = await supabaseAdmin
@@ -241,6 +246,7 @@ export const svrDeletePostComment = createServerFn({ method: "POST" })
     return { commentId: data.commentId, viewerKey: String(data.viewerKey ?? "").slice(0, 80) };
   })
   .handler(async ({ data, context }) => {
+    data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     const { data: row } = await supabaseAdmin

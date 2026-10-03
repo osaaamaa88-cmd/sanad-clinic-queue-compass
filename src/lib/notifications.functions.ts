@@ -7,6 +7,7 @@ export const svrListPatientNotifications = createServerFn({ method: "POST" })
     recipientKey: String(data?.recipientKey ?? "").slice(0, 80),
   }))
   .handler(async ({ data }) => {
+    data.recipientKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.recipientKey);
     if (!data.recipientKey) return { items: [], unread: 0 };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows } = await supabaseAdmin
@@ -70,6 +71,7 @@ export const svrMarkPatientNotificationsRead = createServerFn({ method: "POST" }
     recipientKey: String(data?.recipientKey ?? "").slice(0, 80),
   }))
   .handler(async ({ data }) => {
+    data.recipientKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.recipientKey);
     if (!data.recipientKey) return { ok: true as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin
@@ -115,6 +117,7 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data }) => {
+    data.recipientKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.recipientKey);
     if (!data.recipientKey || !data.queueNumber) return { notified: false, ahead: null };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: clinic } = await supabaseAdmin

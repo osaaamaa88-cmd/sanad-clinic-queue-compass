@@ -39,8 +39,9 @@ const LEGACY_FOLLOW_KEY = "sandi_follower_key";
 export function getFollowerKey(): string {
   if (typeof window === "undefined") return "";
   let key = localStorage.getItem(FOLLOW_KEY) ?? localStorage.getItem(LEGACY_FOLLOW_KEY);
-  if (!key) {
-    key = `dev-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  if (!key || key.length < 32) {
+    const bytes = crypto.getRandomValues(new Uint8Array(24));
+    key = "dk-" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
   }
   localStorage.setItem(FOLLOW_KEY, key);
   return key;
