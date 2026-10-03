@@ -1,7 +1,48 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Stethoscope, UserRound, ClipboardList, HeartPulse, Siren } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
+
+const resumeTargets = {
+  patient: { to: "/patient", label: "متابعة البحث عن عيادة" },
+  doctor: { to: "/doctor", label: "الانتقال لعيادتك" },
+  secretary: { to: "/reception", label: "فتح دفتر الحضور" },
+} as const;
+
+function ResumeCard() {
+  const [profile, setProfile] = useState<CachedProfile | null>(null);
+  useEffect(() => {
+    const cached = getCachedProfile();
+    if (!cached) return;
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && data.session.user.id === cached.userId) setProfile(cached);
+    });
+  }, []);
+  if (!profile) return null;
+  const t = resumeTargets[profile.role];
+  const name = profile.role === "doctor" && !profile.name.startsWith("د") ? `د. ${profile.name}` : profile.name;
+  return (
+    <Link
+      to={t.to}
+      className="mt-6 flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-soft"
+    >
+      {profile.avatar ? (
+        <img src={profile.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />
+      ) : (
+        <div className="grid h-12 w-12 place-items-center rounded-full gradient-primary text-lg font-bold text-primary-foreground">
+          {profile.name.slice(0, 1)}
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="truncate font-bold">مرحباً بك مجدداً {name}</div>
+        <div className="text-sm text-primary">{t.label}</div>
+      </div>
+      <div className="text-xl text-primary">←</div>
+    </Link>
+  );
+}
 
 export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
@@ -60,11 +101,13 @@ function Landing() {
           </p>
         </div>
 
+        <ResumeCard />
+
         <Link
           to="/patient/emergency"
           className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-destructive p-4 text-lg font-extrabold text-destructive-foreground shadow-soft"
         >
-          <Siren className="h-6 w-6" /> طوارئ سَنَد — وصول فوري للإسعاف
+          <Siren className="h-6 w-6 animate-pulse" /> طوارئ سَنَد — وصول فوري للإسعاف
         </Link>
 
         <div className="mt-6 space-y-3">
@@ -99,8 +142,8 @@ function Landing() {
             </Link>
           </div>
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            سَنَد أداة تقنية لتنظيم المواعيد وتسهيل التواصل بين المريض والعيادة، ولا تقدم استشارات
-            طبية ولا تتحمل المسؤولية عن الخدمات الطبية المقدمة من العيادات.
+            سَنَد أداة تقنية لاكتشاف العيادات وتسهيل التواصل المباشر بين المريض والعيادة، ولا تقدم
+            استشارات طبية ولا تتحمل المسؤولية عن الخدمات الطبية المقدمة من العيادات.
           </p>
         </footer>
       </div>
