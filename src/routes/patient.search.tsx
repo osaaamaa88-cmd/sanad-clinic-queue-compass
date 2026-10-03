@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Map as MapIcon, List, MapPin, Star, Stethoscope, Search as SearchIcon, X, ArrowUpDown, BadgeCheck, Users, ChevronLeft, Navigation, LayoutGrid, Route as RouteIcon } from "lucide-react";
+import { Map as MapIcon, List, MapPin, Star, Stethoscope, Search as SearchIcon, X, ArrowUpDown, BadgeCheck, Users, ChevronLeft, Navigation, LayoutGrid, Route as RouteIcon, Phone, MessageCircle } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
 import { ClinicsMap } from "@/components/ClinicsMap";
-import { getVerifiedClinics, specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
+import { getVerifiedClinics, specialties, getSpecialty, whatsappLink, type Clinic } from "@/lib/mock-data";
 import { getPatientLocation } from "@/lib/patient-location";
 
 export const Route = createFileRoute("/patient/search")({
