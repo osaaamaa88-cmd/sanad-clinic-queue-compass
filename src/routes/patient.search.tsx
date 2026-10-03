@@ -272,6 +272,7 @@ function Search() {
 
 function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
   const s = getSpecialty(clinic.specialtyId);
+  const SpecIcon = (s && specialtyIcons[s.id]) || Stethoscope;
   return (
     <>
       <button
@@ -290,8 +291,8 @@ function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void 
           <X className="h-4 w-4" />
         </button>
         <div className="flex items-start gap-3">
-          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary-soft text-3xl">
-            {s?.emoji ?? "🩺"}
+          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary">
+            <SpecIcon className="h-7 w-7" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
