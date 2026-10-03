@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2, LogOut, Heart, Share2, Camera, AlertTriangle, Grid3x3, Clapperboard, Info } from "lucide-react";
+import { MessagesSquare } from "lucide-react";
+import { openConversation } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
 import { ClinicQrCard } from "@/components/ClinicQrCard";
 import { PostViewer } from "@/components/PostViewer";

@@ -63,7 +63,7 @@ function ChatScreen() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "clinic_messages", filter: `conversation_id=eq.${id}` }, (p) => {
         const m = p.new as ChatMessage;
         setMsgs((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
-        void currentUserId().then((me) => me && m.sender_id !== me && markRead(id, me));
+        void currentUserId().then((me) => { if (me && m.sender_id !== me) void markRead(id, me); });
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "clinic_messages", filter: `conversation_id=eq.${id}` }, (p) => {
         const m = p.new as ChatMessage;
