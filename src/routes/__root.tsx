@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { NetworkStatus } from "../components/NetworkStatus";
 import { Toaster } from "../components/ui/sonner";
+import { BroadcastBanner } from "../components/BroadcastBanner";
 
 function NotFoundComponent() {
   return (
@@ -131,6 +132,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <NetworkStatus />
+      <BroadcastBanner />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" dir="rtl" richColors />
