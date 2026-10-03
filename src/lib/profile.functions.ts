@@ -149,6 +149,7 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
     phone?: string;
     bio?: string;
     workingHours?: string;
+    youtubeUrl?: string;
   }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     return data;
@@ -164,6 +165,7 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
       phone?: string;
       bio?: string;
       working_hours?: string;
+      youtube_url?: string;
     } = {};
     if (typeof data.doctor === "string" && data.doctor.trim()) patch.doctor = data.doctor.trim().slice(0, 120);
     if (typeof data.specialtyId === "string" && data.specialtyId) patch.specialty_id = data.specialtyId;
@@ -171,7 +173,13 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
     if (typeof data.phone === "string") patch.phone = data.phone.trim().slice(0, 40);
     if (typeof data.bio === "string") patch.bio = data.bio.slice(0, 600);
     if (typeof data.workingHours === "string") patch.working_hours = data.workingHours.slice(0, 300);
-    const { error } = await supabaseAdmin.from("clinics").update(patch).eq("id", data.clinicId);
+    if (typeof data.youtubeUrl === "string") {
+      const { youtubeId } = await import("@/lib/youtube");
+      const raw = data.youtubeUrl.trim();
+      if (raw && !youtubeId(raw)) throw new Error("INVALID_YOUTUBE");
+      patch.youtube_url = raw ? `https://www.youtube.com/watch?v=${youtubeId(raw)}` : "";
+    }
+    const { error } = await supabaseAdmin.from("clinics").update(patch as never).eq("id", data.clinicId);
     if (error) {
       console.error("[svrUpdateClinicProfile]", error.message);
       throw new Error("UPDATE_FAILED");
