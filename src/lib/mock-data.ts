@@ -64,6 +64,7 @@ export type Clinic = {
   lng: number;
   isVerified: boolean;
   submittedAt: number;
+  updatedAt: number;
   clinicStatus: ClinicStatus;
   delayMinutes: number;
   bookingsClosed: boolean;
@@ -100,6 +101,7 @@ type Row = {
   lng: number | string;
   is_verified: boolean;
   submitted_at: string;
+  updated_at?: string | null;
   clinic_status?: string | null;
   delay_minutes?: number | null;
   bookings_closed?: boolean | null;
@@ -125,6 +127,7 @@ function rowToClinic(r: Row): Clinic {
     lng: Number(r.lng) || 0,
     isVerified: r.is_verified,
     submittedAt: new Date(r.submitted_at).getTime(),
+    updatedAt: r.updated_at ? new Date(r.updated_at).getTime() : new Date(r.submitted_at).getTime(),
     clinicStatus: (r.clinic_status as ClinicStatus) || "normal",
     delayMinutes: Number(r.delay_minutes) || 0,
     bookingsClosed: Boolean(r.bookings_closed),
