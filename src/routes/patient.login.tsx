@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Activity, ArrowLeft, HeartPulse, LogOut, Pill } from "lucide-react";
+import { MessagesSquare } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { PatientAuthForm } from "@/components/PatientAuthModal";
 import { supabase } from "@/integrations/supabase/client";
