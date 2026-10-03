@@ -220,6 +220,7 @@ function Admin() {
         delayMinutes: Number(r.delay_minutes) || 0,
         bookingsClosed: Boolean(r.bookings_closed),
         submittedAt: r.submitted_at ? new Date(r.submitted_at as string).getTime() : Date.now(),
+        updatedAt: r.updated_at ? new Date(r.updated_at as string).getTime() : Date.now(),
       }));
       setClinics(mapped);
       setStats(s);
