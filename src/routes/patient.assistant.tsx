@@ -8,7 +8,7 @@ import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, t
 import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { triageNeed } from "@/lib/triage.functions";
-import type { TriageResult } from "@/lib/triage.server";
+import type { TriageResult } from "@/lib/triage.functions";
 
 export const Route = createFileRoute("/patient/assistant")({
   head: () => ({

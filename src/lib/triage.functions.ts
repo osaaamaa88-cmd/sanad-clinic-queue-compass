@@ -21,3 +21,4 @@ export const triageNeed = createServerFn({ method: "POST" })
       return { ok: false as const, error };
     }
   });
+export type { TriageResult } from "./triage.server";
