@@ -217,6 +217,7 @@ function Search() {
         )}
         {filtered.map((c) => {
           const s = getSpecialty(c.specialtyId);
+          const SpecIcon = (s && specialtyIcons[s.id]) || Stethoscope;
           return (
             <Link
               key={c.id}
@@ -225,8 +226,8 @@ function Search() {
               className="block rounded-2xl border border-border bg-card p-4 transition hover:shadow-soft"
             >
               <div className="flex items-start gap-3">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary-soft text-2xl">
-                  {s?.emoji}
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary">
+                  <SpecIcon className="h-6 w-6" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -248,7 +249,7 @@ function Search() {
                         <Star className="h-3 w-3 fill-warning text-warning" /> {c.rating}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" /> {c.distanceKm} كم
+                        <Route className="h-3 w-3" /> {c.distanceKm} كم
                       </span>
                     </div>
                     <span className="rounded-lg bg-primary-soft px-2 py-1 text-sm font-extrabold text-primary">
