@@ -7,3 +7,6 @@
 - [x] Verify build output and mobile/desktop screens.
 - [x] Patient guest browsing + auth guard on follow/review/contact (resume action after sign-in)
 - [x] Dedicated patient login screen (/patient/login): Google + name/phone quick login, no SMS
+
+- [ ] Search/map upgrade: GPS recenter, auto-fit, open-now filter, directions, book CTA
+- [ ] Test the doctor search section end-to-end
