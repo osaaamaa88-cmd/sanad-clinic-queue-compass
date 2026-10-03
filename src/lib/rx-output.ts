@@ -14,8 +14,9 @@ export function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
   push("℞", 40, true, "#0e7490", "ltr");
   rx.items.forEach((it, i) => {
     push(`${i + 1}. ${it.name}`, 24, true, "#111", "ltr");
-    push(it.dose, 20, false, "#334155");
+    push(`← ${it.dose}`, 21, true, "#0e7490");
     if (it.notes) push(it.notes, 18, false, "#334155");
+    if (i < rx.items.length - 1) push("·", 8);
   });
   if (rx.tests) push(`تحاليل / أشعة: ${rx.tests}`, 20);
   if (rx.advice) push(`تعليمات: ${rx.advice}`, 20);
@@ -23,7 +24,7 @@ export function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
   if (rx.clinicAddress) push(rx.clinicAddress, 18);
   if (rx.clinicPhone) push(`📞 ${rx.clinicPhone}`, 18);
 
-  const font = (l: (typeof lines)[number]) => `${l.bold ? "bold " : ""}${l.size}px Tahoma, Arial, sans-serif`;
+  const font = (l: (typeof lines)[number]) => `${l.bold ? "bold " : ""}${l.size}px Cairo, Tahoma, Arial, sans-serif`;
   const measure = document.createElement("canvas").getContext("2d")!;
   // wrap long lines
   const wrapped: ((typeof lines)[number])[] = [];
@@ -47,6 +48,7 @@ export function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
     y += l.size * 1.5;
     g.font = font(l); g.fillStyle = l.color ?? "#111";
     if (l.t === "—") { g.fillRect(pad, y - l.size, width - pad * 2, 3); continue; }
+    if (l.t === "·") { for (let x = pad; x < width - pad; x += 12) g.fillRect(x, y - l.size, 6, 2); continue; }
     g.direction = l.dir ?? "rtl";
     g.textAlign = l.dir === "ltr" ? "left" : "right";
     g.fillText(l.t, l.dir === "ltr" ? pad : width - pad, y - l.size * 0.4);
