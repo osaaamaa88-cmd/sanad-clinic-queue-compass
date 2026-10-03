@@ -1,0 +1,12 @@
+CREATE INDEX IF NOT EXISTS bookings_clinic_idx ON public.bookings (clinic_id);
+CREATE INDEX IF NOT EXISTS clinic_conversations_patient_idx ON public.clinic_conversations (patient_id, last_message_at DESC);
+CREATE INDEX IF NOT EXISTS clinic_conversations_clinic_idx ON public.clinic_conversations (clinic_id, last_message_at DESC);
+CREATE INDEX IF NOT EXISTS clinic_messages_unread_idx ON public.clinic_messages (conversation_id) WHERE read_at IS NULL;
+CREATE INDEX IF NOT EXISTS clinic_highlights_clinic_idx ON public.clinic_highlights (clinic_id);
+CREATE INDEX IF NOT EXISTS clinic_post_comments_post_idx ON public.clinic_post_comments (post_id);
+CREATE INDEX IF NOT EXISTS clinic_post_comments_clinic_idx ON public.clinic_post_comments (clinic_id);
+CREATE INDEX IF NOT EXISTS clinic_post_likes_post_idx ON public.clinic_post_likes (post_id);
+CREATE INDEX IF NOT EXISTS clinic_reviews_clinic_idx ON public.clinic_reviews (clinic_id);
+CREATE INDEX IF NOT EXISTS clinic_staff_user_idx ON public.clinic_staff (user_id);
+CREATE INDEX IF NOT EXISTS clinics_listing_idx ON public.clinics (is_disabled, submitted_at DESC);
+CREATE INDEX IF NOT EXISTS clinics_specialty_idx ON public.clinics (specialty_id);
