@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef } from "react";
+import { createElement, useEffect, useRef, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LocateFixed, Stethoscope } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
@@ -115,9 +115,45 @@ export function ClinicsMap({
 
   const recenter = () => mapRef.current?.setView([center.lat, center.lng], 15);
 
+  // InDrive-style street route (free OSRM, no API key) to the selected clinic.
+  const routeRef = useRef<import("leaflet").LayerGroup | null>(null);
+  const [routeInfo, setRouteInfo] = useState<{ min: number; km: number } | null>(null);
+  useEffect(() => {
+    const L = LRef.current;
+    const map = mapRef.current;
+    routeRef.current?.remove();
+    routeRef.current = null;
+    setRouteInfo(null);
+    const c = clinics.find((x) => x.id === selectedId);
+    if (!L || !map || !c?.lat || !c?.lng) return;
+    const ctrl = new AbortController();
+    const url = `https://router.project-osrm.org/route/v1/driving/${center.lng},${center.lat};${c.lng},${c.lat}?overview=full&geometries=geojson`;
+    fetch(url, { signal: ctrl.signal })
+      .then((r) => r.json())
+      .then((d) => {
+        const r = d?.routes?.[0];
+        if (!r) return;
+        const pts = (r.geometry.coordinates as [number, number][]).map(([lng, lat]) => [lat, lng] as [number, number]);
+        const g = L.layerGroup([
+          L.polyline(pts, { color: "#0F172A", weight: 9, opacity: 0.9 }),
+          L.polyline(pts, { color: "#06B6D4", weight: 5, opacity: 1 }),
+        ]).addTo(map);
+        routeRef.current = g;
+        map.fitBounds(L.latLngBounds(pts), { padding: [60, 60], maxZoom: 16 });
+        setRouteInfo({ min: Math.max(1, Math.round(r.duration / 60)), km: Math.round(r.distance / 100) / 10 });
+      })
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [selectedId, center.lat, center.lng, clinics]);
+
   return (
     <div className="relative isolate">
       <div ref={containerRef} className="h-[60vh] w-full" dir="ltr" />
+      {routeInfo && (
+        <div className="absolute left-1/2 top-3 z-[500] -translate-x-1/2 rounded-full bg-card px-4 py-2 text-sm font-extrabold shadow-soft ring-1 ring-primary">
+          🚗 {routeInfo.min} دقيقة تقريباً • {routeInfo.km} كم
+        </div>
+      )}
       <span className="pointer-events-none absolute bottom-1 right-2 z-[500] text-[9px] text-muted-foreground" dir="ltr">© OpenStreetMap</span>
       <button
         type="button"
