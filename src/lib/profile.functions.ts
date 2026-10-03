@@ -98,6 +98,7 @@ export const svrToggleFollow = createServerFn({ method: "POST" })
     return { clinicId: data.clinicId, followerKey: key, follow: Boolean(data.follow) };
   })
   .handler(async ({ data }) => {
+    data.followerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.followerKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.follow) {
       await supabaseAdmin
@@ -127,6 +128,7 @@ export const svrIsFollowing = createServerFn({ method: "POST" })
     return { clinicId: data.clinicId, followerKey: String(data.followerKey ?? "").slice(0, 80) };
   })
   .handler(async ({ data }) => {
+    data.followerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.followerKey);
     if (!data.followerKey) return { following: false };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row } = await supabaseAdmin
