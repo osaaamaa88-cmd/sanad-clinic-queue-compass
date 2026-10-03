@@ -480,10 +480,12 @@ function ClinicDetail() {
               <MessageCircle className="h-4 w-4 text-success" /> رسالة
             </button>
             <button
-              onClick={() => setTab("book")}
-              className="gradient-gold flex flex-[1.4] items-center justify-center gap-1.5 rounded-2xl py-3 text-xs font-black text-gold-foreground shadow-gold"
+              type="button"
+              disabled
+              title="الحجز أونلاين قريباً — تواصل مع العيادة بالاتصال أو واتساب"
+              className="flex flex-[1.4] cursor-not-allowed items-center justify-center gap-1.5 rounded-2xl border border-dashed border-border bg-card py-3 text-xs font-black text-muted-foreground"
             >
-              <CalendarPlus className="h-4 w-4" /> احجز أونلاين
+              <CalendarPlus className="h-4 w-4" /> الحجز أونلاين (قريباً ⏳)
             </button>
           </div>
 
@@ -944,11 +946,10 @@ function ClinicDetail() {
       {/* Confirm */}
       <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-border bg-card/95 p-4 backdrop-blur">
         <button
-          disabled={!slot || submitting}
-          onClick={confirmBooking}
-          className="w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-50"
+          disabled
+          className="w-full cursor-not-allowed rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft opacity-50"
         >
-          {submitting ? "جاري الحفظ…" : slot ? `أكد الحجز — ${slot}` : "اختار الساعة الأول"}
+          الحجز أونلاين قريباً ⏳ — كلّم العيادة مباشرة
         </button>
       </div>
       </>
