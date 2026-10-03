@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { SoundToggle } from "@/components/SoundControls";
 
 export const Route = createFileRoute("/patient/login")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "حسابي — سَنَد" },

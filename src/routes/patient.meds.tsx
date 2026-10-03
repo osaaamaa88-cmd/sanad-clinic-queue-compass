@@ -5,6 +5,7 @@ import { Pill, Plus, Trash2, Bell, BellOff, Clock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/patient/meds")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — تذكير مواعيد الأدوية" },

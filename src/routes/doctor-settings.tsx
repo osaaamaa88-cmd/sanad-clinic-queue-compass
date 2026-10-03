@@ -28,6 +28,7 @@ import {
 } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/doctor-settings")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "إعدادات العيادة — سَنَد" },

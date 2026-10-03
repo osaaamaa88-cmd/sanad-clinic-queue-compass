@@ -15,6 +15,7 @@ const hotlineIcons: Record<string, LucideIcon> = { amb: Siren, pol: ShieldAlert,
 const typeIcons: Record<string, LucideIcon> = { hospital: Hospital, radiology: ScanLine, clinic: Stethoscope, pharmacy: Pill };
 
 export const Route = createFileRoute("/patient/emergency")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "طوارئ سَنَد — أقرب مستشفى ومركز أشعة مفتوح الآن" },

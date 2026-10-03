@@ -48,6 +48,7 @@ function RxCard({ rx }: { rx: RxPayload }) {
 }
 
 export const Route = createFileRoute("/messages/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "محادثة — سَنَد" },

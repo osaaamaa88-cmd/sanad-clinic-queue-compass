@@ -13,10 +13,11 @@ import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { defaultLocation, distanceKm, getPatientLocation, savePatientLocation, type PatientLocation } from "@/lib/patient-location";
 
 export const Route = createFileRoute("/patient/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — الصفحة الرئيسية للمريض" },
-      { name: "description", content: "دور على طبيب من التخصصات القريبة منك واحجز فوراً." },
+      { name: "description", content: "دوّر على طبيب من التخصصات القريبة منك في مصر، شوف العيادات على الخريطة وتواصل معاها بسهولة على سَنَد." },
       { property: "og:title", content: "سَنَد — سندك الطبي في كل وقت" },
       { property: "og:description", content: "اكتشف العيادات القريبة وتابع تحديثاتها واحجز دورك بسهولة." },
       { property: "og:type", content: "website" },

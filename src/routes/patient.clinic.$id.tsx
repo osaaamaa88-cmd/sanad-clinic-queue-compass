@@ -55,10 +55,11 @@ import {
 } from "@/lib/clinic-profile";
 
 export const Route = createFileRoute("/patient/clinic/$id")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "تفاصيل العيادة — سَنَد" },
-      { name: "description", content: "احجز موعدك في العيادة." },
+      { name: "description", content: "صفحة العيادة على سَنَد: بيانات الطبيب، التخصص، العنوان، مواعيد العمل، الصور والتقييمات وطرق التواصل." },
     ],
   }),
   component: ClinicDetail,

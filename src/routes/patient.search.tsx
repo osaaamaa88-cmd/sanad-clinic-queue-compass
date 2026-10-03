@@ -9,6 +9,7 @@ import { getVerifiedClinics, specialties, getSpecialty, whatsappLink, type Clini
 import { getPatientLocation } from "@/lib/patient-location";
 
 export const Route = createFileRoute("/patient/search")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — ابحث عن عيادة قريبة" },

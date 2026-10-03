@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyClinicMembership } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/doctor/")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "لوحة الطبيب — سَنَد" },

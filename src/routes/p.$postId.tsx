@@ -9,6 +9,7 @@ import { postShareUrl, shareLink } from "@/lib/post-social";
 const SITE = "https://tabeebak-egypt.lovable.app";
 
 export const Route = createFileRoute("/p/$postId")({
+  staticData: { sitemap: false },
   loader: async ({ params }) => {
     const post = await svrGetPost({ data: { postId: params.postId } });
     return { post };

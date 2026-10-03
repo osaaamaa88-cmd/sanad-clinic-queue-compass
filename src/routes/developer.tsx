@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import developerAsset from "@/assets/osama-retro-2004.png.asset.json";
 
 export const Route = createFileRoute("/developer")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "About the Developer — Osama M. Sanad | سَنَد" },

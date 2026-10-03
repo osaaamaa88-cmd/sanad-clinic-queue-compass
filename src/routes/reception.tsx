@@ -55,6 +55,7 @@ function writeCache(clinicId: string, rows: Booking[]) {
 }
 
 export const Route = createFileRoute("/reception")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "دفتر الحجز — سَنَد" },
