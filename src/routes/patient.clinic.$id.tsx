@@ -642,6 +642,22 @@ function ClinicDetail() {
             <div className="mt-2 flex items-center gap-2 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
               <Phone className="h-4 w-4 text-primary" /> {clinic.phone || "—"}
             </div>
+            <div className="mt-2 rounded-xl border border-dashed border-border p-3 text-[11px] leading-relaxed text-muted-foreground">
+              <p>
+                آخر تحديث للبيانات:{" "}
+                <span className="font-bold text-foreground">
+                  {new Date(clinic.updatedAt || clinic.submittedAt).toLocaleDateString("ar-EG", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </span>
+              </p>
+              <p className="mt-1">
+                مصدر البيانات: مُدخلة ومُحدّثة من إدارة العيادة نفسها — يُفضّل تأكيد السعر والموعد
+                بالاتصال قبل الزيارة.
+              </p>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-4">
