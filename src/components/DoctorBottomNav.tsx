@@ -1,12 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ListOrdered, MessagesSquare, Settings, Stethoscope } from "lucide-react";
+import { ListOrdered, MessagesSquare, Pill, Settings, Stethoscope } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { currentUserId, unreadCounts } from "@/lib/chat";
+import { RxComposer } from "@/components/RxComposer";
 
 export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [unread, setUnread] = useState(0);
+  const [rxOpen, setRxOpen] = useState(false);
+  const [info, setInfo] = useState({ doctor: "", specialty: "", clinicAddress: "", clinicPhone: "" });
 
   useEffect(() => {
     let alive = true;
@@ -27,38 +30,61 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!clinicId) return;
+    void supabase.from("clinics").select("*").eq("id", clinicId).maybeSingle().then(({ data }) => {
+      if (!data) return;
+      const d = data as Record<string, unknown>;
+      setInfo({ doctor: String(d.doctor ?? ""), specialty: String(d.specialty ?? ""), clinicAddress: String(d.address ?? ""), clinicPhone: String(d.phone ?? "") });
+    });
+  }, [clinicId]);
+
   const items = [
     { key: "profile", label: "عيادتي", icon: Stethoscope, active: pathname.startsWith("/patient/clinic/") || pathname.startsWith("/doctor"), node: clinicId ? { to: "/patient/clinic/$id" as const, params: { id: clinicId } } : { to: "/doctor" as const } },
     { key: "msgs", label: "الرسائل", icon: MessagesSquare, active: pathname.startsWith("/messages"), node: { to: "/messages" as const }, badge: unread },
+    { key: "rx" },
     { key: "queue", label: "الطابور", icon: ListOrdered, active: pathname.startsWith("/reception"), node: { to: "/reception" as const } },
     { key: "settings", label: "الإعدادات", icon: Settings, active: pathname.startsWith("/doctor-settings"), node: { to: "/doctor-settings" as const } },
   ];
 
   return (
-    <nav aria-label="تنقل الطبيب" className="fixed inset-x-0 bottom-0 z-[80] pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto mb-2 grid h-16 max-w-md grid-cols-4 rounded-2xl border border-primary/30 bg-card/95 px-2 shadow-[0_-8px_24px_hsl(var(--primary)/0.15)] backdrop-blur-xl sm:max-w-xl" style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}>
-        {items.map((it) => {
-          const Icon = it.icon;
-          return (
-            <Link
-              key={it.key}
-              {...(it.node as { to: "/doctor" })}
-              aria-current={it.active ? "page" : undefined}
-              className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold ${it.active ? "text-primary" : "text-muted-foreground"}`}
-            >
-              <span className={`relative grid h-8 w-12 place-items-center rounded-xl ${it.active ? "bg-primary text-primary-foreground" : ""}`}>
-                <Icon className="h-5 w-5" />
-                {!!it.badge && (
-                  <span className="absolute -top-1 -left-1 grid min-w-[18px] place-items-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-destructive-foreground">
-                    {it.badge > 99 ? "99+" : it.badge}
+    <>
+      <nav aria-label="تنقل الطبيب" className="fixed inset-x-0 bottom-0 z-[80] pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-2xl border border-primary/30 bg-card/95 px-1 shadow-[0_-8px_24px_hsl(var(--primary)/0.15)] backdrop-blur-xl sm:max-w-xl" style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}>
+          {items.map((it) => {
+            if (it.key === "rx") {
+              return (
+                <button key="rx" type="button" onClick={() => setRxOpen(true)} aria-label="روشتة جديدة" className="relative flex flex-col items-center justify-end pb-1 text-[11px] font-bold text-primary">
+                  <span className="absolute -top-6 grid h-14 w-14 place-items-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-[0_6px_20px_hsl(var(--primary)/0.5)]">
+                    <Pill className="h-6 w-6" />
                   </span>
-                )}
-              </span>
-              {it.label}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+                  روشتة
+                </button>
+              );
+            }
+            const Icon = it.icon!;
+            return (
+              <Link
+                key={it.key}
+                {...(it.node as { to: "/doctor" })}
+                aria-current={it.active ? "page" : undefined}
+                className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold ${it.active ? "text-primary" : "text-muted-foreground"}`}
+              >
+                <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${it.active ? "bg-primary text-primary-foreground" : ""}`}>
+                  <Icon className="h-5 w-5" />
+                  {!!it.badge && (
+                    <span className="absolute -top-1 -left-1 grid min-w-[18px] place-items-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-destructive-foreground">
+                      {it.badge > 99 ? "99+" : it.badge}
+                    </span>
+                  )}
+                </span>
+                {it.label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+      {rxOpen && <RxComposer defaults={{ patient: "", ...info }} onClose={() => setRxOpen(false)} />}
+    </>
   );
 }

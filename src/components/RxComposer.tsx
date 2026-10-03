@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Loader2, Plus, Printer, Send, Star, Trash2, X } from "lucide-react";
+import { Bluetooth, Download, Loader2, Plus, Printer, Send, Star, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
+import { downloadRx, printRxBluetooth } from "@/lib/rx-output";
 import { DOSE_PRESETS, addFavorite, getFavorites, searchDrugs } from "@/lib/egypt-drugs";
 import type { RxItem, RxPayload } from "@/lib/chat";
 
@@ -32,7 +34,7 @@ ${rx.advice ? `<div class="sec"><b>تعليمات:</b> ${esc(rx.advice)}</div>` 
 export function RxComposer({ defaults, onClose, onSend }: {
   defaults: Pick<RxPayload, "patient" | "doctor" | "specialty" | "clinicAddress" | "clinicPhone">;
   onClose: () => void;
-  onSend: (rx: RxPayload) => Promise<boolean>;
+  onSend?: (rx: RxPayload) => Promise<boolean>;
 }) {
   const [patient, setPatient] = useState(defaults.patient);
   const [age, setAge] = useState("");
@@ -43,6 +45,7 @@ export function RxComposer({ defaults, onClose, onSend }: {
   const [advice, setAdvice] = useState("");
   const [tests, setTests] = useState("");
   const [busy, setBusy] = useState(false);
+  const [btBusy, setBtBusy] = useState(false);
   const [favs, setFavs] = useState<string[]>(() => getFavorites());
   const results = searchDrugs(q);
 
@@ -115,15 +118,28 @@ export function RxComposer({ defaults, onClose, onSend }: {
         <textarea className={`${input} mt-3`} rows={2} placeholder="تحاليل أو أشعة مطلوبة" value={tests} onChange={(e) => setTests(e.target.value)} />
         <textarea className={`${input} mt-2`} rows={2} placeholder="تعليمات (أكل، راحة، ميعاد المتابعة…)" value={advice} onChange={(e) => setAdvice(e.target.value)} />
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <button type="button" disabled={!valid} onClick={() => printRx(build())} className="flex items-center justify-center gap-2 rounded-xl border border-primary py-3 font-bold text-primary disabled:opacity-50">
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <button type="button" disabled={!valid} onClick={() => printRx(build())} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-primary py-2.5 text-xs font-bold text-primary disabled:opacity-50">
             <Printer className="h-4 w-4" /> طباعة A5
           </button>
-          <button type="button" disabled={!valid || busy} onClick={async () => { setBusy(true); const ok = await onSend(build()); setBusy(false); if (ok) onClose(); }}
-            className="flex items-center justify-center gap-2 rounded-xl bg-primary py-3 font-bold text-primary-foreground disabled:opacity-50">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} إرسال للمريض
+          <button type="button" disabled={!valid || btBusy} onClick={async () => {
+            setBtBusy(true);
+            try { await printRxBluetooth(build()); toast.success("تمت الطباعة بالبلوتوث"); }
+            catch (e) { const m = (e as Error).message; if (!/cancel/i.test(m)) toast.error(m || "تعذر الاتصال بالطابعة"); }
+            finally { setBtBusy(false); }
+          }} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-primary py-2.5 text-xs font-bold text-primary disabled:opacity-50">
+            {btBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bluetooth className="h-4 w-4" />} طابعة بلوتوث
+          </button>
+          <button type="button" disabled={!valid} onClick={() => downloadRx(build())} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-primary py-2.5 text-xs font-bold text-primary disabled:opacity-50">
+            <Download className="h-4 w-4" /> تنزيل
           </button>
         </div>
+        {onSend && (
+          <button type="button" disabled={!valid || busy} onClick={async () => { setBusy(true); const ok = await onSend(build()); setBusy(false); if (ok) onClose(); }}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-bold text-primary-foreground disabled:opacity-50">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} إرسال للمريض
+          </button>
+        )}
       </div>
     </div>
   );
