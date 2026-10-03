@@ -4,7 +4,6 @@ import {
   svrToggleFollow,
   svrIsFollowing,
   svrUpdateClinicProfile,
-  svrUploadClinicMedia,
   svrDeleteClinicPost,
 } from "@/lib/profile.functions";
 
@@ -112,40 +111,14 @@ export async function saveClinicProfile(input: {
   }
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result ?? "");
-      resolve(result.slice(result.indexOf(",") + 1));
-    };
-    reader.onerror = () => reject(new Error("READ_FAILED"));
-    reader.readAsDataURL(file);
-  });
-}
-
 export async function uploadClinicMedia(input: {
   clinicId: string;
   kind: "avatar" | "cover" | "post";
   file: File;
   caption?: string;
 }): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const base64 = await fileToBase64(input.file);
-    await svrUploadClinicMedia({
-      data: {
-        clinicId: input.clinicId,
-        kind: input.kind,
-        fileName: input.file.name,
-        contentType: input.file.type || "image/jpeg",
-        base64,
-        caption: input.caption ?? "",
-      },
-    });
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: (e as Error)?.message };
-  }
+  const { uploadMedia } = await import("@/lib/media-upload");
+  return uploadMedia(input);
 }
 
 export async function deleteClinicPost(postId: string): Promise<boolean> {

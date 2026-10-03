@@ -9,7 +9,6 @@ export const svrGetClinicProfile = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const BUCKET = "clinic-media";
 
     const { data: clinic } = await supabaseAdmin
       .from("clinics")
@@ -29,15 +28,8 @@ export const svrGetClinicProfile = createServerFn({ method: "POST" })
       ...(clinic?.cover_url ? [clinic.cover_url] : []),
       ...((posts ?? []).map((p) => p.media_url)),
     ];
-    const signedMap = new Map<string, string>();
-    if (paths.length) {
-      const { data: signed } = await supabaseAdmin.storage
-        .from(BUCKET)
-        .createSignedUrls(paths, 60 * 60 * 6);
-      for (const s of signed ?? []) {
-        if (s.path && s.signedUrl) signedMap.set(s.path, s.signedUrl);
-      }
-    }
+    const { signMediaRefs } = await import("@/lib/media-sign.server");
+    const signedMap = await signMediaRefs(supabaseAdmin, paths);
 
     const { count: followers } = await supabaseAdmin
       .from("clinic_followers")

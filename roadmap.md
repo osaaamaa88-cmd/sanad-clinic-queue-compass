@@ -12,3 +12,4 @@
 - [x] Test the doctor search section end-to-end
 - [x] Patient bottom navigation: home, search, emergency, account
 - [x] Move health indicators and medication reminders into the patient account
+- [x] Storage: avatars bucket (5MB), clinic-media 50MB, image compression, upload progress/size errors, indexes, list caps + paging helper

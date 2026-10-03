@@ -50,9 +50,8 @@ export const svrGetPost = createServerFn({ method: "POST" })
     if (!clinic || clinic.is_disabled) return null;
 
     const paths = [post.media_url, ...(clinic.avatar_url ? [clinic.avatar_url] : [])];
-    const { data: signed } = await supabaseAdmin.storage.from(BUCKET).createSignedUrls(paths, SIGN_TTL);
-    const map = new Map<string, string>();
-    for (const s of signed ?? []) if (s.path && s.signedUrl) map.set(s.path, s.signedUrl);
+    const { signMediaRefs } = await import("@/lib/media-sign.server");
+    const map = await signMediaRefs(supabaseAdmin, paths, SIGN_TTL);
 
     const { count: likes } = await supabaseAdmin
       .from("clinic_post_likes")

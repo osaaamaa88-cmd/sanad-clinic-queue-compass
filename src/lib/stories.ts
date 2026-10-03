@@ -28,18 +28,6 @@ export async function getClinicStories(clinicId: string): Promise<ClinicStories>
   }
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result ?? "");
-      resolve(result.slice(result.indexOf(",") + 1));
-    };
-    reader.onerror = () => reject(new Error("READ_FAILED"));
-    reader.readAsDataURL(file);
-  });
-}
-
 export async function addStory(input: {
   clinicId: string;
   file?: File | null;
@@ -47,16 +35,23 @@ export async function addStory(input: {
   kind?: "story" | "urgent";
   highlightId?: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
+  if (input.file) {
+    const { uploadMedia } = await import("@/lib/media-upload");
+    return uploadMedia({
+      clinicId: input.clinicId, kind: "story", file: input.file, caption: input.caption,
+      highlightId: input.highlightId ?? null, storyKind: input.kind ?? "story",
+    });
+  }
   try {
-    const base64 = input.file ? await fileToBase64(input.file) : "";
+    const base64 = "";
     await svrAddStory({
       data: {
         clinicId: input.clinicId,
         kind: input.kind ?? "story",
         caption: input.caption ?? "",
         highlightId: input.highlightId ?? null,
-        fileName: input.file?.name ?? "story",
-        contentType: input.file?.type ?? "",
+        fileName: "story",
+        contentType: "",
         base64,
       },
     });
