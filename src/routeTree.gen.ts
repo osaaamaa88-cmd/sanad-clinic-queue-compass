@@ -14,6 +14,7 @@ import { Route as AdminAccessRouteImport } from './routes/admin-access'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as DoctorSettingsRouteImport } from './routes/doctor-settings'
 import { Route as ReceptionRouteImport } from './routes/reception'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DoctorIndexRouteImport } from './routes/doctor.index'
 import { Route as DoctorLoginRouteImport } from './routes/doctor.login'
@@ -54,6 +55,11 @@ const DoctorSettingsRoute = DoctorSettingsRouteImport.update({
 const ReceptionRoute = ReceptionRouteImport.update({
   id: '/reception',
   path: '/reception',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/reception': typeof ReceptionRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/messages/$id': typeof MessagesIdRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/reception': typeof ReceptionRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/messages/$id': typeof MessagesIdRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/reception': typeof ReceptionRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/messages/$id': typeof MessagesIdRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/doctor-settings'
     | '/reception'
+    | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
     | '/messages/$id'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/doctor-settings'
     | '/reception'
+    | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
     | '/messages/$id'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/doctor-settings'
     | '/reception'
+    | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
     | '/messages/$id'
@@ -285,6 +297,7 @@ export interface RootRouteChildren {
   DeveloperRoute: typeof DeveloperRoute
   DoctorSettingsRoute: typeof DoctorSettingsRoute
   ReceptionRoute: typeof ReceptionRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   DoctorLoginRoute: typeof DoctorLoginRoute
   MessagesIdRoute: typeof MessagesIdRoute
@@ -338,6 +351,13 @@ declare module '@tanstack/react-router' {
       path: '/reception'
       fullPath: '/reception'
       preLoaderRoute: typeof ReceptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -461,6 +481,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeveloperRoute: DeveloperRoute,
   DoctorSettingsRoute: DoctorSettingsRoute,
   ReceptionRoute: ReceptionRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   DoctorLoginRoute: DoctorLoginRoute,
   MessagesIdRoute: MessagesIdRoute,
