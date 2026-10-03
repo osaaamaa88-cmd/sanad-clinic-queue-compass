@@ -8,6 +8,16 @@ export function NetworkStatus() {
 
   useEffect(() => {
     if (typeof navigator !== "undefined") setOffline(!navigator.onLine);
+    // Offline support: only on the real published app (not inside the editor preview or dev).
+    const host = window.location.hostname;
+    const inPreview = host.startsWith("id-preview--") || host === "localhost" || window.self !== window.top;
+    if ("serviceWorker" in navigator) {
+      if (import.meta.env.PROD && !inPreview) {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      } else {
+        navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
+      }
+    }
     const goOffline = () => setOffline(true);
     const goOnline = () => {
       setOffline(false);
@@ -34,7 +44,9 @@ export function NetworkStatus() {
         }`}
       >
         {offline ? <WifiOff className="h-4 w-4" /> : <Wifi className="h-4 w-4" />}
-        {offline ? "تعذر الاتصال بالشبكة، جاري إعادة المحاولة…" : "تم استرجاع الاتصال بالشبكة"}
+        {offline
+          ? "وضع أوفلاين: الطوارئ والأدوية والروشتة شغالة، والرسائل تحتاج إنترنت"
+          : "تم استرجاع الاتصال بالشبكة"}
       </div>
     </div>
   );
