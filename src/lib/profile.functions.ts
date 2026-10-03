@@ -156,6 +156,7 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
     price?: number;
     phone?: string;
     bio?: string;
+    workingHours?: string;
   }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     return data;
@@ -170,12 +171,14 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
       price?: number;
       phone?: string;
       bio?: string;
+      working_hours?: string;
     } = {};
     if (typeof data.doctor === "string" && data.doctor.trim()) patch.doctor = data.doctor.trim().slice(0, 120);
     if (typeof data.specialtyId === "string" && data.specialtyId) patch.specialty_id = data.specialtyId;
     if (typeof data.price === "number" && Number.isFinite(data.price)) patch.price = Math.max(0, Math.floor(data.price));
     if (typeof data.phone === "string") patch.phone = data.phone.trim().slice(0, 40);
     if (typeof data.bio === "string") patch.bio = data.bio.slice(0, 600);
+    if (typeof data.workingHours === "string") patch.working_hours = data.workingHours.slice(0, 300);
     const { error } = await supabaseAdmin.from("clinics").update(patch).eq("id", data.clinicId);
     if (error) {
       console.error("[svrUpdateClinicProfile]", error.message);

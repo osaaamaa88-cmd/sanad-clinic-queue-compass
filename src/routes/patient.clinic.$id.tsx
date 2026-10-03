@@ -390,6 +390,9 @@ function ClinicDetail() {
             {clinic.isVerified && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="موثّق" />}
           </div>
           <p className="text-xs font-bold text-muted-foreground">{spec?.name} • {clinic.area || "—"}</p>
+          {clinic.workingHours && (
+            <p className="mt-1 flex items-start gap-1 text-xs font-bold text-foreground"><Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> {clinic.workingHours}</p>
+          )}
           {extras?.bio && <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-foreground">{extras.bio}</p>}
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold">
             {clinic.availableNow ? (
@@ -398,8 +401,8 @@ function ClinicDetail() {
               <span className="rounded-full bg-secondary px-2.5 py-0.5 text-muted-foreground">مغلق دلوقتي</span>
             )}
             {clinic.price ? <span className="rounded-full bg-secondary px-2.5 py-0.5 text-foreground">الكشف {clinic.price} ج</span> : null}
-            <span className="rounded-full bg-secondary px-2.5 py-0.5 text-foreground">
-              الدور الآن: {queue?.nowServing ?? clinic.nowServing}
+            <span className="rounded-full border border-dashed border-border px-2.5 py-0.5 text-muted-foreground">
+              متابعة الدور (قريباً)
             </span>
             <span className="ms-auto"><NotificationsBell audience={isOwner ? "clinic" : "patient"} clinicId={clinic.id} tone="gold" /></span>
           </div>
@@ -679,21 +682,16 @@ function ClinicDetail() {
 
       {tab === "info" && (
         <div className="mt-4 space-y-4">
-          {/* Live turn card */}
-          <div className="glow-gold mt-5 rounded-3xl border border-gold/30 bg-surface-deep p-5 text-center">
-            <p className="flex items-center justify-center gap-2 text-[11px] font-extrabold tracking-widest text-gold">
-              <span className="grid h-2 w-2 animate-pulse place-items-center rounded-full bg-destructive" />
-              الدور المباشر الآن
+          {/* Working hours */}
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="flex items-center gap-2 text-sm font-bold"><Clock3 className="h-4 w-4 text-primary" /> مواعيد وأيام العمل</p>
+            <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+              {clinic.workingHours || "لم تُضف العيادة مواعيدها بعد — اتصل للاستفسار."}
             </p>
-            <p className="mt-1 text-6xl font-black leading-none text-foreground sm:text-7xl">
-              {queue?.nowServing ?? clinic.nowServing}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              في الانتظار: {queue?.waiting ?? clinic.waitingCount}
-              {(queue?.delayMinutes ?? clinic.delayMinutes)
-                ? ` • تأخير ${queue?.delayMinutes ?? clinic.delayMinutes} دقيقة`
-                : ""}
-            </p>
+          </div>
+          <div className="rounded-3xl border border-dashed border-border bg-card/60 p-5 text-center">
+            <p className="text-sm font-extrabold text-foreground">الدور المباشر والحجز أونلاين</p>
+            <p className="mt-1 text-xs text-muted-foreground">قريباً — هتقدر تحجز وتتابع دورك لحظياً من سَنَد.</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm font-bold">نبذة</p>
@@ -748,9 +746,9 @@ function ClinicDetail() {
             <p className="text-sm font-bold">أسئلة شائعة</p>
             <div className="mt-2 divide-y divide-border">
               {[
-                ["إزاي أحجز؟", "اختار اليوم والساعة من تبويب مواعيد الكشف، وهيوصلك كود حجز تعرضه في العيادة."],
+                ["إزاي أحجز؟", "الحجز أونلاين قريباً — حالياً تواصل مع العيادة بالاتصال أو الواتساب."],
                 ["الدفع إزاي؟", "الدفع نقداً في العيادة، مفيش أي دفع أونلاين."],
-                ["أقدر أعرف دوري؟", "أيوه، من صفحة متابعة الدور بتشوف رقم الدور الحالي لحظياً."],
+                ["أقدر أعرف دوري؟", "متابعة الدور لحظياً ميزة قادمة قريباً."],
                 ["لو اتأخرت أو عايز ألغي؟", "كلّم العيادة على الواتساب أو الرقم المباشر وهيتم تعديل حجزك."],
               ].map(([q, a]) => (
                 <details key={q} className="py-2">
@@ -1144,6 +1142,7 @@ function EditProfileModal({
   const [price, setPrice] = useState(String(clinic.price || ""));
   const [phone, setPhone] = useState(clinic.phone);
   const [bio, setBio] = useState(initialBio);
+  const [hours, setHours] = useState(clinic.workingHours);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<"avatar" | "cover" | null>(null);
   const [msg, setMsg] = useState("");
@@ -1172,6 +1171,7 @@ function EditProfileModal({
       price: Number(price) || 0,
       phone,
       bio,
+      workingHours: hours,
     });
     setSaving(false);
     if (!ok) {
@@ -1239,6 +1239,15 @@ function EditProfileModal({
               inputMode="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
+            />
+          </Field>
+          <Field label="مواعيد وأيام العمل">
+            <textarea
+              value={hours}
+              onChange={(e) => setHours(e.target.value)}
+              rows={2}
+              placeholder="مثال: السبت للخميس 5م – 10م • الجمعة إجازة"
               className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
             />
           </Field>
