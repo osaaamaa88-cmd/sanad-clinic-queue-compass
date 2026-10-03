@@ -256,7 +256,7 @@ function Admin() {
     await refresh();
   };
   const toggleVerified = async (c: ClinicRow) => {
-    if (c.isVerified && !confirm("هتلغي شارة التوثيق؟ العيادة هتختفي من بحث المرضى.")) return;
+    if (c.isVerified && !confirm("هتلغي شارة التوثيق؟ العيادة هتفضل ظاهرة بدون الشارة.")) return;
     await setVerified({ data: { id: c.id, verified: !c.isVerified } });
     await refresh();
   };
