@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft } from "lucide-react";
+import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, type PatientLocation } from "@/lib/patient-location";
@@ -125,7 +125,7 @@ function Assistant() {
                 })}
                 {result.urgency === "soon" && <span className="rounded-full bg-accent px-3 py-1.5 text-xs">يُفضّل الكشف خلال يوم أو يومين</span>}
               </div>
-              {result.advice && <p className="mt-3 text-xs text-muted-foreground">💡 {result.advice}</p>}
+              {result.advice && <p className="mt-3 flex gap-1.5 text-xs text-muted-foreground"><Lightbulb className="h-4 w-4 shrink-0 text-primary" />{result.advice}</p>}
             </div>
 
             <h3 className="font-bold">عيادات مناسبة قريبة منك</h3>
