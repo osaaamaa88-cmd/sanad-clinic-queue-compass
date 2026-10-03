@@ -23,7 +23,7 @@ export const Route = createFileRoute("/patient/search")({
 });
 
 function Search() {
-  const [view, setView] = useState<"list" | "map">("list");
+  const [view, setView] = useState<"list" | "map">("map");
   const [spec, setSpec] = useState<string | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [q, setQ] = useState("");

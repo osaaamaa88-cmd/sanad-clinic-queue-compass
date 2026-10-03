@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
-import { LocateFixed } from "lucide-react";
+import { createElement, useEffect, useRef } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { LocateFixed, Stethoscope } from "lucide-react";
+import { specialtyIcons } from "@/lib/specialty-icons";
 import type { Clinic } from "@/lib/mock-data";
 import { getSpecialty } from "@/lib/mock-data";
 
@@ -87,13 +89,16 @@ export function ClinicsMap({
       const marker = L.marker([c.lat, c.lng], {
         icon: L.divIcon({
           className: "",
-          html: `<div style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:9999px;font-family:Tajawal,sans-serif;font-weight:800;font-size:12px;color:#0F172A;background:${
-            active ? "#06B6D4" : "#ffffff"
-          };border:2px solid ${active ? "#ffffff" : "#06B6D4"};box-shadow:0 4px 12px rgba(0,0,0,.35);white-space:nowrap">
-            <span>${spec?.emoji ?? "🩺"}</span><span>${c.price ? `${c.price} ج` : "كشف"}</span>
+          html: `<div style="display:flex;flex-direction:column;align-items:center">
+            <div style="display:flex;align-items:center;gap:5px;padding:4px 9px 4px 5px;border-radius:9999px;font-family:Tajawal,sans-serif;font-weight:800;font-size:12px;color:${active ? "#0F172A" : "#F8FAFC"};background:${
+            active ? "#06B6D4" : "#0F172A"
+          };border:2px solid #06B6D4;box-shadow:0 6px 16px rgba(6,182,212,.35);white-space:nowrap">
+            <span style="display:grid;place-items:center;width:20px;height:20px;border-radius:9999px;background:${active ? "#0F172A" : "#06B6D4"};color:${active ? "#06B6D4" : "#0F172A"}">${renderToStaticMarkup(createElement(specialtyIcons[c.specialtyId] ?? Stethoscope, { size: 13, strokeWidth: 2.5 }))}</span><span>${c.price ? `${c.price} ج` : "كشف"}</span>
+            </div>
+            <div style="width:2px;height:8px;background:#06B6D4"></div>
           </div>`,
-          iconSize: [70, 28],
-          iconAnchor: [35, 14],
+          iconSize: [80, 38],
+          iconAnchor: [40, 38],
         }),
         zIndexOffset: active ? 500 : 0,
       });

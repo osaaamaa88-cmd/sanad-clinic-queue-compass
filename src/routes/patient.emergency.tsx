@@ -117,7 +117,8 @@ function EmergencyPage() {
               >
                 <I className="h-3.5 w-3.5" /> {t.label}
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
 
