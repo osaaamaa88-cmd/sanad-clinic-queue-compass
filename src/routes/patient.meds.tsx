@@ -72,6 +72,7 @@ function Meds() {
             firedRef.current.add(fireKey);
             const title = `تذكير دواء: ${m.name}`;
             const body = `الجرعة: ${m.dose || "-"}`;
+            startAlarm();
             if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
               try {
                 new Notification(title, { body });

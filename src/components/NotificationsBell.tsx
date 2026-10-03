@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { playNotification } from "@/lib/sounds";
 import { Bell, X, CalendarPlus, MessageCircle, Image as ImageIcon, AlertTriangle, Users } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -49,7 +50,10 @@ export function NotificationsBell({
     // Native pop-up for anything brand new after the first load.
     for (const n of res.items) {
       if (!seen.current.has(n.id)) {
-        if (!first.current && !n.isRead) pushLocalNotification(n.title, n.body);
+        if (!first.current && !n.isRead) {
+          pushLocalNotification(n.title, n.body);
+          playNotification();
+        }
         seen.current.add(n.id);
       }
     }

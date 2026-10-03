@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { clearPatientSession, getPatientSession, syncPatientSessionFromAuth, type PatientSession } from "@/lib/patient-session";
 import { clearAllLocalUserData } from "@/lib/user-profile-cache";
 import { Button } from "@/components/ui/button";
+import { SoundToggle } from "@/components/SoundControls";
 
 export const Route = createFileRoute("/patient/login")({
   head: () => ({
@@ -60,6 +61,7 @@ function PatientLogin() {
           <ArrowLeft className="h-4 w-4 text-success" />
         </Link>
       </section>
+      <div className="mb-4"><SoundToggle /></div>
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="mb-2 flex items-center gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-primary-foreground">
