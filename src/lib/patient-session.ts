@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { saveCachedProfile } from "@/lib/user-profile-cache";
 
 export type PatientSession = {
   name: string;
@@ -77,12 +78,13 @@ export async function syncPatientSessionFromAuth(): Promise<PatientSession | nul
     getPatientSession()?.name ||
     "";
   if (!name) return getPatientSession();
-  return savePatientSession({
-    name,
-    phone: user.phone || getPatientSession()?.phone || "",
-    userId: user.id,
-    via: "google",
-  });
+  const phone = user.phone || getPatientSession()?.phone || "";
+  const avatar =
+    (typeof meta.avatar_url === "string" && meta.avatar_url) ||
+    (typeof meta.picture === "string" && meta.picture) ||
+    undefined;
+  saveCachedProfile({ userId: user.id, name, email: user.email, avatar, phone, role: "patient" });
+  return savePatientSession({ name, phone, userId: user.id, via: "google" });
 }
 
 /** Booking codes kept on the device so the patient can follow the queue later. */

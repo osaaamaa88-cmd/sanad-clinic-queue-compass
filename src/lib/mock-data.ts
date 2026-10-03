@@ -316,6 +316,8 @@ export async function registerDoctorAccount(input: {
 }
 
 export async function signOutStaff() {
+  const { clearAllLocalUserData } = await import("@/lib/user-profile-cache");
+  clearAllLocalUserData();
   await supabase.auth.signOut();
 }
 

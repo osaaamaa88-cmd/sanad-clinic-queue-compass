@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { specialties, getMyClinicMembership, registerDoctorAccount, signOutStaff } from "@/lib/mock-data";
+import { getCachedProfile, saveCachedProfile } from "@/lib/user-profile-cache";
 
 export const Route = createFileRoute("/doctor/login")({
   head: () => ({
@@ -39,11 +40,37 @@ function DoctorEntry() {
 
   const route = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    const session = data.session;
+    if (!session) {
       setLoading(false);
       return;
     }
+    // Auto-login: jump instantly using the cached profile while the server confirms.
+    const cached = getCachedProfile();
+    if (cached && cached.userId === session.user.id) {
+      if (cached.role === "secretary") navigate({ to: "/reception" });
+      else if (cached.clinicId) navigate({ to: "/patient/clinic/$id", params: { id: cached.clinicId } });
+    }
     const membership = await getMyClinicMembership();
+    const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>;
+    const role = membership.role === "secretary" ? "secretary" : "doctor";
+    saveCachedProfile({
+      userId: session.user.id,
+      name:
+        (membership.clinic as { doctor?: string } | undefined)?.doctor ||
+        (typeof meta.full_name === "string" ? meta.full_name : "") ||
+        session.user.email ||
+        "",
+      email: session.user.email,
+      avatar: (membership.clinic as { avatar?: string } | undefined)?.avatar,
+      phone: (membership.clinic as { phone?: string } | undefined)?.phone,
+      role,
+      clinicId: membership.clinic?.id,
+    });
+    if (cached && cached.userId === session.user.id && (cached.role === "secretary" || cached.clinicId)) {
+      const same = cached.role === role && cached.clinicId === membership.clinic?.id;
+      if (same) return;
+    }
     if (membership.role === "secretary") {
       navigate({ to: "/reception" });
       return;
