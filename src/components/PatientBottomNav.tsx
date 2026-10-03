@@ -24,6 +24,7 @@ export function PatientBottomNav() {
             <Link
               key={item.to}
               to={item.to}
+              activeOptions={{ exact: true }}
               aria-current={active ? "page" : undefined}
               className={`group relative flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-bold transition-colors ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
