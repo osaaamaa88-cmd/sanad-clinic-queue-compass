@@ -1,57 +1,39 @@
 import { createServerFn } from "@tanstack/react-start";
-import { useSession } from "@tanstack/react-start/server";
-import { createHash, timingSafeEqual } from "node:crypto";
-
-type GateSession = { unlocked?: boolean };
-
-function getSessionConfig() {
-  const password = process.env.ADMIN_SESSION_KEY;
-  if (!password) throw new Error("ADMIN_SESSION_KEY is not set");
-  return {
-    password,
-    name: "sanad-admin-gate",
-    maxAge: 60 * 60 * 24 * 7,
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax" as const,
-      path: "/",
-    },
-  };
-}
-
-function passwordMatches(input: string, expected: string): boolean {
-  const a = createHash("sha256").update(input, "utf8").digest();
-  const b = createHash("sha256").update(expected, "utf8").digest();
-  return timingSafeEqual(a, b);
-}
 
 export const checkAdminUnlocked = createServerFn({ method: "GET" }).handler(async () => {
-  const session = await useSession<GateSession>(getSessionConfig());
-  return { unlocked: session.data.unlocked === true };
+  const { isAdminRequest } = await import("./admin-auth.server");
+  return { unlocked: await isAdminRequest() };
 });
 
 export const unlockAdmin = createServerFn({ method: "POST" })
   .inputValidator((data: { password: string }) => {
-    if (!data || typeof data.password !== "string") {
+    if (!data || typeof data.password !== "string" || data.password.length > 200) {
       throw new Error("Invalid input");
     }
-    if (data.password.length > 200) throw new Error("Invalid input");
     return { password: data.password };
   })
   .handler(async ({ data }) => {
+    const { createHash, timingSafeEqual } = await import("node:crypto");
+    const { useSession } = await import("@tanstack/react-start/server");
+    const { sessionConfig, issueAdminToken } = await import("./admin-auth.server");
     const expected = process.env.SITE_PASSWORD;
     if (!expected) throw new Error("SITE_PASSWORD is not set");
-    if (!passwordMatches(data.password, expected)) {
-      return { ok: false as const };
-    }
-    const session = await useSession<GateSession>(getSessionConfig());
-    await session.update({ unlocked: true });
-    return { ok: true as const };
+    const a = createHash("sha256").update(data.password, "utf8").digest();
+    const b = createHash("sha256").update(expected, "utf8").digest();
+    if (!timingSafeEqual(a, b)) return { ok: false as const, token: "" };
+    try {
+      const session = await useSession<{ unlocked?: boolean }>(sessionConfig());
+      await session.update({ unlocked: true });
+    } catch { /* cookie optional */ }
+    return { ok: true as const, token: issueAdminToken() };
   });
 
 export const lockAdmin = createServerFn({ method: "POST" }).handler(async () => {
-  const session = await useSession<GateSession>(getSessionConfig());
-  await session.clear();
+  const { useSession } = await import("@tanstack/react-start/server");
+  const { sessionConfig } = await import("./admin-auth.server");
+  try {
+    const session = await useSession(sessionConfig());
+    await session.clear();
+  } catch { /* ignore */ }
   return { ok: true as const };
 });

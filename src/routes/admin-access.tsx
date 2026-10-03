@@ -34,6 +34,7 @@ import {
   adminAnalytics,
 } from "@/lib/admin.functions";
 import { checkAdminUnlocked, unlockAdmin } from "@/lib/admin-gate.functions";
+import { saveAdminToken } from "@/lib/admin-token";
 
 export const Route = createFileRoute("/admin-access")({
   head: () => ({ meta: [{ title: "سَنَد — لوحة الأدمن" }] }),
@@ -76,7 +77,10 @@ function AdminGate({ onUnlock }: { onUnlock: () => void }) {
     setError(null);
     try {
       const res = await unlock({ data: { password } });
-      if (res.ok) onUnlock();
+      if (res.ok) {
+        saveAdminToken(res.token);
+        onUnlock();
+      }
       else setError("كلمة السر غير صحيحة، غير مصرح لك بالدخول");
     } catch {
       setError("حصل خطأ أثناء التحقق. حاول تاني.");
