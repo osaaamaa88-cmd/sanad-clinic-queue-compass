@@ -249,7 +249,7 @@ function Search() {
                         <Star className="h-3 w-3 fill-warning text-warning" /> {c.rating}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Route className="h-3 w-3" /> {c.distanceKm} كم
+                        <RouteIcon className="h-3 w-3" /> {c.distanceKm} كم
                       </span>
                     </div>
                     <span className="rounded-lg bg-primary-soft px-2 py-1 text-sm font-extrabold text-primary">
