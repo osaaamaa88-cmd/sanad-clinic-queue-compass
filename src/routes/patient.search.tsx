@@ -257,8 +257,9 @@ function Search() {
                     </span>
                   </div>
                   <span className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl gradient-primary py-2.5 text-sm font-extrabold text-primary-foreground shadow-soft">
-                    احجز دورك الآن <ChevronLeft className="h-4 w-4" />
+                    عرض الطبيب والتواصل <ChevronLeft className="h-4 w-4" />
                   </span>
+                  <p className="mt-1.5 text-center text-[10px] text-muted-foreground">الحجز أونلاين قريباً ⏳</p>
                 </div>
               </div>
             </Link>
@@ -326,25 +327,40 @@ function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void 
             <div className="text-[10px] text-muted-foreground">التقييم</div>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <a
+            href={clinic.phone ? `tel:${clinic.phone}` : undefined}
+            className="flex items-center justify-center gap-1.5 rounded-2xl gradient-primary py-3.5 text-sm font-extrabold text-primary-foreground shadow-soft"
+          >
+            <Phone className="h-4 w-4" /> اتصال
+          </a>
+          <a
+            href={clinic.phone ? whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`) : undefined}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary py-3.5 text-sm font-bold"
+          >
+            <MessageCircle className="h-4 w-4 text-success" /> واتساب
+          </a>
           {clinic.lat && clinic.lng ? (
             <a
               href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.lat},${clinic.lng}`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary px-4 py-4 text-sm font-bold"
+              className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary py-3.5 text-sm font-bold"
             >
               <Navigation className="h-4 w-4" /> الاتجاهات
             </a>
-          ) : <span />}
-          <Link
-            to="/patient/clinic/$id"
-            params={{ id: clinic.id }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-primary-foreground shadow-soft"
-          >
-            احجز دورك <ChevronLeft className="h-5 w-5" />
-          </Link>
+          ) : <span className="rounded-2xl bg-secondary" />}
         </div>
+        <Link
+          to="/patient/clinic/$id"
+          params={{ id: clinic.id }}
+          className="mt-2 flex w-full items-center justify-center gap-1 rounded-2xl border border-border py-3 text-sm font-bold"
+        >
+          عرض بروفايل الطبيب <ChevronLeft className="h-4 w-4" />
+        </Link>
+        <p className="mt-2 text-center text-[11px] text-muted-foreground">الحجز أونلاين قريباً ⏳</p>
       </div>
     </div>
     </>

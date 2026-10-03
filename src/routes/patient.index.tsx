@@ -261,7 +261,7 @@ function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfi
     </Link>
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-border px-4 py-3">
        <div className="min-w-0 space-y-1 text-xs text-muted-foreground"><div><span className="font-bold text-foreground">{clinic.price} ج</span><span> • </span><Clock className="inline h-3.5 w-3.5" /> <span>حوالي {clinic.waitingCount * 10} د</span></div><div className="flex items-center gap-1 font-semibold text-primary"><MapPin className="h-3.5 w-3.5" /><span>{clinic.distanceKm.toFixed(1)} كم</span></div></div>
-       <Button asChild size="sm" className="gradient-primary px-5 font-extrabold text-primary-foreground shadow-soft transition hover:scale-[1.03]"><Link to="/patient/clinic/$id" params={{ id: clinic.id }}>حجز دور الآن</Link></Button>
+       <Button asChild size="sm" className="gradient-primary px-5 font-extrabold text-primary-foreground shadow-soft transition hover:scale-[1.03]"><Link to="/patient/clinic/$id" params={{ id: clinic.id }}>عرض الطبيب</Link></Button>
     </div>
   </article>;
 }
