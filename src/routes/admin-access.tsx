@@ -19,6 +19,8 @@ import {
   Trophy,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { UsersTab, LiveBookingsTab, MediaTab, SystemTab } from "@/components/admin/GodModePanel";
+import { godSetFeatured } from "@/lib/godmode.functions";
 import { specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
 import {
   adminListClinics,
@@ -38,7 +40,7 @@ export const Route = createFileRoute("/admin-access")({
   component: Admin,
 });
 
-type ClinicRow = Clinic & { isDisabled: boolean };
+type ClinicRow = Clinic & { isDisabled: boolean; isFeatured?: boolean };
 type BookingRow = {
   id: string;
   code: string;
@@ -160,7 +162,8 @@ function Admin() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0, bookings: 0 });
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings">("analytics");
+  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings" | "users" | "live" | "media" | "system">("analytics");
+  const featureFn = useServerFn(godSetFeatured);
   const [editing, setEditing] = useState<ClinicRow | null>(null);
 
   const check = useServerFn(checkAdminUnlocked);
@@ -216,6 +219,7 @@ function Admin() {
         lng: Number(r.lng) || 0,
         isVerified: Boolean(r.is_verified),
         isDisabled: Boolean(r.is_disabled),
+        isFeatured: Boolean(r.is_featured),
         clinicStatus: ((r.clinic_status as string) || "normal") as ClinicRow["clinicStatus"],
         delayMinutes: Number(r.delay_minutes) || 0,
         bookingsClosed: Boolean(r.bookings_closed),
@@ -325,8 +329,12 @@ function Admin() {
         {([
           ["analytics", "التحليلات"],
           ["pending", `التوثيق (${pending.length})`],
-          ["verified", `كل العيادات (${verified.length})`],
-          ["bookings", "الحجوزات"],
+          ["verified", `العيادات (${verified.length})`],
+          ["bookings", "تقارير الحجز"],
+          ["users", "الحسابات"],
+          ["live", "حجوزات مباشرة"],
+          ["media", "الوسائط"],
+          ["system", "الطوارئ"],
         ] as const).map(([k, l]) => (
           <button
             key={k}
@@ -341,6 +349,10 @@ function Admin() {
       </div>
 
       {tab === "analytics" && <AnalyticsTab analytics={analytics} pendingCount={pending.length} />}
+      {tab === "users" && <UsersTab />}
+      {tab === "live" && <LiveBookingsTab />}
+      {tab === "media" && <MediaTab />}
+      {tab === "system" && <SystemTab />}
 
       {tab === "pending" && (
         <div className="mt-4 space-y-3">
@@ -433,9 +445,18 @@ function Admin() {
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
                   onClick={() => toggleVerified(c)}
-                  className="col-span-2 flex items-center justify-center gap-1 rounded-xl bg-warning/15 py-2 text-xs font-bold text-warning"
+                  className={`flex items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold ${c.isVerified ? "bg-warning/15 text-warning" : "bg-success text-success-foreground"}`}
                 >
-                  <BadgeCheck className="h-3.5 w-3.5" /> إلغاء شارة التوثيق
+                  <BadgeCheck className="h-3.5 w-3.5" /> {c.isVerified ? "إلغاء التوثيق" : "توثيق"}
+                </button>
+                <button
+                  onClick={async () => {
+                    await featureFn({ data: { id: c.id, featured: !c.isFeatured } });
+                    await refresh();
+                  }}
+                  className={`flex items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold ${c.isFeatured ? "bg-primary text-primary-foreground" : "border border-border"}`}
+                >
+                  ⭐ {c.isFeatured ? "طبيب مميز" : "تمييز"}
                 </button>
                 <button
                   onClick={() => setEditing(c)}
