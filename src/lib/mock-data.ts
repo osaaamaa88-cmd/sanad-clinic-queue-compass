@@ -174,9 +174,23 @@ export async function getVerifiedClinics(): Promise<Clinic[]> {
     .from("clinics")
     .select("*")
     .eq("is_disabled", false)
-    .order("submitted_at", { ascending: false });
+    .order("submitted_at", { ascending: false })
+    .limit(300);
   if (error) return [];
   return (data as Row[]).map(rowToClinic);
+}
+
+/** Server-side paginated clinic list (page starts at 0). */
+export async function getClinicsPage(page = 0, size = 20): Promise<{ rows: Clinic[]; hasMore: boolean }> {
+  const from = page * size;
+  const { data, error } = await supabase
+    .from("clinics")
+    .select("*")
+    .eq("is_disabled", false)
+    .order("submitted_at", { ascending: false })
+    .range(from, from + size);
+  if (error || !data) return { rows: [], hasMore: false };
+  return { rows: (data as Row[]).slice(0, size).map(rowToClinic), hasMore: data.length > size };
 }
 
 export async function getVerifiedClinic(id: string): Promise<Clinic | undefined> {

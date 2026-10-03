@@ -47,8 +47,15 @@ export async function addStory(input: {
   kind?: "story" | "urgent";
   highlightId?: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
+  if (input.file) {
+    const { uploadMedia } = await import("@/lib/media-upload");
+    return uploadMedia({
+      clinicId: input.clinicId, kind: "story", file: input.file, caption: input.caption,
+      highlightId: input.highlightId ?? null, storyKind: input.kind ?? "story",
+    });
+  }
   try {
-    const base64 = input.file ? await fileToBase64(input.file) : "";
+    const base64 = "";
     await svrAddStory({
       data: {
         clinicId: input.clinicId,
