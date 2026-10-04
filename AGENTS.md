@@ -13,3 +13,4 @@
 - Patient routes share a fixed bottom navigation through `AppShell`; keep health and medication tools grouped under the account destination.
 - Clinic media uploads go browser → signed upload URL (`src/lib/media.functions.ts` + `media-upload.ts`) and refs are signed via `signMediaRefs`; `avatars:` prefix marks the avatars bucket. Why: big files, real progress, buckets stay private.
 - Long clinic videos are stored only as a YouTube link (`clinics.youtube_url`, normalized by `src/lib/youtube.ts`) and embedded via youtube-nocookie; short media stays in Cloud storage. Why: zero bandwidth/storage cost for long videos.
+- App release version lives in src/lib/app-version.ts (mirrored in package.json); UI reads it from there so bumps happen in one place.
