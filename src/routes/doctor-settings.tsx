@@ -1,3 +1,4 @@
+import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SoundToggle } from "@/components/SoundControls";
 import { useCallback, useEffect, useState } from "react";
@@ -576,6 +577,7 @@ function DoctorSettings() {
           تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سَنَد.
         </div>
       )}
+      <p className="mt-6 text-center text-[11px] text-muted-foreground" dir="ltr">SANAD {APP_VERSION_LABEL} · Stable</p>
     </AppShell>
   );
 }
