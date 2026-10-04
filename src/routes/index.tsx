@@ -1,3 +1,4 @@
+import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Stethoscope, UserRound, ClipboardList, HeartPulse, Siren } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -145,6 +146,7 @@ function Landing() {
             سَنَد أداة تقنية لاكتشاف العيادات وتسهيل التواصل المباشر بين المريض والعيادة، ولا تقدم
             استشارات طبية ولا تتحمل المسؤولية عن الخدمات الطبية المقدمة من العيادات.
           </p>
+          <p className="text-[10px] font-bold text-muted-foreground" dir="ltr">SANAD {APP_VERSION_LABEL}</p>
         </footer>
       </div>
     </div>

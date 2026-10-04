@@ -1,3 +1,4 @@
+import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Instagram, GraduationCap, Briefcase } from "lucide-react";
 import portrait from "@/assets/osama-portrait.jpg.asset.json";
@@ -66,7 +67,7 @@ function DeveloperPage() {
       </main>
 
       <footer className="border-t border-border py-4 text-center text-xs text-muted-foreground">
-        <span dir="ltr">سند | SANAD - Built with care in Egypt © 2026</span>
+        <span dir="ltr">سند | SANAD - Built with care in Egypt © 2026 · {APP_VERSION_LABEL}</span>
       </footer>
     </div>
   );

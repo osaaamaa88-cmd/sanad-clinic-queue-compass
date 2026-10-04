@@ -1,3 +1,4 @@
+import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Activity, ArrowLeft, HeartPulse, LogOut, Pill } from "lucide-react";
@@ -90,6 +91,7 @@ function PatientLogin() {
           <Link to="/developer" className="text-[11px] font-bold text-muted-foreground underline" dir="ltr">
             About the Developer
           </Link>
+          <p className="mt-1 text-[10px] text-muted-foreground" dir="ltr">SANAD {APP_VERSION_LABEL}</p>
         </div>
       </div>
     </AppShell>
