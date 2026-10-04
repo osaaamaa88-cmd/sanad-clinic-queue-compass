@@ -16,6 +16,8 @@ import { Toaster } from "../components/ui/sonner";
 import { BroadcastBanner } from "../components/BroadcastBanner";
 import { AlarmStopper } from "../components/SoundControls";
 import { installGlobalSounds } from "../lib/sounds";
+import { installGlobalHaptics, setupStatusBar } from "../lib/native";
+import { useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 function NotFoundComponent() {
@@ -83,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "سَنَد — اختر دورك" },
       { name: "description", content: "سَنَد: احجز عند أقرب طبيب واعرف دورك أول بأول." },
       { property: "og:title", content: "سَنَد — اختر دورك" },
@@ -133,8 +135,12 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
   useEffect(() => {
     installGlobalSounds(toast);
+    void setupStatusBar();
+    return installGlobalHaptics();
   }, []);
 
   return (
@@ -143,7 +149,9 @@ function RootComponent() {
       <BroadcastBanner />
       <AlarmStopper />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div key={pathname} className="page-enter">
+        <Outlet />
+      </div>
       <Toaster position="top-center" dir="rtl" richColors />
     </QueryClientProvider>
   );
