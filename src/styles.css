@@ -287,3 +287,32 @@
 }
 
 .sanad-dark-tiles { filter: invert(1) hue-rotate(180deg) saturate(0.25) brightness(0.8) contrast(1.05) sepia(0.15) hue-rotate(170deg); }
+
+/* ===== Native app feel ===== */
+html, body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior-y: none;
+}
+input, textarea, select, [contenteditable="true"], .selectable, .selectable * {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+button, a, [role="button"], [role="tab"] {
+  transition: transform 120ms ease, background-color 150ms, color 150ms, opacity 150ms;
+}
+button:active:not(:disabled), a:active, [role="button"]:active, [role="tab"]:active {
+  transform: scale(0.95);
+}
+@keyframes page-slide-in {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: none; }
+}
+.page-enter { animation: page-slide-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
+  button:active, a:active { transform: none; }
+}
