@@ -230,7 +230,7 @@ export const svrRemoveClinicAvatar = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
-    const { error } = await supabaseAdmin.from("clinics").update({ avatar_url: null }).eq("id", data.clinicId);
+    const { error } = await supabaseAdmin.from("clinics").update({ avatar_url: "" }).eq("id", data.clinicId);
     if (error) throw new Error("REMOVE_FAILED");
     return { ok: true as const };
   });
