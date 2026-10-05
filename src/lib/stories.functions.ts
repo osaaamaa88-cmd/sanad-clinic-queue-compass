@@ -194,3 +194,43 @@ export const svrDeleteHighlight = createServerFn({ method: "POST" })
     await supabaseAdmin.from("clinic_highlights").delete().eq("id", data.highlightId);
     return { ok: true as const };
   });
+/** Clinic staff: pin existing stories into a highlight (Instagram-style "add to highlight"). */
+export const svrPinStories = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { highlightId: string; storyIds: string[] }) => {
+    if (!data || typeof data.highlightId !== "string" || !Array.isArray(data.storyIds)) throw new Error("Invalid input");
+    const storyIds = data.storyIds.filter((s) => typeof s === "string").slice(0, 50);
+    if (!storyIds.length) throw new Error("Invalid input");
+    return { highlightId: data.highlightId, storyIds };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertClinicManager } = await import("@/lib/clinic-access.server");
+    const { data: h } = await supabaseAdmin
+      .from("clinic_highlights").select("id, clinic_id").eq("id", data.highlightId).maybeSingle();
+    if (!h) throw new Error("FORBIDDEN");
+    await assertClinicManager(supabaseAdmin, h.clinic_id, context.userId);
+    const { error } = await supabaseAdmin
+      .from("clinic_stories")
+      .update({ highlight_id: h.id, is_pinned: true })
+      .in("id", data.storyIds)
+      .eq("clinic_id", h.clinic_id);
+    if (error) throw new Error("PIN_FAILED");
+    return { ok: true as const };
+  });
+
+/** Clinic staff: remove the clinic avatar (falls back to the specialty icon). */
+export const svrRemoveClinicAvatar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { clinicId: string }) => {
+    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+    return { clinicId: data.clinicId };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertClinicManager } = await import("@/lib/clinic-access.server");
+    await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
+    const { error } = await supabaseAdmin.from("clinics").update({ avatar_url: null }).eq("id", data.clinicId);
+    if (error) throw new Error("REMOVE_FAILED");
+    return { ok: true as const };
+  });
