@@ -6,6 +6,7 @@ import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, Calend
 import { MessagesSquare } from "lucide-react";
 import { openConversation } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
+import { AvatarActionSheet } from "@/components/AvatarActionSheet";
 import { ClinicQrCard } from "@/components/ClinicQrCard";
 import { PostViewer } from "@/components/PostViewer";
 import { StoryViewer } from "@/components/StoryViewer";
@@ -16,6 +17,8 @@ import {
   deleteStory,
   createHighlight,
   deleteHighlight,
+  pinStoriesToHighlight,
+  removeClinicAvatar,
   type ClinicStories,
   type StoryItem,
 } from "@/lib/stories";
@@ -85,6 +88,10 @@ function ClinicDetail() {
   const [newHighlight, setNewHighlight] = useState(false);
   const [hlTitle, setHlTitle] = useState("");
   const [hlEmoji, setHlEmoji] = useState("✨");
+  const [hlPicked, setHlPicked] = useState<string[]>([]);
+  const [hlMsg, setHlMsg] = useState("");
+  const [avatarSheet, setAvatarSheet] = useState(false);
+  const [avatarMsg, setAvatarMsg] = useState("");
   const [urgentOpen, setUrgentOpen] = useState(false);
   const [urgentText, setUrgentText] = useState("");
   const storyInputRef = useRef<HTMLInputElement>(null);
@@ -334,20 +341,23 @@ function ClinicDetail() {
             <div className="relative">
               <button
                 onClick={() => {
-                  if (stories.stories.length) setStoryView({ items: stories.stories, title: clinic.doctor });
-                  else if (isOwner) storyInputRef.current?.click();
+                  if (isOwner) setAvatarSheet(true);
+                  else if (stories.stories.length) setStoryView({ items: stories.stories, title: clinic.doctor });
                 }}
                 aria-label={stories.stories.length ? "مشاهدة ستوري العيادة" : "إضافة ستوري"}
-                className={`grid h-24 w-24 place-items-center rounded-full p-[3px] shadow-gold sm:h-28 sm:w-28 ${
+                className={`relative block aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full p-[3px] shadow-gold sm:h-28 sm:w-28 ${
                   stories.stories.length ? "gradient-story" : "bg-border"
                 }`}
               >
                 {extras?.avatarUrl ? (
-                  <img
-                    src={extras.avatarUrl}
-                    alt={`صورة ${clinic.doctor}`}
-                    className="h-full w-full rounded-full border-2 border-background object-cover"
-                  />
+                  <span className="relative block h-full w-full overflow-hidden rounded-full border-2 border-background bg-card">
+                    <img
+                      src={extras.avatarUrl}
+                      alt={`صورة ${clinic.doctor}`}
+                      className="absolute inset-0 h-full w-full object-cover object-center"
+                      draggable={false}
+                    />
+                  </span>
                 ) : (
                   <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-card text-4xl">
                     {spec?.emoji ?? "🩺"}
@@ -519,8 +529,8 @@ function ClinicDetail() {
           <div className="-mx-4 mt-5 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
             <div className="flex gap-4 pb-1">
               {isOwner && (
-                <button onClick={() => setNewHighlight(true)} className="shrink-0 text-center" aria-label="هايلايت جديد">
-                  <span className="grid h-16 w-16 place-items-center rounded-full border border-dashed border-gold/60 bg-card/70 text-gold">
+                <button onClick={() => { setHlPicked([]); setHlMsg(""); setNewHighlight(true); }} className="shrink-0 text-center" aria-label="هايلايت جديد">
+                  <span className="grid h-[68px] w-[68px] place-items-center rounded-full border-2 border-dashed border-border bg-card/70 text-foreground">
                     <Plus className="h-6 w-6" />
                   </span>
                   <span className="mt-1.5 block max-w-[68px] truncate text-[10px] font-bold text-gold">هايلايت جديد</span>
@@ -538,18 +548,16 @@ function ClinicDetail() {
                     }}
                     className="block"
                   >
-                    <span
-                      className={`grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-gold/50 bg-card/70 text-2xl ${
-                        h.items.length ? "" : "border-dashed"
-                      }`}
-                    >
-                      {h.items[0]?.url && h.items[0].mediaType === "image" ? (
-                        <img src={h.items[0].url} alt={h.title} className="h-full w-full object-cover" />
-                      ) : (
-                        h.emoji
-                      )}
+                    <span className="block h-[68px] w-[68px] rounded-full border border-border p-[3px]">
+                      <span className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-secondary text-2xl">
+                        {h.items[0]?.url && h.items[0].mediaType === "image" ? (
+                          <img src={h.items[0].url} alt={h.title} className="absolute inset-0 h-full w-full object-cover" />
+                        ) : (
+                          h.emoji
+                        )}
+                      </span>
                     </span>
-                    <span className="mt-1.5 block max-w-[68px] truncate text-[10px] font-bold text-muted-foreground">
+                    <span className="mt-1.5 block max-w-[68px] truncate text-[11px] font-semibold text-foreground">
                       {h.title}
                     </span>
                   </button>
@@ -1077,36 +1085,101 @@ function ClinicDetail() {
               placeholder="مثال: قبل وبعد"
               className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base outline-none focus:border-gold"
             />
-            <label className="mt-4 block text-xs font-bold text-muted-foreground">إيموجي</label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {["✨", "🏥", "😁", "💬", "🔬", "🦷", "❤️", "📸"].map((em) => (
+            {stories.stories.length === 0 ? (
+              <div className="mt-4 rounded-2xl border border-dashed border-border p-4 text-center">
+                <p className="text-sm font-bold">لازم تنشر ستوري واحدة على الأقل الأول</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">الهايلايت بيتعمل من الستوريز اللي نشرتها، زي إنستجرام.</p>
                 <button
-                  key={em}
-                  onClick={() => setHlEmoji(em)}
-                  className={`grid h-10 w-10 place-items-center rounded-xl text-xl ${hlEmoji === em ? "gradient-gold" : "bg-secondary"}`}
+                  onClick={() => { setNewHighlight(false); storyTargetHighlight.current = null; storyInputRef.current?.click(); }}
+                  className="mt-3 rounded-xl gradient-gold px-4 py-2 text-xs font-extrabold text-gold-foreground"
                 >
-                  {em}
+                  نشر ستوري الآن
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <>
+                <label className="mt-4 block text-xs font-bold text-muted-foreground">اختار الستوريز ({hlPicked.length})</label>
+                <div className="mt-2 grid max-h-64 grid-cols-3 gap-1.5 overflow-y-auto">
+                  {stories.stories.map((st) => {
+                    const idx = hlPicked.indexOf(st.id);
+                    return (
+                      <button
+                        key={st.id}
+                        onClick={() => setHlPicked((p) => (idx >= 0 ? p.filter((x) => x !== st.id) : [...p, st.id]))}
+                        className={`relative aspect-[9/16] overflow-hidden rounded-lg bg-secondary ${idx >= 0 ? "ring-2 ring-gold" : ""}`}
+                      >
+                        {st.url && st.mediaType === "image" ? (
+                          <img src={st.url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                        ) : st.url ? (
+                          <video src={st.url} muted className="absolute inset-0 h-full w-full object-cover" />
+                        ) : (
+                          <span className="absolute inset-0 grid place-items-center p-1 text-[10px] font-bold">{st.caption}</span>
+                        )}
+                        <span className={`absolute left-1 top-1 grid h-5 w-5 place-items-center rounded-full border-2 border-white text-[10px] font-black ${idx >= 0 ? "bg-gold text-gold-foreground" : "bg-black/30"}`}>
+                          {idx >= 0 ? idx + 1 : ""}
+                        </span>
+                        {idx === 0 && <span className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-[9px] font-bold text-white">الغلاف</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-[10px] text-muted-foreground">أول ستوري تختارها هتبقى غلاف الهايلايت.</p>
+              </>
+            )}
+            {hlMsg && <p className="mt-2 text-[11px] font-bold text-destructive">{hlMsg}</p>}
             <button
-              disabled={!hlTitle.trim() || busy === "hl"}
+              disabled={!hlTitle.trim() || hlPicked.length === 0 || busy === "hl"}
               onClick={async () => {
                 setBusy("hl");
-                const newId = await createHighlight(id, hlTitle.trim(), hlEmoji);
+                setHlMsg("");
+                const first = stories.stories.find((x) => x.id === hlPicked[0]);
+                const newId = await createHighlight(id, hlTitle.trim(), first?.mediaType === "image" ? "📸" : hlEmoji);
+                const ok = newId ? await pinStoriesToHighlight(newId, hlPicked) : false;
                 setBusy(null);
-                if (newId) {
+                if (ok) {
                   setHlTitle("");
+                  setHlPicked([]);
                   setNewHighlight(false);
                   await refreshStories();
-                }
+                } else setHlMsg("تعذر إنشاء الهايلايت، حاول تاني.");
               }}
-              className="mt-5 w-full rounded-2xl gradient-gold py-3.5 text-sm font-extrabold text-gold-foreground disabled:opacity-50"
+              className="mt-4 w-full rounded-2xl gradient-gold py-3.5 text-sm font-extrabold text-gold-foreground disabled:opacity-50"
             >
-              {busy === "hl" ? "جاري الحفظ…" : "إنشاء وتثبيت"}
+              {busy === "hl" ? "جاري الحفظ…" : "إنشاء الهايلايت"}
             </button>
           </div>
         </div>
+      )}
+
+      {isOwner && (
+        <AvatarActionSheet
+          open={avatarSheet}
+          onClose={() => setAvatarSheet(false)}
+          hasPhoto={Boolean(extras?.avatarUrl)}
+          busy={busy === "avatar"}
+          onViewStory={stories.stories.length ? () => setStoryView({ items: stories.stories, title: clinic.doctor }) : undefined}
+          onFile={async (file) => {
+            setBusy("avatar");
+            const res = await uploadClinicMedia({ clinicId: id, kind: "avatar", file });
+            setBusy(null);
+            setAvatarSheet(false);
+            setAvatarMsg(res.ok ? "تم تحديث الصورة ✅" : res.error === "FILE_TOO_LARGE" ? "الصورة كبيرة جداً (الحد ٥ ميجا)." : "تعذر رفع الصورة.");
+            if (res.ok) await refreshExtras();
+            setTimeout(() => setAvatarMsg(""), 2500);
+          }}
+          onRemove={async () => {
+            setBusy("avatar");
+            const ok = await removeClinicAvatar(id);
+            setBusy(null);
+            setAvatarSheet(false);
+            setAvatarMsg(ok ? "تم حذف الصورة" : "تعذر حذف الصورة.");
+            if (ok) await refreshExtras();
+            setTimeout(() => setAvatarMsg(""), 2500);
+          }}
+        />
+      )}
+      {avatarMsg && (
+        <div className="fixed inset-x-0 bottom-24 z-[130] mx-auto w-fit rounded-full bg-card px-4 py-2 text-xs font-bold shadow-lg">{avatarMsg}</div>
       )}
 
       {urgentOpen && isOwner && (
@@ -1170,6 +1243,7 @@ function EditProfileModal({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<"avatar" | "cover" | null>(null);
   const [msg, setMsg] = useState("");
+  const [sheet, setSheet] = useState(false);
 
   const pick = (kind: "avatar" | "cover") => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1222,17 +1296,38 @@ function EditProfileModal({
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <label className="flex cursor-pointer flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-[11px] font-bold text-gold">
+          <button
+            type="button"
+            onClick={() => setSheet(true)}
+            className="flex flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-[11px] font-bold text-gold"
+          >
             {uploading === "avatar" ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
-            صورة شخصية
-            <input type="file" accept="image/*" className="hidden" onChange={pick("avatar")} />
-          </label>
+            تعديل الصورة الشخصية
+          </button>
           <label className="flex cursor-pointer flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-[11px] font-bold text-gold">
             {uploading === "cover" ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
             صورة الغلاف
             <input type="file" accept="image/*" className="hidden" onChange={pick("cover")} />
           </label>
         </div>
+
+        <AvatarActionSheet
+          open={sheet}
+          onClose={() => setSheet(false)}
+          hasPhoto
+          busy={uploading === "avatar"}
+          onFile={async (file) => {
+            const fake = { target: { files: [file], value: "" } } as unknown as React.ChangeEvent<HTMLInputElement>;
+            await pick("avatar")(fake);
+            setSheet(false);
+          }}
+          onRemove={async () => {
+            const ok = await removeClinicAvatar(clinic.id);
+            setSheet(false);
+            setMsg(ok ? "تم حذف الصورة الشخصية" : "تعذر حذف الصورة.");
+            if (ok) await onSaved();
+          }}
+        />
 
         <div className="mt-4 space-y-3">
           <Field label="اسم الطبيب">

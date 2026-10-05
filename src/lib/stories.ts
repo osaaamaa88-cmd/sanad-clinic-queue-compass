@@ -87,3 +87,22 @@ export async function deleteHighlight(highlightId: string): Promise<boolean> {
     return false;
   }
 }
+export async function pinStoriesToHighlight(highlightId: string, storyIds: string[]): Promise<boolean> {
+  try {
+    const { svrPinStories } = await import("@/lib/stories.functions");
+    await svrPinStories({ data: { highlightId, storyIds } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function removeClinicAvatar(clinicId: string): Promise<boolean> {
+  try {
+    const { svrRemoveClinicAvatar } = await import("@/lib/stories.functions");
+    await svrRemoveClinicAvatar({ data: { clinicId } });
+    return true;
+  } catch {
+    return false;
+  }
+}
