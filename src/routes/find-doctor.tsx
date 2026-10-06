@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { DoctorNameSearch } from "@/components/DoctorNameSearch";
 
 export const Route = createFileRoute("/find-doctor")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — ابحث عن طبيب بالاسم" },
