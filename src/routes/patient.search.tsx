@@ -79,6 +79,11 @@ function Search() {
 
   return (
     <AppShell title="العيادات القريبة" subtitle={`${filtered.length} عيادة حواليك`} backTo="/patient">
+      <Link to="/find-doctor" className="mb-3 flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 px-3 py-3">
+        <SearchIcon className="h-5 w-5 text-primary" />
+        <span className="flex-1 text-sm font-bold">ابحث عن طبيب باسمه</span>
+        <ChevronLeft className="h-4 w-4 text-primary" />
+      </Link>
       {/* Search input */}
       <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2.5">
         <SearchIcon className="h-4 w-4 text-muted-foreground" />
