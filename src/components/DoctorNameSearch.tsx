@@ -9,13 +9,16 @@ const RECENT_KEY = "sanad.recentDoctorSearches";
 
 type Recent = { id: string; doctor: string; avatarUrl: string; specialtyId: string };
 
+/** Longest title first: alternation is tried left to right, so "دكتور" must beat "د". */
+const TITLE_PREFIX = /^(دكتوره|دكتور|د\.?|dr\.?)\s*/;
+
 function norm(s: string) {
   return s
     .toLowerCase()
     .replace(/[إأآا]/g, "ا")
     .replace(/ى/g, "ي")
     .replace(/ة/g, "ه")
-    .replace(/^(د\.?|دكتور|دكتوره|dr\.?)\s*/g, "")
+    .replace(TITLE_PREFIX, "")
     .trim();
 }
 
@@ -29,7 +32,7 @@ function Avatar({ d, size = 52 }: { d: { doctor: string; avatarUrl: string; hasS
         {d.avatarUrl ? (
           <img src={d.avatarUrl} alt={d.doctor} loading="lazy" className="h-full w-full object-cover" />
         ) : (
-          <span className="text-lg font-extrabold text-primary">{d.doctor.replace(/^د\.?\s*/, "").charAt(0) || "د"}</span>
+          <span className="text-lg font-extrabold text-primary">{d.doctor.replace(TITLE_PREFIX, "").charAt(0) || "د"}</span>
         )}
       </span>
     </span>
