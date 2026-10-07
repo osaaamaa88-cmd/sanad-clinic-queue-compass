@@ -1,3 +1,4 @@
+import "@/lib/failure-capture";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
