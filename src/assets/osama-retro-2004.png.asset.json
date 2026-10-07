@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "19749883-4fb8-4848-9ca8-ffe72b52da56",
-  "project_id": "2eae0ba1-4f26-4f27-97f9-9c4ddc1f8ba8",
-  "url": "/__l5e/assets-v1/19749883-4fb8-4848-9ca8-ffe72b52da56/osama-retro-2004.png",
-  "r2_key": "a/v1/2eae0ba1-4f26-4f27-97f9-9c4ddc1f8ba8/19749883-4fb8-4848-9ca8-ffe72b52da56/osama-retro-2004.png",
-  "original_filename": "osama-retro-2004.png",
-  "size": 1444928,
   "content_type": "image/png",
-  "created_at": "2026-10-01T19:08:52Z"
+  "created_at": "2026-10-01T19:08:52Z",
+  "original_filename": "osama-retro-2004.png",
+  "project_id": "9d64e5f5-7044-4a10-b6ff-3d244f11834b",
+  "r2_key": "a/v1/9d64e5f5-7044-4a10-b6ff-3d244f11834b/19749883-4fb8-4848-9ca8-ffe72b52da56/osama-retro-2004.png",
+  "size": 1444928,
+  "url": "/__l5e/assets-v1/19749883-4fb8-4848-9ca8-ffe72b52da56/osama-retro-2004.png",
+  "version": 1
 }
