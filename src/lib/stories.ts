@@ -14,6 +14,8 @@ export type StoryItem = {
   kind: "story" | "urgent";
   highlightId: string | null;
   createdAt: string;
+  tag?: string;
+  views?: number;
 };
 
 export type Highlight = { id: string; title: string; emoji: string; items: StoryItem[] };
@@ -34,12 +36,15 @@ export async function addStory(input: {
   caption?: string;
   kind?: "story" | "urgent";
   highlightId?: string | null;
+  tag?: string;
+  permanent?: boolean;
 }): Promise<{ ok: boolean; error?: string }> {
   if (input.file) {
     const { uploadMedia } = await import("@/lib/media-upload");
     return uploadMedia({
       clinicId: input.clinicId, kind: "story", file: input.file, caption: input.caption,
       highlightId: input.highlightId ?? null, storyKind: input.kind ?? "story",
+      tag: input.tag, permanent: input.permanent,
     });
   }
   try {
@@ -105,4 +110,11 @@ export async function removeClinicAvatar(clinicId: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+const viewed = new Set<string>();
+export function markStoryViewed(storyId: string) {
+  if (viewed.has(storyId)) return;
+  viewed.add(storyId);
+  import("@/lib/stories.functions").then((m) => m.svrViewStory({ data: { storyId } })).catch(() => {});
 }

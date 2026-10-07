@@ -21,7 +21,7 @@ export const svrGetClinicStories = createServerFn({ method: "POST" })
 
     const { data: rows } = await supabaseAdmin
       .from("clinic_stories")
-      .select("id, media_url, media_type, caption, kind, highlight_id, expires_at, is_pinned, created_at")
+      .select("id, media_url, media_type, caption, kind, tag, views_count, highlight_id, expires_at, is_pinned, created_at")
       .eq("clinic_id", data.clinicId)
       .order("created_at", { ascending: false })
       .limit(120);
@@ -42,6 +42,8 @@ export const svrGetClinicStories = createServerFn({ method: "POST" })
       kind: s.kind === "urgent" ? ("urgent" as const) : ("story" as const),
       highlightId: s.highlight_id ?? null,
       createdAt: s.created_at,
+      tag: s.tag ?? "",
+      views: s.views_count ?? 0,
     });
 
     const now = Date.now();
@@ -232,5 +234,18 @@ export const svrRemoveClinicAvatar = createServerFn({ method: "POST" })
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
     const { error } = await supabaseAdmin.from("clinics").update({ avatar_url: "" }).eq("id", data.clinicId);
     if (error) throw new Error("REMOVE_FAILED");
+    return { ok: true as const };
+  });
+
+/** Public: count one view of a story (best effort). */
+export const svrViewStory = createServerFn({ method: "POST" })
+  .inputValidator((data: { storyId: string }) => {
+    if (!data || typeof data.storyId !== "string" || !/^[0-9a-f-]{36}$/i.test(data.storyId)) throw new Error("Invalid input");
+    return { storyId: data.storyId };
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin.from("clinic_stories").select("views_count").eq("id", data.storyId).maybeSingle();
+    if (row) await supabaseAdmin.from("clinic_stories").update({ views_count: (row.views_count ?? 0) + 1 }).eq("id", data.storyId);
     return { ok: true as const };
   });
