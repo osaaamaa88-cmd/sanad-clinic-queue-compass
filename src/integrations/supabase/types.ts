@@ -456,6 +456,8 @@ export type Database = {
           kind: string
           media_type: string
           media_url: string
+          tag: string
+          views_count: number
         }
         Insert: {
           caption?: string
@@ -468,6 +470,8 @@ export type Database = {
           kind?: string
           media_type?: string
           media_url?: string
+          tag?: string
+          views_count?: number
         }
         Update: {
           caption?: string
@@ -480,6 +484,8 @@ export type Database = {
           kind?: string
           media_type?: string
           media_url?: string
+          tag?: string
+          views_count?: number
         }
         Relationships: [
           {
