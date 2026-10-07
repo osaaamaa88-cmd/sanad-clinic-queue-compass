@@ -13,3 +13,6 @@
 - [x] Patient bottom navigation: home, search, emergency, account
 - [x] Move health indicators and medication reminders into the patient account
 - [x] Storage: avatars bucket (5MB), clinic-media 50MB, image compression, upload progress/size errors, indexes, list caps + paging helper
+- [x] Patient home header shows only «سَنَد | SANAD»
+- [x] Headers hide on scroll down across all pages
+- [x] Move light/dark switch into patient & doctor settings
