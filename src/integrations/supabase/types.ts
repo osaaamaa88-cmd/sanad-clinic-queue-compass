@@ -722,6 +722,30 @@ export type Database = {
         }
         Relationships: []
       }
+      save_failures: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          message: string
+          path: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          message: string
+          path?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          message?: string
+          path?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
