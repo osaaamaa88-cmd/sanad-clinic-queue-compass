@@ -77,8 +77,7 @@ function PatientHome() {
 
   return (
     <AppShell
-      title="أهلاً بك في سَنَد"
-      subtitle="SANAD — سندك الطبي في كل وقت"
+      title="سَنَد | SANAD"
       tone="primary"
       right={<NotificationsBell audience="patient" />}
       wide

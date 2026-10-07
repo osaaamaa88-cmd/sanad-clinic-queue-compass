@@ -1,7 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import type { ReactNode } from "react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PatientBottomNav } from "@/components/PatientBottomNav";
 import { DoctorBottomNav } from "@/components/DoctorBottomNav";
 import { useDoctorClinicId } from "@/lib/use-doctor-mode";
@@ -13,7 +12,6 @@ export function AppShell({
   right,
   children,
   tone = "light",
-  showThemeToggle = true,
   wide = false,
   hideBack = false,
   centeredTitle = false,
@@ -30,6 +28,19 @@ export function AppShell({
   centeredTitle?: boolean;
 }) {
   const isPrimary = tone === "primary";
+  const [hidden, setHidden] = useState(false);
+  const lastY = useRef(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y < 40) setHidden(false);
+      else if (y > lastY.current + 6) setHidden(true);
+      else if (y < lastY.current - 6) setHidden(false);
+      lastY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const doctorClinicId = useDoctorClinicId();
   const onOwnClinic = !!doctorClinicId && pathname === `/patient/clinic/${doctorClinicId}`;
@@ -41,7 +52,7 @@ export function AppShell({
     <div className="min-h-screen bg-background">
       <div className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-md sm:max-w-xl lg:max-w-2xl"}`}>
         <header
-          className={`sticky inset-x-0 top-0 z-50 grid min-h-16 items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 ${centeredTitle ? "grid-cols-[5.5rem_minmax(0,1fr)_5.5rem]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
+          className={`sticky inset-x-0 top-0 z-50 grid transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"} min-h-16 items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 ${centeredTitle ? "grid-cols-[5.5rem_minmax(0,1fr)_5.5rem]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
             isPrimary ? "gradient-primary text-primary-foreground" : "border-b border-border bg-card"
           }`}
         >
@@ -66,7 +77,6 @@ export function AppShell({
           </div>
           <div className="flex shrink-0 items-center justify-end gap-2">
             {right}
-            {showThemeToggle && <ThemeToggle className={isPrimary ? "border-primary-foreground/25 bg-primary-foreground/15 text-primary-foreground" : ""} />}
           </div>
         </header>
         <main className={`px-4 py-4 ${showPatientNav || showDoctorNav ? "pb-28" : "pb-24"} sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}>{children}</main>

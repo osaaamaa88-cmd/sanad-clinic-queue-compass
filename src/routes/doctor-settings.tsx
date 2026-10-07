@@ -1,6 +1,6 @@
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { SoundToggle } from "@/components/SoundControls";
+import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
 import { useCallback, useEffect, useState } from "react";
 import {
   MapPin,
@@ -370,7 +370,8 @@ function DoctorSettings() {
         </button>
       }
     >
-      <div className="mb-4"><SoundToggle /></div>
+      <div className="mb-4"><SoundToggle />
+<ThemeSetting /></div>
       {clinicId && !isVerified && (
         <div className="mb-4 rounded-2xl border border-warning bg-warning/10 p-4">
           <div className="flex items-start gap-3">
