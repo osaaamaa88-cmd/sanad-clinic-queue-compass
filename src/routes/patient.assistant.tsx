@@ -269,7 +269,7 @@ function Assistant() {
         </div>
 
         <button
-          onClick={submit}
+          onClick={() => submit()}
           disabled={loading || need.trim().length < 3}
           className="gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground disabled:opacity-50"
         >
