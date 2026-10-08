@@ -28,7 +28,6 @@ const securityHeaders = createMiddleware().server(async ({ next }) => {
     const h = (res as { response?: Response }).response?.headers ?? (res as unknown as Response).headers;
     h?.set("X-Content-Type-Options", "nosniff");
     h?.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    h?.set("X-Frame-Options", "SAMEORIGIN");
   } catch {
     /* immutable headers */
   }
