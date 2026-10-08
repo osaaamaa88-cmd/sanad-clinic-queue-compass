@@ -508,7 +508,10 @@
     {
       "name": "ClinicsMap",
       "file": "src/components/ClinicsMap",
-      "import_path": ""
+      "import_path": "",
+      "usage": "Use for the unified clinic and governmental-hospital directory. Numbered clusters separate on zoom; onSelect supplies the selected facility for a nonmodal preview.",
+      "examples": [{ "label": "Patient directory map", "code": "<ClinicsMap clinics={facilities} center={patientLocation} selectedId={selected?.id} onSelect={setSelected} />" }],
+      "antipatterns": ["Do not invent clinic or hospital coordinates.", "Do not evaluate Leaflet or markercluster before hydration.", "Do not obscure preview actions with bottom navigation."]
     },
     {
       "name": "DoctorBottomNav",
