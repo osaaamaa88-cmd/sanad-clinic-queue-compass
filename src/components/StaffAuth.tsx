@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LogIn, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { logAudit } from "@/lib/audit.functions";
 
 export function authErrorMessage(raw?: string) {
   const msg = (raw || "").toLowerCase();
