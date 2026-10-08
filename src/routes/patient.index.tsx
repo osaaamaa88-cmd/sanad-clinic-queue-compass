@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Building2, Clock, Globe2, HeartPulse, Hospital, MapPin, Search, Star, X } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
-import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
+import { specialties, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
 const StoryViewer = lazy(() => import("@/components/StoryViewer").then((m) => ({ default: m.StoryViewer })));
 import { useQueryClient } from "@tanstack/react-query";

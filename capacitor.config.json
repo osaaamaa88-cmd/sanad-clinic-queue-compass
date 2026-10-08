@@ -3,6 +3,18 @@
   "appName": "SANAD",
   "webDir": "dist",
   "plugins": {
-    "StatusBar": { "backgroundColor": "#0F172A", "style": "DARK", "overlaysWebView": false }
+    "StatusBar": {
+      "backgroundColor": "#0F172A",
+      "style": "DARK",
+      "overlaysWebView": false
+    }
+  },
+  "android": {
+    "hardwareAccelerated": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": true
   }
 }

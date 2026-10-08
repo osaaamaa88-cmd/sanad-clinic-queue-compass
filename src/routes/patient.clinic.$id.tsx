@@ -1056,6 +1056,7 @@ function ClinicDetail() {
       )}
 
       {storyView && (
+        <Suspense fallback={null}>
         <StoryViewer
           items={storyView.items}
           title={storyView.title}
@@ -1067,6 +1068,7 @@ function ClinicDetail() {
             await refreshStories();
           }}
         />
+        </Suspense>
       )}
 
       {newHighlight && isOwner && (
