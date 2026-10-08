@@ -105,8 +105,7 @@ export function ClinicsMap({
           <defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F43F5E"/><stop offset="1" stop-color="#9F1239"/></linearGradient></defs>
           <path d="M16 39 C16 39 3 25 3 15 A13 13 0 1 1 29 15 C29 25 16 39 16 39Z" fill="url(#hg)" stroke="#fff" stroke-width="${active ? 2.5 : 2}"/>
           ${ring}
-          <rect x="13" y="8" width="6" height="14" rx="1.2" fill="#fff"/>
-          <rect x="9" y="12" width="14" height="6" rx="1.2" fill="#fff"/>
+          <path d="M18.5 7.5 A7.5 7.5 0 1 0 18.5 22.5 A6 6 0 1 1 18.5 7.5 Z" fill="#fff"/>
         </svg>`,
         iconSize: [s, s * 1.25],
         iconAnchor: [s / 2, s * 1.25],

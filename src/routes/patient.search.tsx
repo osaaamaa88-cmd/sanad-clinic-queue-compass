@@ -303,28 +303,44 @@ function Search() {
   );
 }
 
-function HospitalCard({ c }: { c: Clinic }) {
+function Crescent({ className }: { className?: string }) {
   return (
-    <Link to="/hospital/$id" params={{ id: c.id }} className="block rounded-2xl border border-destructive/30 bg-card p-4 transition hover:shadow-soft">
-      <div className="flex items-start gap-3">
-        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-destructive/10 text-2xl">🏥</div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <p className="font-bold">{c.doctor}</p>
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path d="M15 4 A8 8 0 1 0 15 20 A6.4 6.4 0 1 1 15 4 Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function HospitalCard({ c }: { c: Clinic }) {
+  const dest = c.approxLocation ? encodeURIComponent(`${c.doctor} ${c.area}`) : `${c.lat},${c.lng}`;
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition hover:border-destructive/40">
+      <Link to="/hospital/$id" params={{ id: c.id }} className="block p-4">
+        <div className="flex items-start gap-3">
+          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-destructive to-destructive/70 text-destructive-foreground shadow-soft">
+            <Crescent className="h-7 w-7" />
           </div>
-          <div className="mt-1 flex flex-wrap gap-1">
-            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">مستشفى حكومي · {HOSPITAL_TYPES[c.hospitalType ?? ""] ?? "حكومي"}</span>
-            {c.availableNow && <span className="rounded-full bg-success px-2 py-0.5 text-[10px] font-bold text-success-foreground">طوارئ 24 ساعة</span>}
-            <LocationBadge approx={!!c.approxLocation} />
+          <div className="min-w-0 flex-1">
+            <p className="line-clamp-2 font-extrabold leading-snug">{c.doctor}</p>
+            <p className="mt-0.5 text-xs font-semibold text-destructive">مستشفى حكومي · {HOSPITAL_TYPES[c.hospitalType ?? ""] ?? "حكومي"}</p>
+            <p className="mt-1.5 flex items-start gap-1 text-xs text-muted-foreground">
+              <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+              <span className="line-clamp-1">{c.area} — {c.address}</span>
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold"><RouteIcon className="h-3 w-3" /> {c.distanceKm} كم</span>
+              {c.availableNow && <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">طوارئ 24 ساعة</span>}
+              <LocationBadge approx={!!c.approxLocation} />
+            </div>
           </div>
-          <p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
-            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-            <span className="line-clamp-2">{c.area} — {c.address}</span>
-          </p>
-          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><RouteIcon className="h-3 w-3" /> {c.distanceKm} كم</p>
+          <ChevronLeft className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
         </div>
+      </Link>
+      <div className="grid grid-cols-2 border-t border-border">
+        <a href={`tel:${c.phone}`} className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-extrabold text-destructive hover:bg-destructive/5"><Phone className="h-3.5 w-3.5" /> اتصال</a>
+        <a href={`https://www.google.com/maps/dir/?api=1&destination=${dest}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 border-r border-border py-2.5 text-xs font-bold hover:bg-secondary"><Navigation className="h-3.5 w-3.5" /> الاتجاهات</a>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -344,7 +360,7 @@ function HospitalSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => voi
         <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           <button onClick={onClose} aria-label="إغلاق" className="absolute left-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-secondary text-muted-foreground"><X className="h-4 w-4" /></button>
           <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
-          <p className="font-extrabold">🏥 {clinic.doctor}</p>
+          <p className="flex items-center gap-2 font-extrabold"><span className="grid h-8 w-8 place-items-center rounded-xl bg-destructive text-destructive-foreground"><Crescent className="h-4 w-4" /></span>{clinic.doctor}</p>
           <div className="mt-1 flex flex-wrap gap-1">
             <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">مستشفى حكومي</span>
             <LocationBadge approx={!!clinic.approxLocation} />
