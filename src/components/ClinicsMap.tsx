@@ -1,214 +1,180 @@
-import { createElement, useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
+import { Activity, LocateFixed, Maximize, Minus, Plus } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { LocateFixed, Stethoscope } from "lucide-react";
-import { specialtyIcons } from "@/lib/specialty-icons";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { Clinic } from "@/lib/mock-data";
-import { getSpecialty } from "@/lib/mock-data";
+import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 
-type L_ = typeof import("leaflet");
-
-export function ClinicsMap({
-  clinics,
-  center,
-  selectedId,
-  onSelect,
-}: {
+type Leaflet = typeof import("leaflet");
+export interface ClinicsMapProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onSelect"> {
   clinics: Clinic[];
   center: { lat: number; lng: number };
   selectedId?: string | null;
-  onSelect: (c: Clinic) => void;
-}) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<import("leaflet").Map | null>(null);
-  const layerRef = useRef<import("leaflet").LayerGroup | null>(null);
-  const meRef = useRef<import("leaflet").Marker | null>(null);
-  const LRef = useRef<L_ | null>(null);
+  onSelect: (clinic: Clinic) => void;
+  size?: "default" | "compact";
+}
+
+function pinIcon(L: Leaflet, clinic: Clinic, active: boolean) {
+  const hospital = clinic.kind === "hospital";
+  const symbol = hospital
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79 A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79 Z" fill="currentColor"/></svg>'
+    : renderToStaticMarkup(<Activity aria-hidden="true" />);
+  return L.divIcon({
+    className: "sanad-marker",
+    html: `<span class="sanad-pin ${hospital ? "sanad-pin-hospital" : ""} ${active ? "is-selected" : ""} ${clinic.approxLocation ? "is-approximate" : ""}">${symbol}</span>`,
+    iconSize: [36, 36], iconAnchor: [18, 18], tooltipAnchor: [0, -20],
+  });
+}
+
+/** Clustered clinic and hospital map with keyboard-accessible pins and location controls. */
+export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function ClinicsMap(
+  { clinics, center, selectedId, onSelect, size = "default", className, ...props }, ref,
+) {
+  const container = useRef<HTMLDivElement>(null);
+  const map = useRef<import("leaflet").Map | null>(null);
+  const group = useRef<import("leaflet").MarkerClusterGroup | null>(null);
+  const patient = useRef<import("leaflet").CircleMarker | null>(null);
+  const engine = useRef<Leaflet | null>(null);
+  const markers = useRef(new Map<string, { marker: import("leaflet").Marker; clinic: Clinic }>());
+  const latest = useRef({ clinics, center, selectedId, onSelect });
+  latest.current = { clinics, center, selectedId, onSelect };
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [gpsError, setGpsError] = useState("");
+  const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const fit = (animate = true) => {
+    const L = engine.current;
+    const instance = map.current;
+    if (!L || !instance) return;
+    const points = [...markers.current.values()].map(({ marker }) => marker.getLatLng());
+    if (points.length) instance.fitBounds(L.latLngBounds(points), { padding: [36, 36], maxZoom: 15, animate: animate && !reducedMotion(), duration: 0.45 });
+    else instance.setView(latest.current.center, 13, { animate: animate && !reducedMotion() });
+  };
 
   useEffect(() => {
     let disposed = false;
     (async () => {
       const L = (await import("leaflet")).default;
-      if (disposed || !containerRef.current || mapRef.current) return;
-      LRef.current = L;
-      const map = L.map(containerRef.current, {
-        center: [center.lat, center.lng],
-        zoom: 13,
-        zoomControl: false,
-        attributionControl: false,
-        preferCanvas: true,
-        zoomSnap: 0.5,
-        wheelPxPerZoomLevel: 90,
-        inertia: true,
-        inertiaDeceleration: 2500,
-        fadeAnimation: true,
-        zoomAnimation: true,
-        markerZoomAnimation: true,
+      // The plugin augments the browser Leaflet instance; never evaluate it during SSR.
+      await import("leaflet.markercluster");
+      if (disposed || !container.current) return;
+      engine.current = L;
+      const instance = L.map(container.current, {
+        center: latest.current.center, zoom: 13, maxZoom: 19,
+        zoomControl: false, attributionControl: false, preferCanvas: true,
+        zoomSnap: 1, wheelPxPerZoomLevel: 90, inertia: true,
       });
-      // Free OSM tiles (no key); a single light filter keeps the dark look cheap on phones.
+      map.current = instance;
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        className: "sanad-dark-tiles",
-        keepBuffer: 4,
-        updateWhenZooming: false,
-        detectRetina: false,
-      }).addTo(map);
-      layerRef.current = L.layerGroup().addTo(map);
-      mapRef.current = map;
-      meRef.current = L.marker([center.lat, center.lng], {
-        icon: L.divIcon({
-          className: "",
-          html: `<span style="display:grid;place-items:center;width:22px;height:22px;border-radius:9999px;background:#06B6D4;border:3px solid #0F172A;box-shadow:0 0 0 6px rgba(6,182,212,.25)"></span>`,
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
+        maxZoom: 19, className: "sanad-dark-tiles", keepBuffer: 3, updateWhenZooming: false,
+      }).addTo(instance);
+      group.current = L.markerClusterGroup({
+        maxClusterRadius: 48, disableClusteringAtZoom: 17, showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true, removeOutsideVisibleBounds: true,
+        animate: !reducedMotion(),
+        iconCreateFunction: (cluster) => L.divIcon({
+          html: `<span class="sanad-cluster-count">${cluster.getChildCount()}</span>`,
+          className: "sanad-cluster", iconSize: [44, 44], iconAnchor: [22, 22],
         }),
-        zIndexOffset: 1000,
-      }).addTo(map);
-      renderPins(true);
-    })();
+      }).addTo(instance);
+      const colors = getComputedStyle(container.current);
+      patient.current = L.circleMarker(latest.current.center, {
+        radius: 7, color: colors.getPropertyValue("--map-pin-ink").trim(), weight: 3,
+        fillColor: colors.getPropertyValue("--map-clinic").trim(), fillOpacity: 1,
+      }).addTo(instance);
+      const observer = new ResizeObserver(() => instance.invalidateSize({ pan: false }));
+      observer.observe(container.current);
+      instance.on("unload", () => observer.disconnect());
+      setReady(true);
+    })().catch(() => { if (!disposed) setError(true); });
     return () => {
       disposed = true;
-      mapRef.current?.remove();
-      mapRef.current = null;
-      layerRef.current = null;
+      map.current?.remove(); map.current = null; group.current = null;
+      markers.current.clear(); patient.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the patient dot in sync with the latest GPS position.
+  // Keep existing markers and listeners; only add/remove changed directory entries.
   useEffect(() => {
-    meRef.current?.setLatLng([center.lat, center.lng]);
-  }, [center.lat, center.lng]);
-
-  // Rebuild pins only when the result set changes; selection just swaps two icons.
-  const lastKey = useRef("");
-  const markersRef = useRef<Map<string, { m: import("leaflet").Marker; c: Clinic }>>(new Map());
-  const prevSel = useRef<string | null | undefined>(null);
-  useEffect(() => {
-    const key = clinics.map((c) => c.id).join(",");
-    if (key !== lastKey.current) {
-      lastKey.current = key;
-      renderPins(true);
-    } else {
-      updateSelection();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clinics, selectedId]);
-
-  function iconFor(L: L_, c: Clinic, active: boolean) {
-    if (c.kind === "hospital") {
-      const approx = !!c.approxLocation;
-      const s = active ? 40 : 32;
-      const ring = approx ? `<circle cx="16" cy="15" r="14.5" fill="none" stroke="#FBBF24" stroke-width="1.6" stroke-dasharray="3 2.5"/>` : "";
-      return L.divIcon({
-        className: "",
-        html: `<svg width="${s}" height="${s * 1.25}" viewBox="0 0 32 40" style="filter:drop-shadow(0 4px 6px rgba(0,0,0,.4));overflow:visible">
-          <defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F43F5E"/><stop offset="1" stop-color="#9F1239"/></linearGradient></defs>
-          <path d="M16 39 C16 39 3 25 3 15 A13 13 0 1 1 29 15 C29 25 16 39 16 39Z" fill="url(#hg)" stroke="#fff" stroke-width="${active ? 2.5 : 2}"/>
-          ${ring}
-          <path d="M18.5 7.5 A7.5 7.5 0 1 0 18.5 22.5 A6 6 0 1 1 18.5 7.5 Z" fill="#fff"/>
-        </svg>`,
-        iconSize: [s, s * 1.25],
-        iconAnchor: [s / 2, s * 1.25],
+    const L = engine.current;
+    const cluster = group.current;
+    if (!ready || !L || !cluster) return;
+    const valid = clinics.filter((c) => typeof c.lat === "number" && typeof c.lng === "number" && Number.isFinite(c.lat) && Number.isFinite(c.lng) && Math.abs(c.lat) <= 90 && Math.abs(c.lng) <= 180);
+    const ids = new Set(valid.map((c) => c.id));
+    let geometryChanged = false;
+    markers.current.forEach(({ marker }, id) => {
+      if (!ids.has(id)) { cluster.removeLayer(marker); markers.current.delete(id); geometryChanged = true; }
+    });
+    const additions: import("leaflet").Marker[] = [];
+    valid.forEach((clinic) => {
+      const lat = clinic.lat, lng = clinic.lng;
+      if (lat === undefined || lng === undefined) return;
+      const existing = markers.current.get(clinic.id);
+      if (existing) {
+        const previous = existing.marker.getLatLng();
+        if (previous.lat !== lat || previous.lng !== lng) { cluster.removeLayer(existing.marker); existing.marker.setLatLng([lat, lng]); additions.push(existing.marker); geometryChanged = true; }
+        existing.clinic = clinic;
+        existing.marker.setIcon(pinIcon(L, clinic, clinic.id === latest.current.selectedId));
+        return;
+      }
+      const marker = L.marker([lat, lng], { icon: pinIcon(L, clinic, clinic.id === latest.current.selectedId), title: clinic.doctor, alt: clinic.doctor, keyboard: true });
+      const label = document.createElement("span"); label.textContent = clinic.doctor;
+      marker.bindTooltip(label, { direction: "top" });
+      marker.on("click", () => {
+        const entry = markers.current.get(clinic.id);
+        if (!entry) return;
+        latest.current.onSelect(entry.clinic);
+        map.current?.panTo(marker.getLatLng(), { animate: !reducedMotion(), duration: 0.4 });
       });
-    }
-    return L.divIcon({
-      className: "",
-      html: `<div style="display:flex;flex-direction:column;align-items:center">
-        <div style="display:flex;align-items:center;gap:5px;padding:4px 9px 4px 5px;border-radius:9999px;font-family:Tajawal,sans-serif;font-weight:800;font-size:12px;color:${active ? "#0F172A" : "#F8FAFC"};background:${active ? "#06B6D4" : "#0F172A"};border:2px solid #06B6D4;box-shadow:0 6px 16px rgba(6,182,212,.35);white-space:nowrap">
-        <span style="display:grid;place-items:center;width:20px;height:20px;border-radius:9999px;background:${active ? "#0F172A" : "#06B6D4"};color:${active ? "#06B6D4" : "#0F172A"}">${renderToStaticMarkup(createElement(specialtyIcons[c.specialtyId] ?? Stethoscope, { size: 13, strokeWidth: 2.5 }))}</span><span>${c.price ? `${c.price} ج` : "كشف"}</span>
-        </div>
-        <div style="width:2px;height:8px;background:#06B6D4"></div>
-      </div>`,
-      iconSize: [80, 38],
-      iconAnchor: [40, 38],
+      markers.current.set(clinic.id, { marker, clinic }); additions.push(marker); geometryChanged = true;
     });
-  }
+    cluster.addLayers(additions);
+    if (geometryChanged) fit(false);
+  }, [clinics, ready]);
 
-  function updateSelection() {
-    const L = LRef.current;
-    if (!L) return;
-    const base = (c: Clinic) => (c.kind === "hospital" ? -100 : 0);
-    const prev = prevSel.current ? markersRef.current.get(prevSel.current) : undefined;
-    if (prev) { prev.m.setIcon(iconFor(L, prev.c, false)); prev.m.setZIndexOffset(base(prev.c)); }
-    const next = selectedId ? markersRef.current.get(selectedId) : undefined;
-    if (next) { next.m.setIcon(iconFor(L, next.c, true)); next.m.setZIndexOffset(500); }
-    prevSel.current = selectedId;
-  }
-
-  function renderPins(fit: boolean) {
-    const L = LRef.current;
-    const group = layerRef.current;
-    const map = mapRef.current;
-    if (!L || !group || !map) return;
-    group.clearLayers();
-    markersRef.current.clear();
-    const pts: [number, number][] = [];
-    clinics.forEach((c) => {
-      if (!c.lat || !c.lng) return;
-      pts.push([c.lat, c.lng]);
-      const active = selectedId === c.id;
-      const m = L.marker([c.lat, c.lng], { icon: iconFor(L, c, active), zIndexOffset: active ? 500 : c.kind === "hospital" ? -100 : 0 });
-      if (c.kind === "hospital") m.bindTooltip(`${c.doctor ?? "مستشفى"}${c.approxLocation ? " · موقع تقريبي" : ""}`, { direction: "top", offset: [0, -40] });
-      m.on("click", () => { onSelect(c); map.panTo([c.lat!, c.lng!], { animate: true, duration: 0.35 }); });
-      m.addTo(group);
-      markersRef.current.set(c.id, { m, c });
-    });
-    prevSel.current = selectedId;
-    if (fit && pts.length) {
-      map.fitBounds(L.latLngBounds([...pts, [center.lat, center.lng]]), { padding: [40, 40], maxZoom: 15, animate: true });
-    }
-  }
-
-  const recenter = () => mapRef.current?.setView([center.lat, center.lng], 15);
-
-  // InDrive-style street route (free OSRM, no API key) to the selected clinic.
-  const routeRef = useRef<import("leaflet").LayerGroup | null>(null);
-  const [routeInfo, setRouteInfo] = useState<{ min: number; km: number } | null>(null);
+  const previousSelection = useRef<string | null | undefined>(null);
   useEffect(() => {
-    const L = LRef.current;
-    const map = mapRef.current;
-    routeRef.current?.remove();
-    routeRef.current = null;
-    setRouteInfo(null);
-    const c = clinics.find((x) => x.id === selectedId);
-    if (!L || !map || !c?.lat || !c?.lng) return;
-    const ctrl = new AbortController();
-    const url = `https://router.project-osrm.org/route/v1/driving/${center.lng},${center.lat};${c.lng},${c.lat}?overview=full&geometries=geojson`;
-    fetch(url, { signal: ctrl.signal })
-      .then((r) => r.json())
-      .then((d) => {
-        const r = d?.routes?.[0];
-        if (!r) return;
-        const pts = (r.geometry.coordinates as [number, number][]).map(([lng, lat]) => [lat, lng] as [number, number]);
-        const g = L.layerGroup([
-          L.polyline(pts, { color: "#0F172A", weight: 9, opacity: 0.9 }),
-          L.polyline(pts, { color: "#06B6D4", weight: 5, opacity: 1 }),
-        ]).addTo(map);
-        routeRef.current = g;
-        map.fitBounds(L.latLngBounds(pts), { padding: [60, 60], maxZoom: 16 });
-        setRouteInfo({ min: Math.max(1, Math.round(r.duration / 60)), km: Math.round(r.distance / 100) / 10 });
-      })
-      .catch(() => {});
-    return () => ctrl.abort();
-  }, [selectedId, center.lat, center.lng, clinics]);
+    const L = engine.current;
+    if (!L || !ready) return;
+    const previous = previousSelection.current ? markers.current.get(previousSelection.current) : undefined;
+    const next = selectedId ? markers.current.get(selectedId) : undefined;
+    if (previous) { previous.marker.setIcon(pinIcon(L, previous.clinic, false)); previous.marker.setZIndexOffset(0); }
+    if (next) { next.marker.setIcon(pinIcon(L, next.clinic, true)); next.marker.setZIndexOffset(1000); }
+    previousSelection.current = selectedId;
+  }, [selectedId, ready]);
+
+  useEffect(() => {
+    if (!ready) return;
+    patient.current?.setLatLng(center);
+  }, [center.lat, center.lng, ready]);
+
+  const locate = () => {
+    if (!navigator.geolocation) { setGpsError("تحديد الموقع غير متاح؛ اختر منشأة على الخريطة."); return; }
+    setLocating(true); setGpsError("");
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      const point = { lat: coords.latitude, lng: coords.longitude };
+      patient.current?.setLatLng(point);
+      map.current?.setView(point, 14, { animate: !reducedMotion() });
+      setLocating(false);
+    }, () => { setLocating(false); setGpsError("تعذّر تحديد موقعك. اسمح بالوصول للموقع ثم حاول مجدداً."); }, { timeout: 8000, maximumAge: 60000 });
+  };
 
   return (
-    <div className="relative isolate">
-      <div ref={containerRef} className="h-[60vh] w-full" dir="ltr" />
-      {routeInfo && (
-        <div className="absolute left-1/2 top-3 z-[500] -translate-x-1/2 rounded-full bg-card px-4 py-2 text-sm font-extrabold shadow-soft ring-1 ring-primary">
-          🚗 {routeInfo.min} دقيقة تقريباً • {routeInfo.km} كم
-        </div>
-      )}
-      <span className="pointer-events-none absolute bottom-1 right-2 z-[500] text-[9px] text-muted-foreground" dir="ltr">© OpenStreetMap</span>
-      <button
-        type="button"
-        onClick={recenter}
-        aria-label="موقعي الحالي"
-        className="absolute bottom-4 left-4 z-[500] grid h-12 w-12 place-items-center rounded-full bg-card text-primary shadow-soft ring-1 ring-border"
-      >
-        <LocateFixed className="h-5 w-5" />
-      </button>
+    <div ref={ref} className={cn("relative isolate", className)} {...props}>
+      <div ref={container} className={cn("w-full", size === "compact" ? "h-80" : "h-[60vh] min-h-80")} dir="ltr" aria-label="خريطة العيادات والمستشفيات" />
+      {!ready && <div className="absolute inset-0 grid place-items-center bg-card text-sm text-muted-foreground" role="status">{error ? "تعذّر تحميل الخريطة. أعد تحميل الصفحة." : "جاري تحميل الخريطة…"}</div>}
+      <div className="absolute left-3 top-3 z-[500] flex flex-col gap-2">
+        <Button size="icon" variant="secondary" aria-label="تكبير الخريطة" title="تكبير" onClick={() => map.current?.zoomIn()}><Plus /></Button>
+        <Button size="icon" variant="secondary" aria-label="تصغير الخريطة" title="تصغير" onClick={() => map.current?.zoomOut()}><Minus /></Button>
+        <Button size="icon" variant="secondary" aria-label="عرض كل المنشآت" title="عرض كل المنشآت" onClick={() => fit()}><Maximize /></Button>
+        <Button size="icon" variant="secondary" aria-label="موقعي الحالي" title="موقعي الحالي" disabled={locating} onClick={locate}><LocateFixed className={locating ? "animate-pulse" : ""} /></Button>
+      </div>
+      {gpsError && <p role="status" className="absolute inset-x-3 bottom-8 z-[500] rounded-md bg-card p-3 text-xs text-foreground shadow-soft">{gpsError}</p>}
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="absolute bottom-1 right-2 z-[500] rounded-sm bg-card/90 px-1 text-[10px] text-muted-foreground" dir="ltr">© OpenStreetMap</a>
     </div>
   );
-}
+});

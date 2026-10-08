@@ -3,6 +3,7 @@ import { ClientOnly } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Map as MapIcon, List, MapPin, Star, Stethoscope, Search as SearchIcon, X, ArrowUpDown, BadgeCheck, Users, ChevronLeft, Navigation, LayoutGrid, Route as RouteIcon, Phone, MessageCircle } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
+import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
 import { ClinicsMap } from "@/components/ClinicsMap";
 import { getVerifiedClinics, specialties, getSpecialty, whatsappLink, type Clinic } from "@/lib/mock-data";
@@ -223,13 +224,11 @@ function Search() {
               onSelect={(c) => setSelected(c)}
             />
           </ClientOnly>
-          <div className="border-t border-border p-3 text-xs text-muted-foreground">
-            دوس على أي عيادة على الخريطة تشوف تفاصيلها ورقم الدور الحالي.
-          </div>
+
         </div>
       )}
 
-      {view === "map" && selected && (
+      {view === "map" && selected && filtered.some((c) => c.id === selected.id) && (
         <ClinicSheet clinic={selected} onClose={() => setSelected(null)} />
       )}
 
@@ -306,7 +305,7 @@ function Search() {
 function Crescent({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <path d="M15 4 A8 8 0 1 0 15 20 A6.4 6.4 0 1 1 15 4 Z" fill="currentColor" />
+      <path d="M21 12.79 A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79 Z" fill="currentColor" />
     </svg>
   );
 }
@@ -352,124 +351,40 @@ function LocationBadge({ approx }: { approx: boolean }) {
   );
 }
 
-function HospitalSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
-  return (
-    <>
-      <button onClick={onClose} aria-label="إغلاق البطاقة" className="fixed inset-0 z-[90] bg-black/40" />
-      <div className="fixed inset-x-0 bottom-0 z-[95] mx-auto w-full max-w-md sm:max-w-xl">
-        <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-          <button onClick={onClose} aria-label="إغلاق" className="absolute left-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-secondary text-muted-foreground"><X className="h-4 w-4" /></button>
-          <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
-          <p className="flex items-center gap-2 font-extrabold"><span className="grid h-8 w-8 place-items-center rounded-xl bg-destructive text-destructive-foreground"><Crescent className="h-4 w-4" /></span>{clinic.doctor}</p>
-          <div className="mt-1 flex flex-wrap gap-1">
-            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">مستشفى حكومي</span>
-            <LocationBadge approx={!!clinic.approxLocation} />
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">{clinic.area} — {clinic.address} • {clinic.distanceKm} كم</p>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <a href={`tel:${clinic.phone}`} className="flex items-center justify-center gap-1.5 rounded-2xl bg-destructive py-3.5 text-sm font-extrabold text-destructive-foreground"><Phone className="h-4 w-4" /> اتصال</a>
-            <a href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.approxLocation ? encodeURIComponent(`${clinic.doctor} ${clinic.area}`) : `${clinic.lat},${clinic.lng}`}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary py-3.5 text-sm font-bold"><Navigation className="h-4 w-4" /> الاتجاهات</a>
-          </div>
-          <Link to="/hospital/$id" params={{ id: clinic.id }} className="mt-2 flex w-full items-center justify-center gap-1 rounded-2xl border border-border py-3 text-sm font-bold">تفاصيل المستشفى <ChevronLeft className="h-4 w-4" /></Link>
-        </div>
-      </div>
-    </>
-  );
-}
-
 function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
-  if (clinic.kind === "hospital") return <HospitalSheet clinic={clinic} onClose={onClose} />;
-  const s = getSpecialty(clinic.specialtyId);
-  const SpecIcon = (s && specialtyIcons[s.id]) || Stethoscope;
+  const hospital = clinic.kind === "hospital";
+  const specialty = hospital ? (HOSPITAL_TYPES[clinic.hospitalType ?? ""] ?? "مستشفى حكومي") : getSpecialty(clinic.specialtyId)?.name;
+  const destination = clinic.approxLocation || !Number.isFinite(clinic.lat) || !Number.isFinite(clinic.lng)
+    ? encodeURIComponent(`${clinic.doctor} ${clinic.area} ${clinic.address}`) : `${clinic.lat},${clinic.lng}`;
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [onClose]);
   return (
-    <>
-      <button
-        onClick={onClose}
-        aria-label="إغلاق البطاقة"
-        className="fixed inset-0 z-[90] bg-black/40 transition-opacity"
-      />
-      <div className="fixed inset-x-0 bottom-0 z-[95] mx-auto w-full max-w-md sm:max-w-xl">
-      <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,.45)] sm:p-5">
-        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
-        <button
-          onClick={onClose}
-          aria-label="إغلاق"
-          className="absolute left-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-secondary text-muted-foreground"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <div className="flex items-start gap-3">
-          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary">
-            <SpecIcon className="h-7 w-7" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <p className="truncate font-extrabold">{clinic.doctor}</p>
-              {clinic.isVerified && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="موثّق" />}
-            </div>
-            <p className="text-xs text-muted-foreground">{s?.name}</p>
-            <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-              <MapPin className="h-3 w-3" /> {clinic.area || "—"} • {clinic.distanceKm} كم
-            </p>
-          </div>
-          <span className="rounded-lg bg-primary-soft px-2 py-1 text-sm font-extrabold text-primary">
-            {clinic.price ? `${clinic.price} ج` : "—"}
-          </span>
+    <section aria-label={`معاينة ${clinic.doctor}`} className="sanad-map-preview fixed inset-x-3 z-[85] mx-auto max-w-xl rounded-lg border border-border bg-card p-4 shadow-soft animate-sheet-up" dir="rtl">
+      <div className="flex items-start gap-3">
+        <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${hospital ? "bg-destructive/15 text-destructive" : "bg-primary-soft text-primary"}`}>
+          {hospital ? <Crescent className="h-6 w-6" /> : <Stethoscope className="h-5 w-5" />}
         </div>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl bg-secondary p-2">
-            <div className="text-lg font-black text-primary">{clinic.nowServing}</div>
-            <div className="text-[10px] text-muted-foreground">الدور الحالي</div>
-          </div>
-          <div className="rounded-xl bg-secondary p-2">
-            <div className="flex items-center justify-center gap-1 text-lg font-black">
-              <Users className="h-4 w-4 text-muted-foreground" />{clinic.waitingCount}
-            </div>
-            <div className="text-[10px] text-muted-foreground">في الانتظار</div>
-          </div>
-          <div className="rounded-xl bg-secondary p-2">
-            <div className="flex items-center justify-center gap-1 text-lg font-black">
-              <Star className="h-4 w-4 fill-warning text-warning" />{clinic.rating}
-            </div>
-            <div className="text-[10px] text-muted-foreground">التقييم</div>
-          </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="line-clamp-2 text-sm font-extrabold leading-snug">{clinic.doctor}</h2>
+          <p className="mt-1 text-xs text-muted-foreground">{hospital ? "مستشفى حكومي · " : ""}{specialty}</p>
+          <p className={`mt-1 text-xs font-semibold ${clinic.availableNow ? "text-success" : "text-muted-foreground"}`}>
+            {hospital ? (clinic.availableNow ? "طوارئ 24 ساعة" : "مواعيد العمل غير مؤكدة") : (clinic.availableNow ? "متاح الآن" : "غير متاح الآن")}
+          </p>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <a
-            href={clinic.phone ? `tel:${clinic.phone}` : undefined}
-            className="flex items-center justify-center gap-1.5 rounded-2xl gradient-primary py-3.5 text-sm font-extrabold text-primary-foreground shadow-soft"
-          >
-            <Phone className="h-4 w-4" /> اتصال
-          </a>
-          <a
-            href={clinic.phone ? whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`) : undefined}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary py-3.5 text-sm font-bold"
-          >
-            <MessageCircle className="h-4 w-4 text-success" /> واتساب
-          </a>
-          {clinic.lat && clinic.lng ? (
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.lat},${clinic.lng}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary py-3.5 text-sm font-bold"
-            >
-              <Navigation className="h-4 w-4" /> الاتجاهات
-            </a>
-          ) : <span className="rounded-2xl bg-secondary" />}
-        </div>
-        <Link
-          to="/patient/clinic/$id"
-          params={{ id: clinic.id }}
-          className="mt-2 flex w-full items-center justify-center gap-1 rounded-2xl border border-border py-3 text-sm font-bold"
-        >
-          عرض بروفايل الطبيب <ChevronLeft className="h-4 w-4" />
-        </Link>
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">الحجز أونلاين قريباً ⏳</p>
+        <Button size="icon" variant="ghost" aria-label="إغلاق البطاقة" onClick={onClose}><X /></Button>
       </div>
-    </div>
-    </>
+      <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">{clinic.area} — {clinic.address}</p>
+      {hospital && <div className="mt-2"><LocationBadge approx={!!clinic.approxLocation} /></div>}
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {clinic.phone ? <Button asChild variant={hospital ? "destructive" : "default"}><a href={`tel:${clinic.phone}`}><Phone /> اتصال</a></Button> : <Button disabled variant="secondary"><Phone /> لا يوجد رقم</Button>}
+        <Button asChild variant="secondary"><a href={`https://www.google.com/maps/dir/?api=1&destination=${destination}`} target="_blank" rel="noreferrer"><Navigation /> اتجاهات Google Maps</a></Button>
+      </div>
+      <Button asChild variant="link" className="mt-1 h-8 w-full text-xs">
+        {hospital ? <Link to="/hospital/$id" params={{ id: clinic.id }}>تفاصيل المستشفى <ChevronLeft /></Link> : <Link to="/patient/clinic/$id" params={{ id: clinic.id }}>عرض الطبيب <ChevronLeft /></Link>}
+      </Button>
+    </section>
   );
 }

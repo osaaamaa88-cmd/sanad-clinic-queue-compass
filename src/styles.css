@@ -62,6 +62,13 @@
 }
 
 :root {
+  --map-clinic: oklch(0.685 0.169 237.323);
+  --map-hospital: oklch(0.637 0.237 25.331);
+  --map-pin-ink: oklch(1 0 0);
+  --map-pin-size: 2.25rem;
+  --map-pin-symbol: 1.125rem;
+  --map-pin-shadow: 0 2px 8px oklch(0.15 0.03 265 / 0.35);
+  --map-preview-offset: calc(4rem + env(safe-area-inset-bottom) + 0.75rem);
   --radius: 0.625rem;
   /* سَنَد — Dark obsidian theme with electric turquoise + neon red emergency */
   --background: oklch(0.196 0.037 265);        /* #0F172A rich obsidian */
@@ -287,6 +294,42 @@
 }
 
 .sanad-dark-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.4); }
+
+.sanad-marker { background: none; border: 0; }
+.sanad-pin {
+  display: grid;
+  place-items: center;
+  width: var(--map-pin-size);
+  height: var(--map-pin-size);
+  border-radius: 50%;
+  background: var(--map-clinic);
+  color: var(--map-pin-ink);
+  border: 2px solid var(--map-pin-ink);
+  box-shadow: var(--map-pin-shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.sanad-pin svg { width: var(--map-pin-symbol); height: var(--map-pin-symbol); }
+.sanad-pin-hospital { background: var(--map-hospital); }
+.sanad-pin.is-approximate { border-style: dashed; border-color: var(--warning); }
+.sanad-pin.is-selected { transform: scale(1.15); box-shadow: 0 0 0 4px var(--primary-soft), var(--map-pin-shadow); }
+.sanad-cluster {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--foreground);
+  border: 3px solid var(--map-clinic);
+  box-shadow: var(--map-pin-shadow);
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 0.875rem;
+}
+.sanad-marker:focus-visible, .sanad-cluster:focus-visible { outline: 3px solid var(--warning); outline-offset: 4px; }
+.sanad-map-preview { bottom: var(--map-preview-offset); max-height: calc(100dvh - var(--map-preview-offset) - 1rem); overflow-y: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .sanad-pin { transition: none; }
+  .sanad-map-preview { animation: none; }
+}
 
 /* ===== Native app feel ===== */
 html, body {
