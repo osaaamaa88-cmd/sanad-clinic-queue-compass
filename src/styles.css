@@ -306,36 +306,33 @@
   background: var(--map-clinic);
   color: var(--map-pin-ink);
   border: 2px solid oklch(1 0 0 / 0.85);
-  box-shadow: 0 2px 8px oklch(0.12 0.03 265 / 0.5), 0 0 10px var(--map-clinic-glow);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.4);
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 .sanad-pin svg { width: var(--map-pin-symbol); height: var(--map-pin-symbol); }
-.sanad-pin-hospital {
-  background: var(--map-hospital);
-  box-shadow: 0 2px 8px oklch(0.12 0.03 265 / 0.5), 0 0 10px var(--map-hospital-glow);
-}
-.sanad-pin.is-approximate { border-style: dashed; border-color: var(--warning); }
+.sanad-pin-hospital { background: var(--map-hospital); }
 .sanad-pin.is-selected {
   transform: scale(1.18);
-  box-shadow: 0 0 0 4px var(--primary-soft), 0 2px 10px oklch(0.12 0.03 265 / 0.55), 0 0 16px var(--map-clinic-glow);
+  box-shadow: 0 0 0 4px var(--primary-soft), 0 2px 8px rgb(0 0 0 / 0.4);
 }
 .sanad-pin-hospital.is-selected {
-  box-shadow: 0 0 0 4px oklch(0.637 0.237 25.331 / 0.3), 0 2px 10px oklch(0.12 0.03 265 / 0.55), 0 0 16px var(--map-hospital-glow);
+  box-shadow: 0 0 0 4px oklch(0.637 0.237 25.331 / 0.3), 0 2px 8px rgb(0 0 0 / 0.4);
 }
 .sanad-cluster {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
   background: linear-gradient(135deg, oklch(0.72 0.155 228), oklch(0.68 0.13 195));
-  color: oklch(1 0 0);
+  color: #FFFFFF;
   border: 2px solid oklch(1 0 0 / 0.35);
   box-shadow:
     0 3px 10px oklch(0.12 0.03 265 / 0.55),
     0 0 16px oklch(0.685 0.169 237.323 / 0.45),
     inset 0 1px 0 oklch(1 0 0 / 0.3);
   font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: 0.875rem;
+  font-weight: 700;
+  font-size: 14px;
   text-shadow: 0 1px 2px oklch(0.15 0.05 230 / 0.45);
   transition: transform 180ms ease;
 }
