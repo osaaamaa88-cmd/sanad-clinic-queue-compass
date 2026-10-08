@@ -19,7 +19,7 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-export function SettingsPage() {
+function SettingsPage() {
   const [on, setOn] = useState(false);
   useEffect(() => {
     const sync = () => setOn(isVoiceModeOn());
