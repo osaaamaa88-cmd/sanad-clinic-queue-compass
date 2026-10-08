@@ -85,6 +85,7 @@ export const voiceAssist = createServerFn({ method: "POST" })
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(12_000),
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: [
