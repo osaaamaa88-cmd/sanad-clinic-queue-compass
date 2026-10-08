@@ -166,11 +166,11 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
     <div ref={ref} className={cn("relative isolate", className)} {...props}>
       <div ref={container} className={cn("w-full", size === "compact" ? "h-80" : "h-[60vh] min-h-80")} dir="ltr" aria-label="خريطة العيادات والمستشفيات" />
       {!ready && <div className="absolute inset-0 grid place-items-center bg-card text-sm text-muted-foreground" role="status">{error ? "تعذّر تحميل الخريطة. أعد تحميل الصفحة." : "جاري تحميل الخريطة…"}</div>}
-      <div className="absolute left-3 top-3 z-[500] flex flex-col gap-2">
-        <Button size="icon" variant="secondary" aria-label="تكبير الخريطة" title="تكبير" onClick={() => map.current?.zoomIn()}><Plus /></Button>
-        <Button size="icon" variant="secondary" aria-label="تصغير الخريطة" title="تصغير" onClick={() => map.current?.zoomOut()}><Minus /></Button>
-        <Button size="icon" variant="secondary" aria-label="عرض كل المنشآت" title="عرض كل المنشآت" onClick={() => fit()}><Maximize /></Button>
-        <Button size="icon" variant="secondary" aria-label="موقعي الحالي" title="موقعي الحالي" disabled={locating} onClick={locate}><LocateFixed className={locating ? "animate-pulse" : ""} /></Button>
+      <div className="absolute left-2 top-2 z-[500] flex flex-col gap-1.5" dir="ltr">
+        <button type="button" className="sanad-map-control" aria-label="تكبير الخريطة" title="تكبير" onClick={() => map.current?.zoomIn()}><Plus /></button>
+        <button type="button" className="sanad-map-control" aria-label="تصغير الخريطة" title="تصغير" onClick={() => map.current?.zoomOut()}><Minus /></button>
+        <button type="button" className="sanad-map-control" aria-label="عرض كل المنشآت" title="عرض كل المنشآت" onClick={() => fit()}><Maximize /></button>
+        <button type="button" className="sanad-map-control" aria-label="موقعي الحالي" title="موقعي الحالي" disabled={locating} onClick={locate}><LocateFixed className={locating ? "animate-pulse" : ""} /></button>
       </div>
       {gpsError && <p role="status" className="absolute inset-x-3 bottom-8 z-[500] rounded-md bg-card p-3 text-xs text-foreground shadow-soft">{gpsError}</p>}
       <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="absolute bottom-1 right-2 z-[500] rounded-sm bg-card/90 px-1 text-[10px] text-muted-foreground" dir="ltr">© OpenStreetMap</a>
