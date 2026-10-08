@@ -8,6 +8,13 @@
       "when": 1791404394178,
       "tag": "0000_save_failures",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791419812613,
+      "tag": "0001_create_governmental_hospitals",
+      "breakpoints": true
     }
   ]
 }
