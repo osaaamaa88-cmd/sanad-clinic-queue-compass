@@ -64,10 +64,12 @@ function Assistant() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TriageResult | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [hospitals, setHospitals] = useState<HospitalRow[]>([]);
 
   useEffect(() => {
     setLoc(getPatientLocation());
     getVerifiedClinics().then(setClinics);
+    listHospitals().then(setHospitals).catch(() => {});
   }, []);
 
   async function submit() {
@@ -90,6 +92,21 @@ function Assistant() {
         .map((c) => ({ c, d: c.lat != null && c.lng != null ? distanceKm(loc, { lat: c.lat, lng: c.lng }) : c.distanceKm }))
         .sort((a, b) => a.d - b.d)
         .slice(0, 6)
+    : [];
+
+  // Governmental hospitals: prefer specialty-department matches, else same-governorate
+  // emergency/general facilities, else nearest overall. Never an empty state.
+  const hospitalMatches = result
+    ? (() => {
+        const withDist = hospitals.map((h) => ({
+          h,
+          d: distanceKm(loc, { lat: Number(h.lat), lng: Number(h.lng) }),
+        }));
+        const byDept = withDist.filter((x) => hospitalMatchesSpecialty(x.h, result.specialtyIds));
+        const sameGov = withDist.filter((x) => loc.city && x.h.governorate.includes(loc.city));
+        const pool = byDept.length > 0 ? byDept : sameGov.length > 0 ? sameGov : withDist;
+        return pool.sort((a, b) => a.d - b.d).slice(0, 6);
+      })()
     : [];
 
   return (
