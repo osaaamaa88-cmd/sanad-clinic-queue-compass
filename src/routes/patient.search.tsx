@@ -56,6 +56,7 @@ function Search() {
   useEffect(() => {
     const saved = getPatientLocation();
     setPos({ lat: saved.lat, lng: saved.lng });
+    if (new URLSearchParams(window.location.search).get("kind") === "hospital") setKind("hospital");
   }, []);
   useEffect(() => {
     let cancelled = false;
@@ -115,7 +116,7 @@ function Search() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="ابحث بالطبيب، التخصص، أو المنطقة…"
+          placeholder="ابحث بالطبيب، المستشفى، أو المنطقة…"
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
         {q && (
@@ -173,13 +174,22 @@ function Search() {
       <div className="mt-3 -mx-5 overflow-x-auto px-5 pb-1">
         <div className="flex gap-2">
           <button
-            onClick={() => setSpec(null)}
+            onClick={() => { setSpec(null); if (kind === "hospital") setKind("all"); }}
             className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
-              spec === null ? "gradient-primary text-white" : "bg-secondary text-foreground"
+              spec === null && kind !== "hospital" ? "gradient-primary text-white" : "bg-secondary text-foreground"
             }`}
           >
             <LayoutGrid className="h-3.5 w-3.5" />
             الكل
+          </button>
+          <button
+            onClick={() => { setSpec(null); setKind(kind === "hospital" ? "all" : "hospital"); }}
+            aria-pressed={kind === "hospital"}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
+              kind === "hospital" ? "bg-destructive text-destructive-foreground" : "bg-destructive/10 text-destructive"
+            }`}
+          >
+            🏥 مستشفيات حكومية
           </button>
           {specialties.map((s) => {
             const SpecIcon = specialtyIcons[s.id] ?? Stethoscope;
