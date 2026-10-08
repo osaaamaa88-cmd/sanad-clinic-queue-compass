@@ -51,11 +51,11 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
   return (
     <>
       {!pathname.startsWith("/find-doctor") && (
-        <Link to="/find-doctor" aria-label="ابحث عن زميل" className="fixed left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[80] grid h-10 w-10 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow backdrop-blur">
+        <Link to="/find-doctor" aria-label="ابحث عن زميل" data-bottom-nav className="fixed left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[80] grid h-10 w-10 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow backdrop-blur">
           <Search className="h-5 w-5" />
         </Link>
       )}
-      <nav aria-label="تنقل الطبيب" className="fixed inset-x-0 bottom-0 z-[80] pb-[env(safe-area-inset-bottom)]">
+      <nav aria-label="تنقل الطبيب" data-bottom-nav className="fixed inset-x-0 bottom-0 z-[80] pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-2xl border border-primary/30 bg-card/95 px-1 shadow-[0_-8px_24px_hsl(var(--primary)/0.15)] backdrop-blur-xl sm:max-w-xl" style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}>
           {items.map((it) => {
             if (it.key === "rx") {

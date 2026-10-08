@@ -170,11 +170,15 @@ export function StoryViewer({
   };
 
   const hideUi = held;
+  useEffect(() => {
+    document.body.dataset.storyOpen = "true";
+    return () => { delete document.body.dataset.storyOpen; };
+  }, []);
   const scale = 1 - Math.min(dragY, 300) / 1500;
 
   return (
     <div
-      className="fixed inset-0 z-[70] grid place-items-center bg-black/95 transition-opacity duration-200"
+      className="fixed inset-0 z-[9999] grid place-items-center bg-black/95 transition-opacity duration-200"
       style={{ opacity: closing ? 0 : 1 - Math.min(dragY, 400) / 800 }}
       dir="rtl"
     >
@@ -227,7 +231,7 @@ export function StoryViewer({
 
         {/* header */}
         <div className={`absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/70 to-transparent pb-6 transition-opacity duration-200 ${hideUi ? "opacity-0" : "opacity-100"}`}>
-          <div className="flex gap-1 p-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
+          <div className="flex gap-1 p-2 pt-[calc(env(safe-area-inset-top)+0.5rem)]">
             {items.map((s, i) => (
               <span key={s.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
                 <span
@@ -266,7 +270,7 @@ export function StoryViewer({
         </div>
 
         {/* caption + inquiry */}
-        <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-10 transition-opacity duration-200 ${hideUi ? "opacity-0" : "opacity-100"}`}>
+        <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-10 transition-opacity duration-200 ${hideUi ? "opacity-0" : "opacity-100"}`}>
           {current.tag && (
             <span className="mb-2 inline-block rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold text-primary-foreground">{current.tag}</span>
           )}
