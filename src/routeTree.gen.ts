@@ -14,6 +14,7 @@ import { Route as AdminAccessRouteImport } from './routes/admin-access'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as DoctorSettingsRouteImport } from './routes/doctor-settings'
 import { Route as FindDoctorRouteImport } from './routes/find-doctor'
+import { Route as HospitalsRouteImport } from './routes/hospitals'
 import { Route as ReceptionRouteImport } from './routes/reception'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -57,6 +58,11 @@ const DoctorSettingsRoute = DoctorSettingsRouteImport.update({
 const FindDoctorRoute = FindDoctorRouteImport.update({
   id: '/find-doctor',
   path: '/find-doctor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HospitalsRoute = HospitalsRouteImport.update({
+  id: '/hospitals',
+  path: '/hospitals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReceptionRoute = ReceptionRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
+  '/hospitals': typeof HospitalsRoute
   '/reception': typeof ReceptionRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
+  '/hospitals': typeof HospitalsRoute
   '/reception': typeof ReceptionRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
+  '/hospitals': typeof HospitalsRoute
   '/reception': typeof ReceptionRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/doctor-settings'
     | '/find-doctor'
+    | '/hospitals'
     | '/reception'
     | '/sitemap.xml'
     | '/terms'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/doctor-settings'
     | '/find-doctor'
+    | '/hospitals'
     | '/reception'
     | '/sitemap.xml'
     | '/terms'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/developer'
     | '/doctor-settings'
     | '/find-doctor'
+    | '/hospitals'
     | '/reception'
     | '/sitemap.xml'
     | '/terms'
@@ -321,6 +333,7 @@ export interface RootRouteChildren {
   DeveloperRoute: typeof DeveloperRoute
   DoctorSettingsRoute: typeof DoctorSettingsRoute
   FindDoctorRoute: typeof FindDoctorRoute
+  HospitalsRoute: typeof HospitalsRoute
   ReceptionRoute: typeof ReceptionRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/find-doctor'
       fullPath: '/find-doctor'
       preLoaderRoute: typeof FindDoctorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hospitals': {
+      id: '/hospitals'
+      path: '/hospitals'
+      fullPath: '/hospitals'
+      preLoaderRoute: typeof HospitalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reception': {
@@ -521,6 +541,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeveloperRoute: DeveloperRoute,
   DoctorSettingsRoute: DoctorSettingsRoute,
   FindDoctorRoute: FindDoctorRoute,
+  HospitalsRoute: HospitalsRoute,
   ReceptionRoute: ReceptionRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
