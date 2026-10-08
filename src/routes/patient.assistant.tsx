@@ -220,14 +220,39 @@ function Assistant() {
           <span className="text-xs text-primary">تغيير ▾</span>
         </button>
 
-        <textarea
-          value={need}
-          onChange={(e) => setNeed(e.target.value)}
-          maxLength={800}
-          rows={4}
-          placeholder="مثلاً: عندي صداع مستمر ودوخة من أسبوع…"
-          className="w-full resize-none rounded-2xl border border-border bg-card p-4 text-base outline-none focus:border-primary"
-        />
+        <div className="relative">
+          <textarea
+            value={need}
+            onChange={(e) => setNeed(e.target.value)}
+            maxLength={800}
+            rows={4}
+            placeholder={listening ? "بسمعك… اتكلم براحتك" : "مثلاً: عندي صداع مستمر ودوخة من أسبوع…"}
+            className={`w-full resize-none rounded-2xl border bg-card p-4 pe-14 text-base outline-none focus:border-primary ${listening ? "border-destructive" : "border-border"}`}
+          />
+          <button
+            type="button"
+            onClick={toggleListening}
+            aria-label={listening ? "إيقاف التسجيل" : "تحدث بدلاً من الكتابة"}
+            className={`absolute bottom-3 end-3 grid h-10 w-10 place-items-center rounded-full transition ${
+              listening
+                ? "animate-pulse bg-destructive text-destructive-foreground shadow-[0_0_0_6px_rgba(239,68,68,0.25)]"
+                : "bg-primary/15 text-primary hover:bg-primary/25"
+            }`}
+          >
+            {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+          </button>
+          {listening && (
+            <span className="pointer-events-none absolute bottom-3 start-4 flex items-end gap-0.5" aria-hidden>
+              {[0, 1, 2, 3].map((i) => (
+                <span
+                  key={i}
+                  className="w-1 animate-pulse rounded-full bg-destructive"
+                  style={{ height: `${10 + ((i * 7) % 14)}px`, animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </span>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {examples.map((e) => (
             <button key={e} onClick={() => setNeed(e)} className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
