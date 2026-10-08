@@ -64,10 +64,11 @@
 :root {
   --map-clinic: oklch(0.685 0.169 237.323);
   --map-hospital: oklch(0.637 0.237 25.331);
+  --map-clinic-glow: oklch(0.685 0.169 237.323 / 0.5);
+  --map-hospital-glow: oklch(0.637 0.237 25.331 / 0.5);
   --map-pin-ink: oklch(1 0 0);
   --map-pin-size: 2.25rem;
   --map-pin-symbol: 1.125rem;
-  --map-pin-shadow: 0 2px 8px oklch(0.15 0.03 265 / 0.35);
   --map-preview-offset: calc(4rem + env(safe-area-inset-bottom) + 0.75rem);
   --radius: 0.625rem;
   /* سَنَد — Dark obsidian theme with electric turquoise + neon red emergency */

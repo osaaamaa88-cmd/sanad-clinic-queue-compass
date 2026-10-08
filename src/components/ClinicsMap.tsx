@@ -75,10 +75,15 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
         maxClusterRadius: 48, disableClusteringAtZoom: 17, showCoverageOnHover: false,
         spiderfyOnMaxZoom: true, removeOutsideVisibleBounds: true,
         animate: !reducedMotion(),
-        iconCreateFunction: (cluster) => L.divIcon({
-          html: `<span class="sanad-cluster-count">${cluster.getChildCount()}</span>`,
-          className: "sanad-cluster", iconSize: [44, 44], iconAnchor: [22, 22],
-        }),
+        iconCreateFunction: (cluster) => {
+          const count = cluster.getChildCount();
+          const size = count >= 20 ? 52 : count >= 5 ? 44 : 38;
+          return L.divIcon({
+            html: `<span class="sanad-cluster-count">${count}</span>`,
+            className: `sanad-cluster ${count >= 20 ? "sanad-cluster-large" : ""}`,
+            iconSize: [size, size], iconAnchor: [size / 2, size / 2],
+          });
+        },
       }).addTo(instance);
       const colors = getComputedStyle(container.current);
       patient.current = L.circleMarker(latest.current.center, {
