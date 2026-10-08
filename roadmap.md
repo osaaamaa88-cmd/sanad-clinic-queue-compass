@@ -16,3 +16,6 @@
 - [x] Patient home header shows only «سَنَد | SANAD»
 - [x] Headers hide on scroll down across all pages
 - [x] Move light/dark switch into patient & doctor settings
+
+- [x] Doctor story manager page (/doctor/stories) linked from doctor settings
+- [ ] AI analysis of repeated save failures for the owner panel (paused for stories)
