@@ -22,6 +22,13 @@
       "when": 1791422331844,
       "tag": "0002_hospital_location_verified",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791427828198,
+      "tag": "0003_app_error_logs",
+      "breakpoints": true
     }
   ]
 }
