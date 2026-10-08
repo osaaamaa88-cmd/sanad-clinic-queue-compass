@@ -1,3 +1,4 @@
+import { redact } from "./redact";
 // Captures the original Error out-of-band so server.ts can recover the stack
 // when h3 has already swallowed the throw into a generic 500 Response.
 
@@ -28,7 +29,7 @@ export function describeError(error: unknown): string {
     parts.push(`${label}${current.stack ?? `${current.name}: ${current.message}`}${status}`);
     current = current.cause;
   }
-  return parts.join("\n").slice(0, DESCRIPTION_LENGTH_LIMIT);
+  return redact(parts.join("\n"), DESCRIPTION_LENGTH_LIMIT);
 }
 
 function describeStatus(error: Error): string {

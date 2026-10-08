@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { redact } from "@/lib/redact";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -110,7 +111,7 @@ const clip = (s: unknown, n: number) => String(s ?? "").replace(/[\u0000-\u001f]
 // Public: logs real runtime errors (rate-limited) into app_error_logs for the admin health panel.
 export const reportRuntimeError = createServerFn({ method: "POST" })
   .inputValidator((d: { message?: string; screen?: string; device?: string }) => ({
-    message: clip(d?.message || "خطأ غير معروف", 400),
+    message: redact(d?.message || "unknown error", 400),
     screen: clip(d?.screen, 120),
     device: clip(d?.device, 160),
   }))
