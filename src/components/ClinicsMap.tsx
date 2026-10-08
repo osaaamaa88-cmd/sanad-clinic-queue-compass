@@ -1,7 +1,6 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Activity, LocateFixed, Maximize, Minus, Plus } from "lucide-react";
+import { Cross, LocateFixed, Maximize, Minus, Plus, Stethoscope } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Clinic } from "@/lib/mock-data";
 import "leaflet/dist/leaflet.css";
@@ -19,8 +18,8 @@ export interface ClinicsMapProps extends Omit<React.HTMLAttributes<HTMLDivElemen
 function pinIcon(L: Leaflet, clinic: Clinic, active: boolean) {
   const hospital = clinic.kind === "hospital";
   const symbol = hospital
-    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79 A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79 Z" fill="currentColor"/></svg>'
-    : renderToStaticMarkup(<Activity aria-hidden="true" />);
+    ? renderToStaticMarkup(<Cross aria-hidden="true" />)
+    : renderToStaticMarkup(<Stethoscope aria-hidden="true" />);
   return L.divIcon({
     className: "sanad-marker",
     html: `<span class="sanad-pin ${hospital ? "sanad-pin-hospital" : ""} ${active ? "is-selected" : ""} ${clinic.approxLocation ? "is-approximate" : ""}">${symbol}</span>`,
