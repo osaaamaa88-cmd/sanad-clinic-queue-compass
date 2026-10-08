@@ -19,7 +19,7 @@ export interface ClinicsMapProps extends Omit<React.HTMLAttributes<HTMLDivElemen
 function pinIcon(L: Leaflet, clinic: Clinic, active: boolean) {
   const hospital = clinic.kind === "hospital";
   const symbol = hospital
-    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4 A8 8 0 1 0 15 20 A6.4 6.4 0 1 1 15 4 Z" fill="currentColor"/></svg>'
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13.1A9 9 0 1 1 10.9 3.1 7 7 0 0 0 20.9 13.1Z" fill="currentColor"/></svg>'
     : renderToStaticMarkup(<Activity aria-hidden="true" />);
   return L.divIcon({
     className: "sanad-marker",
@@ -133,7 +133,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
       markers.current.set(clinic.id, { marker, clinic }); additions.push(marker); geometryChanged = true;
     });
     cluster.addLayers(additions);
-    if (geometryChanged) fit();
+    if (geometryChanged) fit(false);
   }, [clinics, ready]);
 
   const previousSelection = useRef<string | null | undefined>(null);
