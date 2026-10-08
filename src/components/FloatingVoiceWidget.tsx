@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Mic } from "lucide-react";
 import { isVoiceModeOn } from "@/lib/voice";
@@ -18,15 +18,14 @@ export function FloatingVoiceWidget() {
   }, []);
   if (!on || path.startsWith("/accessibility-assistant")) return null;
   return (
-    <Link
-      to="/accessibility-assistant"
-      search={{ listen: "1" } as never}
+    <a
+      href="/accessibility-assistant?listen=1"
       aria-label="افتح المساعد الصوتي"
       className="fixed right-4 z-[70] flex h-16 w-16 items-center justify-center rounded-full bg-yellow-300 text-black shadow-[0_0_24px_rgba(253,224,71,0.8)] ring-4 ring-black focus-visible:outline-none focus-visible:ring-white"
       style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}
     >
       <span className="absolute inset-0 animate-ping rounded-full bg-yellow-300/50" />
       <Mic className="relative h-8 w-8" />
-    </Link>
+    </a>
   );
 }

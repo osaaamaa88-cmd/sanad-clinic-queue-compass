@@ -10,12 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccessibilityAssistantRouteImport } from './routes/accessibility-assistant'
 import { Route as AdminAccessRouteImport } from './routes/admin-access'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as DoctorSettingsRouteImport } from './routes/doctor-settings'
 import { Route as FindDoctorRouteImport } from './routes/find-doctor'
 import { Route as HospitalsRouteImport } from './routes/hospitals'
 import { Route as ReceptionRouteImport } from './routes/reception'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DoctorIndexRouteImport } from './routes/doctor.index'
@@ -39,6 +41,11 @@ import { Route as PatientQueueIdRouteImport } from './routes/patient.queue.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccessibilityAssistantRoute = AccessibilityAssistantRouteImport.update({
+  id: '/accessibility-assistant',
+  path: '/accessibility-assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAccessRoute = AdminAccessRouteImport.update({
@@ -69,6 +76,11 @@ const HospitalsRoute = HospitalsRouteImport.update({
 const ReceptionRoute = ReceptionRouteImport.update({
   id: '/reception',
   path: '/reception',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -169,12 +181,14 @@ const PatientQueueIdRoute = PatientQueueIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accessibility-assistant': typeof AccessibilityAssistantRoute
   '/admin-access': typeof AdminAccessRoute
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
   '/hospitals': typeof HospitalsRoute
   '/reception': typeof ReceptionRoute
+  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
@@ -197,12 +211,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accessibility-assistant': typeof AccessibilityAssistantRoute
   '/admin-access': typeof AdminAccessRoute
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
   '/hospitals': typeof HospitalsRoute
   '/reception': typeof ReceptionRoute
+  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
@@ -226,12 +242,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accessibility-assistant': typeof AccessibilityAssistantRoute
   '/admin-access': typeof AdminAccessRoute
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
   '/hospitals': typeof HospitalsRoute
   '/reception': typeof ReceptionRoute
+  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
@@ -256,12 +274,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/accessibility-assistant'
     | '/admin-access'
     | '/developer'
     | '/doctor-settings'
     | '/find-doctor'
     | '/hospitals'
     | '/reception'
+    | '/settings'
     | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
@@ -284,12 +304,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/accessibility-assistant'
     | '/admin-access'
     | '/developer'
     | '/doctor-settings'
     | '/find-doctor'
     | '/hospitals'
     | '/reception'
+    | '/settings'
     | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
@@ -312,12 +334,14 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/accessibility-assistant'
     | '/admin-access'
     | '/developer'
     | '/doctor-settings'
     | '/find-doctor'
     | '/hospitals'
     | '/reception'
+    | '/settings'
     | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
@@ -341,12 +365,14 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccessibilityAssistantRoute: typeof AccessibilityAssistantRoute
   AdminAccessRoute: typeof AdminAccessRoute
   DeveloperRoute: typeof DeveloperRoute
   DoctorSettingsRoute: typeof DoctorSettingsRoute
   FindDoctorRoute: typeof FindDoctorRoute
   HospitalsRoute: typeof HospitalsRoute
   ReceptionRoute: typeof ReceptionRoute
+  SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   DoctorLoginRoute: typeof DoctorLoginRoute
@@ -375,6 +401,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accessibility-assistant': {
+      id: '/accessibility-assistant'
+      path: '/accessibility-assistant'
+      fullPath: '/accessibility-assistant'
+      preLoaderRoute: typeof AccessibilityAssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-access': {
@@ -417,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/reception'
       fullPath: '/reception'
       preLoaderRoute: typeof ReceptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -557,12 +597,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccessibilityAssistantRoute: AccessibilityAssistantRoute,
   AdminAccessRoute: AdminAccessRoute,
   DeveloperRoute: DeveloperRoute,
   DoctorSettingsRoute: DoctorSettingsRoute,
   FindDoctorRoute: FindDoctorRoute,
   HospitalsRoute: HospitalsRoute,
   ReceptionRoute: ReceptionRoute,
+  SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   DoctorLoginRoute: DoctorLoginRoute,
