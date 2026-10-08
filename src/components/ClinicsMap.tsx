@@ -35,8 +35,23 @@ export function ClinicsMap({
         zoom: 13,
         zoomControl: false,
         attributionControl: false,
+        preferCanvas: true,
+        zoomSnap: 0.5,
+        wheelPxPerZoomLevel: 90,
+        inertia: true,
+        inertiaDeceleration: 2500,
+        fadeAnimation: true,
+        zoomAnimation: true,
+        markerZoomAnimation: true,
       });
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, className: "sanad-dark-tiles" }).addTo(map);
+      // Pre-rendered dark tiles: no per-tile CSS filters, so panning stays at 60fps on phones.
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+        subdomains: "abcd",
+        keepBuffer: 4,
+        updateWhenZooming: false,
+        detectRetina: false,
+      }).addTo(map);
       layerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       meRef.current = L.marker([center.lat, center.lng], {
@@ -64,15 +79,54 @@ export function ClinicsMap({
     meRef.current?.setLatLng([center.lat, center.lng]);
   }, [center.lat, center.lng]);
 
-  // Re-render pins; fit bounds when the result set changes.
+  // Rebuild pins only when the result set changes; selection just swaps two icons.
   const lastKey = useRef("");
+  const markersRef = useRef<Map<string, { m: import("leaflet").Marker; c: Clinic }>>(new Map());
+  const prevSel = useRef<string | null | undefined>(null);
   useEffect(() => {
     const key = clinics.map((c) => c.id).join(",");
-    const changed = key !== lastKey.current;
-    lastKey.current = key;
-    renderPins(changed);
+    if (key !== lastKey.current) {
+      lastKey.current = key;
+      renderPins(true);
+    } else {
+      updateSelection();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clinics, selectedId]);
+
+  function iconFor(L: L_, c: Clinic, active: boolean) {
+    if (c.kind === "hospital") {
+      const approx = !!c.approxLocation;
+      return L.divIcon({
+        className: "",
+        html: `<div style="display:grid;place-items:center;width:28px;height:28px;border-radius:9999px;font-size:14px;background:${active ? "#B91C1C" : "#DC2626"};border:2px ${approx ? "dashed #FBBF24" : "solid #fff"};box-shadow:0 4px 10px rgba(0,0,0,.35);transform:scale(${active ? 1.2 : 1})">🏥</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+    }
+    return L.divIcon({
+      className: "",
+      html: `<div style="display:flex;flex-direction:column;align-items:center">
+        <div style="display:flex;align-items:center;gap:5px;padding:4px 9px 4px 5px;border-radius:9999px;font-family:Tajawal,sans-serif;font-weight:800;font-size:12px;color:${active ? "#0F172A" : "#F8FAFC"};background:${active ? "#06B6D4" : "#0F172A"};border:2px solid #06B6D4;box-shadow:0 6px 16px rgba(6,182,212,.35);white-space:nowrap">
+        <span style="display:grid;place-items:center;width:20px;height:20px;border-radius:9999px;background:${active ? "#0F172A" : "#06B6D4"};color:${active ? "#06B6D4" : "#0F172A"}">${renderToStaticMarkup(createElement(specialtyIcons[c.specialtyId] ?? Stethoscope, { size: 13, strokeWidth: 2.5 }))}</span><span>${c.price ? `${c.price} ج` : "كشف"}</span>
+        </div>
+        <div style="width:2px;height:8px;background:#06B6D4"></div>
+      </div>`,
+      iconSize: [80, 38],
+      iconAnchor: [40, 38],
+    });
+  }
+
+  function updateSelection() {
+    const L = LRef.current;
+    if (!L) return;
+    const base = (c: Clinic) => (c.kind === "hospital" ? -100 : 0);
+    const prev = prevSel.current ? markersRef.current.get(prevSel.current) : undefined;
+    if (prev) { prev.m.setIcon(iconFor(L, prev.c, false)); prev.m.setZIndexOffset(base(prev.c)); }
+    const next = selectedId ? markersRef.current.get(selectedId) : undefined;
+    if (next) { next.m.setIcon(iconFor(L, next.c, true)); next.m.setZIndexOffset(500); }
+    prevSel.current = selectedId;
+  }
 
   function renderPins(fit: boolean) {
     const L = LRef.current;
@@ -80,52 +134,21 @@ export function ClinicsMap({
     const map = mapRef.current;
     if (!L || !group || !map) return;
     group.clearLayers();
+    markersRef.current.clear();
     const pts: [number, number][] = [];
     clinics.forEach((c) => {
       if (!c.lat || !c.lng) return;
       pts.push([c.lat, c.lng]);
-      const spec = getSpecialty(c.specialtyId);
       const active = selectedId === c.id;
-      if (c.kind === "hospital") {
-        const approx = !!c.approxLocation;
-        const hm = L.marker([c.lat, c.lng], {
-          icon: L.divIcon({
-            className: "",
-            html: `<div style="display:grid;place-items:center;width:28px;height:28px;border-radius:9999px;font-size:14px;background:${active ? "#B91C1C" : "#DC2626"};border:2px ${approx ? "dashed #FBBF24" : "solid #fff"};box-shadow:0 4px 10px rgba(0,0,0,.35)">🏥</div>`,
-            iconSize: [28, 28],
-            iconAnchor: [14, 14],
-          }),
-          zIndexOffset: active ? 500 : -100,
-        });
-        hm.bindTooltip(`${c.doctor ?? "مستشفى"}${approx ? " · موقع تقريبي" : ""}`, { direction: "top", offset: [0, -14] });
-        hm.on("click", () => { onSelect(c); map.panTo([c.lat, c.lng]); });
-        hm.addTo(group);
-        return;
-      }
-      const marker = L.marker([c.lat, c.lng], {
-        icon: L.divIcon({
-          className: "",
-          html: `<div style="display:flex;flex-direction:column;align-items:center">
-            <div style="display:flex;align-items:center;gap:5px;padding:4px 9px 4px 5px;border-radius:9999px;font-family:Tajawal,sans-serif;font-weight:800;font-size:12px;color:${active ? "#0F172A" : "#F8FAFC"};background:${
-            active ? "#06B6D4" : "#0F172A"
-          };border:2px solid #06B6D4;box-shadow:0 6px 16px rgba(6,182,212,.35);white-space:nowrap">
-            <span style="display:grid;place-items:center;width:20px;height:20px;border-radius:9999px;background:${active ? "#0F172A" : "#06B6D4"};color:${active ? "#06B6D4" : "#0F172A"}">${renderToStaticMarkup(createElement(specialtyIcons[c.specialtyId] ?? Stethoscope, { size: 13, strokeWidth: 2.5 }))}</span><span>${c.price ? `${c.price} ج` : "كشف"}</span>
-            </div>
-            <div style="width:2px;height:8px;background:#06B6D4"></div>
-          </div>`,
-          iconSize: [80, 38],
-          iconAnchor: [40, 38],
-        }),
-        zIndexOffset: active ? 500 : 0,
-      });
-      marker.on("click", () => {
-        onSelect(c);
-        map.panTo([c.lat!, c.lng!]);
-      });
-      marker.addTo(group);
+      const m = L.marker([c.lat, c.lng], { icon: iconFor(L, c, active), zIndexOffset: active ? 500 : c.kind === "hospital" ? -100 : 0 });
+      if (c.kind === "hospital") m.bindTooltip(`${c.doctor ?? "مستشفى"}${c.approxLocation ? " · موقع تقريبي" : ""}`, { direction: "top", offset: [0, -14] });
+      m.on("click", () => { onSelect(c); map.panTo([c.lat!, c.lng!], { animate: true, duration: 0.35 }); });
+      m.addTo(group);
+      markersRef.current.set(c.id, { m, c });
     });
+    prevSel.current = selectedId;
     if (fit && pts.length) {
-      map.fitBounds(L.latLngBounds([...pts, [center.lat, center.lng]]), { padding: [40, 40], maxZoom: 15 });
+      map.fitBounds(L.latLngBounds([...pts, [center.lat, center.lng]]), { padding: [40, 40], maxZoom: 15, animate: true });
     }
   }
 
