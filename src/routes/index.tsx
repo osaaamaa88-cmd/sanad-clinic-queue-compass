@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
+import { setVoiceMode } from "@/lib/voice";
 import { CalendarCheck, ClipboardList, HeartPulse, Mic, Siren, Search, Stethoscope } from "lucide-react";
 
 const resumeTargets = {
@@ -137,7 +138,7 @@ function Landing() {
   };
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-md px-5 py-8">
+      <div className="mx-auto max-w-md px-5 pb-24 pt-8">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -159,13 +160,14 @@ function Landing() {
           <p className="mt-2 text-sm leading-6 opacity-90">
             تحدث مع سَنَد مباشرة بصوتك للحصول على الاستشارة فورااً
           </p>
-          <Link
-            to="/patient/assistant"
+          <button
+            type="button"
+            onClick={() => setVoiceMode(true)}
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground px-4 py-3 text-base font-extrabold text-primary shadow-soft transition active:scale-[0.98]"
           >
             <Mic className="h-5 w-5" />
             ابدأ المحادثة الصوتية
-          </Link>
+          </button>
         </div>
 
         <ResumeCard />
