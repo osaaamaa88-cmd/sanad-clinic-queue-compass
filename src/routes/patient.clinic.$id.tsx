@@ -1,7 +1,7 @@
 import { youtubeId } from "@/lib/youtube";
 import { PlayCircle } from "lucide-react";
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2, LogOut, Heart, Share2, Camera, AlertTriangle, Grid3x3, Clapperboard, Info } from "lucide-react";
 import { MessagesSquare } from "lucide-react";
 import { openConversation } from "@/lib/chat";
@@ -9,7 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import { AvatarActionSheet } from "@/components/AvatarActionSheet";
 import { ClinicQrCard } from "@/components/ClinicQrCard";
 import { PostViewer } from "@/components/PostViewer";
-import { StoryViewer } from "@/components/StoryViewer";
+const StoryViewer = lazy(() => import("@/components/StoryViewer").then((m) => ({ default: m.StoryViewer })));
 import { NotificationsBell } from "@/components/NotificationsBell";
 import {
   getClinicStories,
@@ -1056,6 +1056,7 @@ function ClinicDetail() {
       )}
 
       {storyView && (
+        <Suspense fallback={null}>
         <StoryViewer
           items={storyView.items}
           title={storyView.title}
@@ -1067,6 +1068,7 @@ function ClinicDetail() {
             await refreshStories();
           }}
         />
+        </Suspense>
       )}
 
       {newHighlight && isOwner && (

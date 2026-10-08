@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Building2, Clock, Globe2, HeartPulse, Hospital, MapPin, Search, Star, X } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
-import { specialties, getVerifiedClinics, type Clinic } from "@/lib/mock-data";
+import { specialties, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import { StoryViewer } from "@/components/StoryViewer";
+const StoryViewer = lazy(() => import("@/components/StoryViewer").then((m) => ({ default: m.StoryViewer })));
+import { useQueryClient } from "@tanstack/react-query";
+import { clinicsQuery } from "@/lib/directory-queries";
 import { getClinicProfileExtras, type ClinicProfileExtras } from "@/lib/clinic-profile";
 import { getClinicStories, type StoryItem } from "@/lib/stories";
 import { Button } from "@/components/ui/button";
@@ -36,11 +38,12 @@ function PatientHome() {
   const [specialtiesOpen, setSpecialtiesOpen] = useState(false);
   const [location, setLocation] = useState<PatientLocation>(defaultLocation);
   const [locOpen, setLocOpen] = useState(false);
+  const queryClient = useQueryClient();
   useEffect(() => setLocation(getPatientLocation()), []);
 
   useEffect(() => {
     let cancelled = false;
-    getVerifiedClinics().then(async (list) => {
+    queryClient.fetchQuery(clinicsQuery).then(async (list) => {
       if (cancelled) return;
       setClinics(list);
       const visible = list.slice(0, 10);
@@ -167,7 +170,7 @@ function PatientHome() {
       </section>
 
       {specialtiesOpen && <AllSpecialtiesSheet counts={availableCounts} selected={selectedSpecialty} onSelect={setSelectedSpecialty} onClose={() => setSpecialtiesOpen(false)} />}
-      {viewer && <StoryViewer items={viewer.items} title={viewer.clinic.doctor} onClose={() => setViewer(null)} />}
+      {viewer && <Suspense fallback={null}><StoryViewer items={viewer.items} title={viewer.clinic.doctor} onClose={() => setViewer(null)} /></Suspense>}
     </AppShell>
   );
 }

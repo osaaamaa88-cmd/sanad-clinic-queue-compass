@@ -30,6 +30,7 @@ if (typeof window !== "undefined") {
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
+    defaultOptions: { queries: { staleTime: 60 * 60 * 1000, gcTime: 2 * 60 * 60 * 1000, refetchOnWindowFocus: false } },
     mutationCache: new MutationCache({
       onError: (error, _v, _c, mutation) => {
         if (typeof window === "undefined") return;
