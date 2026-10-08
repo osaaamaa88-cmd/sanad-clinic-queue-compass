@@ -443,6 +443,12 @@ function DoctorSettings() {
       >
         <BookOpen className="h-4 w-4 text-primary" /> افتح دفتر الحجز
       </Link>
+      <Link
+        to="/doctor/stories"
+        className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 text-sm font-extrabold"
+      >
+        <Sparkles className="h-4 w-4 text-primary" /> إدارة القصص والهايلايت
+      </Link>
 
       {/* Profile form */}
       <div className="mt-6 flex items-center justify-between gap-2">
