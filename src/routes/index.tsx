@@ -162,7 +162,14 @@ function Landing() {
           </p>
           <button
             type="button"
-            onClick={() => setVoiceMode(true)}
+            onClick={async () => {
+              const { data } = await supabase.auth.getSession();
+              if (data.session) {
+                setVoiceMode(true);
+              } else {
+                navigate({ to: "/patient/login" });
+              }
+            }}
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground px-4 py-3 text-base font-extrabold text-primary shadow-soft transition active:scale-[0.98]"
           >
             <Mic className="h-5 w-5" />
