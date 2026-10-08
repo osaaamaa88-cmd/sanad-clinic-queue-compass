@@ -128,10 +128,12 @@ function Assistant() {
       rec.lang = "ar-EG";
       rec.interimResults = true;
       rec.continuous = false;
+      let finalText = "";
       rec.onresult = (e) => {
         let text = "";
         for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
-        setNeed(text.trim());
+        finalText = text.trim();
+        setNeed(finalText);
       };
       rec.onerror = (e) => {
         setListening(false);
