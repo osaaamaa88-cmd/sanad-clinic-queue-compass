@@ -16,7 +16,7 @@ import { NetworkStatus } from "../components/NetworkStatus";
 import { Toaster } from "../components/ui/sonner";
 import { BroadcastBanner } from "../components/BroadcastBanner";
 import { AlarmStopper } from "../components/SoundControls";
-import { FloatingVoiceWidget } from "../components/FloatingVoiceWidget";
+import { FloatingVoiceAssistant } from "../components/FloatingVoiceWidget";
 import { installGlobalSounds } from "../lib/sounds";
 import { installGlobalHaptics, setupStatusBar } from "../lib/native";
 import { useRouterState } from "@tanstack/react-router";
@@ -107,8 +107,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "سَنَد — اختر دورك" },
       { name: "twitter:description", content: "سَنَد: احجز عند أقرب طبيب واعرف دورك أول بأول." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/4a90882e-c3c7-4555-9c03-6c48e1e2674a" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/4a90882e-c3c7-4555-9c03-6c48e1e2674a" },
     ],
     links: [
       {
@@ -165,7 +163,7 @@ function RootComponent() {
       <div key={pathname} className="page-enter">
         <Outlet />
       </div>
-      <FloatingVoiceWidget />
+      <FloatingVoiceAssistant />
       <Toaster position="top-center" dir="rtl" richColors />
     </QueryClientProvider>
   );

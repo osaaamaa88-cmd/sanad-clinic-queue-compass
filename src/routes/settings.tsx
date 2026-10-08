@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, Mic } from "lucide-react";
-import { isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
+import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/settings")({
   staticData: { sitemap: false },
@@ -18,15 +19,19 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-function SettingsPage() {
+export function SettingsPage() {
   const [on, setOn] = useState(false);
-  useEffect(() => setOn(isVoiceModeOn()), []);
+  useEffect(() => {
+    const sync = () => setOn(isVoiceModeOn());
+    sync();
+    window.addEventListener("sanad:voice-mode", sync);
+    return () => window.removeEventListener("sanad:voice-mode", sync);
+  }, []);
 
   const toggle = () => {
     const next = !on;
     setOn(next);
     setVoiceMode(next);
-    if (next) speak("تم تفعيل المساعد الصوتي. ستجد زر الميكروفون العائم دائماً في أسفل الشاشة لمساعدتك بالصوت في أي وقت.");
   };
 
   return (
@@ -42,9 +47,9 @@ function SettingsPage() {
         </span>
         <input type="checkbox" role="switch" checked={on} onChange={toggle} className="h-6 w-11 accent-primary" />
       </label>
-      <Link to="/accessibility-assistant" className="mt-4 block rounded-2xl bg-primary p-4 text-center font-bold text-primary-foreground">
-        افتح المساعد الصوتي الآن
-      </Link>
+      <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
+        <Mic /> {on ? "إيقاف المساعد الصوتي" : "تفعيل المساعد الصوتي هنا"}
+      </Button>
     </main>
   );
 }
