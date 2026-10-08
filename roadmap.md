@@ -1,5 +1,7 @@
 # Current work
 
+- [ ] Map polish: clustering, compact circular medical pins, safe selection preview, GPS/auto-fit, browser checks.
+
 - [x] Replace the previous brand name across screens, metadata, sharing, and system copy.
 - [x] Update local storage, export, and session namespaces while preserving patient data.
 - [x] Update package and mobile app identity to SANAD / com.sanad.app.
