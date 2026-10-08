@@ -121,7 +121,7 @@ export function useFloatingVoiceAssistant() {
       recognition = r;
       let gotResult = false;
       setState("listening");
-      setMessage("أنا معاكي، اتكلمي براحتك.");
+      setMessage("أنا سامعاك، اتفضل اتكلم.");
       r.onresult = (event) => {
         if (!active || blocked || gotResult) return;
         const text = event.results[0]?.[0]?.transcript?.trim();
@@ -157,7 +157,7 @@ export function useFloatingVoiceAssistant() {
     if (!createRecognizer() || !window.speechSynthesis) {
       fail("المتصفح ده مش بيدعم المساعد الصوتي بالكامل؛ جرّب متصفح يدعم الميكروفون والصوت.");
     } else {
-      say("أهلاً بيك في سَنَد، أنا معاك. احكيلي إيه اللي حاسس بيه، وهنلاقي المساعدة المناسبة سوا.");
+      say("أهلاً بك في سَنَد، أنا هنا لمساعدتك. احكيلي إيه اللي تعبك، وهنلاقي المساعدة المناسبة سوا.");
     }
     return () => {
       active = false;

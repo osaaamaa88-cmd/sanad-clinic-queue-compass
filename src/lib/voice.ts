@@ -16,20 +16,43 @@ export function setVoiceMode(on: boolean) {
 }
 
 // Priority list for warm, high-quality female Arabic voices across iOS, Android, and Web.
-const PREFERRED_FEMALE_NAMES = ["Laila", "Zeina", "Salma", "Maryam", "Google", "Female"];
-// Known male Arabic system voices to avoid when falling back.
-const MALE_VOICE_PATTERN = /tarik|tariq|majed|maged|hamed|naayf|male|ذكر/i;
+const PREFERRED_FEMALE_NAMES = ["laila", "zeina", "salma", "maryam", "google", "female", "ar-eg", "ar-sa", "siri"];
+// Known male Arabic system voices to avoid.
+const MALE_VOICE_PATTERN = /maged|majed|tarik|tariq|hamed|naayf|arabic male|\bmale\b|ذكر/i;
+export const FEMALE_PITCH = 1.3;
+export const FEMALE_RATE = 0.85;
+
+let cachedVoices: SpeechSynthesisVoice[] = [];
+function loadVoices() {
+  if (typeof window === "undefined" || !window.speechSynthesis) return cachedVoices;
+  const v = window.speechSynthesis.getVoices();
+  if (v.length) cachedVoices = v;
+  return cachedVoices;
+}
+// Immediate pre-fetch + refresh when the async voice list arrives.
+if (typeof window !== "undefined" && window.speechSynthesis) {
+  loadVoices();
+  window.speechSynthesis.addEventListener?.("voiceschanged", loadVoices);
+}
 
 export function getBestFemaleArabicVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !window.speechSynthesis) return null;
-  const voices = window.speechSynthesis.getVoices();
-  const arabicVoices = voices.filter((v) => v.lang.toLowerCase().startsWith("ar"));
-  for (const name of PREFERRED_FEMALE_NAMES) {
-    const found = arabicVoices.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
+  const voices = loadVoices();
+  const arabic = voices.filter((v) => v.lang.toLowerCase().startsWith("ar") && !MALE_VOICE_PATTERN.test(v.name));
+  for (const key of PREFERRED_FEMALE_NAMES) {
+    const found = arabic.find((v) => `${v.name} ${v.lang}`.toLowerCase().includes(key));
     if (found) return found;
   }
-  // Avoid known male voices when falling back.
-  return arabicVoices.find((v) => !MALE_VOICE_PATTERN.test(v.name)) ?? arabicVoices[0] ?? null;
+  return arabic[0] ?? null;
+}
+
+/** Apply the warm female voice settings to any utterance. */
+export function applyFemaleVoice(u: SpeechSynthesisUtterance) {
+  const v = getBestFemaleArabicVoice();
+  u.lang = v?.lang ?? "ar-EG";
+  if (v) u.voice = v;
+  u.pitch = FEMALE_PITCH;
+  u.rate = FEMALE_RATE;
 }
 
 export function speak(text: string, onEnd?: (success: boolean) => void) {
@@ -53,11 +76,7 @@ export function speak(text: string, onEnd?: (success: boolean) => void) {
     synth.removeEventListener("voiceschanged", launch);
     window.clearTimeout(timer);
     const u = new SpeechSynthesisUtterance(text);
-    const v = getBestFemaleArabicVoice();
-    u.lang = v?.lang ?? "ar-EG";
-    if (v) u.voice = v;
-    u.pitch = 1.1;
-    u.rate = 0.88;
+    applyFemaleVoice(u);
     u.onend = () => complete(true);
     u.onerror = () => complete(false);
     synth.speak(u);
