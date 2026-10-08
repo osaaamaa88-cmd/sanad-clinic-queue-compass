@@ -83,11 +83,7 @@ function speakArabic(text: string, onEnd: () => void): () => void {
   }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = "ar-SA";
-  u.rate = 0.95;
-  const voices = window.speechSynthesis.getVoices();
-  const ar = voices.find((v) => v.lang.startsWith("ar"));
-  if (ar) u.voice = ar;
+  applyFemaleVoice(u);
   u.onend = onEnd;
   u.onerror = onEnd;
   window.speechSynthesis.speak(u);

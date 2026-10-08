@@ -40,13 +40,22 @@ export function SettingsPage() {
         <Link to="/" aria-label="رجوع" className="rounded-full border p-2"><ArrowRight className="h-5 w-5" /></Link>
         <h1 className="text-xl font-extrabold">الإعدادات</h1>
       </header>
-      <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border bg-card p-4">
-        <span className="flex items-center gap-3">
-          <Mic className="h-6 w-6 text-primary" />
-          <span className="font-bold">نمط المساعد الصوتي (لكبار السن وفاقدي البصر)</span>
-        </span>
-        <input type="checkbox" role="switch" checked={on} onChange={toggle} className="h-6 w-11 accent-primary" />
-      </label>
+      <div className="flex items-stretch gap-2">
+        <label className="flex flex-1 cursor-pointer items-center justify-between gap-4 rounded-2xl border bg-card p-4">
+          <span className="flex items-center gap-3">
+            <Mic className="h-6 w-6 text-primary" />
+            <span className="font-bold">نمط المساعد الصوتي (لكبار السن وفاقدي البصر)</span>
+          </span>
+          <input type="checkbox" role="switch" checked={on} onChange={toggle} className="h-6 w-11 accent-primary" />
+        </label>
+        <Button
+          variant="outline"
+          className="h-auto rounded-2xl px-3 font-bold"
+          onClick={() => speak("أهلاً بك في سَنَد، أنا هنا لمساعدتك. ده اختبار الصوت النسائي.")}
+        >
+          اختبار الصوت النسائي 🔊
+        </Button>
+      </div>
       <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
         <Mic /> {on ? "إيقاف المساعد الصوتي" : "تفعيل المساعد الصوتي هنا"}
       </Button>
