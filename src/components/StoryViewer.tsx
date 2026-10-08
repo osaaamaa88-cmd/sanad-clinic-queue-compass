@@ -114,6 +114,11 @@ export function StoryViewer({
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  useEffect(() => {
+    document.body.dataset.storyOpen = "true";
+    return () => { delete document.body.dataset.storyOpen; };
+  }, []);
+
   if (!current) return null;
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -170,10 +175,6 @@ export function StoryViewer({
   };
 
   const hideUi = held;
-  useEffect(() => {
-    document.body.dataset.storyOpen = "true";
-    return () => { delete document.body.dataset.storyOpen; };
-  }, []);
   const scale = 1 - Math.min(dragY, 300) / 1500;
 
   return (
