@@ -196,6 +196,55 @@ function Assistant() {
                 </div>
               ))
             )}
+
+            {hospitalMatches.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <h3 className="flex items-center gap-2 font-bold">
+                  <Hospital className="h-5 w-5 text-destructive" /> مستشفيات حكومية وطوارئ قريبة منك
+                </h3>
+                {hospitalMatches.map(({ h, d }) => (
+                  <div key={h.id} className="rounded-2xl border border-border bg-card p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <Link to="/hospital/$id" params={{ id: h.id }} className="block truncate font-bold hover:text-primary">
+                          {h.name}
+                        </Link>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {h.governorate}{h.district ? ` • ${h.district}` : ""} • {d.toFixed(1)} كم
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-[11px] font-bold text-destructive">
+                            {HOSPITAL_TYPES[h.hospital_type] ?? "مستشفى حكومي"}
+                          </span>
+                          {h.emergency_24h && (
+                            <span className="rounded-full bg-destructive px-2.5 py-1 text-[11px] font-bold text-destructive-foreground">طوارئ 24 ساعة</span>
+                          )}
+                          {h.has_icu && (
+                            <span className="rounded-full bg-accent px-2.5 py-1 text-[11px]">رعاية مركزة</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-col gap-2">
+                        {h.phone && (
+                          <a href={`tel:${h.phone}`} aria-label="اتصال بالمستشفى" className="rounded-full bg-primary/15 p-2 text-primary">
+                            <Phone className="h-4 w-4" />
+                          </a>
+                        )}
+                        <a
+                          href={hospitalMapsUrl(h)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="الاتجاهات على الخريطة"
+                          className="rounded-full bg-primary/15 p-2 text-primary"
+                        >
+                          <Navigation className="h-4 w-4" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             <p className="text-center text-[11px] text-muted-foreground">المساعد للإرشاد فقط ولا يغني عن استشارة الطبيب.</p>
           </div>
         )}
