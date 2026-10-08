@@ -19,6 +19,7 @@ import { AlarmStopper } from "../components/SoundControls";
 import { FloatingVoiceAssistant } from "../components/FloatingVoiceWidget";
 import { installGlobalSounds } from "../lib/sounds";
 import { installGlobalHaptics, setupStatusBar } from "../lib/native";
+import { useTheme } from "../lib/theme";
 import { useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
 
@@ -147,6 +148,8 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Apply the saved light/dark mode on every page, not only where a toggle is mounted.
+  useTheme();
 
   useEffect(() => {
     installGlobalSounds(toast);
