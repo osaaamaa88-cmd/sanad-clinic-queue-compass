@@ -305,7 +305,7 @@ function Search() {
 function Crescent({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <path d="M20.9 13.1A9 9 0 1 1 10.9 3.1 7 7 0 0 0 20.9 13.1Z" fill="currentColor" />
+      <path d="M21 12.79 A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79 Z" fill="currentColor" />
     </svg>
   );
 }

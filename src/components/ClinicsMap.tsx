@@ -19,7 +19,7 @@ export interface ClinicsMapProps extends Omit<React.HTMLAttributes<HTMLDivElemen
 function pinIcon(L: Leaflet, clinic: Clinic, active: boolean) {
   const hospital = clinic.kind === "hospital";
   const symbol = hospital
-    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13.1A9 9 0 1 1 10.9 3.1 7 7 0 0 0 20.9 13.1Z" fill="currentColor"/></svg>'
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79 A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79 Z" fill="currentColor"/></svg>'
     : renderToStaticMarkup(<Activity aria-hidden="true" />);
   return L.divIcon({
     className: "sanad-marker",
