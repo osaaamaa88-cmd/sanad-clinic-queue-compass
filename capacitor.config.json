@@ -10,7 +10,6 @@
     }
   },
   "android": {
-    "hardwareAccelerated": true,
     "webContentsDebuggingEnabled": false
   },
   "ios": {
