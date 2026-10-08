@@ -143,7 +143,10 @@ function Assistant() {
           toast.error("مش قادر أسمعك دلوقتي — جرّب تاني");
         }
       };
-      rec.onend = () => setListening(false);
+      rec.onend = () => {
+        setListening(false);
+        if (finalText.length >= 3) void submit(finalText);
+      };
       recogRef.current = rec;
       rec.start();
       setListening(true);
@@ -171,15 +174,17 @@ function Assistant() {
     listHospitals().then(setHospitals).catch(() => {});
   }, []);
 
-  async function submit() {
-    if (need.trim().length < 3 || loading) return;
+  async function submit(text?: string) {
+    const q = (text ?? need).trim();
+    if (q.length < 3 || loading) return;
+    if (text) setNeed(q);
     setError(null);
     setLoading(true);
     try {
-      const ai = await aiTriage({ data: { need } });
-      setResult(ai ?? runLocalTriage(need));
+      const ai = await aiTriage({ data: { need: q } });
+      setResult(ai ?? runLocalTriage(q));
     } catch {
-      setResult(runLocalTriage(need));
+      setResult(runLocalTriage(q));
     } finally {
       setLoading(false);
     }
