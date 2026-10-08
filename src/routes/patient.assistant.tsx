@@ -7,6 +7,7 @@ import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, t
 import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { runLocalTriage, type TriageResult } from "@/lib/triage-local";
+import { aiTriage } from "@/lib/triage.functions";
 
 export const Route = createFileRoute("/patient/assistant")({
   staticData: { sitemap: true },
@@ -42,7 +43,15 @@ function Assistant() {
   async function submit() {
     if (need.trim().length < 3 || loading) return;
     setError(null);
-    setResult(runLocalTriage(need));
+    setLoading(true);
+    try {
+      const ai = await aiTriage({ data: { need } });
+      setResult(ai ?? runLocalTriage(need));
+    } catch {
+      setResult(runLocalTriage(need));
+    } finally {
+      setLoading(false);
+    }
   }
 
   const matches = result
