@@ -91,15 +91,13 @@ export function ClinicsMap({
         const hm = L.marker([c.lat, c.lng], {
           icon: L.divIcon({
             className: "",
-            html: `<div style="display:flex;flex-direction:column;align-items:center;opacity:${approx ? 0.8 : 1}">
-              <div style="display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:9999px;font-family:Tajawal,sans-serif;font-weight:800;font-size:11px;color:#fff;background:${active ? "#B91C1C" : "#DC2626"};border:2px ${approx ? "dashed #FBBF24" : "solid #fff"};white-space:nowrap">🏥<span>${approx ? "تقريبي" : "مستشفى"}</span></div>
-              <div style="width:2px;height:8px;background:#DC2626"></div>
-            </div>`,
-            iconSize: [80, 34],
-            iconAnchor: [40, 34],
+            html: `<div style="display:grid;place-items:center;width:28px;height:28px;border-radius:9999px;font-size:14px;background:${active ? "#B91C1C" : "#DC2626"};border:2px ${approx ? "dashed #FBBF24" : "solid #fff"};box-shadow:0 4px 10px rgba(0,0,0,.35)">🏥</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
           }),
           zIndexOffset: active ? 500 : -100,
         });
+        hm.bindTooltip(`${c.doctor ?? "مستشفى"}${approx ? " · موقع تقريبي" : ""}`, { direction: "top", offset: [0, -14] });
         hm.on("click", () => { onSelect(c); map.panTo([c.lat, c.lng]); });
         hm.addTo(group);
         return;

@@ -347,9 +347,10 @@ function LocationBadge({ approx }: { approx: boolean }) {
 function HospitalSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
   return (
     <>
-      <button onClick={onClose} aria-label="إغلاق البطاقة" className="fixed inset-0 z-20 bg-black/40" />
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md sm:max-w-xl">
-        <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-6">
+      <button onClick={onClose} aria-label="إغلاق البطاقة" className="fixed inset-0 z-[90] bg-black/40" />
+      <div className="fixed inset-x-0 bottom-0 z-[95] mx-auto w-full max-w-md sm:max-w-xl">
+        <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <button onClick={onClose} aria-label="إغلاق" className="absolute left-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-secondary text-muted-foreground"><X className="h-4 w-4" /></button>
           <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
           <p className="font-extrabold">🏥 {clinic.doctor}</p>
           <div className="mt-1 flex flex-wrap gap-1">
@@ -377,10 +378,10 @@ function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void 
       <button
         onClick={onClose}
         aria-label="إغلاق البطاقة"
-        className="fixed inset-0 z-20 bg-black/40 transition-opacity"
+        className="fixed inset-0 z-[90] bg-black/40 transition-opacity"
       />
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md sm:max-w-xl">
-      <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-6 shadow-[0_-8px_30px_rgba(0,0,0,.45)] sm:p-5">
+      <div className="fixed inset-x-0 bottom-0 z-[95] mx-auto w-full max-w-md sm:max-w-xl">
+      <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,.45)] sm:p-5">
         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
         <button
           onClick={onClose}
