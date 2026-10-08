@@ -227,7 +227,7 @@ function Landing() {
         <footer className="mt-8 space-y-2 border-t border-border pt-4 text-center">
           <div className="space-x-3">
             <Link to="/terms" className="text-xs font-bold text-primary underline">
-              شروط الاستخدام وإخلاء المسؤولية
+              إخلاء المسؤولية الطبية وشروط الاستخدام
             </Link>
             <span className="text-xs text-muted-foreground">·</span>
             <Link to="/developer" className="text-xs font-bold text-muted-foreground underline" dir="ltr">

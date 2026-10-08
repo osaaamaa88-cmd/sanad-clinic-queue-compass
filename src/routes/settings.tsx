@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Mic } from "lucide-react";
 import { isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
 import { Button } from "@/components/ui/button";
+import { MedicalDisclaimer } from "@/components/MedicalDisclaimer";
 
 export const Route = createFileRoute("/settings")({
   staticData: { sitemap: false },
@@ -55,6 +56,9 @@ export function SettingsPage() {
         >
           اختبار الصوت النسائي 🔊
         </Button>
+      </div>
+      <div className="mt-3">
+        <MedicalDisclaimer compact />
       </div>
       <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
         <Mic /> {on ? "إيقاف المساعد الصوتي" : "تفعيل المساعد الصوتي هنا"}
