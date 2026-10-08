@@ -38,6 +38,7 @@ function DoctorEntry() {
   const [pass, setPass] = useState("");
   const [signupError, setSignupError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const route = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
@@ -249,20 +250,28 @@ function DoctorEntry() {
               )}
             </div>
 
+            <label className="mt-5 flex cursor-pointer items-start gap-2 rounded-2xl border border-border bg-card p-3 text-xs leading-relaxed">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-primary"
+              />
+              <span>
+                قرأت وأوافق على{" "}
+                <Link to="/terms" className="font-bold text-primary underline">
+                  إخلاء المسؤولية الطبية وشروط الاستخدام
+                </Link>
+                . سَنَد أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
+              </span>
+            </label>
             <button
               onClick={doSignup}
-              disabled={creating}
-              className="mt-5 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-60"
+              disabled={creating || !acceptedTerms}
+              className="mt-3 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-60"
             >
               {creating ? "جاري الإنشاء…" : "إنشاء حساب العيادة الآن"}
             </button>
-            <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-              بتسجيلك أنت موافق على{" "}
-              <Link to="/terms" className="font-bold text-primary underline">
-                شروط الاستخدام وإخلاء المسؤولية
-              </Link>
-              . سَنَد أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
-            </p>
           </>
         )}
       </div>

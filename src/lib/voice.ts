@@ -8,10 +8,19 @@ export function isVoiceModeOn() {
   }
 }
 
+const DISCLAIMER_SEEN_KEY = "voice_disclaimer_seen";
+
 export function setVoiceMode(on: boolean) {
   try {
     localStorage.setItem(VOICE_KEY, on ? "true" : "false");
     window.dispatchEvent(new Event("sanad:voice-mode"));
+    if (on && localStorage.getItem(DISCLAIMER_SEEN_KEY) !== "true") {
+      localStorage.setItem(DISCLAIMER_SEEN_KEY, "true");
+      void Promise.all([import("sonner"), import("@/components/MedicalDisclaimer")]).then(
+        ([{ toast }, { VOICE_DISCLAIMER }]) =>
+          toast.warning(VOICE_DISCLAIMER, { duration: 10000, closeButton: true }),
+      );
+    }
   } catch {}
 }
 
