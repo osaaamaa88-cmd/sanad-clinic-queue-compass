@@ -1,4 +1,5 @@
 # Current work
+- [ ] Floating voice accessibility: automatic conversational loop, voice preference, no activation navigation, cleanup and verification.
 
 - [x] Map polish: clustering, compact circular medical pins, safe selection preview, GPS/auto-fit, browser checks.
 
