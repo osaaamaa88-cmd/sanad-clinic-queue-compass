@@ -21,7 +21,7 @@ export function useFloatingVoiceAssistant(allowed = true) {
       window.removeEventListener("sanad:voice-mode", sync);
       window.removeEventListener("storage", sync);
     };
-  }, []);
+  }, [allowed]);
 
   useEffect(() => {
     if (!enabled) return;
