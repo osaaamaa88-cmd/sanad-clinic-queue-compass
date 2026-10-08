@@ -6,7 +6,7 @@ import { getPatientLocation } from "@/lib/patient-location";
 
 export type VoiceAssistantState = "listening" | "speaking" | "thinking" | "paused" | "error";
 
-export function useFloatingVoiceAssistant() {
+export function useFloatingVoiceAssistant(allowed = true) {
   const [enabled, setEnabled] = useState(false);
   const [state, setState] = useState<VoiceAssistantState>("paused");
   const [message, setMessage] = useState("");
