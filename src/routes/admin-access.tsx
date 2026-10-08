@@ -172,7 +172,7 @@ function Admin() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0, bookings: 0 });
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings" | "users" | "live" | "media" | "system" | "health" | "hospitals" | "security">("analytics");
+  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings" | "users" | "live" | "media" | "system" | "health" | "hospitals" | "security" | "deletions">("analytics");
   const featureFn = useServerFn(godSetFeatured);
   const [editing, setEditing] = useState<ClinicRow | null>(null);
 
