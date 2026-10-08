@@ -52,7 +52,7 @@ export const voiceAssist = createServerFn({ method: "POST" })
       : null;
 
     const fallback = hospital
-      ? `ألف سلامة عليك، متقلقش أنا معاك. أقرب مستشفى ليك ${hospital.name} على بعد حوالي ${hospital.km} كيلو. ${ENDING}`
+      ? `ألف سلامة عليك، متقلقش أنا هنا لمساعدتك. أقرب مستشفى ليك ${hospital.name}، على بعد حوالي ${hospital.km} كيلو. ${ENDING}`
       : `ألف سلامة عليك. لو الحالة خطيرة اتصل بالإسعاف 123 فوراً.`;
 
     const key = process.env.GROQ_API_KEY;

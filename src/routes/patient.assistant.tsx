@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb, Hospital, Navigation, Mic, MicOff, Volume2, Square } from "lucide-react";
 import { toast } from "sonner";
-import { applyFemaleVoice } from "@/lib/voice";
+import { applyFemaleVoice, cleanForSpeech } from "@/lib/voice";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, type PatientLocation } from "@/lib/patient-location";
@@ -83,7 +83,7 @@ function speakArabic(text: string, onEnd: () => void): () => void {
     return () => {};
   }
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
+  const u = new SpeechSynthesisUtterance(cleanForSpeech(text));
   applyFemaleVoice(u);
   u.onend = onEnd;
   u.onerror = onEnd;
