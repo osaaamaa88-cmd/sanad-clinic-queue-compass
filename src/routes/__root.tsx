@@ -47,6 +47,17 @@ function ErrorComponent({ error, reset }: import("@tanstack/react-router").Error
   console.error(error);
   const router = useRouter();
   useEffect(() => {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (/Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(msg)) {
+      try {
+        const last = Number(sessionStorage.getItem("sanad:chunk-reload") || 0);
+        if (Date.now() - last > 10000) {
+          sessionStorage.setItem("sanad:chunk-reload", String(Date.now()));
+          window.location.reload();
+          return;
+        }
+      } catch {}
+    }
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
