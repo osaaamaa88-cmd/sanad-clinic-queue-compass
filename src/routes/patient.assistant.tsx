@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb } from "lucide-react";
+import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb, Hospital, Navigation } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, type PatientLocation } from "@/lib/patient-location";
@@ -8,6 +8,36 @@ import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { runLocalTriage, type TriageResult } from "@/lib/triage-local";
 import { aiTriage } from "@/lib/triage.functions";
+import { listHospitals, HOSPITAL_TYPES, hospitalMapsUrl, type Hospital as HospitalRow } from "@/lib/hospitals.functions";
+
+/** Arabic keywords per specialty used to match hospital departments. */
+const SPECIALTY_DEPT_KEYWORDS: Record<string, string[]> = {
+  pediatrics: ["أطفال", "اطفال", "صدرية أطفال"],
+  neonatology: ["حديثي الولادة", "أطفال", "حضانات"],
+  dental: ["أسنان", "اسنان", "فم"],
+  ophthalmology: ["عيون", "رمد"],
+  ent: ["أنف", "انف", "أذن", "حنجرة", "سمعيات"],
+  orthopedics: ["عظام", "كسور", "مفاصل"],
+  dermatology: ["جلدية", "تناسلية"],
+  gynecology: ["نساء", "توليد", "ولادة"],
+  cardiology: ["قلب", "أوعية دموية"],
+  neurology: ["مخ", "أعصاب", "اعصاب"],
+  "internal-medicine": ["باطنة", "باطني"],
+  general: ["باطنة", "عام", "طوارئ"],
+  urology: ["مسالك", "كلى", "كلي"],
+  psychiatry: ["نفسي", "عصبي"],
+  physiotherapy: ["علاج طبيعي", "تأهيل"],
+  nutrition: ["تغذية"],
+  "family-medicine": ["أسرة", "عام"],
+};
+
+function hospitalMatchesSpecialty(h: HospitalRow, specialtyIds: string[]): boolean {
+  const depts = (h.departments ?? []).join(" ");
+  if (!depts) return false;
+  return specialtyIds.some((id) =>
+    (SPECIALTY_DEPT_KEYWORDS[id] ?? [getSpecialty(id)?.name ?? ""]).some((kw) => kw && depts.includes(kw)),
+  );
+}
 
 export const Route = createFileRoute("/patient/assistant")({
   staticData: { sitemap: true },
