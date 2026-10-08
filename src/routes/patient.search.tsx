@@ -1,14 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { clinicsQuery, hospitalsQuery } from "@/lib/directory-queries";
 import { Map as MapIcon, List, MapPin, Star, Stethoscope, Search as SearchIcon, X, ArrowUpDown, BadgeCheck, Users, ChevronLeft, Navigation, LayoutGrid, Route as RouteIcon, Phone, MessageCircle } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
-import { ClinicsMap } from "@/components/ClinicsMap";
-import { getVerifiedClinics, specialties, getSpecialty, whatsappLink, type Clinic } from "@/lib/mock-data";
+const ClinicsMap = lazy(() => import("@/components/ClinicsMap").then((m) => ({ default: m.ClinicsMap })));
+import { specialties, getSpecialty, whatsappLink, type Clinic } from "@/lib/mock-data";
 import { getPatientLocation } from "@/lib/patient-location";
-import { listHospitals, HOSPITAL_TYPES, type Hospital } from "@/lib/hospitals.functions";
+import { HOSPITAL_TYPES, type Hospital } from "@/lib/hospitals.functions";
 
 function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
   const R = 6371, t = Math.PI / 180;
@@ -57,18 +59,6 @@ function Search() {
   useEffect(() => {
     const saved = getPatientLocation();
     setPos({ lat: saved.lat, lng: saved.lng });
-  }, []);
-  useEffect(() => {
-    let cancelled = false;
-    getVerifiedClinics().then((list) => {
-      if (!cancelled) setClinics(list);
-    });
-    listHospitals().then((rows) => {
-      if (!cancelled) setHospitals(rows);
-    }).catch(() => {});
-    return () => {
-      cancelled = true;
-    };
   }, []);
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
