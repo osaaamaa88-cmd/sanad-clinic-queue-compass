@@ -134,7 +134,7 @@ export async function sendRx(conversationId: string, rx: RxPayload): Promise<boo
 const urlCache = new Map<string, string>();
 export async function signedImageUrl(path: string): Promise<string> {
   if (urlCache.has(path)) return urlCache.get(path)!;
-  const { data } = await supabase.storage.from("chat-media").createSignedUrl(path, 3600);
+  const { data } = await supabase.storage.from("chat-media").createSignedUrl(path, 300);
   const u = data?.signedUrl ?? "";
   if (u) urlCache.set(path, u);
   return u;
