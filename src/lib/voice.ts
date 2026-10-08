@@ -19,7 +19,22 @@ export function setVoiceMode(on: boolean) {
 const PREFERRED_FEMALE_NAMES = ["laila", "zeina", "salma", "maryam", "google", "female", "ar-eg", "ar-sa", "siri"];
 // Known male Arabic system voices to avoid.
 const MALE_VOICE_PATTERN = /maged|majed|tarik|tariq|hamed|naayf|arabic male|\bmale\b|ذكر/i;
-export const FEMALE_PITCH = 1.3;
+export const FEMALE_PITCH = 1.1;
+
+/** Strip markdown/emojis/symbols and add breathing pauses so TTS reads clearly. */
+export function cleanForSpeech(text: string) {
+  return text
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/[*_#`~>|\[\]{}()<>"“”]/g, " ")
+    .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, "")
+    .replace(/^\s*[-•\d]+[.)-]?\s+/gm, "")
+    .replace(/\s*\n+\s*/g, "، ")
+    .replace(/([.!؟?])\s*/g, "$1، ")
+    .replace(/[،,]\s*[،,]+/g, "،")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[،\s]+|[،\s]+$/g, "")
+    .trim();
+}
 export const FEMALE_RATE = 0.85;
 
 let cachedVoices: SpeechSynthesisVoice[] = [];
@@ -75,7 +90,7 @@ export function speak(text: string, onEnd?: (success: boolean) => void) {
     launched = true;
     synth.removeEventListener("voiceschanged", launch);
     window.clearTimeout(timer);
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(cleanForSpeech(text));
     applyFemaleVoice(u);
     u.onend = () => complete(true);
     u.onerror = () => complete(false);
