@@ -666,6 +666,8 @@ export type Database = {
           id: string
           lat: number
           lng: number
+          location_updated_at: string | null
+          location_verified: boolean
           name: string
           phone: string
         }
@@ -683,6 +685,8 @@ export type Database = {
           id?: string
           lat: number
           lng: number
+          location_updated_at?: string | null
+          location_verified?: boolean
           name: string
           phone?: string
         }
@@ -700,6 +704,8 @@ export type Database = {
           id?: string
           lat?: number
           lng?: number
+          location_updated_at?: string | null
+          location_verified?: boolean
           name?: string
           phone?: string
         }
