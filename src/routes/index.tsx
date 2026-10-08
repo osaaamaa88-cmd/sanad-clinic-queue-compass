@@ -230,6 +230,10 @@ function Landing() {
               إخلاء المسؤولية الطبية وشروط الاستخدام
             </Link>
             <span className="text-xs text-muted-foreground">·</span>
+            <Link to="/privacy" className="text-xs font-bold text-primary underline">
+              سياسة الخصوصية
+            </Link>
+            <span className="text-xs text-muted-foreground">·</span>
             <Link to="/developer" className="text-xs font-bold text-muted-foreground underline" dir="ltr">
               About the Developer
             </Link>
