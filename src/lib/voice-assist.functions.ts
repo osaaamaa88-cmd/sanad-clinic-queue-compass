@@ -76,6 +76,8 @@ export const voiceAssist = createServerFn({ method: "POST" })
       ? `ألف سلامة عليك، متقلقش أنا هنا لمساعدتك. أقرب مستشفى ليك ${hospital.name}، على بعد حوالي ${hospital.km} كيلو. ${ENDING}`
       : `ألف سلامة عليك. لو الحالة خطيرة اتصل بالإسعاف 123 فوراً.`;
 
+    const { writeAudit } = await import("@/lib/audit.functions");
+    await writeAudit("medical_query", null, "voice");
     const key = process.env.GROQ_API_KEY;
     if (!key) return { reply: fallback, hospital, ai: false };
     try {

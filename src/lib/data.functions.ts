@@ -57,6 +57,8 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
       console.error("[svrCreateBooking]", error?.message ?? "no row returned");
       throw new Error("BOOKING_FAILED");
     }
+    const { writeAudit } = await import("@/lib/audit.functions");
+    await writeAudit("appointment_booked", null, `clinic:${data.clinicId} code:${row.code}`);
     // Return only what the patient needs — not the whole row of other patients.
     return {
       id: row.id,

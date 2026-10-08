@@ -17,6 +17,7 @@ import { Toaster } from "../components/ui/sonner";
 import { BroadcastBanner } from "../components/BroadcastBanner";
 import { AlarmStopper } from "../components/SoundControls";
 import { FloatingVoiceAssistant } from "../components/FloatingVoiceWidget";
+import { IdleLogout } from "../components/IdleLogout";
 import { installGlobalSounds } from "../lib/sounds";
 import { installGlobalHaptics, setupStatusBar } from "../lib/native";
 import { useTheme } from "../lib/theme";
@@ -167,6 +168,7 @@ function RootComponent() {
         <Outlet />
       </div>
       <FloatingVoiceAssistant />
+      <IdleLogout />
       <Toaster position="top-center" dir="rtl" richColors />
     </QueryClientProvider>
   );

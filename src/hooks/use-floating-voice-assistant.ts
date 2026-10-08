@@ -164,6 +164,9 @@ export function useFloatingVoiceAssistant(allowed = true) {
       generation++;
       stopMedia();
       document.removeEventListener("visibilitychange", visibility);
+      // Wipe any transcript/reply text held in state as soon as the session ends.
+      setMessage("");
+      setState("paused");
     };
   }, [enabled, restart]);
 
