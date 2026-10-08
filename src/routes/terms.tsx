@@ -8,6 +8,7 @@ import {
   CalendarClock,
   Siren,
   Calculator,
+  Mic,
   UserRound,
   FileText,
 } from "lucide-react";
