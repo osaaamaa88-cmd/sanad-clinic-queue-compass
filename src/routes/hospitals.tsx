@@ -11,6 +11,7 @@ const TYPES: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/hospitals")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "دليل المستشفيات الحكومية | سَنَد SANAD" },
