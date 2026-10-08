@@ -111,6 +111,13 @@ function Landing() {
           <Siren className="h-6 w-6 animate-pulse" /> طوارئ سَنَد — وصول فوري للإسعاف
         </Link>
 
+        <Link
+          to="/hospitals"
+          className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-border bg-card p-4 font-bold shadow-soft"
+        >
+          🏥 دليل المستشفيات الحكومية
+        </Link>
+
         <div className="mt-6 space-y-3">
           <p className="text-sm font-semibold text-muted-foreground">اختار دورك</p>
           {roles.map((r) => (
