@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb, Hospital, Navigation, Mic, MicOff, Volume2, Square } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
