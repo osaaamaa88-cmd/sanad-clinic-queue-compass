@@ -16,6 +16,7 @@ import { NetworkStatus } from "../components/NetworkStatus";
 import { Toaster } from "../components/ui/sonner";
 import { BroadcastBanner } from "../components/BroadcastBanner";
 import { AlarmStopper } from "../components/SoundControls";
+import { FloatingVoiceWidget } from "../components/FloatingVoiceWidget";
 import { installGlobalSounds } from "../lib/sounds";
 import { installGlobalHaptics, setupStatusBar } from "../lib/native";
 import { useRouterState } from "@tanstack/react-router";
@@ -164,6 +165,7 @@ function RootComponent() {
       <div key={pathname} className="page-enter">
         <Outlet />
       </div>
+      <FloatingVoiceWidget />
       <Toaster position="top-center" dir="rtl" richColors />
     </QueryClientProvider>
   );
