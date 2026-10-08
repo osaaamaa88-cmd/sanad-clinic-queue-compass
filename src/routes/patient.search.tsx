@@ -360,7 +360,7 @@ function HospitalSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => voi
         <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           <button onClick={onClose} aria-label="إغلاق" className="absolute left-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-secondary text-muted-foreground"><X className="h-4 w-4" /></button>
           <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
-          <p className="font-extrabold">🏥 {clinic.doctor}</p>
+          <p className="flex items-center gap-2 font-extrabold"><span className="grid h-8 w-8 place-items-center rounded-xl bg-destructive text-destructive-foreground"><Crescent className="h-4 w-4" /></span>{clinic.doctor}</p>
           <div className="mt-1 flex flex-wrap gap-1">
             <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">مستشفى حكومي</span>
             <LocationBadge approx={!!clinic.approxLocation} />
