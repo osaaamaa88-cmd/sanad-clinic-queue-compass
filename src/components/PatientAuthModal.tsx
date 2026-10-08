@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { X, Loader2, UserRound, Phone as PhoneIcon } from "lucide-react";
 import { lovable } from "@/integrations/lovable";
 import { savePatientSession, syncPatientSessionFromAuth, type PatientSession } from "@/lib/patient-session";
@@ -130,6 +131,10 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
       >
         {mode === "login" ? "ليس لديك حساب؟ أنشئ حساباً جديداً" : "عندك حساب؟ سجل دخولك"}
       </button>
+
+      <Link to="/terms" className="mt-3 block text-center text-[11px] font-bold text-muted-foreground underline">
+        إخلاء المسؤولية الطبية وشروط الاستخدام
+      </Link>
     </>
   );
 }
