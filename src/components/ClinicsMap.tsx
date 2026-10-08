@@ -193,7 +193,7 @@ export function ClinicsMap({
           🚗 {routeInfo.min} دقيقة تقريباً • {routeInfo.km} كم
         </div>
       )}
-      <span className="pointer-events-none absolute bottom-1 right-2 z-[500] text-[9px] text-muted-foreground" dir="ltr">© OpenStreetMap</span>
+      <span className="pointer-events-none absolute bottom-1 right-2 z-[500] text-[9px] text-muted-foreground" dir="ltr">© OpenStreetMap © CARTO</span>
       <button
         type="button"
         onClick={recenter}
