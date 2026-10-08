@@ -15,26 +15,28 @@ export function setVoiceMode(on: boolean) {
   } catch {}
 }
 
-  // Priority list for warm, high-quality female Arabic voices across iOS, Android, and Web.
-  const preferredNames = ["Laila", "Zeina", "Salma", "Maryam", "Google", "Female"];
-  const malePattern = /tarik|tariq|majed|maged|hamed|naayf|male|ذكر/i;
+// Priority list for warm, high-quality female Arabic voices across iOS, Android, and Web.
+const PREFERRED_FEMALE_NAMES = ["Laila", "Zeina", "Salma", "Maryam", "Google", "Female"];
+// Known male Arabic system voices to avoid when falling back.
+const MALE_VOICE_PATTERN = /tarik|tariq|majed|maged|hamed|naayf|male|ذكر/i;
 
-  function getBestFemaleArabicVoice(): SpeechSynthesisVoice | null {
-    const voices = synth.getVoices();
-    const arabicVoices = voices.filter((v) => v.lang.toLowerCase().startsWith("ar"));
-    for (const name of preferredNames) {
-      const found = arabicVoices.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
-      if (found) return found;
-    }
-    // Avoid known male voices when falling back.
-    return arabicVoices.find((v) => !malePattern.test(v.name)) ?? arabicVoices[0] ?? null;
+export function getBestFemaleArabicVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === "undefined" || !window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const arabicVoices = voices.filter((v) => v.lang.toLowerCase().startsWith("ar"));
+  for (const name of PREFERRED_FEMALE_NAMES) {
+    const found = arabicVoices.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
+    if (found) return found;
   }
+  // Avoid known male voices when falling back.
+  return arabicVoices.find((v) => !MALE_VOICE_PATTERN.test(v.name)) ?? arabicVoices[0] ?? null;
+}
 
-  function speak(text: string, onEnd?: (success: boolean) => void) {
-    if (typeof window === "undefined" || !window.speechSynthesis) {
-      onEnd?.(false);
-      return () => {};
-    }
+export function speak(text: string, onEnd?: (success: boolean) => void) {
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    onEnd?.(false);
+    return () => {};
+  }
   const synth = window.speechSynthesis;
   synth.cancel();
   let cancelled = false;
@@ -51,12 +53,7 @@ export function setVoiceMode(on: boolean) {
     synth.removeEventListener("voiceschanged", launch);
     window.clearTimeout(timer);
     const u = new SpeechSynthesisUtterance(text);
-    const arabic = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith("ar"));
-    // Tariq/Tarik are male voices; generic Google voices do not guarantee gender.
-    const female = /laila|layla|salma|hoda|mona|zeina|amira|female|أنثى/i;
-    const v = arabic.find((v) => v.lang === "ar-EG" && female.test(v.name))
-      ?? arabic.find((v) => female.test(v.name))
-      ?? arabic.find((v) => v.lang === "ar-EG") ?? arabic[0];
+    const v = getBestFemaleArabicVoice();
     u.lang = v?.lang ?? "ar-EG";
     if (v) u.voice = v;
     u.pitch = 1.0;
