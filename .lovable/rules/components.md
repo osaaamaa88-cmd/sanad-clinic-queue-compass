@@ -52,6 +52,31 @@ import { ClinicQrCard } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-
 import { ClinicsMap } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
 ```
 
+Use for the unified clinic and governmental-hospital directory. Numbered clusters separate on zoom; onSelect supplies the selected facility for a nonmodal preview.
+
+**Props:**
+
+| Prop | Type | Default |
+|---|---|---|
+| `clinics` | any | `—` |
+| `center` | object | `—` |
+| `selectedId` | string | `—` |
+| `onSelect` | function | `—` |
+| `size` | default · compact | `default` |
+
+**Examples:**
+
+_Patient directory map_
+```tsx
+<ClinicsMap clinics={facilities} center={patientLocation} selectedId={selected?.id} onSelect={setSelected} />
+```
+
+**Avoid:**
+
+- Do not invent clinic or hospital coordinates.
+- Do not evaluate Leaflet or markercluster before hydration.
+- Do not obscure preview actions with bottom navigation.
+
 ### Constants
 
 ```ts
@@ -74,6 +99,18 @@ import { DoctorBottomNav } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5
 
 ```ts
 import { DoctorNameSearch } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
+```
+
+### FloatingVoiceAssistant
+
+```ts
+import { FloatingVoiceAssistant } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
+```
+
+### HospitalLocationsTab
+
+```ts
+import { HospitalLocationsTab } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
 ```
 
 ### LiveBookingsTab
@@ -142,6 +179,12 @@ import { PostViewer } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-70
 
 ```ts
 import { RxComposer } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
+```
+
+### SecurityTab
+
+```ts
+import { SecurityTab } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
 ```
 
 ### SoundToggle

@@ -2,7 +2,7 @@
   "meta": {
     "name": "Remix of سندي",
     "package": "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "framework": "react",
     "css_framework": "tailwind",
     "starter_template": "custom_design_system_tailwind",
@@ -12,32 +12,38 @@
     ],
     "source_type": "local",
     "source_manifest": {
-      "#enrichment": "e2e0fc79bb4be396d92751c1166f7b1f5c1620a96f737db2f915b31932b5781b",
+      "#enrichment": "d515b15b1233dd0c8111177ea7b5c296007f6a10137c8c51034a8d12d7864948",
       ".gitignore": "6d9e901a692b46a83707c245fb03bc91",
+      ".lovable/meta.yaml": "954a981e8847ec1692669dbb04ae9ae9",
       ".lovable/plan/rebrand-the-application-to-س-ن-د-sanad-2026-09-26.md": "56a94abfe451679ae0af6ffc524e3303",
       ".lovable/plan/شريط-تنقل-المريض-السفلي-2026-10-03.md": "8a10d266c934c097c14c57e001bcf141",
       ".lovable/project.json": "b908504c87bcefbfee73e2d53546a7d7",
+      ".lovable/sources.yaml": "a05184ca85dd67ac5e9e4a6ecb5c188c",
       ".prettierignore": "7279a476f196a2da5f7edd18db568dc6",
       ".prettierrc": "185ef0234746ab738ac1ab6cec5e2bd9",
-      "AGENTS.md": "ccc58df093eba2276aff2ff4d6ca4150",
+      "AGENTS.md": "60d1f62a150b2c7b98d5734f694ddca6",
       "README.md": "a57cbd123dc3462513035bce5702c9cc",
       "bunfig.toml": "6bba18884679812ad2b6cd0c31d34c56",
-      "capacitor.config.json": "0f1e5c40f9222c3cb50904e202aceeb0",
+      "capacitor.config.json": "9a695e3e76872f27524bf6cc49efc450",
       "components.json": "30d3d035361ce807021f5c54620962e9",
       "drizzle.config.ts": "c2b6029fa56b49433380b7263b06e3f7",
       "drizzle/migrations/0000_save_failures.sql": "8e8d8213174ae156b809b5cc66fb8ac7",
       "drizzle/migrations/0001_create_governmental_hospitals.sql": "2f14ec7b8542b512124d1e34268257c4",
+      "drizzle/migrations/0002_hospital_location_verified.sql": "b0c7b9dafc7feb6ee4ad29048734cbbf",
+      "drizzle/migrations/0003_app_error_logs.sql": "7f6ac810888df16ecfe9e65deb6eb282",
       "drizzle/migrations/meta/0000_snapshot.json": "a2dc71f391749234374cd80dbd6d43dc",
       "drizzle/migrations/meta/0001_snapshot.json": "fb0ab2e08208d8a451bf2b9ab71fa7d8",
-      "drizzle/migrations/meta/_journal.json": "4bcb8893069bc6c93e36625720bb21dd",
+      "drizzle/migrations/meta/0002_snapshot.json": "5cbb960d1a958752248a7a8310775062",
+      "drizzle/migrations/meta/0003_snapshot.json": "2b70879b355d3c0e164d67e2cbb99526",
+      "drizzle/migrations/meta/_journal.json": "26a3d61ffe169177d3d45ae2fe0cf2b2",
       "drizzle/schema.ts": "a60267d05d7dd11572f02686241f37c6",
       "eslint.config.js": "345bdd57e188e0e4525edcd00e5003f5",
-      "package.json": "45ae969358e4650937240045298603d8",
+      "package.json": "929088c624c793d96f3ae19a3d619df2",
       "public/favicon.png": "8fccffcbbeed7b4f5bd029e68c405dbc",
       "public/llms.txt": "fa190fee2368e81d1e47d561408e0223",
       "public/robots.txt": "181c5760d91bd5aefd442b8213ec1682",
-      "public/sw.js": "cc905d0c35ea5aa0f4bc210a2f10e140",
-      "roadmap.md": "4aa9803e391ad064353e4ae57595740e",
+      "public/sw.js": "06fb74ef42ad045c95cf445efe550a68",
+      "roadmap.md": "85d57dabaad9c4fa68e8ad6785be5367",
       "src/assets/osama-portrait.jpg.asset.json": "6872d9b400cd73d8a666a0d75c77d099",
       "src/assets/osama-retro-2004.png.asset.json": "6ce635cde339fab81d2ca38dc6c24414",
       "src/assets/sanad-favicon.png": "5516a25bbdf6fee39c9034e43cd9b161",
@@ -45,9 +51,10 @@
       "src/components/AvatarActionSheet.tsx": "cf311b623382c635c702274f6513f591",
       "src/components/BroadcastBanner.tsx": "c98cc157ffec9cb8708560e7b4b48a3e",
       "src/components/ClinicQrCard.tsx": "95f546e3f685bac35ec15eb5bf8f0be5",
-      "src/components/ClinicsMap.tsx": "d5ac528435c63458ff8cca562c811701",
+      "src/components/ClinicsMap.tsx": "493ab2d20c78def619987e4bff61cd58",
       "src/components/DoctorBottomNav.tsx": "7b6273d6ec89c543cc511a2aa5a4f019",
       "src/components/DoctorNameSearch.tsx": "9a4d0ff8c971d0e4ceeb90d2a6eb0ba9",
+      "src/components/FloatingVoiceWidget.tsx": "4de42d51696252757909b62bda6714c0",
       "src/components/LocationPickerModal.tsx": "55d712c7961165c49131cf332eb38663",
       "src/components/NetworkStatus.tsx": "0dbfe18f8a94675fdf96f5bcc7f67b7f",
       "src/components/NotificationsBell.tsx": "e043f8030f867ac7d6edb0f894a70728",
@@ -61,6 +68,8 @@
       "src/components/ThemeToggle.tsx": "9e74d7c30d82105d36f4581a2dfdc437",
       "src/components/admin/DbHealthTab.tsx": "1da1897349305041f62be06379016f91",
       "src/components/admin/GodModePanel.tsx": "f76ffc30138db60a2c19f2a5679ce0b4",
+      "src/components/admin/HospitalLocationsTab.tsx": "2c3f1f79d3ba64d262bec0c8e30849d1",
+      "src/components/admin/SecurityTab.tsx": "5c196c84dcb86841eecdc43abe2215ae",
       "src/components/ui/accordion.tsx": "55f9dda62b4e3913c9b23e5015a86aef",
       "src/components/ui/alert-dialog.tsx": "96350e949e9b7b674545430a410ab89c",
       "src/components/ui/alert.tsx": "f993d7e96b1e25ce50e68ed97e11d2a8",
@@ -107,7 +116,9 @@
       "src/components/ui/toggle-group.tsx": "ac26383acf721d116ca8e3ab5c5355d5",
       "src/components/ui/toggle.tsx": "ee8c5adac74e7242b85b544db1a8fbad",
       "src/components/ui/tooltip.tsx": "67d71db5a1ab935695d1def497f5b8a6",
+      "src/hooks/use-floating-voice-assistant.ts": "ff1f3b13b7ff0c0e5bc621a338644a10",
       "src/hooks/use-mobile.tsx": "c0a0bdd4638c391a1dd06ac82074e60b",
+      "src/index.ts": "6706a244048db520bd3527968e48a795",
       "src/integrations/lovable/index.ts": "e9cf6e6968dd0392b2222ee0745ecece",
       "src/integrations/supabase/auth-attacher.ts": "dad043cda134d909e52de0346c16625e",
       "src/integrations/supabase/auth-middleware.ts": "eabaf8c8ba32205717921ce5f255185e",
@@ -115,31 +126,32 @@
       "src/integrations/supabase/client.ts": "2e72a87ed578e0084537f2646f2d7e6a",
       "src/integrations/supabase/cron-auth.ts": "6c04781ff98ada5977945fae55d39385",
       "src/integrations/supabase/previewAuthStorage.ts": "0a2d63e049bc63135b19c8e21cc0b1aa",
-      "src/integrations/supabase/types.ts": "ce39c47c4d90d8f79e214422c0fe73d7",
+      "src/integrations/supabase/types.ts": "046511676c0cab02422c486a64b137ac",
       "src/lib/admin-auth.server.ts": "1fb06b1cc6c6bdaf938ddff0a757a725",
       "src/lib/admin-gate.functions.ts": "4280a9a02b162e4be96356b4ade2053e",
       "src/lib/admin-token.ts": "df288c9ea6e6d392ca935e076e36c9ac",
-      "src/lib/admin.functions.ts": "bc6994c5fffd129b505776d3bc2efe18",
+      "src/lib/admin.functions.ts": "65185f02b6cbc4aa69cc4bdbfc450057",
       "src/lib/app-version.ts": "d53646368886eeb8638c934bdbab8e85",
       "src/lib/chat.ts": "6c48bd2cf52cfa1536cbd09793e1576d",
       "src/lib/clinic-access.server.ts": "e438f58a25463838df16ebb1367e20ff",
       "src/lib/clinic-profile.ts": "c41faff94764e6eaf3330a3ee58797bc",
       "src/lib/data.functions.ts": "a93f028cb33fd961cd5e05415e6d4f3f",
       "src/lib/device-key.server.ts": "3b900709787e98dcfa237eb82ad5fe3b",
+      "src/lib/directory-queries.ts": "c69dd1f0dfb07e90f351abd0288927e4",
       "src/lib/doctor-directory.functions.ts": "1631d07bc60a318c3aeee7884d23e065",
       "src/lib/egypt-drugs.ts": "a32663a142bee17b007fad3455964419",
       "src/lib/emergency-data.ts": "da73985e9015215dd8d74750e112370c",
       "src/lib/error-capture.ts": "f630d9686a9a989170f22eff4de7b30d",
       "src/lib/error-page.ts": "8da0ddd7569bac2676b9a5c8edff8a36",
-      "src/lib/failure-capture.ts": "b1704a56a73e2d4b3ade35dd958b4616",
+      "src/lib/failure-capture.ts": "f71c1c212db022384784a0eae876cd1b",
       "src/lib/godmode.functions.ts": "c7eb4a524d09bf4f0de8131189c7b03e",
-      "src/lib/health.functions.ts": "d66ec7d5a74608d283648a399ea0e9d1",
-      "src/lib/hospitals.functions.ts": "421808d969c71a05969acc6885dd495e",
+      "src/lib/health.functions.ts": "06da495b692aeeb397208bea4e23e26b",
+      "src/lib/hospitals.functions.ts": "28ae3b9eaba90beaeb2a33a8fe29a39e",
       "src/lib/lovable-error-reporting.ts": "b23b1b2983183c4bdd7d480686ebe6d1",
       "src/lib/media-sign.server.ts": "9443f70023b21cc67dac5c3f5d7708bc",
       "src/lib/media-upload.ts": "7ed23f5c6b130b401894a5ad99f9114f",
       "src/lib/media.functions.ts": "163562aad5602636f3d8fd4f6cac3b25",
-      "src/lib/mock-data.ts": "f5fb77c96d8add8907748d223d42c085",
+      "src/lib/mock-data.ts": "54a26761cb6b86cc780edf4677de980b",
       "src/lib/native.ts": "e5cc7a843ce535659b087a9a414ea87b",
       "src/lib/notifications.functions.ts": "2152809ab3bba1f7fbd985ec1f73441f",
       "src/lib/notifications.ts": "fd8f6b73d33d8ca9a0dc5b35436853a4",
@@ -151,6 +163,7 @@
       "src/lib/reviews.functions.ts": "afebaba4a6c2cb7cdee1578850a28709",
       "src/lib/reviews.ts": "c14cc2d16a48765aba200500085cbafc",
       "src/lib/rx-output.ts": "decea97cab93f586402b19ae648bde1f",
+      "src/lib/security.functions.ts": "105f487a4a617e00afe764d351215689",
       "src/lib/sitemap.ts": "00dffb3dc759989a930dbbe5f5602131",
       "src/lib/sounds.ts": "3a1a489d0bcd51046050b4c5ba7be975",
       "src/lib/specialty-icons.ts": "4dd3377eafcee1e25738ea1a16e7140c",
@@ -163,39 +176,44 @@
       "src/lib/use-doctor-mode.ts": "53b6e208437649a1fbe8ee9801f22ae7",
       "src/lib/user-profile-cache.ts": "570af645df6a1681f02829085457e00b",
       "src/lib/utils.ts": "d9837f38cc05303254571985e3164050",
+      "src/lib/voice-assist.functions.ts": "5822d6de65a9e4857507a15ebc88d87a",
+      "src/lib/voice.ts": "8367faf30e806f5b3e165b38d3ac3277",
       "src/lib/youtube.ts": "d2555c6080e0b5829937d519298e0c7f",
-      "src/routeTree.gen.ts": "8a3b44472d9e77ea17d048c376e087c8",
-      "src/router.tsx": "e99f16f637c950c9aa0b125a35a1e945",
+      "src/routeTree.gen.ts": "a531434a08a9d4a94e71e6b0cb0b0ead",
+      "src/router.tsx": "63b9c1721d8324b529338f3f1f43fe14",
       "src/routes/README.md": "b3a2f259b66fd1a11f54b6d5ac83bf57",
-      "src/routes/__root.tsx": "b83464a2bb95a9a5c44837a23bfa3261",
-      "src/routes/admin-access.tsx": "7fee0e3e718703dd0c20f3753daaeb49",
+      "src/routes/__root.tsx": "84ea9e4491380ac99d10e8c2404e305d",
+      "src/routes/accessibility-assistant.tsx": "579ff9b3856ca37952e722bf950e85a0",
+      "src/routes/admin-access.tsx": "4f65ffceed2b9ac241f68286505ed7d6",
       "src/routes/developer.tsx": "004093951fef3d4c5df8ee34e195947a",
       "src/routes/doctor-settings.tsx": "21623f885fe214bbe9a0faa49bc17af6",
       "src/routes/doctor.index.tsx": "e01661fc866a96d65ba01c633af040ea",
       "src/routes/doctor.login.tsx": "2dd5b957387ae4dbfab1b0dd61bb1bcd",
       "src/routes/doctor.stories.tsx": "819d0f2752634bd2650c3ad9ee9b9f33",
       "src/routes/find-doctor.tsx": "417734c59cef36e575a556d486587b9a",
-      "src/routes/hospitals.tsx": "2ae65246dd855b220a7a30a01b1d1795",
-      "src/routes/index.tsx": "9af6b9eb4d9261a871ae17b0d5448c2f",
+      "src/routes/hospital.$id.tsx": "0792a35f174be892ef9dc7b5084f4381",
+      "src/routes/hospitals.tsx": "40f92e40858eb75ae92fbbfdf37b9470",
+      "src/routes/index.tsx": "ae0bfd4cee11faeda8ad511e7bf91918",
       "src/routes/messages.$id.tsx": "c2e6d9c17f6427b4d1b0fc9d1df9d5c3",
       "src/routes/messages.index.tsx": "f29982c624ee92e662b7e72baca735ff",
       "src/routes/p.$postId.tsx": "40b8032e9576dcd13fbe7b4daf3efcf0",
-      "src/routes/patient.assistant.tsx": "aaa4f2f448f3d57b2252d21b160cf719",
-      "src/routes/patient.clinic.$id.tsx": "3dbcab1b97debad64aa45ac97446aa75",
+      "src/routes/patient.assistant.tsx": "07081e101a676f3a9c59ca3483384824",
+      "src/routes/patient.clinic.$id.tsx": "f2106e58b315aa83670bee0a39f87ce8",
       "src/routes/patient.emergency.tsx": "fcefa6c4810912f4e239e73d3d40f6ae",
       "src/routes/patient.health.tsx": "aa755c5be92b25730fe9fc5101881ade",
-      "src/routes/patient.index.tsx": "3a8025bc9edbba896a00e6a51be24230",
-      "src/routes/patient.login.tsx": "80e85fd5df234c16aa98a7506506d2c1",
+      "src/routes/patient.index.tsx": "7d495531a04fefa374a89afee4165756",
+      "src/routes/patient.login.tsx": "953c7d4f7b971f5396dbea82f9693594",
       "src/routes/patient.meds.tsx": "1fe8963404fac07de20dc186958a7983",
       "src/routes/patient.queue.$id.tsx": "471029a451f2ac0b71d1924f840cca44",
-      "src/routes/patient.search.tsx": "cd1f9c7a55b33921c88005605229e867",
+      "src/routes/patient.search.tsx": "e78389bdb0653ab669118ea91f78759d",
       "src/routes/reception.tsx": "c949a8378f262c03bcd0056b092c8410",
+      "src/routes/settings.tsx": "0555597bc77955261a47c1a63874156e",
       "src/routes/sitemap[.]xml.ts": "bf8e41597d75866df18aff32e9dd12e8",
       "src/routes/terms.tsx": "cd360154cc7ca1b58ddf83ee314f1058",
       "src/routes/tv.$id.tsx": "063d6d542999b7022957ddbc2ed6772e",
       "src/server.ts": "c7bbc49bb70e318af618d92775ee0f27",
       "src/start.ts": "dea3ea570c9b62073dad576d17d68d02",
-      "src/styles.css": "f99bfd83ff68820c6a3701fa1d943678",
+      "src/styles.css": "0d5675d7a46b2b20512eb1dba87d09ea",
       "supabase/config.toml": "70a22168aba4012a4c52de1c1a78711c",
       "tsconfig.json": "994abf64c2b9f78b568879f80ed0170e",
       "vite.config.ts": "d67e8217e5f31b87c276b6357c9aedcf"
@@ -204,6 +222,21 @@
   },
   "tokens": {
     "color": [
+      {
+        "name": "--map-clinic",
+        "raw": "oklch(0.685 0.169 237.323)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--map-hospital",
+        "raw": "oklch(0.637 0.237 25.331)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--map-pin-ink",
+        "raw": "oklch(1 0 0)",
+        "source": "src/styles.css"
+      },
       {
         "name": "--background",
         "raw": "oklch(0.196 0.037 265)",
@@ -473,6 +506,21 @@
     ],
     "other": [
       {
+        "name": "--map-pin-size",
+        "raw": "2.25rem",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--map-pin-symbol",
+        "raw": "1.125rem",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--map-preview-offset",
+        "raw": "calc(4rem + env(safe-area-inset-bottom) + 0.75rem)",
+        "source": "src/styles.css"
+      },
+      {
         "name": "--gradient-gold",
         "raw": "linear-gradient(135deg, oklch(0.90 0.11 92), oklch(0.76 0.15 72))",
         "source": "src/styles.css"
@@ -509,9 +557,48 @@
       "name": "ClinicsMap",
       "file": "src/components/ClinicsMap",
       "import_path": "",
+      "props": [
+        {
+          "name": "clinics",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "center",
+          "type": "object",
+          "required": true
+        },
+        {
+          "name": "selectedId",
+          "type": "string"
+        },
+        {
+          "name": "onSelect",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "default",
+            "compact"
+          ],
+          "default": "default"
+        }
+      ],
       "usage": "Use for the unified clinic and governmental-hospital directory. Numbered clusters separate on zoom; onSelect supplies the selected facility for a nonmodal preview.",
-      "examples": [{ "label": "Patient directory map", "code": "<ClinicsMap clinics={facilities} center={patientLocation} selectedId={selected?.id} onSelect={setSelected} />" }],
-      "antipatterns": ["Do not invent clinic or hospital coordinates.", "Do not evaluate Leaflet or markercluster before hydration.", "Do not obscure preview actions with bottom navigation."]
+      "examples": [
+        {
+          "label": "Patient directory map",
+          "code": "\u003cClinicsMap clinics={facilities} center={patientLocation} selectedId={selected?.id} onSelect={setSelected} /\u003e"
+        }
+      ],
+      "antipatterns": [
+        "Do not invent clinic or hospital coordinates.",
+        "Do not evaluate Leaflet or markercluster before hydration.",
+        "Do not obscure preview actions with bottom navigation."
+      ]
     },
     {
       "name": "DoctorBottomNav",
@@ -521,6 +608,11 @@
     {
       "name": "DoctorNameSearch",
       "file": "src/components/DoctorNameSearch",
+      "import_path": ""
+    },
+    {
+      "name": "FloatingVoiceAssistant",
+      "file": "src/components/FloatingVoiceWidget",
       "import_path": ""
     },
     {
@@ -632,6 +724,16 @@
     {
       "name": "SystemTab",
       "file": "src/components/admin/GodModePanel",
+      "import_path": ""
+    },
+    {
+      "name": "HospitalLocationsTab",
+      "file": "src/components/admin/HospitalLocationsTab",
+      "import_path": ""
+    },
+    {
+      "name": "SecurityTab",
+      "file": "src/components/admin/SecurityTab",
       "import_path": ""
     },
     {

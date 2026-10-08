@@ -8,6 +8,9 @@ Apply with any color utility: `bg-<name>`, `text-<name>`, `border-<name>`, `ring
 
 | Name | CSS variable |
 |---|---|
+| `map-clinic` | `--map-clinic` |
+| `map-hospital` | `--map-hospital` |
+| `map-pin-ink` | `--map-pin-ink` |
 | `background` | `--background` |
 | `foreground` | `--foreground` |
 | `card` | `--card` |
@@ -88,6 +91,9 @@ Reference via `var(--name)` in inline styles or CSS.
 
 | CSS variable |
 |---|
+| `--map-pin-size` |
+| `--map-pin-symbol` |
+| `--map-preview-offset` |
 | `--gradient-gold` |
 | `--gradient-story` |
 
