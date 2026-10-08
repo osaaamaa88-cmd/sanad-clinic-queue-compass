@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb, Hospital, Navigation } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb, Hospital, Navigation, Mic, MicOff, Volume2, Square } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, type PatientLocation } from "@/lib/patient-location";
@@ -56,6 +57,43 @@ export const Route = createFileRoute("/patient/assistant")({
 
 const examples = ["سناني بتوجعني ولثتي وارمة", "ابني عنده سخونية وكحة من يومين", "ركبتي بتوجعني لما بطلع السلم"];
 
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+  onerror: ((e: { error?: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+/** Read an Arabic text aloud; returns a stop function. */
+function speakArabic(text: string, onEnd: () => void): () => void {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    toast.error("القراءة الصوتية مش مدعومة على الجهاز ده");
+    onEnd();
+    return () => {};
+  }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "ar-SA";
+  u.rate = 0.95;
+  const voices = window.speechSynthesis.getVoices();
+  const ar = voices.find((v) => v.lang.startsWith("ar"));
+  if (ar) u.voice = ar;
+  u.onend = onEnd;
+  u.onerror = onEnd;
+  window.speechSynthesis.speak(u);
+  return () => window.speechSynthesis.cancel();
+}
+
 function Assistant() {
   const [need, setNeed] = useState("");
   const [loc, setLoc] = useState<PatientLocation>(defaultLocation);
@@ -65,6 +103,70 @@ function Assistant() {
   const [result, setResult] = useState<TriageResult | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [hospitals, setHospitals] = useState<HospitalRow[]>([]);
+  const [listening, setListening] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const recogRef = useRef<SpeechRecognitionLike | null>(null);
+  const stopSpeechRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => () => {
+    recogRef.current?.stop();
+    stopSpeechRef.current?.();
+  }, []);
+
+  function toggleListening() {
+    if (listening) {
+      recogRef.current?.stop();
+      return;
+    }
+    const Ctor = getSpeechRecognition();
+    if (!Ctor) {
+      toast.error("الإدخال الصوتي مش مدعوم في المتصفح ده — جرّب كروم أو سفاري");
+      return;
+    }
+    try {
+      const rec = new Ctor();
+      rec.lang = "ar-EG";
+      rec.interimResults = true;
+      rec.continuous = false;
+      let finalText = "";
+      rec.onresult = (e) => {
+        let text = "";
+        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+        finalText = text.trim();
+        setNeed(finalText);
+      };
+      rec.onerror = (e) => {
+        setListening(false);
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+          toast.error("المايكروفون مرفوض — اسمح بالوصول للمايك من إعدادات المتصفح");
+        } else if (e.error !== "aborted") {
+          toast.error("مش قادر أسمعك دلوقتي — جرّب تاني");
+        }
+      };
+      rec.onend = () => {
+        setListening(false);
+        if (finalText.length >= 3) void submit(finalText);
+      };
+      recogRef.current = rec;
+      rec.start();
+      setListening(true);
+    } catch {
+      toast.error("تعذّر تشغيل المايكروفون على الجهاز ده");
+    }
+  }
+
+  function toggleSpeak() {
+    if (speaking) {
+      stopSpeechRef.current?.();
+      setSpeaking(false);
+      return;
+    }
+    if (!result) return;
+    const names = result.specialtyIds.map((id) => getSpecialty(id)?.name ?? id).join("، ");
+    const text = [result.summary, names && `التخصصات المناسبة: ${names}.`, result.advice].filter(Boolean).join(" ");
+    stopSpeechRef.current = speakArabic(text, () => setSpeaking(false));
+    setSpeaking(true);
+  }
 
   useEffect(() => {
     setLoc(getPatientLocation());
@@ -72,15 +174,17 @@ function Assistant() {
     listHospitals().then(setHospitals).catch(() => {});
   }, []);
 
-  async function submit() {
-    if (need.trim().length < 3 || loading) return;
+  async function submit(text?: string) {
+    const q = (text ?? need).trim();
+    if (q.length < 3 || loading) return;
+    if (text) setNeed(q);
     setError(null);
     setLoading(true);
     try {
-      const ai = await aiTriage({ data: { need } });
-      setResult(ai ?? runLocalTriage(need));
+      const ai = await aiTriage({ data: { need: q } });
+      setResult(ai ?? runLocalTriage(q));
     } catch {
-      setResult(runLocalTriage(need));
+      setResult(runLocalTriage(q));
     } finally {
       setLoading(false);
     }
@@ -123,14 +227,39 @@ function Assistant() {
           <span className="text-xs text-primary">تغيير ▾</span>
         </button>
 
-        <textarea
-          value={need}
-          onChange={(e) => setNeed(e.target.value)}
-          maxLength={800}
-          rows={4}
-          placeholder="مثلاً: عندي صداع مستمر ودوخة من أسبوع…"
-          className="w-full resize-none rounded-2xl border border-border bg-card p-4 text-base outline-none focus:border-primary"
-        />
+        <div className="relative">
+          <textarea
+            value={need}
+            onChange={(e) => setNeed(e.target.value)}
+            maxLength={800}
+            rows={4}
+            placeholder={listening ? "بسمعك… اتكلم براحتك" : "مثلاً: عندي صداع مستمر ودوخة من أسبوع…"}
+            className={`w-full resize-none rounded-2xl border bg-card p-4 pe-14 text-base outline-none focus:border-primary ${listening ? "border-destructive" : "border-border"}`}
+          />
+          <button
+            type="button"
+            onClick={toggleListening}
+            aria-label={listening ? "إيقاف التسجيل" : "تحدث بدلاً من الكتابة"}
+            className={`absolute bottom-3 end-3 grid h-10 w-10 place-items-center rounded-full transition ${
+              listening
+                ? "animate-pulse bg-destructive text-destructive-foreground shadow-[0_0_0_6px_rgba(239,68,68,0.25)]"
+                : "bg-primary/15 text-primary hover:bg-primary/25"
+            }`}
+          >
+            {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+          </button>
+          {listening && (
+            <span className="pointer-events-none absolute bottom-3 start-4 flex items-end gap-0.5" aria-hidden>
+              {[0, 1, 2, 3].map((i) => (
+                <span
+                  key={i}
+                  className="w-1 animate-pulse rounded-full bg-destructive"
+                  style={{ height: `${10 + ((i * 7) % 14)}px`, animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </span>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {examples.map((e) => (
             <button key={e} onClick={() => setNeed(e)} className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
@@ -140,7 +269,7 @@ function Assistant() {
         </div>
 
         <button
-          onClick={submit}
+          onClick={() => submit()}
           disabled={loading || need.trim().length < 3}
           className="gradient-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-primary-foreground disabled:opacity-50"
         >
@@ -157,7 +286,19 @@ function Assistant() {
               </a>
             )}
             <div className="rounded-2xl border border-border bg-card p-4">
-              <p className="text-sm">{result.summary}</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm">{result.summary}</p>
+                <button
+                  type="button"
+                  onClick={toggleSpeak}
+                  aria-label={speaking ? "إيقاف الاستماع" : "استماع للنتيجة"}
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition ${
+                    speaking ? "animate-pulse bg-primary text-primary-foreground" : "bg-primary/15 text-primary hover:bg-primary/25"
+                  }`}
+                >
+                  {speaking ? <Square className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
+              </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {result.specialtyIds.map((id) => {
                   const Icon = specialtyIcons[id] ?? Stethoscope;
