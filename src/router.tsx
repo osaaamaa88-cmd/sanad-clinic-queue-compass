@@ -3,6 +3,31 @@ import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { reportSaveFailure } from "@/lib/health.functions";
 
+// After an app update, an open tab may request old code chunks that no longer
+// exist ("Importing a module script failed"). Reload once to fetch fresh code.
+const STALE_RE = /Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i;
+function reloadOnceForStaleChunk() {
+  try {
+    const last = Number(sessionStorage.getItem("sanad:chunk-reload") || 0);
+    if (Date.now() - last < 10000) return;
+    sessionStorage.setItem("sanad:chunk-reload", String(Date.now()));
+  } catch {}
+  window.location.reload();
+}
+if (typeof window !== "undefined") {
+  window.addEventListener("vite:preloadError", (e) => {
+    e.preventDefault();
+    reloadOnceForStaleChunk();
+  });
+  window.addEventListener("error", (e) => {
+    if (STALE_RE.test(String(e.message))) reloadOnceForStaleChunk();
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    const msg = e.reason instanceof Error ? e.reason.message : String(e.reason);
+    if (STALE_RE.test(msg)) reloadOnceForStaleChunk();
+  });
+}
+
 export const getRouter = () => {
   const queryClient = new QueryClient({
     mutationCache: new MutationCache({
