@@ -90,7 +90,7 @@ export function speak(text: string, onEnd?: (success: boolean) => void) {
     launched = true;
     synth.removeEventListener("voiceschanged", launch);
     window.clearTimeout(timer);
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(cleanForSpeech(text));
     applyFemaleVoice(u);
     u.onend = () => complete(true);
     u.onerror = () => complete(false);
