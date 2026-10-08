@@ -34,10 +34,14 @@ const wrapStyle = {
 } as const;
 
 export function FloatingVoiceAssistant() {
-  const { enabled, state, message, resume, stop } = useFloatingVoiceAssistant();
+  const signedIn = useSignedIn();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isPublicRoute = PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`));
+  const allowed = signedIn && !isPublicRoute;
+  const { enabled, state, message, resume, stop } = useFloatingVoiceAssistant(allowed);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+  if (!mounted || !allowed) return null;
 
   if (!enabled) {
     return createPortal(
