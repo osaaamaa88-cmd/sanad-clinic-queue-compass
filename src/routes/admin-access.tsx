@@ -24,6 +24,7 @@ import { godSetFeatured } from "@/lib/godmode.functions";
 import { DbHealthTab } from "@/components/admin/DbHealthTab";
 import { HospitalLocationsTab } from "@/components/admin/HospitalLocationsTab";
 import { SecurityTab } from "@/components/admin/SecurityTab";
+import { DeletionRequestsTab } from "@/components/admin/DeletionRequestsTab";
 import { specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
 import {
   adminListClinics,
@@ -171,7 +172,7 @@ function Admin() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0, bookings: 0 });
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings" | "users" | "live" | "media" | "system" | "health" | "hospitals" | "security">("analytics");
+  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings" | "users" | "live" | "media" | "system" | "health" | "hospitals" | "security" | "deletions">("analytics");
   const featureFn = useServerFn(godSetFeatured);
   const [editing, setEditing] = useState<ClinicRow | null>(null);
 
@@ -347,6 +348,7 @@ function Admin() {
           ["health", "صحة النظام"],
           ["hospitals", "مواقع المستشفيات"],
           ["security", "الأمان والتشخيص"],
+          ["deletions", "طلبات الحذف"],
         ] as const).map(([k, l]) => (
           <button
             key={k}
@@ -368,6 +370,7 @@ function Admin() {
       {tab === "health" && <DbHealthTab />}
       {tab === "hospitals" && <HospitalLocationsTab />}
       {tab === "security" && <SecurityTab />}
+      {tab === "deletions" && <DeletionRequestsTab />}
 
       {tab === "pending" && (
         <div className="mt-4 space-y-3">
