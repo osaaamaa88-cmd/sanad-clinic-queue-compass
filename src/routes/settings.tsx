@@ -4,6 +4,7 @@ import { ArrowRight, Mic } from "lucide-react";
 import { isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
 
 export const Route = createFileRoute("/settings")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "الإعدادات | سَنَد" },

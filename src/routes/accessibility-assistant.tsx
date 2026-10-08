@@ -6,6 +6,7 @@ import { createRecognizer, speak } from "@/lib/voice";
 import { getPatientLocation } from "@/lib/patient-location";
 
 export const Route = createFileRoute("/accessibility-assistant")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "المساعد الصوتي | سَنَد" },
