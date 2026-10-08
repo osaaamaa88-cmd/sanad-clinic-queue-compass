@@ -44,10 +44,10 @@ export function ClinicsMap({
         zoomAnimation: true,
         markerZoomAnimation: true,
       });
-      // Pre-rendered dark tiles: no per-tile CSS filters, so panning stays at 60fps on phones.
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      // Free OSM tiles (no key); a single light filter keeps the dark look cheap on phones.
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        subdomains: "abcd",
+        className: "sanad-dark-tiles",
         keepBuffer: 4,
         updateWhenZooming: false,
         detectRetina: false,
@@ -193,7 +193,7 @@ export function ClinicsMap({
           🚗 {routeInfo.min} دقيقة تقريباً • {routeInfo.km} كم
         </div>
       )}
-      <span className="pointer-events-none absolute bottom-1 right-2 z-[500] text-[9px] text-muted-foreground" dir="ltr">© OpenStreetMap © CARTO</span>
+      <span className="pointer-events-none absolute bottom-1 right-2 z-[500] text-[9px] text-muted-foreground" dir="ltr">© OpenStreetMap</span>
       <button
         type="button"
         onClick={recenter}

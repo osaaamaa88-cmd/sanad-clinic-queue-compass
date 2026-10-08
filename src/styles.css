@@ -286,7 +286,7 @@
   will-change: transform;
 }
 
-.sanad-dark-tiles { filter: invert(1) hue-rotate(180deg) saturate(0.25) brightness(0.8) contrast(1.05) sepia(0.15) hue-rotate(170deg); }
+.sanad-dark-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.4); }
 
 /* ===== Native app feel ===== */
 html, body {
