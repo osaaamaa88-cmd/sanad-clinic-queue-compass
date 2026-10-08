@@ -87,7 +87,7 @@ export const voiceAssist = createServerFn({ method: "POST" })
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         signal: AbortSignal.timeout(12_000),
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "openai/gpt-oss-120b",
           messages: [
             { role: "system", content: SYSTEM },
             {
