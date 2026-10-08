@@ -4,6 +4,7 @@ import { ArrowRight, Mic } from "lucide-react";
 import { isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
 import { Button } from "@/components/ui/button";
 import { MedicalDisclaimer } from "@/components/MedicalDisclaimer";
+import { AccountDeletion } from "@/components/AccountDeletion";
 
 export const Route = createFileRoute("/settings")({
   staticData: { sitemap: false },
@@ -59,6 +60,21 @@ export function SettingsPage() {
       </div>
       <div className="mt-3">
         <MedicalDisclaimer compact />
+      </div>
+      <AccountDeletion />
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <Link
+          to="/terms"
+          className="rounded-2xl border bg-card p-3 text-center text-sm font-bold text-primary"
+        >
+          شروط الاستخدام
+        </Link>
+        <Link
+          to="/privacy"
+          className="rounded-2xl border bg-card p-3 text-center text-sm font-bold text-primary"
+        >
+          سياسة الخصوصية
+        </Link>
       </div>
       <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
         <Mic /> {on ? "إيقاف المساعد الصوتي" : "تفعيل المساعد الصوتي هنا"}
