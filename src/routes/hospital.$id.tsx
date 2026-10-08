@@ -3,6 +3,7 @@ import { Phone, Navigation, MapPin, ChevronRight } from "lucide-react";
 import { getHospital, hospitalMapsUrl, HOSPITAL_TYPES } from "@/lib/hospitals.functions";
 
 export const Route = createFileRoute("/hospital/$id")({
+  staticData: { sitemap: false },
   loader: async ({ params }) => {
     const h = await getHospital({ data: { id: params.id } });
     if (!h) throw notFound();
