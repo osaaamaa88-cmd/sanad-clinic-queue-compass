@@ -56,8 +56,8 @@ export function speak(text: string, onEnd?: (success: boolean) => void) {
     const v = getBestFemaleArabicVoice();
     u.lang = v?.lang ?? "ar-EG";
     if (v) u.voice = v;
-    u.pitch = 1.0;
-    u.rate = 0.9;
+    u.pitch = 1.1;
+    u.rate = 0.88;
     u.onend = () => complete(true);
     u.onerror = () => complete(false);
     synth.speak(u);
