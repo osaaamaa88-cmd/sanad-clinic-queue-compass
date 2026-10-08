@@ -15,7 +15,10 @@ export const reportSaveFailure = createServerFn({ method: "POST" })
       // simple flood guard: max 30 reports per minute overall
       const since = new Date(Date.now() - 60_000).toISOString();
       const { count } = await supabaseAdmin.from("save_failures").select("id", { count: "exact", head: true }).gte("created_at", since);
-      if ((count ?? 0) < 30) await supabaseAdmin.from("save_failures").insert(data);
+      if ((count ?? 0) < 30) {
+        await supabaseAdmin.from("save_failures").insert(data);
+        await supabaseAdmin.from("app_error_logs").insert({ screen: data.path || null, message: `${data.action}: ${data.message}` });
+      }
     } catch {
       /* never break the caller */
     }

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_error_logs: {
+        Row: {
+          analyzed_at: string | null
+          created_at: string
+          id: string
+          message: string
+          resolved: boolean
+          screen: string | null
+          solution_ar: string | null
+          summary_ar: string | null
+        }
+        Insert: {
+          analyzed_at?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          resolved?: boolean
+          screen?: string | null
+          solution_ar?: string | null
+          summary_ar?: string | null
+        }
+        Update: {
+          analyzed_at?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          resolved?: boolean
+          screen?: string | null
+          solution_ar?: string | null
+          summary_ar?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           broadcast: string
