@@ -62,6 +62,11 @@ function PatientLogin() {
           <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">رسايلي مع العيادات</span><span className="block text-xs text-muted-foreground">محادثاتك المباشرة مع الدكاترة</span></span>
           <ArrowLeft className="h-4 w-4 text-success" />
         </Link>
+        <Link to="/settings" className="col-span-2 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-4 transition hover:shadow-soft">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground">🎤</span>
+          <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">المساعد الصوتي والإعدادات</span><span className="block text-xs text-muted-foreground">لكبار السن وفاقدي البصر</span></span>
+          <ArrowLeft className="h-4 w-4 text-primary" />
+        </Link>
       </section>
       <div className="mb-4"><SoundToggle />
 <ThemeSetting /></div>
