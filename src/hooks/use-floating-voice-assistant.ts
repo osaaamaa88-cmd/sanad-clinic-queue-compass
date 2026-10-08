@@ -13,7 +13,7 @@ export function useFloatingVoiceAssistant(allowed = true) {
   const [restart, setRestart] = useState(0);
 
   useEffect(() => {
-    const sync = () => setEnabled(isVoiceModeOn());
+    const sync = () => setEnabled(allowed && isVoiceModeOn());
     sync();
     window.addEventListener("sanad:voice-mode", sync);
     window.addEventListener("storage", sync);
