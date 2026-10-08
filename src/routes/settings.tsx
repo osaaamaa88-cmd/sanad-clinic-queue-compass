@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, Mic } from "lucide-react";
-import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
+import { isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/settings")({
