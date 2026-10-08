@@ -26,3 +26,6 @@
 
 - [x] Map micro-styling: center cluster numbers (flex, white 700/14px); remove dashed borders on pins; solid badge with dark drop shadow
 - [x] Performance: 1h data cache, offline map tiles, lazy map/story viewer
+
+- [x] Show the medical disclaimer only as a link under sign-in
+- [ ] Voice assistant + admin monitor: Groq model llama-3.3-70b-versatile unavailable on the key (waiting on user choice of replacement)

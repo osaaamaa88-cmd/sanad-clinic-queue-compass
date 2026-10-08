@@ -226,10 +226,6 @@ function Landing() {
 
         <footer className="mt-8 space-y-2 border-t border-border pt-4 text-center">
           <div className="space-x-3">
-            <Link to="/terms" className="text-xs font-bold text-primary underline">
-              إخلاء المسؤولية الطبية وشروط الاستخدام
-            </Link>
-            <span className="text-xs text-muted-foreground">·</span>
             <Link to="/privacy" className="text-xs font-bold text-primary underline">
               سياسة الخصوصية
             </Link>
@@ -238,10 +234,6 @@ function Landing() {
               About the Developer
             </Link>
           </div>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            سَنَد أداة تقنية لاكتشاف العيادات وتسهيل التواصل المباشر بين المريض والعيادة، ولا تقدم
-            استشارات طبية ولا تتحمل المسؤولية عن الخدمات الطبية المقدمة من العيادات.
-          </p>
           <p className="text-[10px] font-bold text-muted-foreground" dir="ltr">SANAD {APP_VERSION_LABEL}</p>
         </footer>
       </div>

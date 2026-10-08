@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Mic } from "lucide-react";
 import { isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
 import { Button } from "@/components/ui/button";
-import { MedicalDisclaimer } from "@/components/MedicalDisclaimer";
 import { AccountDeletion } from "@/components/AccountDeletion";
 
 export const Route = createFileRoute("/settings")({
@@ -58,17 +57,8 @@ export function SettingsPage() {
           اختبار الصوت النسائي 🔊
         </Button>
       </div>
-      <div className="mt-3">
-        <MedicalDisclaimer compact />
-      </div>
       <AccountDeletion />
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <Link
-          to="/terms"
-          className="rounded-2xl border bg-card p-3 text-center text-sm font-bold text-primary"
-        >
-          شروط الاستخدام
-        </Link>
+      <div className="mt-3 grid grid-cols-1 gap-3">
         <Link
           to="/privacy"
           className="rounded-2xl border bg-card p-3 text-center text-sm font-bold text-primary"
