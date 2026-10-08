@@ -110,7 +110,7 @@ function HospitalsPage() {
             <div className="mt-3 grid grid-cols-2 gap-2">
               <a href={`tel:${h.emergency_phone || h.phone}`} className="rounded-xl bg-primary p-2 text-center text-sm font-bold text-primary-foreground">📞 اتصال</a>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lng}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${h.name} ${h.governorate}`)}`}
                 target="_blank" rel="noreferrer"
                 className="rounded-xl border p-2 text-center text-sm font-bold"
               >🗺️ فتح في خرائط جوجل</a>
