@@ -103,6 +103,65 @@ function Assistant() {
   const [result, setResult] = useState<TriageResult | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [hospitals, setHospitals] = useState<HospitalRow[]>([]);
+  const [listening, setListening] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const recogRef = useRef<SpeechRecognitionLike | null>(null);
+  const stopSpeechRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => () => {
+    recogRef.current?.stop();
+    stopSpeechRef.current?.();
+  }, []);
+
+  function toggleListening() {
+    if (listening) {
+      recogRef.current?.stop();
+      return;
+    }
+    const Ctor = getSpeechRecognition();
+    if (!Ctor) {
+      toast.error("الإدخال الصوتي مش مدعوم في المتصفح ده — جرّب كروم أو سفاري");
+      return;
+    }
+    try {
+      const rec = new Ctor();
+      rec.lang = "ar-EG";
+      rec.interimResults = true;
+      rec.continuous = false;
+      rec.onresult = (e) => {
+        let text = "";
+        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+        setNeed(text.trim());
+      };
+      rec.onerror = (e) => {
+        setListening(false);
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+          toast.error("المايكروفون مرفوض — اسمح بالوصول للمايك من إعدادات المتصفح");
+        } else if (e.error !== "aborted") {
+          toast.error("مش قادر أسمعك دلوقتي — جرّب تاني");
+        }
+      };
+      rec.onend = () => setListening(false);
+      recogRef.current = rec;
+      rec.start();
+      setListening(true);
+    } catch {
+      toast.error("تعذّر تشغيل المايكروفون على الجهاز ده");
+    }
+  }
+
+  function toggleSpeak() {
+    if (speaking) {
+      stopSpeechRef.current?.();
+      setSpeaking(false);
+      return;
+    }
+    if (!result) return;
+    const names = result.specialtyIds.map((id) => getSpecialty(id)?.name ?? id).join("، ");
+    const text = [result.summary, names && `التخصصات المناسبة: ${names}.`, result.advice].filter(Boolean).join(" ");
+    stopSpeechRef.current = speakArabic(text, () => setSpeaking(false));
+    setSpeaking(true);
+  }
 
   useEffect(() => {
     setLoc(getPatientLocation());
