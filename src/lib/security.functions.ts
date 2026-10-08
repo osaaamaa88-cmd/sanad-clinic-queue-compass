@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const MODEL = "llama-3.3-70b-versatile";
+const MODEL = "openai/gpt-oss-120b";
 const PROMPT =
   "You are the AI System Diagnostic Assistant for 'سَنَد | SANAD'. Analyze the raw app error/log and respond in JSON with two Arabic fields: `summaryAr` (1 sentence describing what broke) and `solutionAr` (1 sentence recommending the fix).";
 
@@ -10,6 +10,7 @@ async function analyze(key: string, r: Row) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(12_000),
     body: JSON.stringify({
       model: MODEL,
       response_format: { type: "json_object" },

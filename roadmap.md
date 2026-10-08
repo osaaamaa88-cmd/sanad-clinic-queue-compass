@@ -28,4 +28,5 @@
 - [x] Performance: 1h data cache, offline map tiles, lazy map/story viewer
 
 - [x] Show the medical disclaimer only as a link under sign-in
-- [ ] Voice assistant + admin monitor: Groq model llama-3.3-70b-versatile unavailable on the key (waiting on user choice of replacement)
+- [x] Voice assistant + admin monitor: replace unavailable Groq model with openai/gpt-oss-120b.
+- [x] Remove voice test, privacy and account data section from settings; browser verified symptom result and signed-in floating widget; replacement Groq API returned 200. Physical microphone and audio still require device testing.

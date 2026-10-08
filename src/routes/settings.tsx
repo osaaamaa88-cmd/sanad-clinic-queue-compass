@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, Mic } from "lucide-react";
-import { isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
+import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
 import { Button } from "@/components/ui/button";
-import { AccountDeletion } from "@/components/AccountDeletion";
 
 export const Route = createFileRoute("/settings")({
   staticData: { sitemap: false },
@@ -49,22 +48,6 @@ export function SettingsPage() {
           </span>
           <input type="checkbox" role="switch" checked={on} onChange={toggle} className="h-6 w-11 accent-primary" />
         </label>
-        <Button
-          variant="outline"
-          className="h-auto rounded-2xl px-3 font-bold"
-          onClick={() => speak("أهلاً بك في سَنَد، أنا هنا لمساعدتك. ده اختبار الصوت النسائي.")}
-        >
-          اختبار الصوت النسائي 🔊
-        </Button>
-      </div>
-      <AccountDeletion />
-      <div className="mt-3 grid grid-cols-1 gap-3">
-        <Link
-          to="/privacy"
-          className="rounded-2xl border bg-card p-3 text-center text-sm font-bold text-primary"
-        >
-          سياسة الخصوصية
-        </Link>
       </div>
       <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
         <Mic /> {on ? "إيقاف المساعد الصوتي" : "تفعيل المساعد الصوتي هنا"}
