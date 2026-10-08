@@ -279,7 +279,19 @@ function Assistant() {
               </a>
             )}
             <div className="rounded-2xl border border-border bg-card p-4">
-              <p className="text-sm">{result.summary}</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm">{result.summary}</p>
+                <button
+                  type="button"
+                  onClick={toggleSpeak}
+                  aria-label={speaking ? "إيقاف الاستماع" : "استماع للنتيجة"}
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition ${
+                    speaking ? "animate-pulse bg-primary text-primary-foreground" : "bg-primary/15 text-primary hover:bg-primary/25"
+                  }`}
+                >
+                  {speaking ? <Square className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
+              </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {result.specialtyIds.map((id) => {
                   const Icon = specialtyIcons[id] ?? Stethoscope;
