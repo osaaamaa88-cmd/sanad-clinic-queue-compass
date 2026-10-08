@@ -67,7 +67,6 @@
   --map-pin-ink: oklch(1 0 0);
   --map-pin-size: 2.25rem;
   --map-pin-symbol: 1.125rem;
-  --map-pin-shadow: 0 2px 8px oklch(0.15 0.03 265 / 0.35);
   --map-preview-offset: calc(4rem + env(safe-area-inset-bottom) + 0.75rem);
   --radius: 0.625rem;
   /* سَنَد — Dark obsidian theme with electric turquoise + neon red emergency */
@@ -304,30 +303,66 @@
   border-radius: 50%;
   background: var(--map-clinic);
   color: var(--map-pin-ink);
-  border: 2px solid var(--map-pin-ink);
-  box-shadow: var(--map-pin-shadow);
+  border: 2px solid oklch(1 0 0 / 0.85);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.4);
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 .sanad-pin svg { width: var(--map-pin-symbol); height: var(--map-pin-symbol); }
 .sanad-pin-hospital { background: var(--map-hospital); }
-.sanad-pin.is-approximate { border-style: dashed; border-color: var(--warning); }
-.sanad-pin.is-selected { transform: scale(1.15); box-shadow: 0 0 0 4px var(--primary-soft), var(--map-pin-shadow); }
+.sanad-pin.is-selected {
+  transform: scale(1.18);
+  box-shadow: 0 0 0 4px var(--primary-soft), 0 2px 8px rgb(0 0 0 / 0.4);
+}
+.sanad-pin-hospital.is-selected {
+  box-shadow: 0 0 0 4px oklch(0.637 0.237 25.331 / 0.3), 0 2px 8px rgb(0 0 0 / 0.4);
+}
+/* Leaflet's .leaflet-marker-icon forces display:block — out-specify it so the count stays centered. */
+.leaflet-marker-icon.sanad-cluster,
 .sanad-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, oklch(0.72 0.155 228), oklch(0.68 0.13 195));
+  color: #FFFFFF;
+  border: 2px solid oklch(1 0 0 / 0.35);
+  box-shadow:
+    0 3px 10px oklch(0.12 0.03 265 / 0.55),
+    0 0 16px oklch(0.685 0.169 237.323 / 0.45),
+    inset 0 1px 0 oklch(1 0 0 / 0.3);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 14px;
+  text-shadow: 0 1px 2px oklch(0.15 0.05 230 / 0.45);
+  transition: transform 180ms ease;
+}
+.sanad-cluster:hover { transform: scale(1.06); }
+.sanad-cluster-count { display: block; line-height: 1; letter-spacing: -0.02em; }
+.sanad-cluster.sanad-cluster-large { font-size: 1rem; }
+.sanad-marker:focus-visible, .sanad-cluster:focus-visible { outline: 3px solid var(--warning); outline-offset: 4px; }
+.sanad-map-control {
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: var(--card);
-  color: var(--foreground);
-  border: 3px solid var(--map-clinic);
-  box-shadow: var(--map-pin-shadow);
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: 0.875rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+  background: oklch(0.15 0.03 265 / 0.6);
+  color: oklch(0.98 0.005 240);
+  border: 1px solid oklch(1 0 0 / 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px oklch(0.1 0.03 265 / 0.45);
+  transition: background-color 150ms ease, transform 120ms ease;
 }
-.sanad-marker:focus-visible, .sanad-cluster:focus-visible { outline: 3px solid var(--warning); outline-offset: 4px; }
+.sanad-map-control svg { width: 0.9375rem; height: 0.9375rem; }
+.sanad-map-control:hover { background: oklch(0.2 0.04 265 / 0.75); }
+.sanad-map-control:active { transform: scale(0.92); }
+.sanad-map-control:disabled { opacity: 0.6; pointer-events: none; }
+.sanad-map-control:focus-visible { outline: 2px solid var(--warning); outline-offset: 2px; }
 .sanad-map-preview { bottom: var(--map-preview-offset); max-height: calc(100dvh - var(--map-preview-offset) - 1rem); overflow-y: auto; }
 @media (prefers-reduced-motion: reduce) {
-  .sanad-pin { transition: none; }
+  .sanad-pin, .sanad-cluster { transition: none; }
+  .sanad-cluster:hover { transform: none; }
   .sanad-map-preview { animation: none; }
 }
 

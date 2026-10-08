@@ -22,3 +22,5 @@
 - [x] Doctor story manager page (/doctor/stories) linked from doctor settings
 - [ ] AI analysis of repeated save failures for the owner panel (paused for stories)
 - [x] Make the search map fast and smooth on phones
+
+- [x] Map micro-styling: center cluster numbers (flex, white 700/14px); remove dashed borders on pins; solid badge with dark drop shadow

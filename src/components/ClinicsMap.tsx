@@ -1,7 +1,6 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { Activity, LocateFixed, Maximize, Minus, Plus } from "lucide-react";
+import { Cross, LocateFixed, Maximize, Minus, Plus, Stethoscope } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Clinic } from "@/lib/mock-data";
 import "leaflet/dist/leaflet.css";
@@ -19,8 +18,8 @@ export interface ClinicsMapProps extends Omit<React.HTMLAttributes<HTMLDivElemen
 function pinIcon(L: Leaflet, clinic: Clinic, active: boolean) {
   const hospital = clinic.kind === "hospital";
   const symbol = hospital
-    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79 A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79 Z" fill="currentColor"/></svg>'
-    : renderToStaticMarkup(<Activity aria-hidden="true" />);
+    ? renderToStaticMarkup(<Cross aria-hidden="true" />)
+    : renderToStaticMarkup(<Stethoscope aria-hidden="true" />);
   return L.divIcon({
     className: "sanad-marker",
     html: `<span class="sanad-pin ${hospital ? "sanad-pin-hospital" : ""} ${active ? "is-selected" : ""} ${clinic.approxLocation ? "is-approximate" : ""}">${symbol}</span>`,
@@ -76,10 +75,15 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
         maxClusterRadius: 48, disableClusteringAtZoom: 17, showCoverageOnHover: false,
         spiderfyOnMaxZoom: true, removeOutsideVisibleBounds: true,
         animate: !reducedMotion(),
-        iconCreateFunction: (cluster) => L.divIcon({
-          html: `<span class="sanad-cluster-count">${cluster.getChildCount()}</span>`,
-          className: "sanad-cluster", iconSize: [44, 44], iconAnchor: [22, 22],
-        }),
+        iconCreateFunction: (cluster) => {
+          const count = cluster.getChildCount();
+          const size = count >= 20 ? 52 : count >= 5 ? 44 : 38;
+          return L.divIcon({
+            html: `<span class="sanad-cluster-count">${count}</span>`,
+            className: `sanad-cluster ${count >= 20 ? "sanad-cluster-large" : ""}`,
+            iconSize: [size, size], iconAnchor: [size / 2, size / 2],
+          });
+        },
       }).addTo(instance);
       const colors = getComputedStyle(container.current);
       patient.current = L.circleMarker(latest.current.center, {
@@ -167,11 +171,11 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
     <div ref={ref} className={cn("relative isolate", className)} {...props}>
       <div ref={container} className={cn("w-full", size === "compact" ? "h-80" : "h-[60vh] min-h-80")} dir="ltr" aria-label="خريطة العيادات والمستشفيات" />
       {!ready && <div className="absolute inset-0 grid place-items-center bg-card text-sm text-muted-foreground" role="status">{error ? "تعذّر تحميل الخريطة. أعد تحميل الصفحة." : "جاري تحميل الخريطة…"}</div>}
-      <div className="absolute left-3 top-3 z-[500] flex flex-col gap-2">
-        <Button size="icon" variant="secondary" aria-label="تكبير الخريطة" title="تكبير" onClick={() => map.current?.zoomIn()}><Plus /></Button>
-        <Button size="icon" variant="secondary" aria-label="تصغير الخريطة" title="تصغير" onClick={() => map.current?.zoomOut()}><Minus /></Button>
-        <Button size="icon" variant="secondary" aria-label="عرض كل المنشآت" title="عرض كل المنشآت" onClick={() => fit()}><Maximize /></Button>
-        <Button size="icon" variant="secondary" aria-label="موقعي الحالي" title="موقعي الحالي" disabled={locating} onClick={locate}><LocateFixed className={locating ? "animate-pulse" : ""} /></Button>
+      <div className="absolute left-2 top-2 z-[500] flex flex-col gap-1.5" dir="ltr">
+        <button type="button" className="sanad-map-control" aria-label="تكبير الخريطة" title="تكبير" onClick={() => map.current?.zoomIn()}><Plus /></button>
+        <button type="button" className="sanad-map-control" aria-label="تصغير الخريطة" title="تصغير" onClick={() => map.current?.zoomOut()}><Minus /></button>
+        <button type="button" className="sanad-map-control" aria-label="عرض كل المنشآت" title="عرض كل المنشآت" onClick={() => fit()}><Maximize /></button>
+        <button type="button" className="sanad-map-control" aria-label="موقعي الحالي" title="موقعي الحالي" disabled={locating} onClick={locate}><LocateFixed className={locating ? "animate-pulse" : ""} /></button>
       </div>
       {gpsError && <p role="status" className="absolute inset-x-3 bottom-8 z-[500] rounded-md bg-card p-3 text-xs text-foreground shadow-soft">{gpsError}</p>}
       <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="absolute bottom-1 right-2 z-[500] rounded-sm bg-card/90 px-1 text-[10px] text-muted-foreground" dir="ltr">© OpenStreetMap</a>
