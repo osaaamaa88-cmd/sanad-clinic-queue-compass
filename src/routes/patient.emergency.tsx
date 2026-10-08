@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Phone, MapPin, Clock, Filter, MessageCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -62,6 +62,10 @@ function EmergencyPage() {
       backTo="/patient"
       tone="primary"
     >
+      <Link to="/hospitals" className="relative z-10 -mt-6 mb-8 flex items-center justify-between rounded-2xl bg-card p-4 font-bold shadow-soft">
+        <span className="flex items-center gap-2"><Hospital className="h-5 w-5 text-primary" /> دليل المستشفيات الحكومية في كل المحافظات</span>
+        <span>←</span>
+      </Link>
       {/* Hotlines */}
       <div className="-mt-6 rounded-3xl bg-card p-4 shadow-soft">
         <div className="flex items-center gap-2">
