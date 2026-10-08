@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb } from "lucide-react";
+import { Bot, MapPin, Loader2, Siren, Phone, Star, Stethoscope, ChevronLeft, Lightbulb, Hospital, Navigation } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, type PatientLocation } from "@/lib/patient-location";
@@ -8,6 +8,36 @@ import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { runLocalTriage, type TriageResult } from "@/lib/triage-local";
 import { aiTriage } from "@/lib/triage.functions";
+import { listHospitals, HOSPITAL_TYPES, hospitalMapsUrl, type Hospital as HospitalRow } from "@/lib/hospitals.functions";
+
+/** Arabic keywords per specialty used to match hospital departments. */
+const SPECIALTY_DEPT_KEYWORDS: Record<string, string[]> = {
+  pediatrics: ["أطفال", "اطفال", "صدرية أطفال"],
+  neonatology: ["حديثي الولادة", "أطفال", "حضانات"],
+  dental: ["أسنان", "اسنان", "فم"],
+  ophthalmology: ["عيون", "رمد"],
+  ent: ["أنف", "انف", "أذن", "حنجرة", "سمعيات"],
+  orthopedics: ["عظام", "كسور", "مفاصل"],
+  dermatology: ["جلدية", "تناسلية"],
+  gynecology: ["نساء", "توليد", "ولادة"],
+  cardiology: ["قلب", "أوعية دموية"],
+  neurology: ["مخ", "أعصاب", "اعصاب"],
+  "internal-medicine": ["باطنة", "باطني"],
+  general: ["باطنة", "عام", "طوارئ"],
+  urology: ["مسالك", "كلى", "كلي"],
+  psychiatry: ["نفسي", "عصبي"],
+  physiotherapy: ["علاج طبيعي", "تأهيل"],
+  nutrition: ["تغذية"],
+  "family-medicine": ["أسرة", "عام"],
+};
+
+function hospitalMatchesSpecialty(h: HospitalRow, specialtyIds: string[]): boolean {
+  const depts = (h.departments ?? []).join(" ");
+  if (!depts) return false;
+  return specialtyIds.some((id) =>
+    (SPECIALTY_DEPT_KEYWORDS[id] ?? [getSpecialty(id)?.name ?? ""]).some((kw) => kw && depts.includes(kw)),
+  );
+}
 
 export const Route = createFileRoute("/patient/assistant")({
   staticData: { sitemap: true },
@@ -34,10 +64,12 @@ function Assistant() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TriageResult | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [hospitals, setHospitals] = useState<HospitalRow[]>([]);
 
   useEffect(() => {
     setLoc(getPatientLocation());
     getVerifiedClinics().then(setClinics);
+    listHospitals().then(setHospitals).catch(() => {});
   }, []);
 
   async function submit() {
@@ -60,6 +92,21 @@ function Assistant() {
         .map((c) => ({ c, d: c.lat != null && c.lng != null ? distanceKm(loc, { lat: c.lat, lng: c.lng }) : c.distanceKm }))
         .sort((a, b) => a.d - b.d)
         .slice(0, 6)
+    : [];
+
+  // Governmental hospitals: prefer specialty-department matches, else same-governorate
+  // emergency/general facilities, else nearest overall. Never an empty state.
+  const hospitalMatches = result
+    ? (() => {
+        const withDist = hospitals.map((h) => ({
+          h,
+          d: distanceKm(loc, { lat: Number(h.lat), lng: Number(h.lng) }),
+        }));
+        const byDept = withDist.filter((x) => hospitalMatchesSpecialty(x.h, result.specialtyIds));
+        const sameGov = withDist.filter((x) => loc.city && x.h.governorate.includes(loc.city));
+        const pool = byDept.length > 0 ? byDept : sameGov.length > 0 ? sameGov : withDist;
+        return pool.sort((a, b) => a.d - b.d).slice(0, 6);
+      })()
     : [];
 
   return (
@@ -126,12 +173,12 @@ function Assistant() {
             </div>
 
             <h3 className="font-bold">عيادات مناسبة قريبة منك</h3>
-            {matches.length === 0 ? (
+            {matches.length === 0 && (
               <div className="rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-                لسه مفيش عيادات مسجّلة في التخصص ده قريب منك.
-                <Link to="/patient/search" className="mt-2 block font-bold text-primary">تصفّح الخريطة</Link>
+                لسه مفيش عيادات خاصة مسجّلة في التخصص ده — بس دي أقرب مستشفيات حكومية تقدر تقصدها 👇
               </div>
-            ) : (
+            )}
+            {matches.length > 0 && (
               matches.map(({ c, d }) => (
                 <div key={c.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
                   <div className="min-w-0 flex-1">
@@ -148,6 +195,55 @@ function Assistant() {
                   </Link>
                 </div>
               ))
+            )}
+
+            {hospitalMatches.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <h3 className="flex items-center gap-2 font-bold">
+                  <Hospital className="h-5 w-5 text-destructive" /> مستشفيات حكومية وطوارئ قريبة منك
+                </h3>
+                {hospitalMatches.map(({ h, d }) => (
+                  <div key={h.id} className="rounded-2xl border border-border bg-card p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <Link to="/hospital/$id" params={{ id: h.id }} className="block truncate font-bold hover:text-primary">
+                          {h.name}
+                        </Link>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {h.governorate}{h.district ? ` • ${h.district}` : ""} • {d.toFixed(1)} كم
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-[11px] font-bold text-destructive">
+                            {HOSPITAL_TYPES[h.hospital_type] ?? "مستشفى حكومي"}
+                          </span>
+                          {h.emergency_24h && (
+                            <span className="rounded-full bg-destructive px-2.5 py-1 text-[11px] font-bold text-destructive-foreground">طوارئ 24 ساعة</span>
+                          )}
+                          {h.has_icu && (
+                            <span className="rounded-full bg-accent px-2.5 py-1 text-[11px]">رعاية مركزة</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-col gap-2">
+                        {h.phone && (
+                          <a href={`tel:${h.phone}`} aria-label="اتصال بالمستشفى" className="rounded-full bg-primary/15 p-2 text-primary">
+                            <Phone className="h-4 w-4" />
+                          </a>
+                        )}
+                        <a
+                          href={hospitalMapsUrl(h)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="الاتجاهات على الخريطة"
+                          className="rounded-full bg-primary/15 p-2 text-primary"
+                        >
+                          <Navigation className="h-4 w-4" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
             <p className="text-center text-[11px] text-muted-foreground">المساعد للإرشاد فقط ولا يغني عن استشارة الطبيب.</p>
           </div>
