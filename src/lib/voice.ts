@@ -15,11 +15,26 @@ export function setVoiceMode(on: boolean) {
   } catch {}
 }
 
-export function speak(text: string, onEnd?: (success: boolean) => void) {
-  if (typeof window === "undefined" || !window.speechSynthesis) {
-    onEnd?.(false);
-    return () => {};
+  // Priority list for warm, high-quality female Arabic voices across iOS, Android, and Web.
+  const preferredNames = ["Laila", "Zeina", "Salma", "Maryam", "Google", "Female"];
+  const malePattern = /tarik|tariq|majed|maged|hamed|naayf|male|ذكر/i;
+
+  function getBestFemaleArabicVoice(): SpeechSynthesisVoice | null {
+    const voices = synth.getVoices();
+    const arabicVoices = voices.filter((v) => v.lang.toLowerCase().startsWith("ar"));
+    for (const name of preferredNames) {
+      const found = arabicVoices.find((v) => v.name.toLowerCase().includes(name.toLowerCase()));
+      if (found) return found;
+    }
+    // Avoid known male voices when falling back.
+    return arabicVoices.find((v) => !malePattern.test(v.name)) ?? arabicVoices[0] ?? null;
   }
+
+  function speak(text: string, onEnd?: (success: boolean) => void) {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      onEnd?.(false);
+      return () => {};
+    }
   const synth = window.speechSynthesis;
   synth.cancel();
   let cancelled = false;

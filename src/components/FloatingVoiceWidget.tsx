@@ -8,7 +8,7 @@ export function FloatingVoiceAssistant() {
   const label = { listening: "إصغاء", speaking: "تحدث", thinking: "تفكير", paused: "متوقف مؤقتاً", error: "استئناف" }[state];
   const Icon = state === "thinking" ? LoaderCircle : state === "speaking" ? Volume2 : state === "error" ? MicOff : Mic;
   return (
-    <aside aria-label="مساعد سَنَد الصوتي" className="pointer-events-none fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+88px)] z-[10000] flex max-w-[calc(100vw-32px)] items-center gap-2">
+    <aside aria-label="مساعد سَنَد الصوتي" className="pointer-events-none fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+90px)] z-[9999] flex max-w-[calc(100vw-32px)] items-center gap-2">
       <span role="status" aria-live="polite" className="rounded-md border border-border bg-background/95 px-3 py-2 text-xs font-bold text-foreground shadow-soft">
         {label}<span className="sr-only">: {message}</span>
       </span>
