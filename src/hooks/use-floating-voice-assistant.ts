@@ -6,14 +6,14 @@ import { getPatientLocation } from "@/lib/patient-location";
 
 export type VoiceAssistantState = "listening" | "speaking" | "thinking" | "paused" | "error";
 
-export function useFloatingVoiceAssistant() {
+export function useFloatingVoiceAssistant(allowed = true) {
   const [enabled, setEnabled] = useState(false);
   const [state, setState] = useState<VoiceAssistantState>("paused");
   const [message, setMessage] = useState("");
   const [restart, setRestart] = useState(0);
 
   useEffect(() => {
-    const sync = () => setEnabled(isVoiceModeOn());
+    const sync = () => setEnabled(allowed && isVoiceModeOn());
     sync();
     window.addEventListener("sanad:voice-mode", sync);
     window.addEventListener("storage", sync);
@@ -21,7 +21,7 @@ export function useFloatingVoiceAssistant() {
       window.removeEventListener("sanad:voice-mode", sync);
       window.removeEventListener("storage", sync);
     };
-  }, []);
+  }, [allowed]);
 
   useEffect(() => {
     if (!enabled) return;

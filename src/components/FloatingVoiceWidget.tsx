@@ -1,9 +1,27 @@
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { LoaderCircle, Mic, Volume2, X, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFloatingVoiceAssistant } from "@/hooks/use-floating-voice-assistant";
-import { setVoiceMode } from "@/lib/voice";
+import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
+import { supabase } from "@/integrations/supabase/client";
+
+const PUBLIC_ROUTES = ["/login", "/register", "/auth", "/forgot-password", "/reset-password", "/landing", "/admin-access"];
+
+function useSignedIn() {
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => { if (active) setSignedIn(!!data.user); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(!!session?.user);
+      if (!session?.user) setVoiceMode(false);
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+  return signedIn;
+}
 
 const wrapStyle = {
   position: "fixed",
@@ -16,10 +34,14 @@ const wrapStyle = {
 } as const;
 
 export function FloatingVoiceAssistant() {
-  const { enabled, state, message, resume, stop } = useFloatingVoiceAssistant();
+  const signedIn = useSignedIn();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isPublicRoute = PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`));
+  const allowed = signedIn && !isPublicRoute;
+  const { enabled, state, message, resume, stop } = useFloatingVoiceAssistant(allowed);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+  if (!mounted || !allowed) return null;
 
   if (!enabled) {
     return createPortal(
