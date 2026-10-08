@@ -70,6 +70,11 @@ export type Clinic = {
   bookingsClosed: boolean;
   workingHours?: string;
   youtubeUrl?: string;
+  /** "hospital" = governmental facility (no private doctor profile). */
+  kind?: "clinic" | "hospital";
+  /** Hospital location is approximate (not yet confirmed by the owner). */
+  approxLocation?: boolean;
+  hospitalType?: string;
 };
 
 export type ClinicStatus = "normal" | "delayed" | "paused";
