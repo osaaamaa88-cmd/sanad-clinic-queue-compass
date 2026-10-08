@@ -19,6 +19,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DoctorIndexRouteImport } from './routes/doctor.index'
 import { Route as DoctorLoginRouteImport } from './routes/doctor.login'
+import { Route as DoctorStoriesRouteImport } from './routes/doctor.stories'
 import { Route as MessagesIndexRouteImport } from './routes/messages.index'
 import { Route as MessagesIdRouteImport } from './routes/messages.$id'
 import { Route as PPostIdRouteImport } from './routes/p.$postId'
@@ -81,6 +82,11 @@ const DoctorIndexRoute = DoctorIndexRouteImport.update({
 const DoctorLoginRoute = DoctorLoginRouteImport.update({
   id: '/doctor/login',
   path: '/doctor/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorStoriesRoute = DoctorStoriesRouteImport.update({
+  id: '/doctor/stories',
+  path: '/doctor/stories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MessagesIndexRoute = MessagesIndexRouteImport.update({
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/doctor/stories': typeof DoctorStoriesRoute
   '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/doctor/stories': typeof DoctorStoriesRoute
   '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
+  '/doctor/stories': typeof DoctorStoriesRoute
   '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
+    | '/doctor/stories'
     | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
+    | '/doctor/stories'
     | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/doctor/login'
+    | '/doctor/stories'
     | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
@@ -313,6 +325,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   DoctorLoginRoute: typeof DoctorLoginRoute
+  DoctorStoriesRoute: typeof DoctorStoriesRoute
   MessagesIdRoute: typeof MessagesIdRoute
   PPostIdRoute: typeof PPostIdRoute
   PatientAssistantRoute: typeof PatientAssistantRoute
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/doctor/login'
       fullPath: '/doctor/login'
       preLoaderRoute: typeof DoctorLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doctor/stories': {
+      id: '/doctor/stories'
+      path: '/doctor/stories'
+      fullPath: '/doctor/stories'
+      preLoaderRoute: typeof DoctorStoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/messages/': {
@@ -505,6 +525,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   DoctorLoginRoute: DoctorLoginRoute,
+  DoctorStoriesRoute: DoctorStoriesRoute,
   MessagesIdRoute: MessagesIdRoute,
   PPostIdRoute: PPostIdRoute,
   PatientAssistantRoute: PatientAssistantRoute,
