@@ -48,8 +48,8 @@ export const Route = createFileRoute("/patient/search")({
 function Search() {
   const [view, setView] = useState<"list" | "map">("map");
   const [spec, setSpec] = useState<string | null>(null);
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const { data: clinics = [] } = useQuery(clinicsQuery);
+  const { data: hospitals = [] } = useQuery({ ...hospitalsQuery, select: (rows: Hospital[]) => rows });
   const kind = "all" as "all" | "clinic" | "hospital";
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
@@ -207,12 +207,14 @@ function Search() {
           <ClientOnly
             fallback={<div className="grid h-[60vh] w-full place-items-center text-sm text-muted-foreground">جاري تحميل الخريطة…</div>}
           >
-            <ClinicsMap
-              clinics={filtered}
-              center={pos}
-              selectedId={selected?.id}
-              onSelect={(c) => setSelected(c)}
-            />
+            <Suspense fallback={<div className="grid h-[60vh] w-full place-items-center text-sm text-muted-foreground">جاري تحميل الخريطة…</div>}>
+              <ClinicsMap
+                clinics={filtered}
+                center={pos}
+                selectedId={selected?.id}
+                onSelect={(c) => setSelected(c)}
+              />
+            </Suspense>
           </ClientOnly>
 
         </div>
