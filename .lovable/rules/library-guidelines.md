@@ -4,7 +4,7 @@
 
 The design system exports these components — import them from `@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b` and compose them before building anything from scratch:
 
-`AlarmStopper`, `AppShell`, `AvatarActionSheet`, `BroadcastBanner`, `Button`, `ClinicQrCard`, `ClinicsMap`, `Constants`, `DbHealthTab`, `DoctorBottomNav`, `DoctorNameSearch`, `FloatingVoiceAssistant`, `HospitalLocationsTab`, `LiveBookingsTab`, `LocationPickerModal`, `MediaTab`, `NetworkStatus`, `NotificationsBell`, `PatientAuthForm`, `PatientAuthModal`, `PatientBottomNav`, `PostViewer`, `RxComposer`, `SecurityTab`, `SoundToggle`, `StaffAuth`, `StoryViewer`, `SystemTab`, `ThemeSetting`, `ThemeToggle`, `UsersTab`
+`AccountDeletion`, `AlarmStopper`, `AppShell`, `AvatarActionSheet`, `BroadcastBanner`, `Button`, `ClinicQrCard`, `ClinicsMap`, `Constants`, `DbHealthTab`, `DeletionRequestsTab`, `DoctorBottomNav`, `DoctorNameSearch`, `FloatingVoiceAssistant`, `HospitalLocationsTab`, `IdleLogout`, `LiveBookingsTab`, `LocationPickerModal`, `MediaTab`, `MedicalDisclaimer`, `NetworkStatus`, `NotificationsBell`, `PatientAuthForm`, `PatientAuthModal`, `PatientBottomNav`, `PostViewer`, `RxComposer`, `SecurityTab`, `SoundToggle`, `StaffAuth`, `StoryViewer`, `SystemTab`, `ThemeSetting`, `ThemeToggle`, `UsersTab`
 
 Per-component details (import stanzas, props, variants, examples) live in `.lovable/rules/libraries/{slug}/components.md` — on disk, not auto-loaded. Read that file or the component source when the name alone isn't enough.
 

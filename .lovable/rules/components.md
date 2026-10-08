@@ -2,6 +2,12 @@
 
 Component catalog for **Remix of سندي**. Import all components from `@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b`.
 
+### AccountDeletion
+
+```ts
+import { AccountDeletion } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
+```
+
 ### AlarmStopper
 
 ```ts
@@ -89,6 +95,12 @@ import { Constants } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-704
 import { DbHealthTab } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
 ```
 
+### DeletionRequestsTab
+
+```ts
+import { DeletionRequestsTab } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
+```
+
 ### DoctorBottomNav
 
 ```ts
@@ -113,6 +125,12 @@ import { FloatingVoiceAssistant } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg
 import { HospitalLocationsTab } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
 ```
 
+### IdleLogout
+
+```ts
+import { IdleLogout } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
+```
+
 ### LiveBookingsTab
 
 ```ts
@@ -129,6 +147,12 @@ import { LocationPickerModal } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d
 
 ```ts
 import { MediaTab } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
+```
+
+### MedicalDisclaimer
+
+```ts
+import { MedicalDisclaimer } from "@ws-workspace-01m4az80adfmjbhep280ecs3xg/9d64e5f5-7044-4a10-b6ff-3d244f11834b"
 ```
 
 ### NetworkStatus
