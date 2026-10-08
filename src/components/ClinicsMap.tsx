@@ -97,11 +97,19 @@ export function ClinicsMap({
   function iconFor(L: L_, c: Clinic, active: boolean) {
     if (c.kind === "hospital") {
       const approx = !!c.approxLocation;
+      const s = active ? 40 : 32;
+      const ring = approx ? `<circle cx="16" cy="15" r="14.5" fill="none" stroke="#FBBF24" stroke-width="1.6" stroke-dasharray="3 2.5"/>` : "";
       return L.divIcon({
         className: "",
-        html: `<div style="display:grid;place-items:center;width:28px;height:28px;border-radius:9999px;font-size:14px;background:${active ? "#B91C1C" : "#DC2626"};border:2px ${approx ? "dashed #FBBF24" : "solid #fff"};box-shadow:0 4px 10px rgba(0,0,0,.35);transform:scale(${active ? 1.2 : 1})">🏥</div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        html: `<svg width="${s}" height="${s * 1.25}" viewBox="0 0 32 40" style="filter:drop-shadow(0 4px 6px rgba(0,0,0,.4));overflow:visible">
+          <defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F43F5E"/><stop offset="1" stop-color="#9F1239"/></linearGradient></defs>
+          <path d="M16 39 C16 39 3 25 3 15 A13 13 0 1 1 29 15 C29 25 16 39 16 39Z" fill="url(#hg)" stroke="#fff" stroke-width="${active ? 2.5 : 2}"/>
+          ${ring}
+          <rect x="13" y="8" width="6" height="14" rx="1.2" fill="#fff"/>
+          <rect x="9" y="12" width="14" height="6" rx="1.2" fill="#fff"/>
+        </svg>`,
+        iconSize: [s, s * 1.25],
+        iconAnchor: [s / 2, s * 1.25],
       });
     }
     return L.divIcon({
@@ -141,7 +149,7 @@ export function ClinicsMap({
       pts.push([c.lat, c.lng]);
       const active = selectedId === c.id;
       const m = L.marker([c.lat, c.lng], { icon: iconFor(L, c, active), zIndexOffset: active ? 500 : c.kind === "hospital" ? -100 : 0 });
-      if (c.kind === "hospital") m.bindTooltip(`${c.doctor ?? "مستشفى"}${c.approxLocation ? " · موقع تقريبي" : ""}`, { direction: "top", offset: [0, -14] });
+      if (c.kind === "hospital") m.bindTooltip(`${c.doctor ?? "مستشفى"}${c.approxLocation ? " · موقع تقريبي" : ""}`, { direction: "top", offset: [0, -40] });
       m.on("click", () => { onSelect(c); map.panTo([c.lat!, c.lng!], { animate: true, duration: 0.35 }); });
       m.addTo(group);
       markersRef.current.set(c.id, { m, c });
