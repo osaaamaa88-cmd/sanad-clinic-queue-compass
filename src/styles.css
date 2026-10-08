@@ -316,6 +316,8 @@
 .sanad-pin-hospital.is-selected {
   box-shadow: 0 0 0 4px oklch(0.637 0.237 25.331 / 0.3), 0 2px 8px rgb(0 0 0 / 0.4);
 }
+/* Leaflet's .leaflet-marker-icon forces display:block — out-specify it so the count stays centered. */
+.leaflet-marker-icon.sanad-cluster,
 .sanad-cluster {
   display: flex;
   align-items: center;
