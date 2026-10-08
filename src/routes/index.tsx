@@ -125,6 +125,12 @@ function ServiceCard({
   );
 }
 
+const quickActions = [
+  { to: "/patient/search", label: "عيادات ومستشفيات", icon: Search },
+  { to: "/patient", label: "حجز موعد", icon: CalendarCheck },
+  { to: "/patient/assistant", label: "استشارة ذكية", icon: Stethoscope },
+] as const;
+
 function Landing() {
   const navigate = useNavigate();
   const tapsRef = useRef<number[]>([]);
@@ -136,6 +142,14 @@ function Landing() {
       navigate({ to: "/admin-access" });
     }
   };
+  const startVoice = async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) setVoiceMode(true);
+    else navigate({ to: "/patient/login" });
+  };
+  void services;
+  void wideService;
+  void ServiceCard;
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-md px-5 pb-24 pt-8">
@@ -144,85 +158,70 @@ function Landing() {
             type="button"
             onClick={handleLogoTap}
             aria-label="سَنَد"
-            className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft select-none"
+            className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft select-none"
           >
-            <HeartPulse className="h-6 w-6" />
+            <HeartPulse className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-extrabold">سَنَد <span className="sr-only">— دليلك للعيادات والأطباء في مصر</span></h1>
-            <p className="text-sm text-muted-foreground">سندك الطبي في كل وقت</p>
+            <h1 className="text-xl font-extrabold">سَنَد <span className="sr-only">— دليلك للعيادات والأطباء في مصر</span></h1>
+            <p className="text-xs text-muted-foreground">سندك الطبي في كل وقت</p>
           </div>
         </div>
 
-        {/* Top banner — voice assistant prompt */}
-        <div className="mt-6 rounded-3xl gradient-primary p-5 text-primary-foreground shadow-soft">
-          <h2 className="text-xl font-extrabold">المساعد الصوتي الذكي 🎙️</h2>
-          <p className="mt-2 text-sm leading-6 opacity-90">
-            تحدث مع سَنَد مباشرة بصوتك للحصول على الاستشارة فورااً
-          </p>
+        <h2 className="mt-8 text-2xl font-extrabold leading-snug">محتاج دكتور؟<br />خلّينا نوصّلك للأنسب.</h2>
+
+        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-soft">
+          <Link to="/patient/search" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
+            <Search className="h-5 w-5 shrink-0 text-primary" />
+            <span className="truncate">ابحث عن طبيب، تخصص أو مستشفى</span>
+          </Link>
           <button
             type="button"
-            onClick={async () => {
-              const { data } = await supabase.auth.getSession();
-              if (data.session) {
-                setVoiceMode(true);
-              } else {
-                navigate({ to: "/patient/login" });
-              }
-            }}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground px-4 py-3 text-base font-extrabold text-primary shadow-soft transition active:scale-[0.98]"
+            onClick={startVoice}
+            aria-label="تحدث مع المساعد الصوتي"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl gradient-primary text-primary-foreground transition active:scale-95"
           >
             <Mic className="h-5 w-5" />
-            ابدأ المحادثة الصوتية
           </button>
         </div>
 
         <ResumeCard />
 
-        {/* Emergency — prominent full-width alert */}
+        <div className="mt-6 grid grid-cols-3 gap-3">
+          {quickActions.map(({ to, label, icon: Icon }) => (
+            <Link key={to} to={to} className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center shadow-soft transition active:scale-[0.98]">
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary">
+                <Icon className="h-5 w-5" />
+              </span>
+              <span className="text-xs font-bold leading-4">{label}</span>
+            </Link>
+          ))}
+        </div>
+
         <Link
           to="/patient/emergency"
-          className="mt-4 flex items-center gap-3 rounded-2xl bg-destructive p-4 text-destructive-foreground shadow-soft transition active:scale-[0.99]"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 transition active:scale-[0.99]"
         >
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-destructive-foreground/15">
-            <Siren className="h-6 w-6 animate-pulse" />
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-destructive text-destructive-foreground">
+            <Siren className="h-5 w-5" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-lg font-extrabold">طوارئ سَنَد</span>
-            <span className="block text-sm opacity-90">وصول فوري للإسعاف</span>
+            <span className="block text-sm font-extrabold text-destructive">طوارئ</span>
+            <span className="block text-xs text-muted-foreground">إسعاف 123 وأقرب مستشفى</span>
           </span>
-          <span className="text-xl">←</span>
+          <span className="text-destructive">←</span>
         </Link>
 
-        {/* Quick services — 2-column grid */}
-        <section className="mt-6">
-          <h2 className="text-base font-extrabold">خدمات سَنَد السريعة</h2>
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            {services.map((s) => (
-              <ServiceCard key={s.to} to={s.to} title={s.title} desc={s.desc} icon={s.icon} />
-            ))}
-            <ServiceCard
-              to={wideService.to}
-              title={wideService.title}
-              desc={wideService.desc}
-              icon={wideService.icon}
-              className="col-span-2 flex-row items-center gap-3"
-            />
-          </div>
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            تصفح واكتشف العيادات بدون الحاجة لتسجيل حساب
-          </p>
-        </section>
-
-        {/* Clinic accounts */}
-        <section className="mt-6">
-          <h2 className="text-base font-extrabold">حسابات العيادات</h2>
-          <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="mt-8 rounded-2xl bg-muted/50 p-4">
+          <p className="text-sm font-bold">أنت طبيب أو تدير عيادة؟</p>
+          <div className="mt-2 flex gap-4 text-xs font-bold text-primary">
             {clinicAccounts.map((a) => (
-              <ServiceCard key={a.to} to={a.to} title={a.title} desc={a.desc} icon={a.icon} />
+              <Link key={a.to} to={a.to} className="flex items-center gap-1">
+                <a.icon className="h-4 w-4" /> {a.title} ←
+              </Link>
             ))}
           </div>
-        </section>
+        </div>
 
         <footer className="mt-8 space-y-2 border-t border-border pt-4 text-center">
           <div className="space-x-3">
