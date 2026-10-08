@@ -15,8 +15,9 @@ function reloadOnceForStaleChunk() {
   window.location.reload();
 }
 if (typeof window !== "undefined") {
-  window.addEventListener("vite:preloadError", (e) => {
-    e.preventDefault();
+  // Don't preventDefault: that makes the failed import resolve to `undefined`,
+  // which crashes the lazy route ("undefined is not an object (e[t??'default'])").
+  window.addEventListener("vite:preloadError", () => {
     reloadOnceForStaleChunk();
   });
   window.addEventListener("error", (e) => {
