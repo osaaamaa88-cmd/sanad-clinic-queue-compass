@@ -22,6 +22,7 @@ import { AppShell } from "@/components/AppShell";
 import { UsersTab, LiveBookingsTab, MediaTab, SystemTab } from "@/components/admin/GodModePanel";
 import { godSetFeatured } from "@/lib/godmode.functions";
 import { DbHealthTab } from "@/components/admin/DbHealthTab";
+import { HospitalLocationsTab } from "@/components/admin/HospitalLocationsTab";
 import { specialties, getSpecialty, type Clinic } from "@/lib/mock-data";
 import {
   adminListClinics,
@@ -169,7 +170,7 @@ function Admin() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0, bookings: 0 });
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings" | "users" | "live" | "media" | "system" | "health">("analytics");
+  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings" | "users" | "live" | "media" | "system" | "health" | "hospitals">("analytics");
   const featureFn = useServerFn(godSetFeatured);
   const [editing, setEditing] = useState<ClinicRow | null>(null);
 
@@ -343,6 +344,7 @@ function Admin() {
           ["media", "الوسائط"],
           ["system", "الطوارئ"],
           ["health", "صحة النظام"],
+          ["hospitals", "مواقع المستشفيات"],
         ] as const).map(([k, l]) => (
           <button
             key={k}
@@ -362,6 +364,7 @@ function Admin() {
       {tab === "media" && <MediaTab />}
       {tab === "system" && <SystemTab />}
       {tab === "health" && <DbHealthTab />}
+      {tab === "hospitals" && <HospitalLocationsTab />}
 
       {tab === "pending" && (
         <div className="mt-4 space-y-3">

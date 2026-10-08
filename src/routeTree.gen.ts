@@ -21,6 +21,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DoctorIndexRouteImport } from './routes/doctor.index'
 import { Route as DoctorLoginRouteImport } from './routes/doctor.login'
 import { Route as DoctorStoriesRouteImport } from './routes/doctor.stories'
+import { Route as HospitalIdRouteImport } from './routes/hospital.$id'
 import { Route as MessagesIndexRouteImport } from './routes/messages.index'
 import { Route as MessagesIdRouteImport } from './routes/messages.$id'
 import { Route as PPostIdRouteImport } from './routes/p.$postId'
@@ -93,6 +94,11 @@ const DoctorLoginRoute = DoctorLoginRouteImport.update({
 const DoctorStoriesRoute = DoctorStoriesRouteImport.update({
   id: '/doctor/stories',
   path: '/doctor/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HospitalIdRoute = HospitalIdRouteImport.update({
+  id: '/hospital/$id',
+  path: '/hospital/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MessagesIndexRoute = MessagesIndexRouteImport.update({
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/doctor/stories': typeof DoctorStoriesRoute
+  '/hospital/$id': typeof HospitalIdRoute
   '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/doctor/stories': typeof DoctorStoriesRoute
+  '/hospital/$id': typeof HospitalIdRoute
   '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/doctor/stories': typeof DoctorStoriesRoute
+  '/hospital/$id': typeof HospitalIdRoute
   '/messages/$id': typeof MessagesIdRoute
   '/p/$postId': typeof PPostIdRoute
   '/patient/assistant': typeof PatientAssistantRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/doctor/login'
     | '/doctor/stories'
+    | '/hospital/$id'
     | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/doctor/login'
     | '/doctor/stories'
+    | '/hospital/$id'
     | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/doctor/login'
     | '/doctor/stories'
+    | '/hospital/$id'
     | '/messages/$id'
     | '/p/$postId'
     | '/patient/assistant'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   DoctorLoginRoute: typeof DoctorLoginRoute
   DoctorStoriesRoute: typeof DoctorStoriesRoute
+  HospitalIdRoute: typeof HospitalIdRoute
   MessagesIdRoute: typeof MessagesIdRoute
   PPostIdRoute: typeof PPostIdRoute
   PatientAssistantRoute: typeof PatientAssistantRoute
@@ -439,6 +452,13 @@ declare module '@tanstack/react-router' {
       path: '/doctor/stories'
       fullPath: '/doctor/stories'
       preLoaderRoute: typeof DoctorStoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hospital/$id': {
+      id: '/hospital/$id'
+      path: '/hospital/$id'
+      fullPath: '/hospital/$id'
+      preLoaderRoute: typeof HospitalIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/messages/': {
@@ -547,6 +567,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   DoctorLoginRoute: DoctorLoginRoute,
   DoctorStoriesRoute: DoctorStoriesRoute,
+  HospitalIdRoute: HospitalIdRoute,
   MessagesIdRoute: MessagesIdRoute,
   PPostIdRoute: PPostIdRoute,
   PatientAssistantRoute: PatientAssistantRoute,

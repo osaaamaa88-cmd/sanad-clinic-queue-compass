@@ -7,6 +7,25 @@ import { AppShell } from "@/components/AppShell";
 import { ClinicsMap } from "@/components/ClinicsMap";
 import { getVerifiedClinics, specialties, getSpecialty, whatsappLink, type Clinic } from "@/lib/mock-data";
 import { getPatientLocation } from "@/lib/patient-location";
+import { listHospitals, HOSPITAL_TYPES, type Hospital } from "@/lib/hospitals.functions";
+
+function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371, t = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * t, dLng = (b.lng - a.lng) * t;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLng / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(h)) * 10) / 10;
+}
+
+function hospitalToClinic(h: Hospital, pos: { lat: number; lng: number }): Clinic {
+  const lat = Number(h.lat), lng = Number(h.lng);
+  return {
+    id: h.id, doctor: h.name, specialtyId: "emergency", address: h.address || h.district, area: h.governorate,
+    distanceKm: kmBetween(pos, { lat, lng }), price: 0, rating: 0, reviews: 0, availableNow: h.emergency_24h,
+    phone: h.emergency_phone || h.phone || "123", nowServing: 0, yourNumber: 0, waitingCount: 0, lat, lng,
+    isVerified: true, submittedAt: 0, updatedAt: 0, clinicStatus: "normal", delayMinutes: 0, bookingsClosed: false,
+    kind: "hospital", approxLocation: !h.location_verified, hospitalType: h.hospital_type,
+  };
+}
 
 export const Route = createFileRoute("/patient/search")({
   staticData: { sitemap: true },
@@ -27,6 +46,8 @@ function Search() {
   const [view, setView] = useState<"list" | "map">("map");
   const [spec, setSpec] = useState<string | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [kind, setKind] = useState<"all" | "clinic" | "hospital">("all");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
   const [openNow, setOpenNow] = useState(false);
@@ -41,6 +62,9 @@ function Search() {
     getVerifiedClinics().then((list) => {
       if (!cancelled) setClinics(list);
     });
+    listHospitals().then((rows) => {
+      if (!cancelled) setHospitals(rows);
+    }).catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -55,7 +79,8 @@ function Search() {
   }, []);
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    let list = clinics;
+    const hosp = hospitals.map((h) => hospitalToClinic(h, pos));
+    let list = kind === "clinic" ? clinics : kind === "hospital" ? hosp : [...clinics, ...hosp];
     if (spec) list = list.filter((c) => c.specialtyId === spec);
     if (openNow) list = list.filter((c) => c.availableNow);
     if (term) {
@@ -75,10 +100,10 @@ function Search() {
     else if (sort === "rating") sorted.sort((a, b) => b.rating - a.rating);
     else sorted.sort((a, b) => a.distanceKm - b.distanceKm);
     return sorted;
-  }, [clinics, spec, q, sort, openNow]);
+  }, [clinics, hospitals, pos, kind, spec, q, sort, openNow]);
 
   return (
-    <AppShell title="العيادات القريبة" subtitle={`${filtered.length} عيادة حواليك`} backTo="/patient">
+    <AppShell title="العيادات القريبة" subtitle={`${filtered.length} نتيجة حواليك`} backTo="/patient">
       <Link to="/find-doctor" className="mb-3 flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 px-3 py-3">
         <SearchIcon className="h-5 w-5 text-primary" />
         <span className="flex-1 text-sm font-bold">ابحث عن طبيب باسمه</span>
@@ -98,6 +123,14 @@ function Search() {
             <X className="h-4 w-4" />
           </button>
         )}
+      </div>
+
+      {/* Kind filter */}
+      <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-secondary p-1">
+        {([["all", "الكل"], ["clinic", "عيادات خاصة"], ["hospital", "مستشفيات حكومية"]] as const).map(([k, l]) => (
+          <button key={k} onClick={() => { setKind(k); if (k === "hospital") setSpec(null); }}
+            className={`rounded-lg py-2 text-xs font-bold ${kind === k ? "bg-card shadow-soft" : "text-muted-foreground"}`}>{l}</button>
+        ))}
       </div>
 
       {/* Sort */}
@@ -222,6 +255,7 @@ function Search() {
           </div>
         )}
         {filtered.map((c) => {
+          if (c.kind === "hospital") return <HospitalCard key={c.id} c={c} />;
           const s = getSpecialty(c.specialtyId);
           const SpecIcon = (s && specialtyIcons[s.id]) || Stethoscope;
           return (
@@ -277,7 +311,65 @@ function Search() {
   );
 }
 
+function HospitalCard({ c }: { c: Clinic }) {
+  return (
+    <Link to="/hospital/$id" params={{ id: c.id }} className="block rounded-2xl border border-destructive/30 bg-card p-4 transition hover:shadow-soft">
+      <div className="flex items-start gap-3">
+        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-destructive/10 text-2xl">🏥</div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="font-bold">{c.doctor}</p>
+          </div>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">مستشفى حكومي · {HOSPITAL_TYPES[c.hospitalType ?? ""] ?? "حكومي"}</span>
+            {c.availableNow && <span className="rounded-full bg-success px-2 py-0.5 text-[10px] font-bold text-success-foreground">طوارئ 24 ساعة</span>}
+            <LocationBadge approx={!!c.approxLocation} />
+          </div>
+          <p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+            <span className="line-clamp-2">{c.area} — {c.address}</span>
+          </p>
+          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><RouteIcon className="h-3 w-3" /> {c.distanceKm} كم</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function LocationBadge({ approx }: { approx: boolean }) {
+  return approx ? (
+    <span className="rounded-full border border-dashed border-warning px-2 py-0.5 text-[10px] font-bold text-warning">📍 موقع تقريبي</span>
+  ) : (
+    <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">✓ موقع مؤكد</span>
+  );
+}
+
+function HospitalSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
+  return (
+    <>
+      <button onClick={onClose} aria-label="إغلاق البطاقة" className="fixed inset-0 z-20 bg-black/40" />
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md sm:max-w-xl">
+        <div className="animate-sheet-up relative rounded-t-3xl border-t border-border bg-card p-4 pb-6">
+          <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-muted" />
+          <p className="font-extrabold">🏥 {clinic.doctor}</p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">مستشفى حكومي</span>
+            <LocationBadge approx={!!clinic.approxLocation} />
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">{clinic.area} — {clinic.address} • {clinic.distanceKm} كم</p>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <a href={`tel:${clinic.phone}`} className="flex items-center justify-center gap-1.5 rounded-2xl bg-destructive py-3.5 text-sm font-extrabold text-destructive-foreground"><Phone className="h-4 w-4" /> اتصال</a>
+            <a href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.approxLocation ? encodeURIComponent(`${clinic.doctor} ${clinic.area}`) : `${clinic.lat},${clinic.lng}`}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary py-3.5 text-sm font-bold"><Navigation className="h-4 w-4" /> الاتجاهات</a>
+          </div>
+          <Link to="/hospital/$id" params={{ id: clinic.id }} className="mt-2 flex w-full items-center justify-center gap-1 rounded-2xl border border-border py-3 text-sm font-bold">تفاصيل المستشفى <ChevronLeft className="h-4 w-4" /></Link>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
+  if (clinic.kind === "hospital") return <HospitalSheet clinic={clinic} onClose={onClose} />;
   const s = getSpecialty(clinic.specialtyId);
   const SpecIcon = (s && specialtyIcons[s.id]) || Stethoscope;
   return (

@@ -15,6 +15,13 @@
       "when": 1791419812613,
       "tag": "0001_create_governmental_hospitals",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791422331844,
+      "tag": "0002_hospital_location_verified",
+      "breakpoints": true
     }
   ]
 }

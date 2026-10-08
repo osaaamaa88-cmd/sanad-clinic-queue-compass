@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { listHospitals, type Hospital } from "@/lib/hospitals.functions";
+import { listHospitals, hospitalMapsUrl, type Hospital } from "@/lib/hospitals.functions";
 
 const TYPES: Record<string, string> = {
   university: "جامعي",
@@ -96,7 +96,7 @@ function HospitalsPage() {
         {list.map((h) => (
           <article key={h.id} className="rounded-2xl border bg-card p-4 shadow-sm">
             <div className="flex items-start justify-between gap-2">
-              <h2 className="font-bold">{h.name}</h2>
+              <Link to="/hospital/$id" params={{ id: h.id }} className="font-bold">{h.name}</Link>
               <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">{TYPES[h.hospital_type] ?? h.hospital_type}</span>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">📍 {h.governorate} – {h.address}</p>
@@ -105,12 +105,13 @@ function HospitalsPage() {
               {h.emergency_24h && <Badge>طوارئ 24 ساعة</Badge>}
               {h.has_icu && <Badge>رعاية مركزة</Badge>}
               {h.has_nicu && <Badge>حضانات</Badge>}
+              {h.location_verified ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">✓ موقع مؤكد</span> : <span className="rounded-full border border-dashed border-warning px-2 py-0.5 text-xs text-warning">📍 موقع تقريبي</span>}
               {h.departments.map((d) => <span key={d} className="rounded-full bg-muted px-2 py-0.5 text-xs">{d}</span>)}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <a href={`tel:${h.emergency_phone || h.phone}`} className="rounded-xl bg-primary p-2 text-center text-sm font-bold text-primary-foreground">📞 اتصال</a>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${h.name} ${h.governorate}`)}`}
+                href={hospitalMapsUrl(h)}
                 target="_blank" rel="noreferrer"
                 className="rounded-xl border p-2 text-center text-sm font-bold"
               >🗺️ فتح في خرائط جوجل</a>
