@@ -47,7 +47,7 @@ function Search() {
   const [spec, setSpec] = useState<string | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
-  const [kind, setKind] = useState<"all" | "clinic" | "hospital">("all");
+  const kind = "all" as "all" | "clinic" | "hospital";
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
   const [openNow, setOpenNow] = useState(false);
@@ -56,7 +56,6 @@ function Search() {
   useEffect(() => {
     const saved = getPatientLocation();
     setPos({ lat: saved.lat, lng: saved.lng });
-    if (new URLSearchParams(window.location.search).get("kind") === "hospital") setKind("hospital");
   }, []);
   useEffect(() => {
     let cancelled = false;
@@ -126,14 +125,6 @@ function Search() {
         )}
       </div>
 
-      {/* Kind filter */}
-      <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-secondary p-1">
-        {([["all", "الكل"], ["clinic", "عيادات خاصة"], ["hospital", "مستشفيات حكومية"]] as const).map(([k, l]) => (
-          <button key={k} onClick={() => { setKind(k); if (k === "hospital") setSpec(null); }}
-            className={`rounded-lg py-2 text-xs font-bold ${kind === k ? "bg-card shadow-soft" : "text-muted-foreground"}`}>{l}</button>
-        ))}
-      </div>
-
       {/* Sort */}
       <div className="mt-3 -mx-5 overflow-x-auto px-5">
         <div className="flex items-center gap-2">
@@ -174,22 +165,13 @@ function Search() {
       <div className="mt-3 -mx-5 overflow-x-auto px-5 pb-1">
         <div className="flex gap-2">
           <button
-            onClick={() => { setSpec(null); if (kind === "hospital") setKind("all"); }}
+            onClick={() => setSpec(null)}
             className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
-              spec === null && kind !== "hospital" ? "gradient-primary text-white" : "bg-secondary text-foreground"
+              spec === null ? "gradient-primary text-white" : "bg-secondary text-foreground"
             }`}
           >
             <LayoutGrid className="h-3.5 w-3.5" />
             الكل
-          </button>
-          <button
-            onClick={() => { setSpec(null); setKind(kind === "hospital" ? "all" : "hospital"); }}
-            aria-pressed={kind === "hospital"}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
-              kind === "hospital" ? "bg-destructive text-destructive-foreground" : "bg-destructive/10 text-destructive"
-            }`}
-          >
-            🏥 مستشفيات حكومية
           </button>
           {specialties.map((s) => {
             const SpecIcon = specialtyIcons[s.id] ?? Stethoscope;

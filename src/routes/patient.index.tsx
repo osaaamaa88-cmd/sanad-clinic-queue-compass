@@ -97,11 +97,6 @@ function PatientHome() {
         <span className="min-w-0 flex-1 text-sm text-muted-foreground">دور على طبيب، تخصص أو عيادة…</span>
         <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
       </Link>
-      <a href="/patient/search?kind=hospital" className="mt-3 flex items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 transition hover:border-destructive">
-        <span className="text-xl">🏥</span>
-        <span className="min-w-0 flex-1"><span className="block text-sm font-bold">المستشفيات الحكومية والطوارئ</span><span className="block text-xs text-muted-foreground">أقرب مستشفى حكومي ليك على الخريطة</span></span>
-        <ArrowLeft className="h-4 w-4 shrink-0 text-destructive" />
-      </a>
 
       <section className="mt-6">
         <div className="mb-3 flex items-end justify-between gap-3">
