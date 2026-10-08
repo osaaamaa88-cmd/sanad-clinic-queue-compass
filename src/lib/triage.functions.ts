@@ -49,7 +49,7 @@ export const aiTriage = createServerFn({ method: "POST" })
       if (!valid.length) return null;
       return { ...out, specialtyIds: valid };
     } catch (e) {
-      console.error("ai triage failed", e);
+      console.error("ai triage failed", e instanceof Error ? e.name : "error");
       return null;
     }
   });

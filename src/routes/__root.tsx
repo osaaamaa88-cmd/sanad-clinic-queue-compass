@@ -1,3 +1,4 @@
+import { redact } from "@/lib/redact";
 import "@/lib/failure-capture";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -47,7 +48,7 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: import("@tanstack/react-router").ErrorComponentProps) {
-  console.error(error);
+  console.error(redact(error instanceof Error ? `${error.name}: ${error.message}` : error));
   const router = useRouter();
   useEffect(() => {
     const msg = error instanceof Error ? error.message : String(error);
