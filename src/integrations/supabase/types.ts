@@ -651,6 +651,60 @@ export type Database = {
         }
         Relationships: []
       }
+      governmental_hospitals: {
+        Row: {
+          address: string
+          created_at: string
+          departments: string[]
+          district: string
+          emergency_24h: boolean
+          emergency_phone: string
+          governorate: string
+          has_icu: boolean
+          has_nicu: boolean
+          hospital_type: string
+          id: string
+          lat: number
+          lng: number
+          name: string
+          phone: string
+        }
+        Insert: {
+          address?: string
+          created_at?: string
+          departments?: string[]
+          district?: string
+          emergency_24h?: boolean
+          emergency_phone?: string
+          governorate: string
+          has_icu?: boolean
+          has_nicu?: boolean
+          hospital_type?: string
+          id?: string
+          lat: number
+          lng: number
+          name: string
+          phone?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          departments?: string[]
+          district?: string
+          emergency_24h?: boolean
+          emergency_phone?: string
+          governorate?: string
+          has_icu?: boolean
+          has_nicu?: boolean
+          hospital_type?: string
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           audience: string
