@@ -57,6 +57,43 @@ export const Route = createFileRoute("/patient/assistant")({
 
 const examples = ["سناني بتوجعني ولثتي وارمة", "ابني عنده سخونية وكحة من يومين", "ركبتي بتوجعني لما بطلع السلم"];
 
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+  onerror: ((e: { error?: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
+/** Read an Arabic text aloud; returns a stop function. */
+function speakArabic(text: string, onEnd: () => void): () => void {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    toast.error("القراءة الصوتية مش مدعومة على الجهاز ده");
+    onEnd();
+    return () => {};
+  }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "ar-SA";
+  u.rate = 0.95;
+  const voices = window.speechSynthesis.getVoices();
+  const ar = voices.find((v) => v.lang.startsWith("ar"));
+  if (ar) u.voice = ar;
+  u.onend = onEnd;
+  u.onerror = onEnd;
+  window.speechSynthesis.speak(u);
+  return () => window.speechSynthesis.cancel();
+}
+
 function Assistant() {
   const [need, setNeed] = useState("");
   const [loc, setLoc] = useState<PatientLocation>(defaultLocation);
