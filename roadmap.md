@@ -29,4 +29,4 @@
 
 - [x] Show the medical disclaimer only as a link under sign-in
 - [x] Voice assistant + admin monitor: replace unavailable Groq model with openai/gpt-oss-120b.
-- [ ] Remove voice test, privacy and account data section from settings; verify assistant visibility and real AI response.
+- [x] Remove voice test, privacy and account data section from settings; browser verified symptom result and signed-in floating widget; replacement Groq API returned 200. Physical microphone and audio still require device testing.
