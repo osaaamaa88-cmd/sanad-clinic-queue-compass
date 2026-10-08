@@ -136,6 +136,13 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
       <head>
+        {/* Runs before the app bundle: recovers when the entry or a chunk from an
+            older build fails to load (Safari: "Importing a module script failed"). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var R=/Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i;function go(){try{var k="sanad:chunk-recover",d=JSON.parse(sessionStorage.getItem(k)||"[]").filter(function(t){return Date.now()-t<60000});if(d.length>=2)return;d.push(Date.now());sessionStorage.setItem(k,JSON.stringify(d));var u=new URL(location.href);u.searchParams.set("_r",String(Date.now()));location.replace(u.toString())}catch(e){location.reload()}}addEventListener("error",function(e){var t=e.target;if(t&&t.tagName==="SCRIPT"&&t.type==="module"){go();return}if(R.test(String(e.message)))go()},true);addEventListener("unhandledrejection",function(e){var r=e.reason;if(R.test(String(r&&r.message||r)))go()});try{var u=new URL(location.href);if(u.searchParams.has("_r")){u.searchParams.delete("_r");history.replaceState(history.state,"",u.toString())}}catch(e){}})();`,
+          }}
+        />
         <HeadContent />
       </head>
       <body>
