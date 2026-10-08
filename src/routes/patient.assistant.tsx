@@ -173,12 +173,12 @@ function Assistant() {
             </div>
 
             <h3 className="font-bold">عيادات مناسبة قريبة منك</h3>
-            {matches.length === 0 ? (
+            {matches.length === 0 && (
               <div className="rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-                لسه مفيش عيادات مسجّلة في التخصص ده قريب منك.
-                <Link to="/patient/search" className="mt-2 block font-bold text-primary">تصفّح الخريطة</Link>
+                لسه مفيش عيادات خاصة مسجّلة في التخصص ده — بس دي أقرب مستشفيات حكومية تقدر تقصدها 👇
               </div>
-            ) : (
+            )}
+            {matches.length > 0 && (
               matches.map(({ c, d }) => (
                 <div key={c.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
                   <div className="min-w-0 flex-1">
