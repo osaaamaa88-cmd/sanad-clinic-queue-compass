@@ -55,8 +55,46 @@ export function FloatingVoiceAssistant() {
   const allowed = signedIn && !isPublicRoute;
   const { enabled, state, message, resume, stop } = useFloatingVoiceAssistant(allowed);
   const [mounted, setMounted] = useState(false);
+  const [askLogin, setAskLogin] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted || !allowed) return null;
+  if (!mounted || isPublicRoute) return null;
+
+  if (!signedIn) {
+    const onTap = () => {
+      setAskLogin(true);
+      try {
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance("أهلاً بك في سَنَد، سجّل دخولك الأول عشان نبدأ المحادثة");
+          u.lang = "ar-EG";
+          u.rate = 0.88;
+          window.speechSynthesis.speak(u);
+        }
+      } catch { /* ignore */ }
+    };
+    return createPortal(
+      <aside aria-label="مساعد سَنَد الصوتي" style={islandStyle} dir="rtl">
+        {askLogin ? (
+          <div className={`${pillClass} flex items-center gap-2 px-3 py-2 text-white`} role="status">
+            <span className="text-xs font-semibold">سجّل دخولك لتفعيل المساعد الصوتي</span>
+            <a href="/patient/login" className="rounded-full bg-cyan-400 px-3 py-1 text-xs font-bold text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+              تسجيل الدخول
+            </a>
+            <button type="button" aria-label="إغلاق" onClick={() => setAskLogin(false)} className="rounded-full p-1 hover:bg-white/10">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button type="button" onClick={onTap} aria-label="تشغيل المساعد الصوتي" className={`${pillClass} flex items-center gap-2 px-4 py-2 text-white`}>
+            <Mic className="h-4 w-4 text-cyan-300" />
+            <span className="text-sm font-bold">سَنَد</span>
+          </button>
+        )}
+      </aside>,
+      document.body
+    );
+  }
+  if (!allowed) return null;
 
   // Idle: compact pill — glowing mic + "سَنَد"
   if (!enabled) {
