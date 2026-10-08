@@ -15,3 +15,4 @@
 - Long clinic videos are stored only as a YouTube link (`clinics.youtube_url`, normalized by `src/lib/youtube.ts`) and embedded via youtube-nocookie; short media stays in Cloud storage. Why: zero bandwidth/storage cost for long videos.
 - App release version lives in src/lib/app-version.ts (mirrored in package.json); UI reads it from there so bumps happen in one place.
 - Patient maps retain Leaflet/OpenStreetMap and load markercluster only after hydration; use cached marker groups and a nonmodal preview above bottom navigation to keep geographic browsing interactive.
+- Mount voice accessibility once in the root, outside keyed route content; one hook owns recognition/speech lifecycle and ignores stale requests so navigation cannot restart or duplicate conversations. Keep Groq requests in the existing server function, never browser credentials.

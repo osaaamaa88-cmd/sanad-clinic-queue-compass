@@ -15,21 +15,50 @@ export function setVoiceMode(on: boolean) {
   } catch {}
 }
 
-export function speak(text: string, onEnd?: () => void) {
+export function speak(text: string, onEnd?: (success: boolean) => void) {
   if (typeof window === "undefined" || !window.speechSynthesis) {
-    onEnd?.();
-    return;
+    onEnd?.(false);
+    return () => {};
   }
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "ar-EG";
-  const voices = window.speechSynthesis.getVoices();
-  const v = voices.find((x) => x.lang === "ar-EG") ?? voices.find((x) => x.lang.startsWith("ar"));
-  if (v) u.voice = v;
-  u.rate = 0.95;
-  u.onend = () => onEnd?.();
-  u.onerror = () => onEnd?.();
-  window.speechSynthesis.speak(u);
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  let cancelled = false;
+  let launched = false;
+  let finished = false;
+  const complete = (success: boolean) => {
+    if (cancelled || finished) return;
+    finished = true;
+    onEnd?.(success);
+  };
+  const launch = () => {
+    if (cancelled || launched) return;
+    launched = true;
+    synth.removeEventListener("voiceschanged", launch);
+    window.clearTimeout(timer);
+    const u = new SpeechSynthesisUtterance(text);
+    const arabic = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith("ar"));
+    // Tariq/Tarik are male voices; generic Google voices do not guarantee gender.
+    const female = /laila|layla|salma|hoda|mona|zeina|amira|female|أنثى/i;
+    const v = arabic.find((v) => v.lang === "ar-EG" && female.test(v.name))
+      ?? arabic.find((v) => female.test(v.name))
+      ?? arabic.find((v) => v.lang === "ar-EG") ?? arabic[0];
+    u.lang = v?.lang ?? "ar-EG";
+    if (v) u.voice = v;
+    u.pitch = 1.0;
+    u.rate = 0.9;
+    u.onend = () => complete(true);
+    u.onerror = () => complete(false);
+    synth.speak(u);
+  };
+  const timer = window.setTimeout(launch, 500);
+  if (synth.getVoices().length) launch();
+  else synth.addEventListener("voiceschanged", launch);
+  return () => {
+    cancelled = true;
+    window.clearTimeout(timer);
+    synth.removeEventListener("voiceschanged", launch);
+    synth.cancel();
+  };
 }
 
 type Rec = {
@@ -41,6 +70,7 @@ type Rec = {
   onend: () => void;
   start: () => void;
   stop: () => void;
+  abort?: () => void;
 };
 
 export function createRecognizer(): Rec | null {
