@@ -52,7 +52,7 @@ function ErrorComponent({ error, reset }: import("@tanstack/react-router").Error
   const router = useRouter();
   useEffect(() => {
     const msg = error instanceof Error ? error.message : String(error);
-    if (/Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(msg)) {
+    if (/Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module|evaluating 'e\[t\?\?|reading 'default'|\['default'\]/i.test(msg)) {
       try {
         const last = Number(sessionStorage.getItem("sanad:chunk-reload") || 0);
         if (Date.now() - last > 10000) {
