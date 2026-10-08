@@ -1,10 +1,10 @@
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Stethoscope, UserRound, ClipboardList, HeartPulse, Siren } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
+import { CalendarCheck, ClipboardList, HeartPulse, Mic, Siren, Search, Stethoscope } from "lucide-react";
 
 const resumeTargets = {
   patient: { to: "/patient", label: "متابعة البحث عن عيادة" },
@@ -27,7 +27,7 @@ function ResumeCard() {
   return (
     <Link
       to={t.to}
-      className="mt-6 flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-soft"
+      className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-soft"
     >
       {profile.avatar ? (
         <img src={profile.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />
@@ -60,11 +60,69 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const roles = [
-  { to: "/patient", title: "أبحث عن عيادة", desc: "اعثر على أقرب عيادة وتواصل مباشرة", icon: UserRound, tone: "gradient-primary text-primary-foreground" },
-  { to: "/reception", title: "سكرتير عيادة", desc: "دفتر حضور المرضى وتنظيم العيادة", icon: ClipboardList, tone: "bg-card text-foreground" },
-  { to: "/doctor", title: "طبيب / عيادة", desc: "بروفايل العيادة والروشتات والتواصل مع المرضى", icon: Stethoscope, tone: "bg-card text-foreground" },
+const services = [
+  {
+    to: "/patient/search",
+    title: "أبحث عن عيادة",
+    desc: "أقرب العيادات على الخريطة بالأسعار والتقييمات",
+    icon: Search,
+  },
+  {
+    to: "/patient",
+    title: "حجز موعد",
+    desc: "اختار العيادة واحجز دورك واستلم كود الحجز",
+    icon: CalendarCheck,
+  },
 ] as const;
+
+const wideService = {
+  to: "/patient/assistant",
+  title: "استشارة سريعة",
+  desc: "اكتب أو تحدث عن الأعراض والمساعد يرشّح لك التخصص والأنسب قريباً",
+  icon: Mic,
+} as const;
+
+const clinicAccounts = [
+  {
+    to: "/doctor",
+    title: "طبيب / عيادة",
+    desc: "بروفايل العيادة والروشتات والمرضى",
+    icon: Stethoscope,
+  },
+  {
+    to: "/reception",
+    title: "سكرتير عيادة",
+    desc: "دفتر حضور المرضى وتنظيم اليوم",
+    icon: ClipboardList,
+  },
+] as const;
+
+function ServiceCard({
+  to,
+  title,
+  desc,
+  icon: Icon,
+  className = "",
+}: {
+  to: string;
+  title: string;
+  desc: string;
+  icon: typeof Search;
+  className?: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className={`flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft transition hover:border-primary/40 active:scale-[0.99] ${className}`}
+    >
+      <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="mt-3 text-base font-extrabold">{title}</span>
+      <span className="mt-1 text-xs leading-5 text-muted-foreground">{desc}</span>
+    </Link>
+  );
+}
 
 function Landing() {
   const navigate = useNavigate();
@@ -79,7 +137,7 @@ function Landing() {
   };
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-md px-5 py-10">
+      <div className="mx-auto max-w-md px-5 py-8">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -95,49 +153,67 @@ function Landing() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-3xl gradient-primary p-6 text-primary-foreground shadow-soft">
-          <h2 className="text-xl font-bold">أهلاً بك في سَنَد</h2>
+        {/* Top banner — voice assistant prompt */}
+        <div className="mt-6 rounded-3xl gradient-primary p-5 text-primary-foreground shadow-soft">
+          <h2 className="text-xl font-extrabold">المساعد الصوتي الذكي 🎙️</h2>
           <p className="mt-2 text-sm leading-6 opacity-90">
-            دليلك الطبي للوصول المباشر لأفضل الأطباء والعيادات في مصر
+            تحدث مع سَنَد مباشرة بصوتك للحصول على الاستشارة فورااً
           </p>
+          <Link
+            to="/patient/assistant"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary-foreground px-4 py-3 text-base font-extrabold text-primary shadow-soft transition active:scale-[0.98]"
+          >
+            <Mic className="h-5 w-5" />
+            ابدأ المحادثة الصوتية
+          </Link>
         </div>
 
         <ResumeCard />
 
+        {/* Emergency — prominent full-width alert */}
         <Link
           to="/patient/emergency"
-          className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-destructive p-4 text-lg font-extrabold text-destructive-foreground shadow-soft"
+          className="mt-4 flex items-center gap-3 rounded-2xl bg-destructive p-4 text-destructive-foreground shadow-soft transition active:scale-[0.99]"
         >
-          <Siren className="h-6 w-6 animate-pulse" /> طوارئ سَنَد — وصول فوري للإسعاف
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-destructive-foreground/15">
+            <Siren className="h-6 w-6 animate-pulse" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-lg font-extrabold">طوارئ سَنَد</span>
+            <span className="block text-sm opacity-90">وصول فوري للإسعاف</span>
+          </span>
+          <span className="text-xl">←</span>
         </Link>
 
-        <Link
-          to="/hospitals"
-          className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-border bg-card p-4 font-bold shadow-soft"
-        >
-          🏥 دليل المستشفيات الحكومية
-        </Link>
+        {/* Quick services — 2-column grid */}
+        <section className="mt-6">
+          <h2 className="text-base font-extrabold">خدمات سَنَد السريعة</h2>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {services.map((s) => (
+              <ServiceCard key={s.to} to={s.to} title={s.title} desc={s.desc} icon={s.icon} />
+            ))}
+            <ServiceCard
+              to={wideService.to}
+              title={wideService.title}
+              desc={wideService.desc}
+              icon={wideService.icon}
+              className="col-span-2 flex-row items-center gap-3"
+            />
+          </div>
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            تصفح واكتشف العيادات بدون الحاجة لتسجيل حساب
+          </p>
+        </section>
 
-        <div className="mt-6 space-y-3">
-          <p className="text-sm font-semibold text-muted-foreground">اختار دورك</p>
-          {roles.map((r) => (
-            <Link
-              key={r.to}
-              to={r.to}
-              className={`flex items-center gap-4 rounded-2xl border border-border p-4 transition hover:shadow-soft ${r.tone}`}
-            >
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary-foreground/20">
-                <r.icon className="h-6 w-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-lg font-bold">{r.title}</div>
-                <div className={`text-sm ${r.tone.includes("text-primary-foreground") ? "opacity-90" : "text-muted-foreground"}`}>{r.desc}</div>
-              </div>
-              <div className="text-xl opacity-70">←</div>
-            </Link>
-          ))}
-          <p className="text-center text-xs text-muted-foreground">تصفح واكتشف العيادات بدون الحاجة لتسجيل حساب</p>
-        </div>
+        {/* Clinic accounts */}
+        <section className="mt-6">
+          <h2 className="text-base font-extrabold">حسابات العيادات</h2>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {clinicAccounts.map((a) => (
+              <ServiceCard key={a.to} to={a.to} title={a.title} desc={a.desc} icon={a.icon} />
+            ))}
+          </div>
+        </section>
 
         <footer className="mt-8 space-y-2 border-t border-border pt-4 text-center">
           <div className="space-x-3">
