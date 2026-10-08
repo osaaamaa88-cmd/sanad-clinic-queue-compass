@@ -14,7 +14,7 @@ export function PatientBottomNav() {
   return (
     <nav
       aria-label="التنقل الرئيسي للمريض"
-      className="fixed inset-x-0 bottom-0 z-[80] border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_hsl(var(--foreground)/0.08)] backdrop-blur-xl"
+      data-bottom-nav className="fixed inset-x-0 bottom-0 z-[80] border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_hsl(var(--foreground)/0.08)] backdrop-blur-xl"
     >
       <div className="mx-auto grid h-16 max-w-xl grid-cols-4 px-2">
         {items.map((item) => {

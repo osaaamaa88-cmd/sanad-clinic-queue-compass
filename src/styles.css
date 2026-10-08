@@ -316,3 +316,12 @@ button:active:not(:disabled), a:active, [role="button"]:active, [role="tab"]:act
   .page-enter { animation: none; }
   button:active, a:active { transform: none; }
 }
+
+[data-bottom-nav] {
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+body[data-story-open="true"] [data-bottom-nav] {
+  transform: translateY(120%);
+  opacity: 0;
+  pointer-events: none;
+}
