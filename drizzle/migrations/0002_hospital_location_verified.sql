@@ -1,2 +1,0 @@
-ALTER TABLE public.governmental_hospitals ADD COLUMN IF NOT EXISTS location_verified boolean NOT NULL DEFAULT false;
-ALTER TABLE public.governmental_hospitals ADD COLUMN IF NOT EXISTS location_updated_at timestamptz;
