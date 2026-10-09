@@ -1,6 +1,7 @@
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
@@ -77,9 +78,9 @@ const clinicAccounts = [
 ] as const;
 
 const quickActions = [
-  { to: "/patient/search", label: "عيادات ومستشفيات", icon: Search },
-  { to: "/patient", label: "حجز موعد", icon: CalendarCheck },
-  { to: "/patient/assistant", label: "استشارة ذكية", icon: Stethoscope },
+  { to: "/patient/search", label: "العيادات الطبية", icon: Search, soon: false },
+  { to: "/patient", label: "حجز موعد", icon: CalendarCheck, soon: true },
+  { to: "/patient/assistant", label: "استشارة ذكية", icon: Stethoscope, soon: false },
 ] as const;
 
 function Landing() {
@@ -121,7 +122,7 @@ function Landing() {
         <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-soft">
           <Link to="/patient/search" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
             <Search className="h-5 w-5 shrink-0 text-primary" />
-            <span className="truncate">ابحث عن طبيب، تخصص أو مستشفى</span>
+            <span className="truncate">ابحث عن طبيب أو تخصص...</span>
           </Link>
           <button
             type="button"
@@ -136,7 +137,15 @@ function Landing() {
         <ResumeCard />
 
         <div className="mt-6 grid grid-cols-3 gap-3">
-          {quickActions.map(({ to, label, icon: Icon }) => (
+          {quickActions.map(({ to, label, icon: Icon, soon }) => soon ? (
+            <button key={to} type="button" onClick={() => toast.info("ميزة الحجز المباشر ستكون متاحة قريباً!")} className="relative flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center opacity-75 shadow-soft">
+              <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-warning px-2 py-0.5 text-[10px] font-bold text-warning-foreground">قريباً</span>
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-muted text-muted-foreground">
+                <Icon className="h-5 w-5" />
+              </span>
+              <span className="text-xs font-bold leading-4">{label}</span>
+            </button>
+          ) : (
             <Link key={to} to={to} className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center shadow-soft transition active:scale-[0.98]">
               <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary">
                 <Icon className="h-5 w-5" />
