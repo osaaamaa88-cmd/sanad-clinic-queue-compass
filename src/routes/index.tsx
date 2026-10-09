@@ -61,28 +61,6 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const services = [
-  {
-    to: "/patient/search",
-    title: "أبحث عن عيادة",
-    desc: "أقرب العيادات على الخريطة بالأسعار والتقييمات",
-    icon: Search,
-  },
-  {
-    to: "/patient",
-    title: "حجز موعد",
-    desc: "اختار العيادة واحجز دورك واستلم كود الحجز",
-    icon: CalendarCheck,
-  },
-] as const;
-
-const wideService = {
-  to: "/patient/assistant",
-  title: "استشارة سريعة",
-  desc: "اكتب أو تحدث عن الأعراض والمساعد يرشّح لك التخصص والأنسب قريباً",
-  icon: Mic,
-} as const;
-
 const clinicAccounts = [
   {
     to: "/doctor",
@@ -97,33 +75,6 @@ const clinicAccounts = [
     icon: ClipboardList,
   },
 ] as const;
-
-function ServiceCard({
-  to,
-  title,
-  desc,
-  icon: Icon,
-  className = "",
-}: {
-  to: string;
-  title: string;
-  desc: string;
-  icon: typeof Search;
-  className?: string;
-}) {
-  return (
-    <Link
-      to={to}
-      className={`flex flex-col rounded-2xl border border-border bg-card p-4 shadow-soft transition hover:border-primary/40 active:scale-[0.99] ${className}`}
-    >
-      <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-        <Icon className="h-5 w-5" />
-      </span>
-      <span className="mt-3 text-base font-extrabold">{title}</span>
-      <span className="mt-1 text-xs leading-5 text-muted-foreground">{desc}</span>
-    </Link>
-  );
-}
 
 const quickActions = [
   { to: "/patient/search", label: "عيادات ومستشفيات", icon: Search },
@@ -147,9 +98,6 @@ function Landing() {
     if (data.session) setVoiceMode(true);
     else navigate({ to: "/patient/login" });
   };
-  void services;
-  void wideService;
-  void ServiceCard;
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-md px-5 pb-24 pt-8">
