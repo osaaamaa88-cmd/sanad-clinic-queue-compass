@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccessibilityAssistantRouteImport } from './routes/accessibility-assistant'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AdminAccessRouteImport } from './routes/admin-access'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as DoctorSettingsRouteImport } from './routes/doctor-settings'
@@ -48,11 +47,6 @@ const IndexRoute = IndexRouteImport.update({
 const AccessibilityAssistantRoute = AccessibilityAssistantRouteImport.update({
   id: '/accessibility-assistant',
   path: '/accessibility-assistant',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAccessRoute = AdminAccessRouteImport.update({
@@ -194,7 +188,6 @@ const PatientQueueIdRoute = PatientQueueIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accessibility-assistant': typeof AccessibilityAssistantRoute
-  '/admin': typeof AdminRoute
   '/admin-access': typeof AdminAccessRoute
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
@@ -226,7 +219,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accessibility-assistant': typeof AccessibilityAssistantRoute
-  '/admin': typeof AdminRoute
   '/admin-access': typeof AdminAccessRoute
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
@@ -259,7 +251,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accessibility-assistant': typeof AccessibilityAssistantRoute
-  '/admin': typeof AdminRoute
   '/admin-access': typeof AdminAccessRoute
   '/developer': typeof DeveloperRoute
   '/doctor-settings': typeof DoctorSettingsRoute
@@ -293,7 +284,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accessibility-assistant'
-    | '/admin'
     | '/admin-access'
     | '/developer'
     | '/doctor-settings'
@@ -325,7 +315,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/accessibility-assistant'
-    | '/admin'
     | '/admin-access'
     | '/developer'
     | '/doctor-settings'
@@ -357,7 +346,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/accessibility-assistant'
-    | '/admin'
     | '/admin-access'
     | '/developer'
     | '/doctor-settings'
@@ -390,7 +378,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccessibilityAssistantRoute: typeof AccessibilityAssistantRoute
-  AdminRoute: typeof AdminRoute
   AdminAccessRoute: typeof AdminAccessRoute
   DeveloperRoute: typeof DeveloperRoute
   DoctorSettingsRoute: typeof DoctorSettingsRoute
@@ -434,13 +421,6 @@ declare module '@tanstack/react-router' {
       path: '/accessibility-assistant'
       fullPath: '/accessibility-assistant'
       preLoaderRoute: typeof AccessibilityAssistantRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin-access': {
@@ -638,7 +618,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccessibilityAssistantRoute: AccessibilityAssistantRoute,
-  AdminRoute: AdminRoute,
   AdminAccessRoute: AdminAccessRoute,
   DeveloperRoute: DeveloperRoute,
   DoctorSettingsRoute: DoctorSettingsRoute,
