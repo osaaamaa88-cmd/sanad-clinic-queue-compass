@@ -6,7 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
 import { setVoiceMode } from "@/lib/voice";
-import { CalendarCheck, ClipboardList, HeartPulse, Mic, Siren, Search, Stethoscope } from "lucide-react";
+import { CalendarCheck, HeartPulse, Mic, Siren, Search, Stethoscope, UserRound } from "lucide-react";
+import { PatientAuthModal } from "@/components/PatientAuthModal";
+import { getPatientSession } from "@/lib/patient-session";
 
 const resumeTargets = {
   patient: { to: "/patient", label: "متابعة البحث عن عيادة" },
@@ -62,20 +64,6 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const clinicAccounts = [
-  {
-    to: "/doctor",
-    title: "طبيب / عيادة",
-    desc: "بروفايل العيادة والروشتات والمرضى",
-    icon: Stethoscope,
-  },
-  {
-    to: "/reception",
-    title: "سكرتير عيادة",
-    desc: "دفتر حضور المرضى وتنظيم اليوم",
-    icon: ClipboardList,
-  },
-] as const;
 
 const quickActions = [
   { to: "/patient/search", label: "العيادات الطبية", icon: Search, soon: false },
@@ -93,6 +81,12 @@ function Landing() {
       tapsRef.current = [];
       navigate({ to: "/admin-access" });
     }
+  };
+  const [authOpen, setAuthOpen] = useState(false);
+  const openPatient = async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session || getPatientSession()) navigate({ to: "/patient" });
+    else setAuthOpen(true);
   };
   const startVoice = async () => {
     const { data } = await supabase.auth.getSession();
@@ -118,6 +112,25 @@ function Landing() {
         </div>
 
         <h2 className="mt-8 text-2xl font-extrabold leading-snug">محتاج دكتور؟<br />خلّينا نوصّلك للأنسب.</h2>
+
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={openPatient}
+            className="flex items-center justify-center gap-2 rounded-2xl gradient-primary px-3 py-3.5 text-sm font-extrabold text-primary-foreground shadow-soft transition active:scale-[0.98]"
+          >
+            <UserRound className="h-5 w-5" /> الحساب الشخصي
+          </button>
+          <Link
+            to="/doctor/login"
+            className="flex items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-card px-3 py-3.5 text-sm font-extrabold text-primary shadow-soft transition active:scale-[0.98]"
+          >
+            <Stethoscope className="h-5 w-5" /> طبيب / عيادة
+          </Link>
+        </div>
+        <Link to="/reception" className="mt-2 block text-center text-xs font-bold text-muted-foreground underline">
+          دخول سكرتير العيادة
+        </Link>
 
         <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-soft">
           <Link to="/patient/search" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
@@ -183,16 +196,12 @@ function Landing() {
           <span className="text-primary">←</span>
         </Link>
 
-        <div className="mt-8 rounded-2xl bg-muted/50 p-4">
-          <p className="text-sm font-bold">أنت طبيب أو تدير عيادة؟</p>
-          <div className="mt-2 flex gap-4 text-xs font-bold text-primary">
-            {clinicAccounts.map((a) => (
-              <Link key={a.to} to={a.to} className="flex items-center gap-1">
-                <a.icon className="h-4 w-4" /> {a.title} ←
-              </Link>
-            ))}
-          </div>
-        </div>
+        {authOpen && (
+          <PatientAuthModal
+            onClose={() => setAuthOpen(false)}
+            onDone={() => { setAuthOpen(false); navigate({ to: "/patient" }); }}
+          />
+        )}
 
         <footer className="mt-8 space-y-2 border-t border-border pt-4 text-center">
           <div className="space-x-3">
