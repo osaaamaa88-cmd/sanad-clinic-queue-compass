@@ -160,6 +160,20 @@ function Landing() {
           <span className="text-destructive">←</span>
         </Link>
 
+        <Link
+          to="/patient/assistant"
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3 transition active:scale-[0.99]"
+        >
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl gradient-primary text-primary-foreground">
+            <Stethoscope className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-extrabold text-primary">احكيلنا عن أعراضك</span>
+            <span className="block text-xs text-muted-foreground">نرشّحلك التخصص المناسب وأقرب عيادة</span>
+          </span>
+          <span className="text-primary">←</span>
+        </Link>
+
         <div className="mt-8 rounded-2xl bg-muted/50 p-4">
           <p className="text-sm font-bold">أنت طبيب أو تدير عيادة؟</p>
           <div className="mt-2 flex gap-4 text-xs font-bold text-primary">
