@@ -1,8 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { getRequestHeader, useSession } from "@tanstack/react-start/server";
+import { getRequestHeader } from "@tanstack/react-start/server";
 
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
-type GateSession = { unlocked?: boolean };
 
 function key() {
   const k = process.env.ADMIN_SESSION_KEY;
