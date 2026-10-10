@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Eye, ImagePlus, Loader2, Plus, Trash2, ArrowRight } from "lucide-react";
+import { Camera, Eye, ImagePlus, Loader2, Plus, Trash2, ArrowRight, X, Clock, Star, AlertTriangle, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StoryViewer } from "@/components/StoryViewer";
@@ -46,6 +46,9 @@ function DoctorStories() {
   const [caption, setCaption] = useState("");
   const [tag, setTag] = useState("");
   const [permanent, setPermanent] = useState(false);
+  const [hours, setHours] = useState<12 | 24>(24);
+  const [menu, setMenu] = useState(false);
+  const [composer, setComposer] = useState(false);
   const [highlightId, setHighlightId] = useState<string>("");
   const [newHl, setNewHl] = useState("");
   const [busy, setBusy] = useState(false);
@@ -73,11 +76,11 @@ function DoctorStories() {
       if (!hl && newHl.trim()) hl = await createHighlight(clinicId, newHl.trim(), "✨");
       if (!hl) { setBusy(false); return toast.error("اختر هايلايت أو أنشئ واحدًا"); }
     }
-    const r = await addStory({ clinicId, file, caption: caption.trim(), tag, highlightId: hl, permanent, kind: tag === "تنويه هام" || tag === "تأخير في المواعيد" ? "urgent" : "story" });
+    const r = await addStory({ clinicId, file, caption: caption.trim(), tag, highlightId: hl, permanent, durationHours: hours, kind: tag === "تنويه هام" || tag === "تأخير في المواعيد" ? "urgent" : "story" });
     setBusy(false);
     if (!r.ok) return toast.error(r.error || "تعذر النشر");
     toast.success("تم نشر القصة");
-    setFile(null); setPreview(""); setCaption(""); setTag(""); setPermanent(false); setHighlightId(""); setNewHl("");
+    setFile(null); setPreview(""); setCaption(""); setTag(""); setPermanent(false); setHours(24); setHighlightId(""); setNewHl(""); setComposer(false);
     void load();
   };
 
@@ -101,12 +104,36 @@ function DoctorStories() {
   return (
     <AppShell title="إدارة القصص">
       <div className="space-y-5 p-4" dir="rtl">
-        <Link to="/doctor-settings" className="inline-flex items-center gap-1 text-sm font-bold text-primary">
-          <ArrowRight className="h-4 w-4" /> الإعدادات
-        </Link>
+        <div className="relative flex items-center justify-between">
+          <button type="button" onClick={() => setMenu((v) => !v)} aria-label="إنشاء" aria-expanded={menu} className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-soft active:scale-95">
+            <Plus className="h-5 w-5" />
+          </button>
+          <Link to="/doctor-settings" className="inline-flex items-center gap-1 text-sm font-bold text-primary">
+            الإعدادات <ArrowRight className="h-4 w-4 rotate-180" />
+          </Link>
+          {menu && (
+            <>
+              <button type="button" aria-label="إغلاق" className="fixed inset-0 z-40 cursor-default" onClick={() => setMenu(false)} />
+              <div role="menu" className="absolute right-0 top-12 z-50 w-60 overflow-hidden rounded-2xl border border-border bg-card py-1 text-sm font-bold shadow-xl">
+                <p className="px-4 pb-1 pt-2 text-[11px] text-muted-foreground">إنشاء</p>
+                <button role="menuitem" type="button" onClick={() => { setMenu(false); setTag(""); setPermanent(false); setComposer(true); }} className="flex w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary"><Camera className="h-4 w-4 text-primary" /> قصة (ستوري)</button>
+                <button role="menuitem" type="button" onClick={() => { setMenu(false); setTag("تنويه هام"); setPermanent(false); setComposer(true); }} className="flex w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary"><AlertTriangle className="h-4 w-4 text-destructive" /> تنبيه عاجل للمرضى</button>
+                <button role="menuitem" type="button" onClick={() => { setMenu(false); setTag(""); setPermanent(true); setComposer(true); }} className="flex w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary"><Star className="h-4 w-4 text-gold" /> قصة دائمة (هايلايت)</button>
+                {clinicId && (
+                  <Link role="menuitem" to="/patient/clinic/$id" params={{ id: clinicId }} className="flex w-full items-center gap-2 px-4 py-2.5 hover:bg-secondary"><ImagePlus className="h-4 w-4 text-primary" /> منشور على صفحة العيادة</Link>
+                )}
+                <Link role="menuitem" to="/doctor-settings" className="flex w-full items-center gap-2 border-t border-border px-4 py-2.5 hover:bg-secondary"><Settings className="h-4 w-4 text-primary" /> إعدادات العيادة</Link>
+              </div>
+            </>
+          )}
+        </div>
 
+        {composer && (
         <section className="rounded-2xl border border-border bg-card p-4">
-          <h2 className="font-extrabold">قصة جديدة</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-extrabold">{permanent ? "قصة دائمة" : tag === "تنويه هام" ? "تنبيه عاجل" : "قصة جديدة"}</h2>
+            <button type="button" onClick={() => { setComposer(false); setFile(null); setPreview(""); }} aria-label="إلغاء" className="rounded-full p-1.5 hover:bg-secondary"><X className="h-4 w-4" /></button>
+          </div>
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => camRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-secondary py-3 text-sm font-bold">
               <Camera className="h-4 w-4" /> الكاميرا
@@ -129,10 +156,14 @@ function DoctorStories() {
               <button key={t} type="button" onClick={() => setTag(tag === t ? "" : t)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${tag === t ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>{t}</button>
             ))}
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-2 text-sm font-bold">
-            <button type="button" onClick={() => setPermanent(false)} className={`rounded-xl py-2.5 ${!permanent ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>24 ساعة</button>
-            <button type="button" onClick={() => setPermanent(true)} className={`rounded-xl py-2.5 ${permanent ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>دائمة (هايلايت)</button>
+          <p className="mt-4 flex items-center gap-1 text-xs font-bold text-muted-foreground"><Clock className="h-3.5 w-3.5" /> مدة ظهور القصة</p>
+          <div className="mt-2 grid grid-cols-3 gap-2 text-sm font-bold">
+            {([12, 24] as const).map((h) => (
+              <button key={h} type="button" aria-pressed={!permanent && hours === h} onClick={() => { setPermanent(false); setHours(h); }} className={`rounded-xl py-2.5 ${!permanent && hours === h ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>{h} ساعة</button>
+            ))}
+            <button type="button" aria-pressed={permanent} onClick={() => setPermanent(true)} className={`rounded-xl py-2.5 ${permanent ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>دائمة</button>
           </div>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">{permanent ? "هتتثبت في الهايلايت على صفحة عيادتك." : `هتختفي تلقائيًا بعد ${hours} ساعة.`}</p>
           {permanent && (
             <div className="mt-3 space-y-2">
               <div className="flex flex-wrap gap-2">
@@ -147,9 +178,10 @@ function DoctorStories() {
             </div>
           )}
           <button type="button" disabled={busy} onClick={publish} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-extrabold text-primary-foreground disabled:opacity-60">
-            {busy && <Loader2 className="h-4 w-4 animate-spin" />} نشر القصة
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />} {permanent ? "نشر في الهايلايت" : `نشر لمدة ${hours} ساعة`}
           </button>
         </section>
+        )}
 
         <section>
           <h2 className="mb-2 font-extrabold">القصص النشطة ({active.length})</h2>
