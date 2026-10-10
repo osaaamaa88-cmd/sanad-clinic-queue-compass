@@ -26,6 +26,7 @@ export type LabReport = {
   found: boolean;
   type: string;
   summary: string;
+  comfort: string;
   items: LabItem[];
   questions: string[];
   urgent: boolean;
@@ -36,10 +37,11 @@ const DRUG_PROMPT = `أنت صيدلي مصري خبير بسوق الدواء �
 {"found":true,"name":"الاسم التجاري","active":"المادة الفعالة","strength":"التركيز","form":"أقراص/شراب/...","uses":"دواعي الاستعمال باختصار بالمصري","usualDose":"الجرعة المعتادة للبالغين (استرشادية)","warnings":"أهم التحذيرات والتداخلات باختصار","equivalents":[{"name":"اسم تجاري مصري بنفس المادة والتركيز","company":"الشركة","note":"ملاحظة قصيرة"}],"similar":[{"name":"بديل من نفس العائلة الدوائية","company":"الشركة","note":"يحتاج موافقة الطبيب"}]}
 اقترح حتى 5 مثائل متوفرة في مصر و3 بدائل مشابهة. لا تخترع أدوية غير موجودة. لو لم تتعرف على دواء اجعل found=false.`;
 
-const LAB_PROMPT = `أنت طبيب باطنة مصري يشرح التحاليل للمرضى بهدوء وطمأنينة دون تهويل.
-اقرأ صورة/نص ورقة التحليل واستخرج كل المؤشرات. أعد JSON فقط:
-{"found":true,"type":"نوع التحليل","summary":"ملخص مطمئن بالعامية المصرية في 2-3 جمل","items":[{"name":"اسم المؤشر","value":"القيمة","unit":"الوحدة","range":"المعدل الطبيعي","status":"normal|high|low|unknown","explain":"شرح بسيط بالمصري لمعنى النتيجة"}],"questions":["سؤال تسأله لطبيبك"],"urgent":false}
-استخدم المعدل المكتوب في الورقة إن وجد. urgent=true فقط لو فيه قيمة خطيرة تستدعي طوارئ. لو مفيش تحليل في الصورة اجعل found=false. لا تشخّص أمراضاً قطعياً.`;
+const LAB_PROMPT = `أنت طبيب باطنة مصري حنون وصادق، بتكلم مريض قلقان ماسك ورقة تحليله. اتكلم بالعامية المصرية بدفء زي ما بتطمّن حد من أهلك، من غير تهويل ومن غير ما تخبي الحقيقة.
+اقرأ الصورة بدقة شديدة: كل سطر في الورقة، الأرقام والوحدات والمعدلات المرجعية المطبوعة كما هي حرفياً. لو رقم مش واضح اكتب الحالة unknown وماتخمّنش.
+أعد JSON فقط:
+{"found":true,"type":"نوع التحليل","comfort":"رسالة طمأنة دافئة قصيرة (جملتين) تبدأ بكلمة حلوة زي ألف سلامة عليك، وتقدّر قلقه وتشجعه","summary":"ملخص صادق ومطمئن بالعامية المصرية في 2-3 جمل","items":[{"name":"اسم المؤشر","value":"القيمة","unit":"الوحدة","range":"المعدل الطبيعي","status":"normal|high|low|unknown","explain":"شرح بسيط وحنون بالمصري لمعنى النتيجة، ولو مش طبيعية قول إيه اللي ممكن يساعد"}],"questions":["سؤال تسأله لطبيبك"],"urgent":false}
+استخدم المعدل المكتوب في الورقة إن وجد. urgent=true فقط لو فيه قيمة خطيرة تستدعي طوارئ، وفي الحالة دي خلّي رسالة الطمأنة هادية بس واضحة إنه يتحرك دلوقتي. لو مفيش تحليل في الصورة اجعل found=false. لا تشخّص أمراضاً قطعياً.`;
 
 async function callGemini(prompt: string, text?: string, image?: string, mime?: string) {
   const key = process.env.GEMINI_API_KEY;
@@ -110,6 +112,7 @@ export const readLab = createServerFn({ method: "POST" })
     return {
       found: o.found !== false,
       type: s(o.type, 80),
+      comfort: s(o.comfort, 400),
       summary: s(o.summary, 600),
       urgent: o.urgent === true,
       items: (Array.isArray(o.items) ? o.items : []).slice(0, 40).map((i: any) => ({
