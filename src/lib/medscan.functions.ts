@@ -50,7 +50,7 @@ const LAB_PROMPT = `أنت طبيب باطنة مصري حنون وصادق، ب
 {"found":true,"type":"نوع التحليل","comfort":"رسالة طمأنة دافئة قصيرة (جملتين) تبدأ بكلمة حلوة زي ألف سلامة عليك، وتقدّر قلقه من غير ما تنكر النتايج","summary":"ملخص صادق ومطمئن بالعامية المصرية في 2-3 جمل","items":[{"name":"اسم المؤشر","value":"القيمة","unit":"الوحدة","range":"المعدل الطبيعي","status":"normal|high|low|unknown","explain":"شرح بسيط وحنون بالمصري، ولو مش طبيعية قول إيه اللي ممكن يساعد"}],"questions":["سؤال تسأله لطبيبك"],"urgent":false}
 لو مفيش تحليل في الصورة اجعل found=false.`;
 
-const MODELS = ["gemini-3.5-flash", "gemini-3.8-flash"];
+const MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.8-flash"];
 
 async function callGemini(prompt: string, text?: string, image?: string, mime?: string) {
   const key = process.env.GEMINI_API_KEY;
