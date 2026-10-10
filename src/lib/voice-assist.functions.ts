@@ -1,3 +1,4 @@
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createServerFn } from "@tanstack/react-start";
 import { redact } from "@/lib/redact";
 import { createClient } from "@supabase/supabase-js";
@@ -40,6 +41,7 @@ const sanitize = (s: unknown) =>
   String(s ?? "").replace(/<[^>]*>/g, " ").replace(/[\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 500);
 
 export const voiceAssist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { text: string; lat?: number; lng?: number }) => ({
     text: sanitize(d?.text),
     lat: Number.isFinite(d?.lat) ? Math.max(-90, Math.min(90, Number(d.lat))) : 30.0444,
