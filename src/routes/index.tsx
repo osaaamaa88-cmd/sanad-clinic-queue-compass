@@ -1,3 +1,4 @@
+import { ModeSwitch } from "@/components/ModeSwitch";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
@@ -115,6 +116,7 @@ function Landing() {
               <p className="text-[11px] text-muted-foreground">سندك الطبي في كل وقت</p>
             </div>
           </div>
+          <div className="flex items-center gap-2"><ModeSwitch current="patient" compact />
           <button
             type="button"
             onClick={openPatient}
@@ -122,7 +124,7 @@ function Landing() {
             className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-primary shadow-soft transition active:scale-95"
           >
             <UserRound className="h-5 w-5" />
-          </button>
+          </button></div>
         </header>
 
         <section className="mt-6 rounded-3xl gradient-primary p-5 text-primary-foreground shadow-soft">
