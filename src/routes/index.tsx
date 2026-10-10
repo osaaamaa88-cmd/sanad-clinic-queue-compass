@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
 import { setVoiceMode } from "@/lib/voice";
-import { CalendarCheck, HeartPulse, Mic, Siren, Search, Stethoscope, UserRound } from "lucide-react";
+import { ArrowLeft, CalendarCheck, HeartPulse, Hospital, Mic, Siren, Search, Sparkles, Stethoscope, UserRound } from "lucide-react";
+import { specialties } from "@/lib/mock-data";
 import { PatientAuthModal } from "@/components/PatientAuthModal";
 import { getPatientSession } from "@/lib/patient-session";
 
@@ -65,10 +66,11 @@ export const Route = createFileRoute("/")({
 });
 
 
-const quickActions = [
-  { to: "/patient/search", label: "العيادات الطبية", icon: Search, soon: false },
-  { to: "/patient", label: "حجز موعد", icon: CalendarCheck, soon: true },
-  { to: "/patient/assistant", label: "استشارة ذكية", icon: Stethoscope, soon: false },
+const services = [
+  { to: "/patient/search", label: "العيادات والأطباء", hint: "دوّر على الأقرب ليك", icon: Stethoscope },
+  { to: "/hospitals", label: "المستشفيات الحكومية", hint: "136 مستشفى بالاتجاهات", icon: Hospital },
+  { to: "/patient/assistant", label: "احكي أعراضك", hint: "نرشّحلك التخصص", icon: Sparkles },
+  { to: "/patient", label: "عيادات نشطة الآن", hint: "تحديثات مباشرة", icon: CalendarCheck },
 ] as const;
 
 function Landing() {
@@ -93,107 +95,110 @@ function Landing() {
     if (data.session) setVoiceMode(true);
     else navigate({ to: "/patient/login" });
   };
+  const topSpecialties = specialties.slice(0, 8);
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-md px-5 pb-24 pt-8">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleLogoTap}
-            aria-label="سَنَد"
-            className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft select-none"
-          >
-            <HeartPulse className="h-5 w-5" />
-          </button>
-          <div>
-            <h1 className="text-xl font-extrabold">سَنَد <span className="sr-only">— دليلك للعيادات والأطباء في مصر</span></h1>
-            <p className="text-xs text-muted-foreground">سندك الطبي في كل وقت</p>
+      <div className="mx-auto max-w-md px-5 pb-24 pt-6">
+        <header className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleLogoTap}
+              aria-label="سَنَد"
+              className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft select-none"
+            >
+              <HeartPulse className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-extrabold leading-tight">سَنَد <span className="sr-only">— دليلك للعيادات والأطباء في مصر</span></h1>
+              <p className="text-[11px] text-muted-foreground">سندك الطبي في كل وقت</p>
+            </div>
           </div>
-        </div>
-
-        <h2 className="mt-8 text-2xl font-extrabold leading-snug">محتاج دكتور؟<br />خلّينا نوصّلك للأنسب.</h2>
-
-        <div className="mt-5 grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={openPatient}
-            className="flex items-center justify-center gap-2 rounded-2xl gradient-primary px-3 py-3.5 text-sm font-extrabold text-primary-foreground shadow-soft transition active:scale-[0.98]"
+            aria-label="حسابي"
+            className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-primary shadow-soft transition active:scale-95"
           >
-            <UserRound className="h-5 w-5" /> الحساب الشخصي
+            <UserRound className="h-5 w-5" />
           </button>
-          <Link
-            to="/doctor/login"
-            className="flex items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-card px-3 py-3.5 text-sm font-extrabold text-primary shadow-soft transition active:scale-[0.98]"
-          >
-            <Stethoscope className="h-5 w-5" /> طبيب / عيادة
-          </Link>
-        </div>
-        <Link to="/reception" className="mt-2 block text-center text-xs font-bold text-muted-foreground underline">
-          دخول سكرتير العيادة
-        </Link>
+        </header>
 
-        <div className="mt-5 flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-soft">
-          <Link to="/patient/search" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
-            <Search className="h-5 w-5 shrink-0 text-primary" />
-            <span className="truncate">ابحث عن طبيب أو تخصص...</span>
-          </Link>
-          <button
-            type="button"
-            onClick={startVoice}
-            aria-label="تحدث مع المساعد الصوتي"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl gradient-primary text-primary-foreground transition active:scale-95"
-          >
-            <Mic className="h-5 w-5" />
-          </button>
-        </div>
+        <section className="mt-6 rounded-3xl gradient-primary p-5 text-primary-foreground shadow-soft">
+          <h2 className="text-2xl font-extrabold leading-snug">محتاج دكتور؟<br />خلّينا نوصّلك للأنسب.</h2>
+          <div className="mt-4 flex items-center gap-2 rounded-2xl bg-card p-1.5 text-foreground">
+            <Link to="/patient/search" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2.5 text-sm text-muted-foreground">
+              <Search className="h-5 w-5 shrink-0 text-primary" />
+              <span className="truncate">طبيب، تخصص أو مستشفى...</span>
+            </Link>
+            <button
+              type="button"
+              onClick={startVoice}
+              aria-label="تحدث مع المساعد الصوتي"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition active:scale-95"
+            >
+              <Mic className="h-5 w-5" />
+            </button>
+          </div>
+        </section>
 
         <ResumeCard />
 
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          {quickActions.map(({ to, label, icon: Icon, soon }) => soon ? (
-            <button key={to} type="button" onClick={() => toast.info("ميزة الحجز المباشر ستكون متاحة قريباً!")} className="relative flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center opacity-75 shadow-soft">
-              <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-warning px-2 py-0.5 text-[10px] font-bold text-warning-foreground">قريباً</span>
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-muted text-muted-foreground">
+        <Link
+          to="/patient/emergency"
+          className="mt-4 flex items-center gap-3 rounded-2xl bg-destructive p-4 text-destructive-foreground shadow-soft transition active:scale-[0.99]"
+        >
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-destructive-foreground/15">
+            <Siren className="h-6 w-6" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-base font-extrabold">طوارئ؟</span>
+            <span className="block text-xs opacity-90">إسعاف 123 وأقرب مستشفى ليك</span>
+          </span>
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+
+        <h3 className="mt-7 mb-3 text-base font-extrabold">الخدمات</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {services.map(({ to, label, hint, icon: Icon }) => (
+            <Link key={to} to={to} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft transition active:scale-[0.98]">
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
                 <Icon className="h-5 w-5" />
               </span>
-              <span className="text-xs font-bold leading-4">{label}</span>
-            </button>
-          ) : (
-            <Link key={to} to={to} className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center shadow-soft transition active:scale-[0.98]">
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary">
-                <Icon className="h-5 w-5" />
+              <span>
+                <span className="block text-sm font-extrabold">{label}</span>
+                <span className="block text-[11px] leading-4 text-muted-foreground">{hint}</span>
               </span>
-              <span className="text-xs font-bold leading-4">{label}</span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-7 mb-3 flex items-center justify-between">
+          <h3 className="text-base font-extrabold">أشهر التخصصات</h3>
+          <Link to="/patient/search" className="text-xs font-bold text-primary">الكل ←</Link>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {topSpecialties.map((s) => (
+            <Link key={s.id} to="/patient/search" className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card p-2.5 text-center transition active:scale-95">
+              <span className="text-2xl" aria-hidden>{s.emoji}</span>
+              <span className="truncate text-[11px] font-bold w-full">{s.name}</span>
             </Link>
           ))}
         </div>
 
         <Link
-          to="/patient/emergency"
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 transition active:scale-[0.99]"
+          to="/doctor/login"
+          className="mt-7 flex items-center gap-3 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-4 transition active:scale-[0.99]"
         >
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-destructive text-destructive-foreground">
-            <Siren className="h-5 w-5" />
-          </span>
+          <Stethoscope className="h-5 w-5 text-primary" />
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-extrabold text-destructive">طوارئ</span>
-            <span className="block text-xs text-muted-foreground">إسعاف 123 وأقرب مستشفى</span>
+            <span className="block text-sm font-extrabold">أنت طبيب أو عيادة؟</span>
+            <span className="block text-xs text-muted-foreground">سجّل عيادتك ووصّل لمرضى أكتر</span>
           </span>
-          <span className="text-destructive">←</span>
+          <ArrowLeft className="h-4 w-4 text-primary" />
         </Link>
-
-        <Link
-          to="/patient/assistant"
-          className="mt-3 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3 transition active:scale-[0.99]"
-        >
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl gradient-primary text-primary-foreground">
-            <Stethoscope className="h-5 w-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-extrabold text-primary">احكيلنا عن أعراضك</span>
-            <span className="block text-xs text-muted-foreground">نرشّحلك التخصص المناسب وأقرب عيادة</span>
-          </span>
-          <span className="text-primary">←</span>
+        <Link to="/reception" className="mt-2 block text-center text-xs font-bold text-muted-foreground underline">
+          دخول سكرتير العيادة
         </Link>
 
         {authOpen && (
