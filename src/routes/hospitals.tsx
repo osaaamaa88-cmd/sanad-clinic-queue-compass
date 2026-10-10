@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { getPatientLocation, savePatientLocation, nearestArea } from "@/lib/patient-location";
+import { directionsPath } from "@/lib/directions";
 import { listHospitals, hospitalMapsUrl, type Hospital } from "@/lib/hospitals.functions";
 
 const TYPES: Record<string, string> = {
@@ -42,12 +44,26 @@ function HospitalsPage() {
   const [type, setType] = useState("");
   const [me, setMe] = useState<[number, number] | null>(null);
 
-  useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      (p) => setMe([p.coords.latitude, p.coords.longitude]),
-      () => {},
-      { timeout: 8000 },
+  const [locErr, setLocErr] = useState("");
+  const [locating, setLocating] = useState(false);
+  const locate = () => {
+    if (!navigator.geolocation) { setLocErr("جهازك لا يدعم تحديد الموقع."); return; }
+    setLocating(true); setLocErr("");
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        setLocating(false);
+        setMe([p.coords.latitude, p.coords.longitude]);
+        const n = nearestArea(p.coords.latitude, p.coords.longitude);
+        savePatientLocation({ name: `بالقرب من ${n.name}`, city: n.city, lat: p.coords.latitude, lng: p.coords.longitude, gps: true });
+      },
+      (e) => { setLocating(false); setLocErr(e.code === 1 ? "اسمح للتطبيق بالوصول لموقعك من إعدادات الموبايل." : "تعذّر تحديد موقعك، جرّب مرة تانية."); },
+      { timeout: 10000, enableHighAccuracy: true, maximumAge: 60000 },
     );
+  };
+  useEffect(() => {
+    const saved = getPatientLocation();
+    if (saved.gps) setMe([saved.lat, saved.lng]);
+    locate();
   }, []);
 
   const govs = useMemo(() => [...new Set(hospitals.map((h) => h.governorate))], [hospitals]);
@@ -59,6 +75,7 @@ function HospitalsPage() {
       .filter((h) => !t || h.name.includes(t) || h.district.includes(t) || h.governorate.includes(t))
       .map((h) => ({ ...h, dist: me ? km(me, [Number(h.lat), Number(h.lng)]) : null }))
       .sort((a, b) => (a.dist ?? 0) - (b.dist ?? 0));
+    // sorted nearest first when location known
   }, [hospitals, q, gov, type, me]);
 
   return (
@@ -88,6 +105,10 @@ function HospitalsPage() {
         {Object.entries(TYPES).map(([k, v]) => <Chip key={k} active={type === k} onClick={() => setType(k)}>{v}</Chip>)}
       </div>
 
+      <button onClick={locate} disabled={locating} className="mb-2 w-full rounded-xl border border-primary/40 bg-primary/10 p-2.5 text-sm font-bold text-primary">
+        {locating ? "جارِ تحديد موقعك…" : me ? "📍 تحديث موقعي" : "📍 حدد موقعي وهات أقرب مستشفى"}
+      </button>
+      {locErr && <p className="mb-2 text-xs text-destructive">{locErr}</p>}
       <p className="mb-3 text-xs text-muted-foreground">
         {me ? "مرتبة من الأقرب لموقعك" : "فعّل الموقع لترتيب المستشفيات حسب الأقرب"} · {list.length} مستشفى
       </p>
@@ -111,7 +132,7 @@ function HospitalsPage() {
             <div className="mt-3 grid grid-cols-2 gap-2">
               <a href={`tel:${h.emergency_phone || h.phone}`} className="rounded-xl bg-primary p-2 text-center text-sm font-bold text-primary-foreground">📞 اتصال</a>
               <a
-                href={hospitalMapsUrl(h)}
+                href={directionsPath(h.lat, h.lng, h.name)}
                 className="rounded-xl border p-2 text-center text-sm font-bold"
               >🗺️ الاتجاهات</a>
             </div>
