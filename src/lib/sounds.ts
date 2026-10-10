@@ -50,51 +50,118 @@ function audio(): AudioContext | null {
   }
 }
 
-function tone(freq: number, start: number, dur: number, vol = 0.15, type: OscillatorType = "sine") {
+let master: GainNode | null = null;
+function out(a: AudioContext): AudioNode {
+  if (!master) {
+    const comp = a.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.ratio.value = 4;
+    master = a.createGain();
+    master.gain.value = 0.9;
+    master.connect(comp).connect(a.destination);
+  }
+  return master;
+}
+
+/** Soft bell/glass note: sine fundamental + quiet overtones, fast attack, smooth exponential decay. */
+function bell(freq: number, start: number, dur: number, vol = 0.12) {
   const a = audio();
   if (!a) return;
   const t = a.currentTime + start;
-  const o = a.createOscillator();
+  const partials: [number, number][] = [
+    [1, 1],
+    [2, 0.28],
+    [3.01, 0.08],
+  ];
+  for (const [mult, amp] of partials) {
+    const o = a.createOscillator();
+    const g = a.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(freq * mult, t);
+    const d = dur / mult ** 0.5;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol * amp, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(out(a));
+    o.start(t);
+    o.stop(t + d + 0.05);
+  }
+}
+
+/** iOS-like keyboard "tock": very short filtered noise burst + low thump. */
+function tock(vol = 0.18) {
+  const a = audio();
+  if (!a) return;
+  const t = a.currentTime;
+  const len = Math.floor(a.sampleRate * 0.025);
+  const buf = a.createBuffer(1, len, a.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 4;
+  const src = a.createBufferSource();
+  src.buffer = buf;
+  const bp = a.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 2400;
+  bp.Q.value = 1.2;
   const g = a.createGain();
-  o.type = type;
-  o.frequency.setValueAtTime(freq, t);
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g).connect(a.destination);
+  g.gain.value = vol;
+  src.connect(bp).connect(g).connect(out(a));
+  src.start(t);
+  const o = a.createOscillator();
+  const og = a.createGain();
+  o.frequency.setValueAtTime(320, t);
+  o.frequency.exponentialRampToValueAtTime(140, t + 0.03);
+  og.gain.setValueAtTime(vol * 0.5, t);
+  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+  o.connect(og).connect(out(a));
   o.start(t);
-  o.stop(t + dur + 0.02);
+  o.stop(t + 0.05);
+}
+
+function haptic(p: number | number[]) {
+  try {
+    navigator.vibrate?.(p);
+  } catch {
+    // ignore
+  }
 }
 
 export function playClick() {
   if (!isSoundOn()) return;
-  tone(1200, 0, 0.05, 0.06, "triangle");
+  tock(0.16);
+  haptic(8);
 }
 
+/** Apple Pay–style confirmation: two bright glass notes. */
 export function playSuccess() {
   if (!isSoundOn()) return;
-  tone(660, 0, 0.12, 0.12);
-  tone(880, 0.1, 0.12, 0.12);
-  tone(1320, 0.2, 0.22, 0.1);
+  bell(1318.5, 0, 0.5, 0.11); // E6
+  bell(1975.5, 0.11, 0.9, 0.1); // B6
+  haptic([12, 60, 18]);
 }
 
+/** iOS "Note"-like notification: soft rising tri-tone. */
 export function playNotification() {
   if (!isSoundOn()) return;
-  tone(988, 0, 0.18, 0.14);
-  tone(1319, 0.15, 0.3, 0.12);
+  bell(1046.5, 0, 0.6, 0.1); // C6
+  bell(1318.5, 0.12, 0.6, 0.1); // E6
+  bell(1568, 0.24, 1.1, 0.1); // G6
+  haptic([20, 80, 20]);
 }
 
 let alarmTimer: ReturnType<typeof setInterval> | null = null;
 const alarmListeners = new Set<(on: boolean) => void>();
 
-/** Looping alarm that keeps ringing until stopAlarm() is called. */
+/** Gentle iOS "Radar"-style looping alarm until stopAlarm() is called. */
 export function startAlarm() {
   if (!isSoundOn() || alarmTimer) return;
   const ring = () => {
-    for (let i = 0; i < 4; i++) tone(i % 2 ? 1046 : 880, i * 0.18, 0.15, 0.2, "square");
+    const notes = [1568, 1318.5, 1568, 2093];
+    notes.forEach((f, i) => bell(f, i * 0.16, 0.5, 0.16));
+    haptic([200, 100, 200]);
   };
   ring();
-  alarmTimer = setInterval(ring, 1200);
+  alarmTimer = setInterval(ring, 1400);
   alarmListeners.forEach((l) => l(true));
 }
 
