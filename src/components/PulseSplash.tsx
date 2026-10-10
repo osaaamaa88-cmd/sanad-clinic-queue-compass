@@ -1,6 +1,5 @@
 import sanadLogo from "@/assets/sanad-logo.png";
 import { useEffect, useState } from "react";
-import { HeartPulse } from "lucide-react";
 import { playHeartbeat } from "@/lib/sounds";
 
 export function PulseSplash({ onDone, duration = 2000 }: { onDone: () => void; duration?: number }) {
