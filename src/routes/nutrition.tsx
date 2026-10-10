@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { analyzeFood, type FoodAnalysis } from "@/lib/nutrition.functions";
 
 export const Route = createFileRoute("/nutrition")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "التغذية والسعرات — سَنَد" },
