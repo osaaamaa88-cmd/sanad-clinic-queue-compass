@@ -77,6 +77,7 @@ export const svrAddStory = createServerFn({ method: "POST" })
     fileName?: string;
     contentType?: string;
     base64?: string;
+    durationHours?: number;
   }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     const base64 = String(data.base64 ?? "");
@@ -93,6 +94,7 @@ export const svrAddStory = createServerFn({ method: "POST" })
       fileName: String(data.fileName ?? "story").slice(-60).replace(/[^a-zA-Z0-9._-]/g, "_"),
       contentType,
       base64,
+      durationHours: data.durationHours === 12 ? 12 : 24,
     };
   })
   .handler(async ({ data, context }) => {
@@ -116,6 +118,7 @@ export const svrAddStory = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("clinic_stories").insert({
       clinic_id: data.clinicId,
       highlight_id: data.highlightId,
+      expires_at: new Date(Date.now() + (data.highlightId ? 3650 * 864e5 : data.durationHours * 36e5)).toISOString(),
       media_url: path,
       media_type: data.contentType.startsWith("video/") ? "video" : "image",
       caption: data.caption,

@@ -44,6 +44,7 @@ export const svrFinalizeUpload = createServerFn({ method: "POST" })
   .inputValidator((d: {
     clinicId: string; kind: Kind; path: string; contentType: string;
     caption?: string; highlightId?: string | null; storyKind?: "story" | "urgent"; tag?: string; permanent?: boolean;
+    durationHours?: number;
   }) => {
     if (!d || typeof d.clinicId !== "string" || typeof d.path !== "string") throw new Error("Invalid input");
     if (!d.path.startsWith(`${d.clinicId}/${d.kind}/`)) throw new Error("FORBIDDEN");
@@ -57,6 +58,7 @@ export const svrFinalizeUpload = createServerFn({ method: "POST" })
       storyKind: d.storyKind === "urgent" ? ("urgent" as const) : ("story" as const),
       tag: String(d.tag ?? "").slice(0, 30),
       permanent: Boolean(d.permanent),
+      durationHours: d.durationHours === 12 ? 12 : 24,
     };
   })
   .handler(async ({ data, context }) => {
@@ -78,7 +80,7 @@ export const svrFinalizeUpload = createServerFn({ method: "POST" })
       ({ error } = await supabaseAdmin.from("clinic_stories").insert({
         clinic_id: data.clinicId, highlight_id: data.highlightId, media_url: data.path, media_type: mediaType,
         caption: data.caption, kind: data.storyKind, is_pinned: Boolean(data.highlightId), tag: data.tag,
-        ...(data.permanent || data.highlightId ? { expires_at: new Date(Date.now() + 3650 * 864e5).toISOString() } : {}),
+        expires_at: new Date(Date.now() + (data.permanent || data.highlightId ? 3650 * 864e5 : data.durationHours * 36e5)).toISOString(),
       }));
     }
     if (error) {

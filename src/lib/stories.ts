@@ -38,13 +38,14 @@ export async function addStory(input: {
   highlightId?: string | null;
   tag?: string;
   permanent?: boolean;
+  durationHours?: 12 | 24;
 }): Promise<{ ok: boolean; error?: string }> {
   if (input.file) {
     const { uploadMedia } = await import("@/lib/media-upload");
     return uploadMedia({
       clinicId: input.clinicId, kind: "story", file: input.file, caption: input.caption,
       highlightId: input.highlightId ?? null, storyKind: input.kind ?? "story",
-      tag: input.tag, permanent: input.permanent,
+      tag: input.tag, permanent: input.permanent, durationHours: input.durationHours,
     });
   }
   try {
@@ -58,6 +59,7 @@ export async function addStory(input: {
         fileName: "story",
         contentType: "",
         base64,
+        durationHours: input.durationHours,
       },
     });
     return { ok: true };
