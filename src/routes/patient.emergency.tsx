@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Phone, MapPin, Clock, Filter, MessageCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { NearestHospitals } from "@/components/NearestHospitals";
 import {
   listEmergencyFacilities,
   emergencyHotlines,
@@ -66,6 +67,7 @@ function EmergencyPage() {
         <span className="flex items-center gap-2"><Hospital className="h-5 w-5 text-primary" /> دليل المستشفيات الحكومية في كل المحافظات</span>
         <span>←</span>
       </Link>
+      <NearestHospitals />
       {/* Hotlines */}
       <div className="-mt-6 rounded-3xl bg-card p-4 shadow-soft">
         <div className="flex items-center gap-2">
