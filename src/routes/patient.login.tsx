@@ -91,7 +91,7 @@ function PatientLogin() {
           <ArrowLeft className="h-4 w-4 text-primary" />
         </Link>
       </section>
-      <div className="mb-4"><SoundToggle />
+      <div className="mb-4 space-y-3"><VoiceModeToggle /><SoundToggle />
 <ThemeSetting /></div>
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="mb-2 flex items-center gap-3">
