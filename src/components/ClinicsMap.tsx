@@ -171,6 +171,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
   useEffect(() => {
     if (!ready) return;
     patient.current?.setLatLng(center);
+    patientPulse.current?.setLatLng(center);
   }, [center.lat, center.lng, ready]);
 
   const locate = () => {
