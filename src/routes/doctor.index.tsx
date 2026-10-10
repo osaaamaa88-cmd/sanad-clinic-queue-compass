@@ -1,3 +1,4 @@
+import { ModeSwitch } from "@/components/ModeSwitch";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, ListOrdered, Loader2, Megaphone, MessagesSquare, Pill, Settings } from "lucide-react";
@@ -49,6 +50,7 @@ function DoctorHome() {
   if (loading || !clinic) {
     return (
       <AppShell title="لوحة الطبيب" backTo="/">
+        <div className="mt-4"><ModeSwitch current="doctor" /></div>
         <div className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> جاري التحميل…
         </div>
@@ -73,6 +75,7 @@ function DoctorHome() {
           <h2 className="mt-1 text-xl font-extrabold">{String(c.doctor ?? c.name ?? "")}</h2>
           <p className="text-sm opacity-90">{String(c.name ?? "")}</p>
         </div>
+        <ModeSwitch current="doctor" />
         <div className="grid grid-cols-2 gap-3">
           {tools.map((t) => {
             const inner = (

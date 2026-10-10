@@ -1,3 +1,4 @@
+import { ModeSwitch } from "@/components/ModeSwitch";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -91,7 +92,7 @@ function PatientLogin() {
           <ArrowLeft className="h-4 w-4 text-primary" />
         </Link>
       </section>
-      <div className="mb-4 space-y-3"><VoiceModeToggle /><SoundToggle />
+      <div className="mb-4 space-y-3"><ModeSwitch current="patient" /><VoiceModeToggle /><SoundToggle />
 <ThemeSetting /></div>
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="mb-2 flex items-center gap-3">
