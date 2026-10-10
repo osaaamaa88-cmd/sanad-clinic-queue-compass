@@ -7,6 +7,13 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 
 type Leaflet = typeof import("leaflet");
+
+function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371, t = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * t, dLng = (b.lng - a.lng) * t;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
 export interface ClinicsMapProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onSelect"> {
   clinics: Clinic[];
   center: { lat: number; lng: number };
