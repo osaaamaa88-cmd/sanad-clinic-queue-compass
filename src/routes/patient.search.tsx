@@ -153,30 +153,23 @@ function Search() {
         </div>
       </div>
 
-      {/* Specialty chips */}
+      {/* Specialty cards */}
       <div className="mt-3 -mx-5 overflow-x-auto px-5 pb-1">
         <div className="flex gap-2">
-          <button
-            onClick={() => setSpec(null)}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
-              spec === null ? "gradient-primary text-white" : "bg-secondary text-foreground"
-            }`}
-          >
-            <LayoutGrid className="h-3.5 w-3.5" />
-            الكل
-          </button>
-          {specialties.map((s) => {
-            const SpecIcon = specialtyIcons[s.id] ?? Stethoscope;
+          {[{ id: null as string | null, name: "الكل", Icon: LayoutGrid }, ...specialties.map((s) => ({ id: s.id as string | null, name: s.name, Icon: specialtyIcons[s.id] ?? Stethoscope }))].map(({ id, name, Icon }) => {
+            const active = spec === id;
             return (
               <button
-                key={s.id}
-                onClick={() => setSpec(s.id)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
-                  spec === s.id ? "gradient-primary text-white" : "bg-secondary text-foreground"
+                key={id ?? "all"}
+                onClick={() => setSpec(id)}
+                className={`flex w-[72px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border bg-card p-2.5 text-center transition active:scale-95 ${
+                  active ? "border-primary shadow-soft" : "border-border"
                 }`}
               >
-                <SpecIcon className="h-3.5 w-3.5" />
-                {s.name}
+                <span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? "gradient-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className={`w-full truncate text-[11px] font-bold ${active ? "text-primary" : ""}`}>{name}</span>
               </button>
             );
           })}
