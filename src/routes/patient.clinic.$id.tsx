@@ -4,7 +4,7 @@ import { PlayCircle } from "lucide-react";
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { MapPin, Star, MessageCircle, Users, Check, Banknote, BadgeCheck, CalendarPlus, Navigation, Phone, Clock3, Sparkles, UserPlus, UserCheck, Play, Settings, Pencil, Plus, Trash2, ImagePlus, X, Loader2, LogOut, Heart, Share2, Camera, AlertTriangle, Grid3x3, Clapperboard, Info } from "lucide-react";
-import { MessagesSquare } from "lucide-react";
+import { MessagesSquare, MoreVertical } from "lucide-react";
 import { openConversation } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
 import { AvatarActionSheet } from "@/components/AvatarActionSheet";
@@ -75,6 +75,7 @@ function ClinicDetail() {
   const [clinic, setClinic] = useState<Clinic | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [ownerMenu, setOwnerMenu] = useState(false);
   const [extras, setExtras] = useState<ClinicProfileExtras | null>(null);
   const [queue, setQueue] = useState<QueueStats | null>(null);
   const [following, setFollowing] = useState(false);
@@ -424,43 +425,39 @@ function ClinicDetail() {
 
         {/* Actions */}
         {isOwner ? (
-          <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-secondary/60 p-1.5">
-            <span className="px-2 text-[11px] font-extrabold text-muted-foreground">أدوات الطبيب</span>
-          {isOwner && (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setEditOpen(true)}
-                aria-label="تعديل البروفايل"
-                className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-background/70 px-3 py-1.5 text-[11px] font-extrabold text-gold backdrop-blur"
-              >
-                <Pencil className="h-3.5 w-3.5" /> تعديل البروفايل
-              </button>
-              <button
-                onClick={() => postInputRef.current?.click()}
-                aria-label="إضافة منشور"
-                className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
-              >
-                {busy === "post" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              </button>
-              <Link
-                to="/doctor-settings"
-                aria-label="إعدادات العيادة"
-                className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
-              >
-                <Settings className="h-4 w-4" />
-              </Link>
-              <button
-                onClick={async () => {
-                  await signOutStaff();
-                  navigate({ to: "/doctor/login", replace: true });
-                }}
-                aria-label="تسجيل الخروج"
-                className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
-          )}
+          <div className="relative mt-3 flex items-center justify-between gap-2 rounded-xl bg-secondary/60 p-1.5">
+            <span className="px-2 text-[11px] font-extrabold text-muted-foreground">بروفايلك زي ما المريض بيشوفه</span>
+            <button
+              type="button"
+              onClick={() => setOwnerMenu((v) => !v)}
+              aria-label="خيارات العيادة"
+              aria-expanded={ownerMenu}
+              className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+            {ownerMenu && (
+              <>
+                <button type="button" aria-label="إغلاق" className="fixed inset-0 z-40 cursor-default" onClick={() => setOwnerMenu(false)} />
+                <div role="menu" className="absolute left-1.5 top-11 z-50 w-56 overflow-hidden rounded-2xl border border-border bg-card py-1 text-sm font-bold shadow-xl">
+                  <button role="menuitem" onClick={() => { setOwnerMenu(false); setEditOpen(true); }} className="flex w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary">
+                    <Pencil className="h-4 w-4 text-primary" /> تعديل البروفايل
+                  </button>
+                  <button role="menuitem" onClick={() => { setOwnerMenu(false); postInputRef.current?.click(); }} className="flex w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary">
+                    {busy === "post" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 text-primary" />} إضافة منشور
+                  </button>
+                  <Link role="menuitem" to="/doctor" className="flex w-full items-center gap-2 px-4 py-2.5 hover:bg-secondary">
+                    <Grid3x3 className="h-4 w-4 text-primary" /> لوحة الطبيب
+                  </Link>
+                  <Link role="menuitem" to="/doctor-settings" className="flex w-full items-center gap-2 px-4 py-2.5 hover:bg-secondary">
+                    <Settings className="h-4 w-4 text-primary" /> إعدادات العيادة
+                  </Link>
+                  <button role="menuitem" onClick={async () => { setOwnerMenu(false); await signOutStaff(); navigate({ to: "/doctor/login", replace: true }); }} className="flex w-full items-center gap-2 border-t border-border px-4 py-2.5 text-right text-destructive hover:bg-secondary">
+                    <LogOut className="h-4 w-4" /> تسجيل الخروج
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ) : null}
         <div className="mt-3 grid grid-cols-3 gap-1.5">
