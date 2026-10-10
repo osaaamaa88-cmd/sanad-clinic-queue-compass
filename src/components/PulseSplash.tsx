@@ -1,5 +1,5 @@
+import sanadLogo from "@/assets/sanad-logo.png";
 import { useEffect, useState } from "react";
-import { HeartPulse } from "lucide-react";
 import { playHeartbeat } from "@/lib/sounds";
 
 export function PulseSplash({ onDone, duration = 2000 }: { onDone: () => void; duration?: number }) {
@@ -18,8 +18,8 @@ export function PulseSplash({ onDone, duration = 2000 }: { onDone: () => void; d
       <div className="relative grid h-28 w-28 place-items-center">
         <span className="sanad-ring absolute inset-0 rounded-full bg-primary/25" />
         <span className="sanad-ring absolute inset-0 rounded-full bg-primary/20 [animation-delay:0.5s]" />
-        <div className="sanad-beat relative grid h-24 w-24 place-items-center rounded-[2rem] gradient-primary text-primary-foreground shadow-soft">
-          <HeartPulse className="h-12 w-12" />
+        <div className="sanad-beat relative grid h-24 w-24 place-items-center rounded-[2rem] bg-surface-deep shadow-soft">
+          <img src={sanadLogo} alt="" width={400} height={400} className="h-16 w-16" />
         </div>
       </div>
       <svg viewBox="0 0 200 40" className="mt-6 h-8 w-48 text-primary" fill="none">
