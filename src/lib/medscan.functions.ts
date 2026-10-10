@@ -38,10 +38,19 @@ const DRUG_PROMPT = `أنت صيدلي مصري خبير بسوق الدواء �
 اقترح حتى 5 مثائل متوفرة في مصر و3 بدائل مشابهة. لا تخترع أدوية غير موجودة. لو لم تتعرف على دواء اجعل found=false.`;
 
 const LAB_PROMPT = `أنت طبيب باطنة مصري حنون وصادق، بتكلم مريض قلقان ماسك ورقة تحليله. اتكلم بالعامية المصرية بدفء زي ما بتطمّن حد من أهلك، من غير تهويل ومن غير ما تخبي الحقيقة.
-اقرأ الصورة بدقة شديدة: كل سطر في الورقة، الأرقام والوحدات والمعدلات المرجعية المطبوعة كما هي حرفياً. لو رقم مش واضح اكتب الحالة unknown وماتخمّنش.
+اقرأ الصورة بدقة شديدة: كل سطر في الورقة، الأرقام والوحدات والمعدلات المرجعية المطبوعة كما هي حرفياً. لو رقم مش واضح اكتب الحالة unknown وماتخمّنش. ماتضيفش مؤشرات مش مكتوبة.
+قواعد مهمة جداً:
+- حدد status بمقارنة الرقم بالمعدل المطبوع فقط (H/L أو علامة المعمل تأكيد إضافي).
+- ممنوع الطمأنة الكاذبة: ماتقولش "مافيش أي حاجة تقلق" ولا "ما تقلقش خالص" لو فيه نتايج مش طبيعية. قول إنها تستاهل متابعة بهدوء.
+- ممنوع التشخيص القطعي: استخدم "ممكن يكون/محتاج دكتور يأكد" بدل "عندك مرض كذا". ماتستنتجش "مافيش التهابات" أو أي حاجة أكبر من الرقم.
+- ممنوع كلمات مخيفة زي سرطان/فشل/خطير جداً إلا لو القيمة حرجة فعلاً.
+- القيم الحرجة (مثلاً بوتاسيوم >6 أو <2.8، صوديوم <125 أو >155، سكر <54 أو >400، هيموجلوبين <7، صفائح <20 ألف) => urgent=true مع رسالة هادية وواضحة: روح طوارئ أو كلّم دكتور النهارده.
+- الفرق البسيط جداً عن المعدل وصفه "أقل/أعلى بفرق بسيط".
 أعد JSON فقط:
-{"found":true,"type":"نوع التحليل","comfort":"رسالة طمأنة دافئة قصيرة (جملتين) تبدأ بكلمة حلوة زي ألف سلامة عليك، وتقدّر قلقه وتشجعه","summary":"ملخص صادق ومطمئن بالعامية المصرية في 2-3 جمل","items":[{"name":"اسم المؤشر","value":"القيمة","unit":"الوحدة","range":"المعدل الطبيعي","status":"normal|high|low|unknown","explain":"شرح بسيط وحنون بالمصري لمعنى النتيجة، ولو مش طبيعية قول إيه اللي ممكن يساعد"}],"questions":["سؤال تسأله لطبيبك"],"urgent":false}
-استخدم المعدل المكتوب في الورقة إن وجد. urgent=true فقط لو فيه قيمة خطيرة تستدعي طوارئ، وفي الحالة دي خلّي رسالة الطمأنة هادية بس واضحة إنه يتحرك دلوقتي. لو مفيش تحليل في الصورة اجعل found=false. لا تشخّص أمراضاً قطعياً.`;
+{"found":true,"type":"نوع التحليل","comfort":"رسالة طمأنة دافئة قصيرة (جملتين) تبدأ بكلمة حلوة زي ألف سلامة عليك، وتقدّر قلقه من غير ما تنكر النتايج","summary":"ملخص صادق ومطمئن بالعامية المصرية في 2-3 جمل","items":[{"name":"اسم المؤشر","value":"القيمة","unit":"الوحدة","range":"المعدل الطبيعي","status":"normal|high|low|unknown","explain":"شرح بسيط وحنون بالمصري، ولو مش طبيعية قول إيه اللي ممكن يساعد"}],"questions":["سؤال تسأله لطبيبك"],"urgent":false}
+لو مفيش تحليل في الصورة اجعل found=false.`;
+
+const MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.8-flash"];
 
 async function callGemini(prompt: string, text?: string, image?: string, mime?: string) {
   const key = process.env.GEMINI_API_KEY;
@@ -49,28 +58,36 @@ async function callGemini(prompt: string, text?: string, image?: string, mime?: 
   const parts: any[] = [{ text: prompt }];
   if (text) parts.push({ text: `المدخل: ${text}` });
   if (image) parts.push({ inline_data: { mime_type: mime, data: image } });
-  const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-    {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts }],
-        generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
-      }),
-    },
-  );
-  const json: any = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    if (res.status === 429) throw new Error("ضغط كبير على الخدمة، جرّب بعد دقيقة.");
-    throw new Error("تعذر التحليل دلوقتي");
+  let busy = false;
+  for (const model of MODELS) {
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: "POST",
+        signal: AbortSignal.timeout(40_000),
+        headers: { "content-type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { responseMimeType: "application/json" } }),
+      });
+      const json: any = await res.json().catch(() => ({}));
+      if (!res.ok) { if (res.status === 429) busy = true; continue; }
+      const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? "").join("");
+      try { return JSON.parse(raw.replace(/```json|```/g, "").trim()); }
+      catch { throw new Error("ماقدرناش نقرأ الصورة، جرّب صورة أوضح"); }
+    } catch (e: any) {
+      if (e?.message?.startsWith("ماقدرناش")) throw e;
+    }
   }
-  const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? "").join("");
-  try {
-    return JSON.parse(raw.replace(/```json|```/g, "").trim());
-  } catch {
-    throw new Error("ماقدرناش نقرأ الصورة، جرّب صورة أوضح");
-  }
+  throw new Error(busy ? "ضغط كبير على الخدمة، جرّب بعد دقيقة." : "تعذر التحليل دلوقتي، جرّب تاني");
+}
+
+/** Recompute status from the printed range so a model slip can't flip normal/high/low. */
+export function checkStatus(value: string, range: string, given: LabItem["status"]): LabItem["status"] {
+  const v = parseFloat(value.replace(/,/g, "").match(/-?\d+(\.\d+)?/)?.[0] ?? "");
+  if (isNaN(v)) return given;
+  const nums = (range.replace(/,/g, "").match(/\d+(\.\d+)?/g) ?? []).map(Number);
+  if (/^\s*(<|≤|up to|less|حتى|أقل)/i.test(range) && nums.length === 1) return v > nums[0] ? "high" : "normal";
+  if (/^\s*(>|≥|more|أكثر|أكبر)/i.test(range) && nums.length === 1) return v < nums[0] ? "low" : "normal";
+  if (nums.length === 2 && nums[0] < nums[1]) return v < nums[0] ? "low" : v > nums[1] ? "high" : "normal";
+  return given;
 }
 
 type In = { image?: string; mime?: string; text?: string };
@@ -115,10 +132,10 @@ export const readLab = createServerFn({ method: "POST" })
       comfort: s(o.comfort, 400),
       summary: s(o.summary, 600),
       urgent: o.urgent === true,
-      items: (Array.isArray(o.items) ? o.items : []).slice(0, 40).map((i: any) => ({
-        name: s(i?.name, 60), value: s(i?.value, 30), unit: s(i?.unit, 20), range: s(i?.range, 40),
-        status: st(i?.status), explain: s(i?.explain, 250),
-      })),
+      items: (Array.isArray(o.items) ? o.items : []).slice(0, 40).map((i: any) => {
+        const value = s(i?.value, 30), range = s(i?.range, 40);
+        return { name: s(i?.name, 60), value, unit: s(i?.unit, 20), range, status: checkStatus(value, range, st(i?.status)), explain: s(i?.explain, 250) };
+      }),
       questions: (Array.isArray(o.questions) ? o.questions : []).slice(0, 5).map((q: any) => s(q, 200)),
     };
   });
