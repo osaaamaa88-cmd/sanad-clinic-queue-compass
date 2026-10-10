@@ -26,6 +26,7 @@ export const analyzeFood = createServerFn({ method: "POST" })
     return { image, mime, text };
   })
   .handler(async ({ data }): Promise<FoodAnalysis> => {
+    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("analyzeFood");
     const key = process.env.GEMINI_API_KEY;
     if (!key) throw new Error("خدمة التحليل غير مضبوطة");
     const parts: any[] = [{ text: PROMPT }];
@@ -91,6 +92,7 @@ export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
     recent: (Array.isArray(d?.recent) ? d.recent : []).slice(0, 15).map((s) => String(s).slice(0, 60)),
   }))
   .handler(async ({ data }): Promise<{ alternatives: Alternative[]; error?: string }> => {
+    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("suggestEgyptianAlternatives");
     if (!data.query) return { alternatives: [], error: "اكتب الوجبة أو هدفك" };
     const key = process.env.GEMINI_API_KEY;
     if (!key) return { alternatives: [], error: "الخدمة غير مضبوطة" };
