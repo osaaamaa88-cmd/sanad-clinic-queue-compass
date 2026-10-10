@@ -41,7 +41,7 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
   }, [clinicId]);
 
   const items = [
-    { key: "profile", label: "عيادتي", icon: Stethoscope, active: pathname === "/doctor" || pathname === "/doctor/" || pathname.startsWith("/patient/clinic/"), node: { to: "/doctor" as const } },
+    { key: "profile", label: "عيادتي", icon: Stethoscope, active: pathname === "/doctor" || pathname === "/doctor/" || pathname.startsWith("/patient/clinic/"), node: clinicId ? { to: "/patient/clinic/$id" as const, params: { id: clinicId } } : { to: "/doctor" as const } },
     { key: "msgs", label: "الرسائل", icon: MessagesSquare, active: pathname.startsWith("/messages"), node: { to: "/messages" as const }, badge: unread },
     { key: "rx" },
     { key: "queue", label: "الطابور", icon: ListOrdered, active: pathname.startsWith("/reception"), node: { to: "/reception" as const } },
