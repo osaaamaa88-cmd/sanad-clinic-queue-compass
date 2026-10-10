@@ -70,3 +70,68 @@ export const analyzeFood = createServerFn({ method: "POST" })
       advice: String(o.advice ?? "").slice(0, 300),
     };
   });
+
+export type Alternative = {
+  name: string;
+  amount: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  saving: string;
+  tip: string;
+};
+
+export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
+  .inputValidator((d: { query: string; goal: string; target: number; eaten: number; recent: string[] }) => ({
+    query: String(d?.query ?? "").trim().slice(0, 200),
+    goal: ["lose", "keep", "gain"].includes(d?.goal) ? d.goal : "keep",
+    target: Math.max(800, Math.min(6000, Math.round(Number(d?.target) || 2000))),
+    eaten: Math.max(0, Math.min(10000, Math.round(Number(d?.eaten) || 0))),
+    recent: (Array.isArray(d?.recent) ? d.recent : []).slice(0, 15).map((s) => String(s).slice(0, 60)),
+  }))
+  .handler(async ({ data }): Promise<{ alternatives: Alternative[]; error?: string }> => {
+    if (!data.query) return { alternatives: [], error: "اكتب الوجبة أو هدفك" };
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) return { alternatives: [], error: "الخدمة غير مضبوطة" };
+    const { createOpenAI } = await import("@ai-sdk/openai");
+    const { streamText } = await import("ai");
+    const openai = createOpenAI({
+      baseURL: "https://ai.gateway.lovable.dev/v1",
+      apiKey: key,
+      headers: { "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
+    });
+    const goalAr = { lose: "إنقاص الوزن", keep: "تثبيت الوزن", gain: "زيادة الوزن والعضلات" }[data.goal];
+    const remaining = data.target - data.eaten;
+    const prompt = `أنت أخصائي تغذية مصري. المريض هدفه: ${goalAr}. احتياجه اليومي ${data.target} سعر، أكل النهارده ${data.eaten} (متبقي ${remaining}).
+آخر وجباته: ${data.recent.join("، ") || "لا يوجد"}.
+طلبه أو الوجبة اللي عايزها: "${data.query}".
+اقترح 3 بدائل مصرية أصيلة متاحة وسعرها معقول، تناسب المتبقي وتكمّل النقص في سجله (مثلاً بروتين لو قليل). ممنوع تكرار نفس الأكلات اللي أكلها.
+أعد JSON فقط بدون أي نص آخر:
+{"alternatives":[{"name":"","amount":"الكمية","calories":0,"protein":0,"carbs":0,"fat":0,"saving":"مقارنة قصيرة بالأصل","tip":"طريقة تحضير صحية مصرية قصيرة"}]}`;
+    try {
+      const result = streamText({
+        model: openai.responses("openai/gpt-6-astra"),
+        prompt,
+        providerOptions: {
+          openai: { forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", store: false, include: ["reasoning.encrypted_content"] },
+        },
+      });
+      const raw = await result.text;
+      const o = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      const n = (v: unknown) => Math.max(0, Math.round(Number(v) || 0));
+      const s = (v: unknown, m: number) => String(v ?? "").slice(0, m);
+      return {
+        alternatives: (Array.isArray(o?.alternatives) ? o.alternatives : []).slice(0, 4).map((a: any) => ({
+          name: s(a?.name, 80), amount: s(a?.amount, 60), calories: n(a?.calories), protein: n(a?.protein),
+          carbs: n(a?.carbs), fat: n(a?.fat), saving: s(a?.saving, 160), tip: s(a?.tip, 240),
+        })),
+      };
+    } catch (e: any) {
+      const st = e?.statusCode ?? e?.status;
+      console.error("suggest alternatives failed", st, e?.message);
+      if (st === 429) return { alternatives: [], error: "ضغط كبير على الخدمة، جرّب بعد دقيقة." };
+      if (st === 402 || st === 403) return { alternatives: [], error: "رصيد الذكاء الاصطناعي خلص مؤقتاً." };
+      return { alternatives: [], error: "تعذر اقتراح بدائل دلوقتي" };
+    }
+  });
