@@ -1,7 +1,8 @@
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Activity, ArrowLeft, HeartPulse, LogOut, Pill } from "lucide-react";
+import { Activity, ArrowLeft, HeartPulse, LogOut, Mic, Pill } from "lucide-react";
+import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
 import { MessagesSquare } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { PatientAuthForm } from "@/components/PatientAuthModal";
