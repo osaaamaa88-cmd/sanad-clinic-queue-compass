@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Copy, Loader2, Plus, Search, Trash2, Utensils } from "lucide-react";
+import { Camera, Copy, Sparkles, Loader2, Plus, Search, Trash2, Utensils } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { analyzeFood, type FoodAnalysis } from "@/lib/nutrition.functions";
+import { analyzeFood, suggestEgyptianAlternatives, type Alternative, type FoodAnalysis } from "@/lib/nutrition.functions";
 
 export const Route = createFileRoute("/nutrition")({
   staticData: { sitemap: true },
@@ -73,6 +73,9 @@ function Nutrition() {
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<FoodAnalysis | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [altQ, setAltQ] = useState("");
+  const [altBusy, setAltBusy] = useState(false);
+  const [alts, setAlts] = useState<Alternative[]>([]);
 
   useEffect(() => {
     try {
@@ -120,6 +123,20 @@ function Nutrition() {
     setPreview(URL.createObjectURL(f));
     const { data, mime } = await fileToBase64(f);
     await run({ image: data, mime });
+  }
+
+  async function askAlts(q: string) {
+    if (!q.trim() || altBusy) return;
+    setAltQ(q); setAltBusy(true); setAlts([]);
+    try {
+      const r = await suggestEgyptianAlternatives({ data: { query: q, goal: profile.goal, target, eaten, recent: log.slice(0, 15).map((e) => e.name) } });
+      if (r.error) toast.error(r.error); else setAlts(r.alternatives);
+    } catch { toast.error("تعذر اقتراح بدائل دلوقتي"); } finally { setAltBusy(false); }
+  }
+
+  function addAlt(a: Alternative) {
+    saveLog([{ name: a.name, calories: a.calories, protein: a.protein, carbs: a.carbs, fat: a.fat, fiber: 0, items: [], advice: a.tip, id: crypto.randomUUID(), meal, at: new Date().toISOString() }, ...log]);
+    toast.success(`اتضافت لـ${meal}`);
   }
 
   function addResult() {
@@ -188,6 +205,38 @@ function Nutrition() {
                 <button type="button" onClick={addResult} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-extrabold text-primary-foreground"><Plus className="h-4 w-4" /> أضف لـ{meal}</button>
               )}
             </div>
+          )}
+        </section>
+
+        {/* Egyptian alternatives */}
+        <section className="rounded-3xl border border-border bg-card p-4 shadow-soft">
+          <h2 className="flex items-center gap-2 text-base font-extrabold"><Sparkles className="h-5 w-5 text-primary" /> بدائل مصرية ذكية</h2>
+          <p className="mt-1 text-xs text-muted-foreground">اكتب الأكلة اللي نفسك فيها أو هدفك، ونقترحلك بدائل تناسب الـ{Math.max(0, target - eaten)} سعر الفاضلين وسجل أكلك.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {["بديل صحي للحواوشي", "بديل للكشري", "عشاء خفيف مشبع", "سناك عالي البروتين"].map((q) => (
+              <button key={q} type="button" disabled={altBusy} onClick={() => void askAlts(q)} className="rounded-full border border-primary/30 bg-primary-soft px-3 py-1.5 text-[11px] font-bold text-primary active:scale-95">{q}</button>
+            ))}
+          </div>
+          <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); void askAlts(altQ); }}>
+            <input value={altQ} onChange={(e) => setAltQ(e.target.value)} placeholder="مثلاً: نفسي في شاورما" className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm" />
+            <button disabled={altBusy} className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground" aria-label="اقترح">{altBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}</button>
+          </form>
+          {altBusy && <p className="mt-3 text-center text-xs text-muted-foreground">بنجهزلك بدائل…</p>}
+          {alts.length > 0 && (
+            <ul className="mt-3 space-y-2">
+              {alts.map((a, i) => (
+                <li key={i} className="rounded-2xl bg-primary-soft/40 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0"><p className="font-extrabold">{a.name}</p><p className="text-[11px] text-muted-foreground">{a.amount}</p></div>
+                    <p className="shrink-0 font-extrabold text-primary">{a.calories} سعر</p>
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">بروتين {a.protein}ج • كارب {a.carbs}ج • دهون {a.fat}ج</p>
+                  {a.saving && <p className="mt-1 text-xs font-bold text-success">{a.saving}</p>}
+                  {a.tip && <p className="mt-1 text-xs text-muted-foreground">💡 {a.tip}</p>}
+                  <button type="button" onClick={() => addAlt(a)} className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground"><Plus className="h-4 w-4" /> أضف لـ{meal}</button>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
 
