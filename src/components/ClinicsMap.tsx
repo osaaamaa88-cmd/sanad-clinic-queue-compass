@@ -99,6 +99,14 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
         radius: 7, color: colors.getPropertyValue("--map-pin-ink").trim(), weight: 3,
         fillColor: colors.getPropertyValue("--map-clinic").trim(), fillOpacity: 1,
       }).addTo(instance);
+      patientPulse.current = L.marker(latest.current.center, {
+        icon: L.divIcon({
+          className: "sanad-pulse-wrap",
+          html: '<span class="sanad-pulse"></span>',
+          iconSize: [56, 56], iconAnchor: [28, 28],
+        }),
+        interactive: false, keyboard: false,
+      }).addTo(instance);
       const observer = new ResizeObserver(() => instance.invalidateSize({ pan: false }));
       observer.observe(container.current);
       instance.on("unload", () => observer.disconnect());
