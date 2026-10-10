@@ -1,7 +1,7 @@
 import { ModeSwitch } from "@/components/ModeSwitch";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, ListOrdered, Loader2, Megaphone, MessagesSquare, Pill, Settings } from "lucide-react";
+import { Eye, ListOrdered, Loader2, Megaphone, MessagesSquare, Pill, Settings, Utensils } from "lucide-react";
 import { DoctorBottomNav } from "@/components/DoctorBottomNav";
 import { RxComposer } from "@/components/RxComposer";
 import { AppShell } from "@/components/AppShell";
@@ -65,6 +65,7 @@ function DoctorHome() {
     { label: "رسائل المرضى", desc: "رد على الاستفسارات", icon: MessagesSquare, to: "/messages" as const },
     { label: "الستوري والتنبيهات", desc: "انشر لمرضاك", icon: Megaphone, to: "/doctor/stories" as const },
     { label: "إعدادات العيادة", desc: "المواعيد والأسعار", icon: Settings, to: "/doctor-settings" as const },
+    { label: "التغذية والسعرات", desc: "أنظمة للمرضى ولك", icon: Utensils, to: "/nutrition" as const },
   ];
 
   return (

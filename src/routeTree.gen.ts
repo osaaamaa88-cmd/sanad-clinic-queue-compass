@@ -17,6 +17,7 @@ import { Route as DirectionsRouteImport } from './routes/directions'
 import { Route as DoctorSettingsRouteImport } from './routes/doctor-settings'
 import { Route as FindDoctorRouteImport } from './routes/find-doctor'
 import { Route as HospitalsRouteImport } from './routes/hospitals'
+import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReceptionRouteImport } from './routes/reception'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -78,6 +79,11 @@ const FindDoctorRoute = FindDoctorRouteImport.update({
 const HospitalsRoute = HospitalsRouteImport.update({
   id: '/hospitals',
   path: '/hospitals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NutritionRoute = NutritionRouteImport.update({
+  id: '/nutrition',
+  path: '/nutrition',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
   '/hospitals': typeof HospitalsRoute
+  '/nutrition': typeof NutritionRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
   '/settings': typeof SettingsRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByTo {
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
   '/hospitals': typeof HospitalsRoute
+  '/nutrition': typeof NutritionRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
   '/settings': typeof SettingsRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/doctor-settings': typeof DoctorSettingsRoute
   '/find-doctor': typeof FindDoctorRoute
   '/hospitals': typeof HospitalsRoute
+  '/nutrition': typeof NutritionRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
   '/settings': typeof SettingsRoute
@@ -299,6 +308,7 @@ export interface FileRouteTypes {
     | '/doctor-settings'
     | '/find-doctor'
     | '/hospitals'
+    | '/nutrition'
     | '/privacy'
     | '/reception'
     | '/settings'
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/doctor-settings'
     | '/find-doctor'
     | '/hospitals'
+    | '/nutrition'
     | '/privacy'
     | '/reception'
     | '/settings'
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/doctor-settings'
     | '/find-doctor'
     | '/hospitals'
+    | '/nutrition'
     | '/privacy'
     | '/reception'
     | '/settings'
@@ -396,6 +408,7 @@ export interface RootRouteChildren {
   DoctorSettingsRoute: typeof DoctorSettingsRoute
   FindDoctorRoute: typeof FindDoctorRoute
   HospitalsRoute: typeof HospitalsRoute
+  NutritionRoute: typeof NutritionRoute
   PrivacyRoute: typeof PrivacyRoute
   ReceptionRoute: typeof ReceptionRoute
   SettingsRoute: typeof SettingsRoute
@@ -476,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/hospitals'
       fullPath: '/hospitals'
       preLoaderRoute: typeof HospitalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nutrition': {
+      id: '/nutrition'
+      path: '/nutrition'
+      fullPath: '/nutrition'
+      preLoaderRoute: typeof NutritionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -644,6 +664,7 @@ const rootRouteChildren: RootRouteChildren = {
   DoctorSettingsRoute: DoctorSettingsRoute,
   FindDoctorRoute: FindDoctorRoute,
   HospitalsRoute: HospitalsRoute,
+  NutritionRoute: NutritionRoute,
   PrivacyRoute: PrivacyRoute,
   ReceptionRoute: ReceptionRoute,
   SettingsRoute: SettingsRoute,

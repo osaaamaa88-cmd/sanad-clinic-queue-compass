@@ -81,6 +81,11 @@ function PatientLogin() {
           <span className="mt-3 flex items-center justify-between gap-2"><span className="min-w-0 text-sm font-extrabold">مواعيد الأدوية</span><ArrowLeft className="h-4 w-4 shrink-0 text-warning" /></span>
           <span className="mt-1 block text-xs leading-5 text-muted-foreground">جرعاتك وتنبيهات مواعيد الدواء</span>
         </Link>
+        <Link to="/nutrition" className="col-span-2 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary-soft/30 p-4 transition hover:shadow-soft">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground"><Activity className="h-5 w-5" /></span>
+          <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">التغذية والسعرات</span><span className="block text-xs text-muted-foreground">صوّر أكلك واعرف سعراته وتابع يومك</span></span>
+          <ArrowLeft className="h-4 w-4 text-primary" />
+        </Link>
         <Link to="/messages" className="col-span-2 flex items-center gap-3 rounded-2xl border border-success/30 bg-success/10 p-4 transition hover:shadow-soft">
           <span className="grid h-11 w-11 place-items-center rounded-xl bg-success text-success-foreground"><MessagesSquare className="h-5 w-5" /></span>
           <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">رسايلي مع العيادات</span><span className="block text-xs text-muted-foreground">محادثاتك المباشرة مع الدكاترة</span></span>
