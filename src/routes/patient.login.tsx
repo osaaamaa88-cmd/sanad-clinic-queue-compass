@@ -27,6 +27,28 @@ export const Route = createFileRoute("/patient/login")({
   component: PatientLogin,
 });
 
+function VoiceModeToggle() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const sync = () => setOn(isVoiceModeOn());
+    sync();
+    window.addEventListener("sanad:voice-mode", sync);
+    return () => window.removeEventListener("sanad:voice-mode", sync);
+  }, []);
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
+      <span className="flex items-center gap-3">
+        <Mic className="h-5 w-5 text-primary" />
+        <span>
+          <span className="block text-sm font-extrabold">المساعد الصوتي</span>
+          <span className="block text-xs text-muted-foreground">لكبار السن وفاقدي البصر — يظهر فوق كل الصفحات</span>
+        </span>
+      </span>
+      <input type="checkbox" role="switch" checked={on} onChange={() => setVoiceMode(!on)} className="h-6 w-11 accent-primary" />
+    </label>
+  );
+}
+
 function PatientLogin() {
   const navigate = useNavigate();
   const [patient, setPatient] = useState<PatientSession | null>(null);
