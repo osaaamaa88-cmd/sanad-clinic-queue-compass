@@ -2,7 +2,7 @@ import { ModeSwitch } from "@/components/ModeSwitch";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Activity, ArrowLeft, HeartPulse, LogOut, Mic, Pill } from "lucide-react";
+import { Activity, ArrowLeft, FlaskConical, HeartPulse, LogOut, Mic, Pill } from "lucide-react";
 import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
 import { MessagesSquare } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -85,6 +85,16 @@ function PatientLogin() {
           <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground"><Activity className="h-5 w-5" /></span>
           <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">التغذية والسعرات</span><span className="block text-xs text-muted-foreground">صوّر أكلك واعرف سعراته وتابع يومك</span></span>
           <ArrowLeft className="h-4 w-4 text-primary" />
+        </Link>
+        <Link to="/patient/drug-scan" className="flex flex-col rounded-2xl border border-warning/30 bg-warning/10 p-4 transition hover:shadow-soft">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-warning text-warning-foreground"><Pill className="h-5 w-5" /></span>
+          <span className="mt-3 text-sm font-extrabold">ماسح الأدوية</span>
+          <span className="mt-1 text-xs leading-5 text-muted-foreground">بدائل الدواء الناقص</span>
+        </Link>
+        <Link to="/patient/lab-reader" className="flex flex-col rounded-2xl border border-primary/30 bg-primary-soft/30 p-4 transition hover:shadow-soft">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground"><FlaskConical className="h-5 w-5" /></span>
+          <span className="mt-3 text-sm font-extrabold">قارئ التحاليل</span>
+          <span className="mt-1 text-xs leading-5 text-muted-foreground">افهم نتيجة تحليلك</span>
         </Link>
         <Link to="/messages" className="col-span-2 flex items-center gap-3 rounded-2xl border border-success/30 bg-success/10 p-4 transition hover:shadow-soft">
           <span className="grid h-11 w-11 place-items-center rounded-xl bg-success text-success-foreground"><MessagesSquare className="h-5 w-5" /></span>
