@@ -49,7 +49,7 @@ function LabReader() {
   }
 
   return (
-    <AppShell>
+    <AppShell title="قارئ التحاليل" backTo="/patient/login">
       <div className="mx-auto max-w-xl space-y-4 p-4 pb-28">
         <header className="flex items-center gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground"><FlaskConical className="h-6 w-6" /></span>

@@ -50,7 +50,7 @@ function DrugScanPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell title="ماسح الأدوية" backTo="/patient/login">
       <div className="mx-auto max-w-xl space-y-4 p-4 pb-28">
         <header className="flex items-center gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-warning text-warning-foreground"><Pill className="h-6 w-6" /></span>
