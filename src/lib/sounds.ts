@@ -202,3 +202,33 @@ export function installGlobalSounds(toast: { success: (...a: never[]) => unknown
     return (orig as (...x: unknown[]) => unknown)(...a);
   };
 }
+
+/** Soft "lub-dub" heartbeat for the splash screen (two beats). */
+export function playHeartbeat(beats = 2, gap = 0.85) {
+  if (!isSoundOn()) return;
+  const a = audio();
+  if (!a) return;
+  const thump = (start: number, freq: number, vol: number) => {
+    const t = a.currentTime + start;
+    const o = a.createOscillator();
+    const g = a.createGain();
+    const lp = a.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 180;
+    o.type = "sine";
+    o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(freq * 0.55, t + 0.14);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+    o.connect(lp).connect(g).connect(out(a));
+    o.start(t);
+    o.stop(t + 0.22);
+  };
+  for (let i = 0; i < beats; i++) {
+    const s = 0.05 + i * gap;
+    thump(s, 95, 0.55);
+    thump(s + 0.2, 75, 0.38);
+  }
+  bell(1318.5, 0.05 + beats * gap - 0.1, 0.9, 0.05);
+}
