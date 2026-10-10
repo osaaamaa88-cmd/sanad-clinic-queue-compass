@@ -148,12 +148,12 @@ function DoctorEntry() {
   }
 
   return (
-    <AppShell title="حساب الطبيب" subtitle="دخول أو إنشاء حساب" backTo="/">
+    <AppShell title="بوابة فريق العيادة" subtitle="طبيب • سكرتير • استقبال" backTo="/">
       <div className="grid grid-cols-2 gap-2">
         {(
           [
             ["login", "تسجيل الدخول"],
-            ["signup", "حساب جديد"],
+            ["signup", "حساب طبيب جديد"],
           ] as const
         ).map(([m, label]) => (
           <button
@@ -170,14 +170,20 @@ function DoctorEntry() {
 
       <div className="mt-4">
         {mode === "login" ? (
-          <StaffAuth
-            title="دخول الطبيب أو السكرتير"
-            hint="استخدم البريد وكلمة السر اللي سجلت بيهم."
-            onSignedIn={() => {
-              setLoading(true);
-              route();
-            }}
-          />
+          <>
+            <StaffAuth
+              title="دخول الطبيب أو السكرتير أو الاستقبال"
+              hint="الطبيب بيدخل على لوحة عيادته، والسكرتير/الاستقبال على دفتر الحجز والطابور مباشرة."
+              onSignedIn={() => {
+                setLoading(true);
+                route();
+              }}
+            />
+            <div className="mt-3 rounded-2xl border border-border bg-card p-4 text-xs leading-relaxed text-muted-foreground">
+              <p className="font-extrabold text-foreground">سكرتير أو موظف استقبال؟</p>
+              حسابك بيعمله الطبيب من «إعدادات العيادة ← حسابات السكرتير». خد منه البريد وكلمة السر وادخل بيهم هنا.
+            </div>
+          </>
         ) : (
           <>
             <div className="rounded-2xl border border-primary bg-primary-soft p-4">
