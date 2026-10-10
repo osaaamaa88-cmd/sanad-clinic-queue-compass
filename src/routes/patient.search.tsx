@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { directionsPath } from "@/lib/directions";
 import { ClientOnly } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -329,7 +330,7 @@ function HospitalCard({ c }: { c: Clinic }) {
       </Link>
       <div className="grid grid-cols-2 border-t border-border">
         <a href={`tel:${c.phone}`} className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-extrabold text-destructive hover:bg-destructive/5"><Phone className="h-3.5 w-3.5" /> اتصال</a>
-        <a href={`https://www.google.com/maps/dir/?api=1&destination=${dest}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 border-r border-border py-2.5 text-xs font-bold hover:bg-secondary"><Navigation className="h-3.5 w-3.5" /> الاتجاهات</a>
+        <a href={directionsPath(c.lat, c.lng, c.doctor)} className="flex items-center justify-center gap-1.5 border-r border-border py-2.5 text-xs font-bold hover:bg-secondary"><Navigation className="h-3.5 w-3.5" /> الاتجاهات</a>
       </div>
     </div>
   );
@@ -372,7 +373,7 @@ function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void 
       {hospital && <div className="mt-2"><LocationBadge approx={!!clinic.approxLocation} /></div>}
       <div className="mt-3 grid grid-cols-2 gap-2">
         {clinic.phone ? <Button asChild variant={hospital ? "destructive" : "default"}><a href={`tel:${clinic.phone}`}><Phone /> اتصال</a></Button> : <Button disabled variant="secondary"><Phone /> لا يوجد رقم</Button>}
-        <Button asChild variant="secondary"><a href={`https://www.google.com/maps/dir/?api=1&destination=${destination}`} target="_blank" rel="noreferrer"><Navigation /> اتجاهات Google Maps</a></Button>
+        <Button asChild variant="secondary"><a href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}><Navigation /> الاتجاهات</a></Button>
       </div>
       <Button asChild variant="link" className="mt-1 h-8 w-full text-xs">
         {hospital ? <Link to="/hospital/$id" params={{ id: clinic.id }}>تفاصيل المستشفى <ChevronLeft /></Link> : <Link to="/patient/clinic/$id" params={{ id: clinic.id }}>عرض الطبيب <ChevronLeft /></Link>}

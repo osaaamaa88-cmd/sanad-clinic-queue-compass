@@ -52,7 +52,7 @@ function HospitalPage() {
           <a href={`tel:${phone}`} className="flex items-center justify-center gap-1.5 rounded-2xl bg-destructive py-3.5 font-extrabold text-destructive-foreground">
             <Phone className="h-4 w-4" /> اتصال {phone === "123" ? "(الإسعاف)" : ""}
           </a>
-          <a href={hospitalMapsUrl(h)} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary py-3.5 font-bold">
+          <a href={hospitalMapsUrl(h)} className="flex items-center justify-center gap-1.5 rounded-2xl bg-secondary py-3.5 font-bold">
             <Navigation className="h-4 w-4" /> الاتجاهات
           </a>
         </div>

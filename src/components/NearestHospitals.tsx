@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { directionsPath } from "@/lib/directions";
 import { Link } from "@tanstack/react-router";
 import { Hospital as HospitalIcon, Phone, Navigation, LocateFixed } from "lucide-react";
 import { listHospitals, type Hospital } from "@/lib/hospitals.functions";
@@ -64,9 +65,7 @@ export function NearestHospitals() {
                   <Phone className="h-4 w-4" /> اتصال
                 </a>
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}`}
-                  target="_blank"
-                  rel="noreferrer"
+                  href={directionsPath(h.lat, h.lng, h.name)}
                   className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-primary p-2 text-sm font-bold text-primary-foreground"
                 >
                   <Navigation className="h-4 w-4" /> الاتجاهات

@@ -41,7 +41,5 @@ export const HOSPITAL_TYPES: Record<string, string> = {
 };
 
 export function hospitalMapsUrl(h: Pick<Hospital, "name" | "governorate" | "lat" | "lng" | "location_verified">) {
-  return h.location_verified
-    ? `https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lng}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${h.name} ${h.governorate}`)}`;
+  return `/directions?lat=${h.lat}&lng=${h.lng}&name=${encodeURIComponent(h.name)}`;
 }
