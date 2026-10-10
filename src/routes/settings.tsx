@@ -52,6 +52,17 @@ export function SettingsPage() {
       <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
         <Mic /> {on ? "إيقاف المساعد الصوتي" : "تفعيل المساعد الصوتي هنا"}
       </Button>
+      <Link
+        to="/developer"
+        className="mt-4 flex items-center gap-3 rounded-2xl border bg-card p-4 transition active:scale-[0.99]"
+      >
+        <UserRound className="h-6 w-6 text-primary" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-extrabold">عن المطور</span>
+          <span className="block text-xs text-muted-foreground">أسامة سند — مؤسس سَنَد</span>
+        </span>
+        <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+      </Link>
     </main>
   );
 }
