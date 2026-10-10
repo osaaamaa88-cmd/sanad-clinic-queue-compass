@@ -12,44 +12,55 @@ export type AiTriage = {
 const SYSTEM =
   "أنت مساعد طبي ذكي لتطبيق سَنَد. قم بتحليل أعراض المريض وتحديد التخصص الطبي المناسب بدقة (مثل: أسنان، جلدية، عظام، أطفال) وإرجاع النتيجة بتنسيق JSON محدد يتضمن التخصص المطلوب ونصيحة مبسطة باللغة العربية.";
 
+const MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.8-flash"];
+
 /** Returns null when AI is unavailable or fails, so the client falls back to the local quiz. */
 export const aiTriage = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ need: z.string().trim().min(3).max(800) }).parse(d))
   .handler(async ({ data }): Promise<AiTriage | null> => {
-    const key = process.env["LOVABLE_API_KEY"];
+    const key = process.env.GEMINI_API_KEY;
     if (!key) return null;
-    try {
-      const { createOpenAI } = await import("@ai-sdk/openai");
-      const { streamText, Output } = await import("ai");
-      const ids = specialties.map((s) => s.id);
-      const list = specialties.map((s) => `${s.id}=${s.name}`).join("، ");
-      const provider = createOpenAI({
-        baseURL: "https://ai.gateway.lovable.dev/v1",
-        apiKey: key,
-        headers: { "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
-      });
-      const result = streamText({
-        model: provider.responses("openai/gpt-6-astra"),
-        instructions: `${SYSTEM}\nاختر تخصصاً أو اثنين بحد أقصى من هذه المعرّفات فقط وأعد المعرّف نفسه: ${list}.\nالملخص جملة واحدة والنصيحة جملة أو اثنتين بالعامية المصرية الودودة. لا تشخّص أمراضاً ولا تصف أدوية. urgency تكون emergency للحالات الخطيرة، soon للأعراض الشديدة، routine غير ذلك.`,
-        messages: [{ role: "user", content: data.need }],
-        output: Output.object({
-          schema: z.object({
-            specialtyIds: z.array(z.string()),
-            urgency: z.enum(["emergency", "soon", "routine"]),
-            summary: z.string(),
-            advice: z.string(),
-          }),
-        }),
-        providerOptions: {
-          openai: { store: false, forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", include: ["reasoning.encrypted_content"] },
-        },
-      } as Parameters<typeof streamText>[0]);
-      const out = (await result.output) as AiTriage;
-      const valid = out.specialtyIds.filter((id) => ids.includes(id)).slice(0, 2);
-      if (!valid.length) return null;
-      return { ...out, specialtyIds: valid };
-    } catch (e) {
-      console.error("ai triage failed", e instanceof Error ? e.name : "error");
-      return null;
+    const ids = specialties.map((s) => s.id);
+    const list = specialties.map((s) => `${s.id}=${s.name}`).join("، ");
+    const prompt = `${SYSTEM}
+اختر تخصصاً أو اثنين بحد أقصى من هذه المعرّفات فقط وأعد المعرّف نفسه: ${list}.
+الملخص جملة واحدة والنصيحة جملة أو اثنتين بالعامية المصرية الودودة. لا تشخّص أمراضاً ولا تصف أدوية. urgency تكون emergency للحالات الخطيرة، soon للأعراض الشديدة، routine غير ذلك.
+أعد JSON فقط بدون أي نص آخر بهذا الشكل:
+{"specialtyIds":["معرف"],"urgency":"routine","summary":"ملخص","advice":"نصيحة"}
+شكوى المريض: "${data.need}"`;
+    for (const model of MODELS) {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json", "x-goog-api-key": key },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
+            }),
+            signal: AbortSignal.timeout(40_000),
+          },
+        );
+        if (!res.ok) {
+          if (res.status === 429 || res.status >= 500) continue;
+          return null;
+        }
+        const json: any = await res.json().catch(() => ({}));
+        const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? "").join("");
+        const o = JSON.parse(raw.replace(/```json|```/g, "").trim());
+        const valid = (Array.isArray(o?.specialtyIds) ? o.specialtyIds : []).filter((id: string) => ids.includes(id)).slice(0, 2);
+        if (!valid.length) return null;
+        const urgency = ["emergency", "soon", "routine"].includes(o?.urgency) ? o.urgency : "routine";
+        return {
+          specialtyIds: valid,
+          urgency,
+          summary: String(o?.summary ?? "").slice(0, 300),
+          advice: String(o?.advice ?? "").slice(0, 400),
+        };
+      } catch (e) {
+        console.error("ai triage failed", model, e instanceof Error ? e.name : "error");
+      }
     }
+    return null;
   });
