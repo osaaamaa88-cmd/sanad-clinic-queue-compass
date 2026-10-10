@@ -4,7 +4,8 @@ import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { PulseSplash } from "@/components/PulseSplash";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
 import { setVoiceMode } from "@/lib/voice";
@@ -107,6 +108,14 @@ function Landing() {
   };
   const topSpecialties = specialties.slice(0, 8);
   const [gate, setGate] = useState<"loading" | "show" | "hide">("loading");
+  const [splashDone, setSplashDone] = useState(false);
+  useEffect(() => {
+    try { if (sessionStorage.getItem("sanad_splash_seen")) setSplashDone(true); } catch { /* ignore */ }
+  }, []);
+  const finishSplash = useCallback(() => {
+    try { sessionStorage.setItem("sanad_splash_seen", "1"); } catch { /* ignore */ }
+    setSplashDone(true);
+  }, []);
   useEffect(() => {
     let choice: string | null = null;
     try { choice = localStorage.getItem(ENTRY_KEY); } catch { /* ignore */ }
@@ -114,6 +123,7 @@ function Landing() {
       setGate(data.session || getPatientSession() || choice === "guest" ? "hide" : "show");
     });
   }, []);
+  if (!splashDone) return <PulseSplash onDone={finishSplash} />;
   if (gate === "loading") return <div className="min-h-screen bg-background" />;
   if (gate === "show") return <WelcomeGate onGuest={() => setGate("hide")} />;
   return (

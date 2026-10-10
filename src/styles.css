@@ -406,3 +406,11 @@ body[data-story-open="true"] [data-bottom-nav] {
 
 /* GPU-composited map panes and overlays for smooth pan/zoom in mobile WebViews. */
 .leaflet-map-pane, .leaflet-tile-pane, .leaflet-marker-pane { will-change: transform; transform: translateZ(0); }
+
+@keyframes sanad-beat { 0%,100%{transform:scale(1)} 14%{transform:scale(1.15)} 28%{transform:scale(1)} 42%{transform:scale(1.1)} 70%{transform:scale(1)} }
+@keyframes sanad-ring { 0%{transform:scale(.85);opacity:.8} 100%{transform:scale(1.9);opacity:0} }
+@keyframes sanad-ekg { from{stroke-dashoffset:320} to{stroke-dashoffset:0} }
+.sanad-beat{animation:sanad-beat 1s ease-in-out infinite}
+.sanad-ring{animation:sanad-ring 1s ease-out infinite}
+.sanad-ekg{stroke-dasharray:320;animation:sanad-ekg 1.6s ease-out forwards}
+@media (prefers-reduced-motion: reduce){.sanad-beat,.sanad-ring,.sanad-ekg{animation:none;stroke-dashoffset:0}}
