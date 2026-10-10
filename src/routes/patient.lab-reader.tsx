@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Camera, FlaskConical, Loader2, Siren, HelpCircle } from "lucide-react";
+import { Camera, FlaskConical, Loader2, Siren, HelpCircle, Heart, ImageIcon } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { readLab, type LabReport, type LabItem } from "@/lib/medscan.functions";
 import { imageToBase64 } from "@/lib/image-to-base64";
@@ -29,6 +29,7 @@ const STATUS: Record<LabItem["status"], { label: string; cls: string }> = {
 
 function LabReader() {
   const fileRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [preview, setPreview] = useState<string>();
   const [loading, setLoading] = useState(false);
@@ -56,11 +57,16 @@ function LabReader() {
           <div><h1 className="text-xl font-extrabold">قارئ التحاليل</h1><p className="text-xs text-muted-foreground">افهم نتيجتك بهدوء قبل زيارة الدكتور</p></div>
         </header>
 
-        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
+        <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
         <button onClick={() => fileRef.current?.click()} disabled={loading} className="flex w-full flex-col items-center gap-2 rounded-3xl border-2 border-dashed border-primary/40 bg-primary-soft/30 p-6 font-bold text-primary transition active:scale-95">
           {preview ? <img src={preview} alt="ورقة التحليل" className="max-h-56 rounded-xl" /> : <Camera className="h-10 w-10" />}
-          {preview ? "صوّر تحليل تاني" : "صوّر ورقة التحليل"}
+          {preview ? "صوّر تحليل تاني" : "صوّر ورقة التحليل بالكاميرا"}
         </button>
+        <button onClick={() => galleryRef.current?.click()} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 text-sm font-bold">
+          <ImageIcon className="h-4 w-4 text-primary" /> اختار صورة من المعرض
+        </button>
+        <p className="rounded-2xl bg-muted/60 p-3 text-xs leading-6 text-muted-foreground">💡 لأدق قراءة: حط الورقة مفرودة على سطح، في نور كويس من غير ظل، وخلي كل الأرقام باينة في الصورة.</p>
 
         <details className="rounded-2xl border border-border bg-card p-3 text-sm">
           <summary className="cursor-pointer font-bold">أو اكتب القيم يدوياً</summary>
@@ -78,6 +84,12 @@ function LabReader() {
               <Link to="/patient/emergency" className="flex items-center gap-3 rounded-2xl bg-destructive p-4 text-destructive-foreground">
                 <Siren className="h-6 w-6" /><span className="text-sm font-bold">فيه قيمة محتاجة اهتمام عاجل — كلّم دكتورك أو اتصل ١٢٣</span>
               </Link>
+            )}
+            {res.comfort && (
+              <section className="flex gap-3 rounded-3xl bg-gold-soft p-4 text-foreground shadow-soft">
+                <Heart className="mt-1 h-5 w-5 shrink-0 fill-destructive text-destructive" />
+                <p className="text-sm font-semibold leading-7">{res.comfort}</p>
+              </section>
             )}
             <section className="rounded-3xl border border-border bg-card p-4 shadow-soft">
               <p className="text-xs font-bold text-primary">{res.type}</p>
