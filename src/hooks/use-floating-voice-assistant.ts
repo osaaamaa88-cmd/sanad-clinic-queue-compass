@@ -111,7 +111,7 @@ export function useFloatingVoiceAssistant(allowed = true) {
         if (!result.ai) toast.warning("التحليل الذكي غير متاح حالياً؛ الرد من دليل المستشفيات، وليس تحليلًا للأعراض.");
         say(result.reply);
       } catch {
-        if (active && request === generation) fail("تعذر الاتصال بالمساعد. لو الحالة طارئة اتصل بالإسعاف 123.");
+        if (active && request === generation) fail("سجّل دخولك عشان تستخدم المساعد، أو اتأكد من النت. لو الحالة طارئة اتصل بالإسعاف 123.");
       }
     };
     function listen() {

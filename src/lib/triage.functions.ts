@@ -1,3 +1,4 @@
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { specialties } from "./mock-data";
@@ -16,6 +17,7 @@ const MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.8-flash"];
 
 /** Returns null when AI is unavailable or fails, so the client falls back to the local quiz. */
 export const aiTriage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ need: z.string().trim().min(3).max(800) }).parse(d))
   .handler(async ({ data }): Promise<AiTriage | null> => {
     await (await import("@/lib/rate-limit.server")).assertAiRateLimit("aiTriage");
