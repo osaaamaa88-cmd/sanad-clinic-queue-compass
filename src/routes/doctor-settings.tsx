@@ -18,7 +18,8 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { svrAddSecretary, svrListSecretaries } from "@/lib/staff.functions";
+import { svrAddSecretary, svrCreateMyClinic, svrListSecretaries } from "@/lib/staff.functions";
+import { resetDoctorModeCache } from "@/lib/use-doctor-mode";
 import {
   specialties,
   upsertClinic,
@@ -123,10 +124,21 @@ function DoctorSettings() {
   }, [refresh]);
 
   const save = async () => {
-    if (!clinicId || !name.trim() || !phone.trim()) return;
+    if (!name.trim() || !phone.trim()) return;
+    let targetId = clinicId;
+    if (!targetId) {
+      try {
+        const res = await svrCreateMyClinic({ data: { doctor: name.trim(), specialtyId: spec, phone: phone.trim().replace(/^0/, "20") } });
+        targetId = res.id;
+        setClinicId(targetId);
+        resetDoctorModeCache();
+      } catch {
+        return;
+      }
+    }
     const address = [street, building, floor].filter(Boolean).join("، ");
     const updated = await upsertClinic({
-      id: clinicId,
+      id: targetId,
       doctor: name.trim(),
       specialtyId: spec,
       address: address || street.trim(),

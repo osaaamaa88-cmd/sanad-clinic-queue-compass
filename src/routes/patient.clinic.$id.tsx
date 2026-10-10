@@ -361,8 +361,8 @@ function ClinicDetail() {
                     />
                   </span>
                 ) : (
-                  <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-card text-4xl">
-                    {spec?.emoji ?? "🩺"}
+                  <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-primary/10 text-3xl font-black text-primary">
+                    {(clinic.doctor || "د").replace(/^(د\.?|دكتور|دكتورة)\s*/, "").trim().charAt(0) || "د"}
                   </div>
                 )}
               </button>
