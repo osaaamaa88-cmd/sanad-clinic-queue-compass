@@ -13,6 +13,7 @@ import { specialties } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { PatientAuthModal } from "@/components/PatientAuthModal";
 import { getPatientSession } from "@/lib/patient-session";
+import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 
 const resumeTargets = {
   patient: { to: "/patient", label: "متابعة البحث عن عيادة" },
@@ -78,6 +79,12 @@ const services = [
 
 function Landing() {
   const navigate = useNavigate();
+  const doctorClinicId = useDoctorClinicId();
+  useEffect(() => {
+    if (doctorClinicId && localStorage.getItem("sanad_app_mode") !== "patient") {
+      void navigate({ to: "/doctor", replace: true });
+    }
+  }, [doctorClinicId, navigate]);
   const tapsRef = useRef<number[]>([]);
   const handleLogoTap = () => {
     const now = Date.now();
