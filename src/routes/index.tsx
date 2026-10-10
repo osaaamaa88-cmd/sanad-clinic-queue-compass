@@ -1,4 +1,5 @@
 import { ModeSwitch } from "@/components/ModeSwitch";
+import { WelcomeGate, ENTRY_KEY } from "@/components/WelcomeGate";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
@@ -98,6 +99,16 @@ function Landing() {
     else navigate({ to: "/patient/login" });
   };
   const topSpecialties = specialties.slice(0, 8);
+  const [gate, setGate] = useState<"loading" | "show" | "hide">("loading");
+  useEffect(() => {
+    let choice: string | null = null;
+    try { choice = localStorage.getItem(ENTRY_KEY); } catch { /* ignore */ }
+    supabase.auth.getSession().then(({ data }) => {
+      setGate(data.session || getPatientSession() || choice === "guest" ? "hide" : "show");
+    });
+  }, []);
+  if (gate === "loading") return <div className="min-h-screen bg-background" />;
+  if (gate === "show") return <WelcomeGate onGuest={() => setGate("hide")} />;
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-md px-5 pb-24 pt-6">
