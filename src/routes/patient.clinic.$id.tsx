@@ -76,6 +76,9 @@ function ClinicDetail() {
   const [loaded, setLoaded] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [ownerMenu, setOwnerMenu] = useState(false);
+  const [createSheet, setCreateSheet] = useState(false);
+  const [pendingStory, setPendingStory] = useState<{ file: File; url: string } | null>(null);
+  const [storyHours, setStoryHours] = useState<12 | 24>(24);
   const [extras, setExtras] = useState<ClinicProfileExtras | null>(null);
   const [queue, setQueue] = useState<QueueStats | null>(null);
   const [following, setFollowing] = useState(false);
@@ -427,6 +430,14 @@ function ClinicDetail() {
         {isOwner ? (
           <div className="relative mt-3 flex items-center justify-between gap-2 rounded-xl bg-secondary/60 p-1.5">
             <span className="px-2 text-[11px] font-extrabold text-muted-foreground">بروفايلك زي ما المريض بيشوفه</span>
+            <button
+              type="button"
+              onClick={() => setCreateSheet(true)}
+              aria-label="إنشاء قصة أو منشور"
+              className="ms-auto grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
             <button
               type="button"
               onClick={() => setOwnerMenu((v) => !v)}
@@ -1036,19 +1047,89 @@ function ClinicDetail() {
             const file = e.target.files?.[0];
             e.target.value = "";
             if (!file) return;
+            if (!storyTargetHighlight.current) {
+              setPendingStory({ file, url: URL.createObjectURL(file) });
+              setStoryHours(24);
+              return;
+            }
             setBusy("story");
             const res = await addStory({
               clinicId: id,
               file,
               highlightId: storyTargetHighlight.current,
+              permanent: true,
             });
             storyTargetHighlight.current = null;
             setBusy(null);
-            setShareToast(res.ok ? "تم نشر الستوري ✅" : "الرفع فشل، جرب صورة أصغر");
+            setShareToast(res.ok ? "اتضافت للهايلايت ✅" : "الرفع فشل، جرب صورة أصغر");
             window.setTimeout(() => setShareToast(""), 2500);
             if (res.ok) await refreshStories();
           }}
         />
+      )}
+
+      {isOwner && createSheet && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-background/70 backdrop-blur-sm" onClick={() => setCreateSheet(false)}>
+          <div className="w-full max-w-md rounded-t-3xl border border-border bg-card p-4 pb-8" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" />
+            <p className="mb-2 text-center text-sm font-black">إنشاء</p>
+            {([
+              [Camera, "قصة (ستوري)", "تختفي بعد ١٢ أو ٢٤ ساعة", () => { storyTargetHighlight.current = null; storyInputRef.current?.click(); }],
+              [AlertTriangle, "تنبيه عاجل", "ستوري نصية للمتابعين", () => setUrgentOpen(true)],
+              [Sparkles, "هايلايت جديد", "قصص دائمة على البروفايل", () => { setHlPicked([]); setHlMsg(""); setNewHighlight(true); }],
+              [ImagePlus, "منشور", "صورة أو فيديو في الشبكة", () => postInputRef.current?.click()],
+            ] as const).map(([Icon, l, d, fn]) => (
+              <button key={l} type="button" onClick={() => { setCreateSheet(false); fn(); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-right hover:bg-secondary">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/15 text-primary"><Icon className="h-5 w-5" /></span>
+                <span><span className="block text-sm font-extrabold">{l}</span><span className="block text-[11px] text-muted-foreground">{d}</span></span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isOwner && pendingStory && (
+        <div className="fixed inset-0 z-[75] flex items-end justify-center bg-background/80 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-t-3xl border border-border bg-card p-4 pb-8">
+            <div className="flex items-center justify-between">
+              <button type="button" aria-label="إلغاء" onClick={() => { URL.revokeObjectURL(pendingStory.url); setPendingStory(null); }} className="grid h-8 w-8 place-items-center rounded-full bg-secondary"><X className="h-4 w-4" /></button>
+              <p className="text-sm font-black">قصة جديدة</p>
+              <span className="w-8" />
+            </div>
+            <div className="mx-auto mt-3 aspect-[9/16] max-h-[45vh] overflow-hidden rounded-2xl bg-surface-deep">
+              {pendingStory.file.type.startsWith("video") ? (
+                <video src={pendingStory.url} className="h-full w-full object-cover" muted playsInline autoPlay loop />
+              ) : (
+                <img src={pendingStory.url} alt="معاينة القصة" className="h-full w-full object-cover" />
+              )}
+            </div>
+            <p className="mt-4 text-xs font-bold text-muted-foreground">مدة ظهور القصة</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {([12, 24] as const).map((h) => (
+                <button key={h} type="button" onClick={() => setStoryHours(h)} className={`flex items-center justify-center gap-1 rounded-xl border py-2.5 text-sm font-extrabold ${storyHours === h ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground"}`}>
+                  <Clock3 className="h-4 w-4" /> {h === 12 ? "١٢ ساعة" : "٢٤ ساعة"}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              disabled={busy === "story"}
+              onClick={async () => {
+                setBusy("story");
+                const res = await addStory({ clinicId: id, file: pendingStory.file, highlightId: null, durationHours: storyHours });
+                setBusy(null);
+                URL.revokeObjectURL(pendingStory.url);
+                setPendingStory(null);
+                setShareToast(res.ok ? `تم نشر القصة لمدة ${storyHours === 12 ? "١٢" : "٢٤"} ساعة ✅` : "الرفع فشل، جرب صورة أصغر");
+                window.setTimeout(() => setShareToast(""), 2500);
+                if (res.ok) await refreshStories();
+              }}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-extrabold text-primary-foreground disabled:opacity-60"
+            >
+              {busy === "story" && <Loader2 className="h-4 w-4 animate-spin" />} نشر لمدة {storyHours === 12 ? "١٢" : "٢٤"} ساعة
+            </button>
+          </div>
+        </div>
       )}
 
       {storyView && (
