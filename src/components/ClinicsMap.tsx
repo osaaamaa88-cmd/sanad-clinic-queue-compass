@@ -43,6 +43,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
   const map = useRef<import("leaflet").Map | null>(null);
   const group = useRef<import("leaflet").MarkerClusterGroup | null>(null);
   const patient = useRef<import("leaflet").CircleMarker | null>(null);
+  const patientPulse = useRef<import("leaflet").Marker | null>(null);
   const engine = useRef<Leaflet | null>(null);
   const markers = useRef(new Map<string, { marker: import("leaflet").Marker; clinic: Clinic }>());
   const latest = useRef({ clinics, center, selectedId, onSelect });
