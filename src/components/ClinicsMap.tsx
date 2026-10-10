@@ -115,7 +115,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
     return () => {
       disposed = true;
       map.current?.remove(); map.current = null; group.current = null;
-      markers.current.clear(); patient.current = null;
+      markers.current.clear(); patient.current = null; patientPulse.current = null;
     };
   }, []);
 
