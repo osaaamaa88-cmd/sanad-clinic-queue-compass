@@ -43,14 +43,11 @@ export function verifyAdminToken(token: string | undefined | null): boolean {
   }
 }
 
+// Only the explicit header token is accepted. A browser never attaches custom
+// headers cross-site, so this blocks cross-site request forgery; the ambient
+// cookie is no longer trusted for admin actions.
 export async function isAdminRequest(): Promise<boolean> {
-  if (verifyAdminToken(getRequestHeader("x-admin-token"))) return true;
-  try {
-    const s = await useSession<GateSession>(sessionConfig());
-    return s.data.unlocked === true;
-  } catch {
-    return false;
-  }
+  return verifyAdminToken(getRequestHeader("x-admin-token"));
 }
 
 export async function assertAdminRequest() {
