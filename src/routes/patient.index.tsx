@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Building2, Clock, Globe2, HeartPulse, Hospital, MapPin, Search, Star, X } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
@@ -30,6 +31,11 @@ export const Route = createFileRoute("/patient/")({
 });
 
 function PatientHome() {
+  const doctorClinicId = useDoctorClinicId();
+  const goDoctor = useNavigate();
+  useEffect(() => {
+    if (doctorClinicId) void goDoctor({ to: "/doctor", replace: true });
+  }, [doctorClinicId, goDoctor]);
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ClinicProfileExtras>>({});
   const [stories, setStories] = useState<Record<string, StoryItem[]>>({});
