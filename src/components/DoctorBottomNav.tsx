@@ -22,7 +22,7 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
     };
     void refresh();
     const ch = supabase
-      .channel("doctor-nav-unread")
+      .channel(`doctor-nav-unread-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "clinic_messages" }, () => void refresh())
       .subscribe();
     return () => {
