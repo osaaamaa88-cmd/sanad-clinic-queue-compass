@@ -54,14 +54,14 @@ export function WelcomeGate({ onGuest }: { onGuest: () => void }) {
         <Link
           to="/doctor/login"
           onClick={() => choose("doctor")}
-          className="flex items-center gap-4 rounded-2xl bg-surface-deep p-4 text-primary-foreground shadow-soft transition active:scale-[0.98]"
+          className="flex items-center gap-4 rounded-2xl border border-primary/30 bg-card p-4 text-start text-foreground shadow-soft transition active:scale-[0.98]"
         >
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl gradient-primary"><Stethoscope className="h-6 w-6" /></span>
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl gradient-primary text-primary-foreground"><Stethoscope className="h-6 w-6" /></span>
           <span className="min-w-0 flex-1">
-            <span className="block font-extrabold">طبيب أو فريق العيادة</span>
-            <span className="block text-xs opacity-80">طبيب • سكرتير • استقبال — الحجز، الطابور والروشتة</span>
+            <span className="block font-extrabold text-foreground">طبيب أو فريق العيادة</span>
+            <span className="block text-xs text-muted-foreground">طبيب • سكرتير • استقبال — الحجز، الطابور والروشتة</span>
           </span>
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 text-primary" />
         </Link>
 
         <p className="mt-auto pt-8 text-center text-[11px] text-muted-foreground">
