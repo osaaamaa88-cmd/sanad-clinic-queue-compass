@@ -92,15 +92,8 @@ export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }): Promise<{ alternatives: Alternative[]; error?: string }> => {
     if (!data.query) return { alternatives: [], error: "اكتب الوجبة أو هدفك" };
-    const key = process.env.LOVABLE_API_KEY;
+    const key = process.env.GEMINI_API_KEY;
     if (!key) return { alternatives: [], error: "الخدمة غير مضبوطة" };
-    const { createOpenAI } = await import("@ai-sdk/openai");
-    const { streamText } = await import("ai");
-    const openai = createOpenAI({
-      baseURL: "https://ai.gateway.lovable.dev/v1",
-      apiKey: key,
-      headers: { "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
-    });
     const goalAr = { lose: "إنقاص الوزن", keep: "تثبيت الوزن", gain: "زيادة الوزن والعضلات" }[data.goal];
     const remaining = data.target - data.eaten;
     const prompt = `أنت أخصائي تغذية مصري. المريض هدفه: ${goalAr}. احتياجه اليومي ${data.target} سعر، أكل النهارده ${data.eaten} (متبقي ${remaining}).
@@ -110,14 +103,24 @@ export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
 أعد JSON فقط بدون أي نص آخر:
 {"alternatives":[{"name":"","amount":"الكمية","calories":0,"protein":0,"carbs":0,"fat":0,"saving":"مقارنة قصيرة بالأصل","tip":"طريقة تحضير صحية مصرية قصيرة"}]}`;
     try {
-      const result = streamText({
-        model: openai.responses("openai/gpt-6-astra"),
-        prompt,
-        providerOptions: {
-          openai: { forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", store: false, include: ["reasoning.encrypted_content"] },
+      const res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
+          }),
         },
-      });
-      const raw = await result.text;
+      );
+      const json: any = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error("suggest alternatives failed", res.status);
+        if (res.status === 429) return { alternatives: [], error: "ضغط كبير على الخدمة، جرّب بعد دقيقة." };
+        return { alternatives: [], error: "تعذر اقتراح بدائل دلوقتي" };
+      }
+      const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? "").join("");
       const o = JSON.parse(raw.replace(/```json|```/g, "").trim());
       const n = (v: unknown) => Math.max(0, Math.round(Number(v) || 0));
       const s = (v: unknown, m: number) => String(v ?? "").slice(0, m);
@@ -128,10 +131,7 @@ export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
         })),
       };
     } catch (e: any) {
-      const st = e?.statusCode ?? e?.status;
-      console.error("suggest alternatives failed", st, e?.message);
-      if (st === 429) return { alternatives: [], error: "ضغط كبير على الخدمة، جرّب بعد دقيقة." };
-      if (st === 402 || st === 403) return { alternatives: [], error: "رصيد الذكاء الاصطناعي خلص مؤقتاً." };
+      console.error("suggest alternatives failed", e?.message);
       return { alternatives: [], error: "تعذر اقتراح بدائل دلوقتي" };
     }
   });
