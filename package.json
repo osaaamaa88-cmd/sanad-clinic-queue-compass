@@ -10,7 +10,8 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "cap:assets": "capacitor-assets generate --android --iconBackgroundColor '#0F172A' --splashBackgroundColor '#0F172A'"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.83",
