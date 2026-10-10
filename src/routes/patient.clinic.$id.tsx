@@ -1,4 +1,5 @@
 import { youtubeId } from "@/lib/youtube";
+import { directionsPath } from "@/lib/directions";
 import { PlayCircle } from "lucide-react";
 import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -503,9 +504,7 @@ function ClinicDetail() {
             <Phone className="h-4 w-4 text-primary" /> اتصال
           </button>
           <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.lat},${clinic.lng}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}
             className="flex items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
           >
             <Navigation className="h-4 w-4 text-primary" /> اتجاهات

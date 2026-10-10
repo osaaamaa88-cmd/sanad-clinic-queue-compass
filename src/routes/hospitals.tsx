@@ -112,9 +112,8 @@ function HospitalsPage() {
               <a href={`tel:${h.emergency_phone || h.phone}`} className="rounded-xl bg-primary p-2 text-center text-sm font-bold text-primary-foreground">📞 اتصال</a>
               <a
                 href={hospitalMapsUrl(h)}
-                target="_blank" rel="noreferrer"
                 className="rounded-xl border p-2 text-center text-sm font-bold"
-              >🗺️ فتح في خرائط جوجل</a>
+              >🗺️ الاتجاهات</a>
             </div>
           </article>
         ))}

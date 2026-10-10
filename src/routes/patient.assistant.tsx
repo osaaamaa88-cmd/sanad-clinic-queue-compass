@@ -370,8 +370,6 @@ function Assistant() {
                         )}
                         <a
                           href={hospitalMapsUrl(h)}
-                          target="_blank"
-                          rel="noopener noreferrer"
                           aria-label="الاتجاهات على الخريطة"
                           className="rounded-full bg-primary/15 p-2 text-primary"
                         >
