@@ -18,6 +18,7 @@ const MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.8-flash"];
 export const aiTriage = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ need: z.string().trim().min(3).max(800) }).parse(d))
   .handler(async ({ data }): Promise<AiTriage | null> => {
+    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("aiTriage");
     const key = process.env.GEMINI_API_KEY;
     if (!key) return null;
     const ids = specialties.map((s) => s.id);

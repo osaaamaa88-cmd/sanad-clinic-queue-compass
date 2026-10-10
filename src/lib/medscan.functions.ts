@@ -106,6 +106,7 @@ const alts = (a: unknown, n: number): DrugAlt[] =>
 export const scanDrug = createServerFn({ method: "POST" })
   .inputValidator(validate)
   .handler(async ({ data }): Promise<DrugScan> => {
+    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("scanDrug");
     const o = await callGemini(DRUG_PROMPT, data.text, data.image, data.mime);
     return {
       found: o.found !== false,
@@ -124,6 +125,7 @@ export const scanDrug = createServerFn({ method: "POST" })
 export const readLab = createServerFn({ method: "POST" })
   .inputValidator(validate)
   .handler(async ({ data }): Promise<LabReport> => {
+    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("readLab");
     const o = await callGemini(LAB_PROMPT, data.text, data.image, data.mime);
     const st = (v: unknown): LabItem["status"] => (["normal", "high", "low"].includes(String(v)) ? (v as any) : "unknown");
     return {
