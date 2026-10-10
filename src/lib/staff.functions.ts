@@ -37,6 +37,9 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
       if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
         throw new Error("EMAIL_TAKEN");
       }
+      if (msg.includes("pwned") || msg.includes("leaked") || msg.includes("weak") || msg.includes("password")) {
+        throw new Error("WEAK_PASSWORD");
+      }
       throw new Error("SIGNUP_FAILED");
     }
     const { data: clinic, error } = await supabaseAdmin
@@ -113,6 +116,9 @@ export const svrAddSecretary = createServerFn({ method: "POST" })
       const msg = (authError?.message || "").toLowerCase();
       if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
         throw new Error("EMAIL_TAKEN");
+      }
+      if (msg.includes("pwned") || msg.includes("leaked") || msg.includes("weak") || msg.includes("password")) {
+        throw new Error("WEAK_PASSWORD");
       }
       throw new Error("SIGNUP_FAILED");
     }

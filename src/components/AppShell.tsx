@@ -46,7 +46,7 @@ export function AppShell({
   const onOwnClinic = !!doctorClinicId && pathname === `/patient/clinic/${doctorClinicId}`;
   const showDoctorNav =
     !!doctorClinicId &&
-    (onOwnClinic || pathname.startsWith("/messages") || pathname.startsWith("/reception") || pathname.startsWith("/doctor-settings"));
+    (onOwnClinic || pathname.startsWith("/messages") || pathname.startsWith("/reception") || pathname.startsWith("/doctor"));
   const showPatientNav = !showDoctorNav && (pathname.startsWith("/patient") || pathname.startsWith("/messages"));
   return (
     <div className="min-h-screen bg-background">
