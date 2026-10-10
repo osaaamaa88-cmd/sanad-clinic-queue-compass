@@ -48,7 +48,7 @@ export function WelcomeGate({ onGuest }: { onGuest: () => void }) {
         </div>
 
         <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="h-px flex-1 bg-border" />للأطباء والعيادات<span className="h-px flex-1 bg-border" />
+          <span className="h-px flex-1 bg-border" />للأطباء وفريق العيادة<span className="h-px flex-1 bg-border" />
         </div>
 
         <Link
@@ -58,8 +58,8 @@ export function WelcomeGate({ onGuest }: { onGuest: () => void }) {
         >
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl gradient-primary"><Stethoscope className="h-6 w-6" /></span>
           <span className="min-w-0 flex-1">
-            <span className="block font-extrabold">طبيب أو عيادة</span>
-            <span className="block text-xs opacity-80">إدارة العيادة، الروشتة، الطابور والاستقبال</span>
+            <span className="block font-extrabold">طبيب أو فريق العيادة</span>
+            <span className="block text-xs opacity-80">طبيب • سكرتير • استقبال — الحجز، الطابور والروشتة</span>
           </span>
           <ArrowLeft className="h-5 w-5" />
         </Link>
