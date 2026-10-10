@@ -109,7 +109,7 @@
   --sidebar-ring: oklch(0.73 0.13 210);
   --gradient-primary: linear-gradient(135deg, oklch(0.75 0.13 205), oklch(0.62 0.14 220));
   --shadow-soft: 0 12px 32px -14px oklch(0.73 0.13 210 / 0.45);
-  --font-sans: "Tajawal", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Alexandria", "Tajawal", "Cairo", ui-sans-serif, system-ui, sans-serif;
   /* Premium gold accents (doctor profile) */
   --gold: oklch(0.82 0.14 82);
   --gold-foreground: oklch(0.20 0.04 60);
