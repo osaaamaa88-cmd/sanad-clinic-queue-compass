@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { getPatientLocation, savePatientLocation, nearestArea } from "@/lib/patient-location";
 import { directionsPath } from "@/lib/directions";
-import { listHospitals, hospitalMapsUrl, type Hospital } from "@/lib/hospitals.functions";
+import { listHospitals, type Hospital } from "@/lib/hospitals.functions";
 
 const TYPES: Record<string, string> = {
   university: "جامعي",
