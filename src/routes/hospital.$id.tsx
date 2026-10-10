@@ -26,7 +26,7 @@ export const Route = createFileRoute("/hospital/$id")({
 
 function HospitalPage() {
   const h = Route.useLoaderData();
-  const phone = h.emergency_phone || h.phone || "123";
+  const phone = h.phone && h.phone !== "123" ? h.phone : h.emergency_phone || "123";
   return (
     <div dir="rtl" className="mx-auto max-w-xl p-4 pb-28">
       <Link to="/patient/search" className="mb-3 inline-flex items-center gap-1 text-sm text-primary">
