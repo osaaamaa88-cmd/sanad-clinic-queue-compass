@@ -8,6 +8,7 @@ import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
 import { setVoiceMode } from "@/lib/voice";
 import { ArrowLeft, CalendarCheck, HeartPulse, Hospital, Mic, Siren, Search, Sparkles, Stethoscope, UserRound } from "lucide-react";
 import { specialties } from "@/lib/mock-data";
+import { specialtyIcons } from "@/lib/specialty-icons";
 import { PatientAuthModal } from "@/components/PatientAuthModal";
 import { getPatientSession } from "@/lib/patient-session";
 
@@ -180,7 +181,7 @@ function Landing() {
         <div className="grid grid-cols-4 gap-2">
           {topSpecialties.map((s) => (
             <Link key={s.id} to="/patient/search" className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card p-2.5 text-center transition active:scale-95">
-              <span className="text-2xl" aria-hidden>{s.emoji}</span>
+              {(() => { const I = specialtyIcons[s.id] ?? Stethoscope; return <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 text-primary"><I className="h-5 w-5" /></span>; })()}
               <span className="truncate text-[11px] font-bold w-full">{s.name}</span>
             </Link>
           ))}
