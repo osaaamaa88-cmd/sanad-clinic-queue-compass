@@ -1,12 +1,20 @@
 {
   "appId": "com.sanad.app",
-  "appName": "SANAD",
-  "webDir": "dist",
+  "appName": "سَنَد",
+  "webDir": "dist/client",
+  "server": {
+    "url": "https://sanad-your-clinic-buddy.lovable.app",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
   "plugins": {
     "StatusBar": {
       "backgroundColor": "#0F172A",
       "style": "DARK",
       "overlaysWebView": false
+    },
+    "LocalNotifications": {
+      "iconColor": "#14B8A6"
     }
   },
   "android": {
