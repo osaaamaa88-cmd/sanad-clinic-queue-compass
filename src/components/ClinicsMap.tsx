@@ -7,6 +7,13 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 
 type Leaflet = typeof import("leaflet");
+
+function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371, t = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * t, dLng = (b.lng - a.lng) * t;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
 export interface ClinicsMapProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onSelect"> {
   clinics: Clinic[];
   center: { lat: number; lng: number };
@@ -36,6 +43,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
   const map = useRef<import("leaflet").Map | null>(null);
   const group = useRef<import("leaflet").MarkerClusterGroup | null>(null);
   const patient = useRef<import("leaflet").CircleMarker | null>(null);
+  const patientPulse = useRef<import("leaflet").Marker | null>(null);
   const engine = useRef<Leaflet | null>(null);
   const markers = useRef(new Map<string, { marker: import("leaflet").Marker; clinic: Clinic }>());
   const latest = useRef({ clinics, center, selectedId, onSelect });
@@ -91,6 +99,14 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
         radius: 7, color: colors.getPropertyValue("--map-pin-ink").trim(), weight: 3,
         fillColor: colors.getPropertyValue("--map-clinic").trim(), fillOpacity: 1,
       }).addTo(instance);
+      patientPulse.current = L.marker(latest.current.center, {
+        icon: L.divIcon({
+          className: "sanad-pulse-wrap",
+          html: '<span class="sanad-pulse"></span>',
+          iconSize: [56, 56], iconAnchor: [28, 28],
+        }),
+        interactive: false, keyboard: false,
+      }).addTo(instance);
       const observer = new ResizeObserver(() => instance.invalidateSize({ pan: false }));
       observer.observe(container.current);
       instance.on("unload", () => observer.disconnect());
@@ -99,7 +115,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
     return () => {
       disposed = true;
       map.current?.remove(); map.current = null; group.current = null;
-      markers.current.clear(); patient.current = null;
+      markers.current.clear(); patient.current = null; patientPulse.current = null;
     };
   }, []);
 
@@ -155,6 +171,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
   useEffect(() => {
     if (!ready) return;
     patient.current?.setLatLng(center);
+    patientPulse.current?.setLatLng(center);
   }, [center.lat, center.lng, ready]);
 
   const locate = () => {
@@ -163,9 +180,20 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       const point = { lat: coords.latitude, lng: coords.longitude };
       patient.current?.setLatLng(point);
-      map.current?.setView(point, 14, { animate: !reducedMotion() });
+      patientPulse.current?.setLatLng(point);
       setLocating(false);
       onLocate?.(point);
+      // inDrive-style: fly to you + the nearest facility together, then auto-open its preview card.
+      const L = engine.current, instance = map.current;
+      const valid = latest.current.clinics.filter((c) => typeof c.lat === "number" && typeof c.lng === "number" && Number.isFinite(c.lat) && Number.isFinite(c.lng));
+      if (!L || !instance || !valid.length) { instance?.setView(point, 14, { animate: !reducedMotion() }); return; }
+      const nearest = valid.reduce((best, c) => (kmBetween(point, c) < kmBetween(point, best) ? c : best), valid[0]);
+      const nearestPoint = markers.current.get(nearest.id)?.marker.getLatLng() ?? L.latLng(nearest.lat, nearest.lng);
+      instance.flyToBounds(L.latLngBounds([point, nearestPoint]), { padding: [56, 56], maxZoom: 14, animate: !reducedMotion(), duration: 0.7 });
+      window.setTimeout(() => {
+        const entry = markers.current.get(nearest.id);
+        if (entry && map.current) latest.current.onSelect(entry.clinic);
+      }, reducedMotion() ? 0 : 650);
     }, () => { setLocating(false); setGpsError("تعذّر تحديد موقعك. اسمح بالوصول للموقع ثم حاول مجدداً."); }, { timeout: 10000, maximumAge: 30000, enableHighAccuracy: true });
   };
 
