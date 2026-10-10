@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { HeartPulse } from "lucide-react";
+import { playHeartbeat } from "@/lib/sounds";
 
 export function PulseSplash({ onDone, duration = 2000 }: { onDone: () => void; duration?: number }) {
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
+    playHeartbeat();
     const a = setTimeout(() => setLeaving(true), duration - 300);
     const b = setTimeout(onDone, duration);
     return () => { clearTimeout(a); clearTimeout(b); };
