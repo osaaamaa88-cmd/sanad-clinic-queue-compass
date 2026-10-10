@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { startAlarm } from "@/lib/sounds";
+import { syncNativeMedReminders } from "@/lib/native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pill, Plus, Trash2, Bell, BellOff, Clock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -58,6 +59,10 @@ function Meds() {
       setNotifPerm("unsupported");
     }
   }, []);
+
+  useEffect(() => {
+    void syncNativeMedReminders(meds);
+  }, [meds]);
 
   // Reminder loop — checks every 30s, fires within 1 min of scheduled time.
   useEffect(() => {
