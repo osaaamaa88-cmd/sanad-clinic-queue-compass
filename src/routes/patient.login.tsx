@@ -1,7 +1,8 @@
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Activity, ArrowLeft, HeartPulse, LogOut, Pill } from "lucide-react";
+import { Activity, ArrowLeft, HeartPulse, LogOut, Mic, Pill } from "lucide-react";
+import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
 import { MessagesSquare } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { PatientAuthForm } from "@/components/PatientAuthModal";
@@ -25,6 +26,28 @@ export const Route = createFileRoute("/patient/login")({
   }),
   component: PatientLogin,
 });
+
+function VoiceModeToggle() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const sync = () => setOn(isVoiceModeOn());
+    sync();
+    window.addEventListener("sanad:voice-mode", sync);
+    return () => window.removeEventListener("sanad:voice-mode", sync);
+  }, []);
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
+      <span className="flex items-center gap-3">
+        <Mic className="h-5 w-5 text-primary" />
+        <span>
+          <span className="block text-sm font-extrabold">المساعد الصوتي</span>
+          <span className="block text-xs text-muted-foreground">لكبار السن وفاقدي البصر — يظهر فوق كل الصفحات</span>
+        </span>
+      </span>
+      <input type="checkbox" role="switch" checked={on} onChange={() => setVoiceMode(!on)} className="h-6 w-11 accent-primary" />
+    </label>
+  );
+}
 
 function PatientLogin() {
   const navigate = useNavigate();
@@ -68,7 +91,7 @@ function PatientLogin() {
           <ArrowLeft className="h-4 w-4 text-primary" />
         </Link>
       </section>
-      <div className="mb-4"><SoundToggle />
+      <div className="mb-4 space-y-3"><VoiceModeToggle /><SoundToggle />
 <ThemeSetting /></div>
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="mb-2 flex items-center gap-3">

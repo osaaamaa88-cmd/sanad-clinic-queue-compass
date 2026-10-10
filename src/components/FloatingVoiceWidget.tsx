@@ -56,8 +56,16 @@ export function FloatingVoiceAssistant() {
   const { enabled, state, message, resume, stop } = useFloatingVoiceAssistant(allowed);
   const [mounted, setMounted] = useState(false);
   const [askLogin, setAskLogin] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted || isPublicRoute) return null;
+  // The assistant stays hidden until the patient enables it from the account page.
+  const [voiceOn, setVoiceOn] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const sync = () => setVoiceOn(isVoiceModeOn());
+    sync();
+    window.addEventListener("sanad:voice-mode", sync);
+    return () => window.removeEventListener("sanad:voice-mode", sync);
+  }, []);
+  if (!mounted || isPublicRoute || !voiceOn) return null;
 
   if (!signedIn) {
     const onTap = () => {
