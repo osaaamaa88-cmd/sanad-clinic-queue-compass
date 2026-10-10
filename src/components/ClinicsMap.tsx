@@ -180,9 +180,20 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       const point = { lat: coords.latitude, lng: coords.longitude };
       patient.current?.setLatLng(point);
-      map.current?.setView(point, 14, { animate: !reducedMotion() });
+      patientPulse.current?.setLatLng(point);
       setLocating(false);
       onLocate?.(point);
+      // inDrive-style: fly to you + the nearest facility together, then auto-open its preview card.
+      const L = engine.current, instance = map.current;
+      const valid = latest.current.clinics.filter((c) => typeof c.lat === "number" && typeof c.lng === "number" && Number.isFinite(c.lat) && Number.isFinite(c.lng));
+      if (!L || !instance || !valid.length) { instance?.setView(point, 14, { animate: !reducedMotion() }); return; }
+      const nearest = valid.reduce((best, c) => (kmBetween(point, c) < kmBetween(point, best) ? c : best), valid[0]);
+      const nearestPoint = markers.current.get(nearest.id)?.marker.getLatLng() ?? L.latLng(nearest.lat, nearest.lng);
+      instance.flyToBounds(L.latLngBounds([point, nearestPoint]), { padding: [56, 56], maxZoom: 14, animate: !reducedMotion(), duration: 0.7 });
+      window.setTimeout(() => {
+        const entry = markers.current.get(nearest.id);
+        if (entry && map.current) latest.current.onSelect(entry.clinic);
+      }, reducedMotion() ? 0 : 650);
     }, () => { setLocating(false); setGpsError("تعذّر تحديد موقعك. اسمح بالوصول للموقع ثم حاول مجدداً."); }, { timeout: 10000, maximumAge: 30000, enableHighAccuracy: true });
   };
 
