@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
 const ClinicsMap = lazy(() => import("@/components/ClinicsMap").then((m) => ({ default: m.ClinicsMap })));
 import { specialties, getSpecialty, whatsappLink, type Clinic } from "@/lib/mock-data";
-import { getPatientLocation } from "@/lib/patient-location";
+import { getPatientLocation, savePatientLocation, nearestArea } from "@/lib/patient-location";
 import { HOSPITAL_TYPES, type Hospital } from "@/lib/hospitals.functions";
 
 function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
@@ -51,7 +51,13 @@ function Search() {
   const [spec, setSpec] = useState<string | null>(null);
   const { data: clinics = [] } = useQuery(clinicsQuery);
   const { data: hospitals = [] } = useQuery({ ...hospitalsQuery, select: (rows: Hospital[]) => rows });
-  const kind = "all" as "all" | "clinic" | "hospital";
+  const [kind, setKind] = useState<"all" | "clinic" | "hospital">("all");
+  const useGps = (p: { lat: number; lng: number }) => {
+    setPos(p);
+    const n = nearestArea(p.lat, p.lng);
+    savePatientLocation({ name: `بالقرب من ${n.name}`, city: n.city, lat: p.lat, lng: p.lng, gps: true });
+    setSort("nearest");
+  };
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
   const [openNow, setOpenNow] = useState(false);
@@ -64,16 +70,16 @@ function Search() {
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (p) => setPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      (p) => useGps({ lat: p.coords.latitude, lng: p.coords.longitude }),
       () => {},
-      { timeout: 6000 },
+      { timeout: 10000, enableHighAccuracy: true, maximumAge: 60000 },
     );
   }, []);
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     const hosp = hospitals.map((h) => hospitalToClinic(h, pos));
     let list = kind === "clinic" ? clinics : kind === "hospital" ? hosp : [...clinics, ...hosp];
-    if (spec) list = list.filter((c) => c.specialtyId === spec);
+    if (spec) list = list.filter((c) => c.kind === "hospital" || c.specialtyId === spec);
     if (openNow) list = list.filter((c) => c.availableNow);
     if (term) {
       list = list.filter((c) => {
@@ -176,6 +182,12 @@ function Search() {
         </div>
       </div>
 
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {([["all","الكل"],["hospital","مستشفيات حكومية"],["clinic","عيادات"]] as const).map(([k,l]) => (
+          <button key={k} onClick={() => setKind(k)} className={`rounded-full px-2 py-1.5 text-[11px] font-bold ${kind === k ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>{l}</button>
+        ))}
+      </div>
+
       {/* Toggle */}
       <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-secondary p-1">
         <button
@@ -207,6 +219,7 @@ function Search() {
                 center={pos}
                 selectedId={selected?.id}
                 onSelect={(c) => setSelected(c)}
+                onLocate={useGps}
               />
             </Suspense>
           </ClientOnly>

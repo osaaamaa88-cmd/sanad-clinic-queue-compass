@@ -13,6 +13,7 @@ export interface ClinicsMapProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   selectedId?: string | null;
   onSelect: (clinic: Clinic) => void;
   size?: "default" | "compact";
+  onLocate?: (p: { lat: number; lng: number }) => void;
 }
 
 function pinIcon(L: Leaflet, clinic: Clinic, active: boolean) {
@@ -29,7 +30,7 @@ function pinIcon(L: Leaflet, clinic: Clinic, active: boolean) {
 
 /** Clustered clinic and hospital map with keyboard-accessible pins and location controls. */
 export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function ClinicsMap(
-  { clinics, center, selectedId, onSelect, size = "default", className, ...props }, ref,
+  { clinics, center, selectedId, onSelect, onLocate, size = "default", className, ...props }, ref,
 ) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<import("leaflet").Map | null>(null);
@@ -164,7 +165,8 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
       patient.current?.setLatLng(point);
       map.current?.setView(point, 14, { animate: !reducedMotion() });
       setLocating(false);
-    }, () => { setLocating(false); setGpsError("تعذّر تحديد موقعك. اسمح بالوصول للموقع ثم حاول مجدداً."); }, { timeout: 8000, maximumAge: 60000 });
+      onLocate?.(point);
+    }, () => { setLocating(false); setGpsError("تعذّر تحديد موقعك. اسمح بالوصول للموقع ثم حاول مجدداً."); }, { timeout: 10000, maximumAge: 30000, enableHighAccuracy: true });
   };
 
   return (
