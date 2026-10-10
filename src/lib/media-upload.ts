@@ -53,6 +53,7 @@ export async function uploadMedia(input: {
   storyKind?: "story" | "urgent";
   tag?: string;
   permanent?: boolean;
+  durationHours?: 12 | 24;
 }): Promise<{ ok: boolean; error?: string }> {
   const { kind } = input;
   const isImage = input.file.type.startsWith("image/");
@@ -86,7 +87,7 @@ export async function uploadMedia(input: {
       data: {
         clinicId: input.clinicId, kind, path: ticket.path, contentType: file.type,
         caption: input.caption, highlightId: input.highlightId ?? null, storyKind: input.storyKind,
-        tag: input.tag, permanent: input.permanent,
+        tag: input.tag, permanent: input.permanent, durationHours: input.durationHours,
       },
     });
     toast.success("تم الرفع بنجاح ✅", { id });
