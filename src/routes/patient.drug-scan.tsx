@@ -6,6 +6,7 @@ import { scanDrug, type DrugScan } from "@/lib/medscan.functions";
 import { imageToBase64 } from "@/lib/image-to-base64";
 
 export const Route = createFileRoute("/patient/drug-scan")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — ماسح الأدوية وبدائل النواقص" },

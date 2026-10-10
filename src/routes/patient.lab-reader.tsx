@@ -6,6 +6,7 @@ import { readLab, type LabReport, type LabItem } from "@/lib/medscan.functions";
 import { imageToBase64 } from "@/lib/image-to-base64";
 
 export const Route = createFileRoute("/patient/lab-reader")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "سَنَد — قارئ التحاليل الطبية" },
