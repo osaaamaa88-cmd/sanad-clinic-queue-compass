@@ -1,8 +1,11 @@
 /* SANAD offline service worker: pages network-first, static assets cache-first. */
-const CACHE = "sanad-v2";
+const CACHE = "sanad-v3";
 const TILES = "sanad-tiles-v1";
 const MAX_TILES = 1500;
-const SHELL = ["/", "/patient", "/patient/emergency", "/patient/meds", "/patient/assistant"];
+const SHELL = [
+  "/", "/patient", "/patient/emergency", "/patient/meds", "/patient/health",
+  "/patient/assistant", "/hospitals", "/find-doctor", "/settings", "/nutrition",
+];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => Promise.allSettled(SHELL.map((u) => c.add(u)))));

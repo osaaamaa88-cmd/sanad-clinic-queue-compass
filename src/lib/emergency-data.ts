@@ -21,13 +21,25 @@ export const emergencyHotlines = [
   { id: "poison", label: "التسمم", phone: "0225106603", emoji: "☠️" },
 ];
 
+const FAC_KEY = "sanad.cache.emergencyFacilities";
+
+function readCachedFacilities(): EmergencyFacility[] {
+  try {
+    return JSON.parse(localStorage.getItem(FAC_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+/** Network first; falls back to the last saved copy on this device when offline. */
 export async function listEmergencyFacilities(): Promise<EmergencyFacility[]> {
+  if (typeof window !== "undefined" && !navigator.onLine) return readCachedFacilities();
   const { data, error } = await supabase
     .from("emergency_facilities")
     .select("*")
     .order("distance_km", { ascending: true });
-  if (error || !data) return [];
-  return data.map((r) => ({
+  if (error || !data) return typeof window !== "undefined" ? readCachedFacilities() : [];
+  const list: EmergencyFacility[] = data.map((r) => ({
     id: r.id,
     name: r.name,
     type: r.type as EmergencyFacility["type"],
@@ -40,6 +52,10 @@ export async function listEmergencyFacilities(): Promise<EmergencyFacility[]> {
     lat: Number(r.lat) || 0,
     lng: Number(r.lng) || 0,
   }));
+  try {
+    localStorage.setItem(FAC_KEY, JSON.stringify(list));
+  } catch {}
+  return list;
 }
 
 export const facilityTypeLabel: Record<EmergencyFacility["type"], { label: string; emoji: string }> = {

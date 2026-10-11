@@ -154,7 +154,21 @@ export function useFloatingVoiceAssistant(allowed = true) {
       else if (!blocked) scheduleListen();
     };
     document.addEventListener("visibilitychange", visibility);
-    if (!createRecognizer() || !window.speechSynthesis) {
+    const OFFLINE_MSG = "المساعد الصوتي يحتاج للاتصال بالإنترنت";
+    const goOffline = () => {
+      blocked = true;
+      generation++;
+      stopMedia();
+      setState("error");
+      setMessage(OFFLINE_MSG);
+      toast.info(OFFLINE_MSG);
+    };
+    const goOnline = () => setRestart((v) => v + 1);
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
+    if (!navigator.onLine) {
+      goOffline();
+    } else if (!createRecognizer() || !window.speechSynthesis) {
       fail("المتصفح ده مش بيدعم المساعد الصوتي بالكامل؛ جرّب متصفح يدعم الميكروفون والصوت.");
     } else {
       say("أهلاً بك في سَنَد، أنا هنا لمساعدتك. احكيلي إيه اللي تعبك، وهنلاقي المساعدة المناسبة سوا.");
@@ -164,6 +178,8 @@ export function useFloatingVoiceAssistant(allowed = true) {
       generation++;
       stopMedia();
       document.removeEventListener("visibilitychange", visibility);
+      window.removeEventListener("offline", goOffline);
+      window.removeEventListener("online", goOnline);
       // Wipe any transcript/reply text held in state as soon as the session ends.
       setMessage("");
       setState("paused");
