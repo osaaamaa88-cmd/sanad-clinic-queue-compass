@@ -1,3 +1,4 @@
+import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Camera, Loader2, Pill, Plus, Search, AlertTriangle, Repeat } from "lucide-react";
@@ -28,6 +29,7 @@ function addToMeds(r: DrugScan) {
 }
 
 function DrugScanPage() {
+  const toolsBack = useDoctorClinicId() ? "/doctor" : "/patient/login";
   const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [preview, setPreview] = useState<string>();
@@ -50,7 +52,7 @@ function DrugScanPage() {
   }
 
   return (
-    <AppShell title="ماسح الأدوية" backTo="/patient/login">
+    <AppShell title="ماسح الأدوية" backTo={toolsBack}>
       <div className="mx-auto max-w-xl space-y-4 p-4 pb-28">
         <header className="flex items-center gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-warning text-warning-foreground"><Pill className="h-6 w-6" /></span>

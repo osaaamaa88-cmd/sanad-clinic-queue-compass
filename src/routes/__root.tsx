@@ -20,7 +20,7 @@ import { AlarmStopper } from "../components/SoundControls";
 import { FloatingVoiceAssistant } from "../components/FloatingVoiceWidget";
 import { IdleLogout } from "../components/IdleLogout";
 import { installGlobalSounds } from "../lib/sounds";
-import { installGlobalHaptics, setupStatusBar } from "../lib/native";
+import { installAndroidBack, installGlobalHaptics, setupStatusBar } from "../lib/native";
 import { useTheme } from "../lib/theme";
 import { useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -163,7 +163,9 @@ function RootComponent() {
   useEffect(() => {
     installGlobalSounds(toast);
     void setupStatusBar();
-    return installGlobalHaptics();
+    const offBack = installAndroidBack(toast);
+    const offHaptics = installGlobalHaptics();
+    return () => { offBack(); offHaptics(); };
   }, []);
 
   return (

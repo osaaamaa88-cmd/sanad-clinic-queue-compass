@@ -80,8 +80,11 @@ function HospitalsPage() {
 
   return (
     <div dir="rtl" className="mx-auto max-w-2xl p-4 pb-28">
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold">المستشفيات الحكومية</h1>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Link to="/" aria-label="رجوع" className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-lg">→</Link>
+          <h1 className="text-xl font-bold">المستشفيات الحكومية</h1>
+        </div>
         <Link to="/patient/emergency" className="text-sm text-primary">الطوارئ ←</Link>
       </div>
 
