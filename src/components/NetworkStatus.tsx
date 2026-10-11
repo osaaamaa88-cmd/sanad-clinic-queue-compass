@@ -35,18 +35,19 @@ export function NetworkStatus() {
   if (!offline && !justBack) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-2 z-[60] flex justify-center px-3">
+    <div className="fixed left-3 top-3 z-[60]" role="status" aria-live="polite">
       <div
-        className={`flex max-w-[92vw] items-center gap-2 rounded-full px-4 py-2 text-[12px] font-bold shadow-soft ${
-          offline
-            ? "bg-destructive text-destructive-foreground"
-            : "bg-success text-success-foreground"
+        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-soft ${
+          offline ? "bg-warning text-warning-foreground" : "bg-success text-success-foreground"
         }`}
       >
-        {offline ? <WifiOff className="h-4 w-4" /> : <Wifi className="h-4 w-4" />}
-        {offline
-          ? "وضع أوفلاين: الطوارئ والأدوية والروشتة شغالة، والرسائل تحتاج إنترنت"
-          : "تم استرجاع الاتصال بالشبكة"}
+        {offline ? <WifiOff className="h-3.5 w-3.5" /> : <Wifi className="h-3.5 w-3.5" />}
+        {offline ? "وضع عدم الاتصال" : "تم استرجاع الاتصال"}
+        {offline && (
+          <a href="tel:123" className="mr-1 rounded-full bg-destructive px-2 py-0.5 text-destructive-foreground">
+            🚑 123
+          </a>
+        )}
       </div>
     </div>
   );
