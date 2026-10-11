@@ -35,7 +35,6 @@ jobs:
           yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
           "$SDKMGR" --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
-
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
