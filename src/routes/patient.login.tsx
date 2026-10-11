@@ -130,7 +130,7 @@ function PatientLogin() {
             </Button>
           </div>
         ) : (
-          <PatientAuthForm onDone={() => navigate({ to: "/patient" })} />
+          <PatientAuthForm onDone={() => navigate({ to: "/patient", replace: true })} />
         )}
         <div className="mt-4 border-t border-border pt-3 text-center">
           <Link to="/developer" className="text-[11px] font-bold text-muted-foreground underline" dir="ltr">

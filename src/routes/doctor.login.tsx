@@ -50,8 +50,8 @@ function DoctorEntry() {
     // Auto-login: jump instantly using the cached profile while the server confirms.
     const cached = getCachedProfile();
     if (cached && cached.userId === session.user.id) {
-      if (cached.role === "secretary") navigate({ to: "/reception" });
-      else if (cached.clinicId) navigate({ to: "/patient/clinic/$id", params: { id: cached.clinicId } });
+      if (cached.role === "secretary") navigate({ to: "/reception", replace: true });
+      else if (cached.clinicId) navigate({ to: "/patient/clinic/$id", params: { id: cached.clinicId }, replace: true });
     }
     const membership = await getMyClinicMembership();
     const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>;
@@ -74,12 +74,12 @@ function DoctorEntry() {
       if (same) return;
     }
     if (membership.role === "secretary") {
-      navigate({ to: "/reception" });
+      navigate({ to: "/reception", replace: true });
       return;
     }
     if (membership.clinic) {
       // Doctor's default dashboard = the new interactive profile
-      navigate({ to: "/patient/clinic/$id", params: { id: membership.clinic.id } });
+      navigate({ to: "/patient/clinic/$id", params: { id: membership.clinic.id }, replace: true });
       return;
     }
     setNoClinic(true);

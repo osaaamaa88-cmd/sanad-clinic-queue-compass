@@ -1,3 +1,4 @@
+import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Copy, Sparkles, Loader2, Plus, Search, Trash2, Utensils } from "lucide-react";
@@ -149,7 +150,7 @@ function Nutrition() {
   const num = "w-full rounded-xl border border-border bg-background px-2 py-2 text-center text-sm font-bold";
 
   return (
-    <AppShell title="التغذية والسعرات" subtitle="صوّر أكلك واعرف سعراته" backTo="/patient/login">
+    <AppShell title="التغذية والسعرات" subtitle="صوّر أكلك واعرف سعراته" backTo={toolsBack}>
       <div className="space-y-4 pb-28">
         {/* Ring */}
         <section className="flex items-center gap-4 rounded-3xl border border-border bg-card p-4 shadow-soft">

@@ -235,7 +235,7 @@ function Landing() {
         {authOpen && (
           <PatientAuthModal
             onClose={() => setAuthOpen(false)}
-            onDone={() => { setAuthOpen(false); navigate({ to: "/patient" }); }}
+            onDone={() => { setAuthOpen(false); navigate({ to: "/patient", replace: true }); }}
           />
         )}
 

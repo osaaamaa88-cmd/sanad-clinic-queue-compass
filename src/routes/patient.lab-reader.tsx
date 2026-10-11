@@ -1,3 +1,4 @@
+import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Camera, FlaskConical, Loader2, Siren, HelpCircle, Heart, ImageIcon } from "lucide-react";
@@ -50,7 +51,7 @@ function LabReader() {
   }
 
   return (
-    <AppShell title="قارئ التحاليل" backTo="/patient/login">
+    <AppShell title="قارئ التحاليل" backTo={toolsBack}>
       <div className="mx-auto max-w-xl space-y-4 p-4 pb-28">
         <header className="flex items-center gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground"><FlaskConical className="h-6 w-6" /></span>
