@@ -66,6 +66,7 @@ function fileToBase64(file: File): Promise<{ data: string; mime: string }> {
 }
 
 function Nutrition() {
+  const toolsBack = useDoctorClinicId() ? "/doctor" : "/patient/login";
   const [log, setLog] = useState<Entry[]>([]);
   const [profile, setProfile] = useState<Profile>({ sex: "m", age: 30, height: 170, weight: 75, activity: 1.375, goal: "keep" });
   const [meal, setMeal] = useState<Meal>("غداء");

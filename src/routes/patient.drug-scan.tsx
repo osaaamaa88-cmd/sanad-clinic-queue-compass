@@ -29,6 +29,7 @@ function addToMeds(r: DrugScan) {
 }
 
 function DrugScanPage() {
+  const toolsBack = useDoctorClinicId() ? "/doctor" : "/patient/login";
   const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [preview, setPreview] = useState<string>();

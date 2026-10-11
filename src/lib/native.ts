@@ -79,3 +79,28 @@ export async function syncNativeMedReminders(meds: NativeMed[]) {
     /* ignore */
   }
 }
+
+/** Android hardware/gesture back: close open dialogs, go back, or double-press to exit on home. */
+export function installAndroidBack(toast: (msg: string) => unknown) {
+  if (!isNative()) return () => {};
+  let lastPress = 0;
+  let remove: (() => void) | undefined;
+  void import("@capacitor/app").then(async ({ App }) => {
+    const h = await App.addListener("backButton", () => {
+      const dialog = document.querySelector('[role="dialog"][data-state="open"], [role="dialog"]');
+      if (dialog) {
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        return;
+      }
+      const p = window.location.pathname;
+      const isRoot = p === "/" || p === "/patient" || p === "/doctor";
+      if (!isRoot && window.history.length > 1) { window.history.back(); return; }
+      const now = Date.now();
+      if (now - lastPress < 2000) { void App.exitApp(); return; }
+      lastPress = now;
+      toast("اضغط رجوع مرة تانية للخروج");
+    });
+    remove = () => void h.remove();
+  }).catch(() => {});
+  return () => remove?.();
+}

@@ -29,6 +29,7 @@ const STATUS: Record<LabItem["status"], { label: string; cls: string }> = {
 };
 
 function LabReader() {
+  const toolsBack = useDoctorClinicId() ? "/doctor" : "/patient/login";
   const fileRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
