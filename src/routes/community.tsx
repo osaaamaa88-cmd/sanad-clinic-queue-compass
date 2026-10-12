@@ -156,7 +156,7 @@ function CommunityPage() {
   return (
     <AppShell title="مجتمع سَنَد" subtitle="اسأل • شارك • اطمّن" backTo={doctorClinicId ? "/doctor" : "/patient"}>
       <div className="space-y-4 px-4 pb-28 pt-3">
-        <StoriesBar onCompose={() => requireAuth() && (setComposer(doctorClinicId ? "post" : "card"), true)} />
+        <StoriesBar onCompose={() => { if (doctorClinicId) return false; if (!userId) { setAuthOpen(true); return true; } setComposer("card"); return true; }} />
 
         <div className="rounded-3xl border border-border bg-card p-3 shadow-soft">
           <button type="button" onClick={() => requireAuth() && setComposer("post")} className="w-full rounded-2xl bg-secondary px-4 py-3 text-right text-sm text-muted-foreground">
