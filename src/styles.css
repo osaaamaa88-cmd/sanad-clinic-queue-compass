@@ -429,3 +429,31 @@ body[data-story-open="true"] [data-bottom-nav] {
   100% { transform: scale(1.1); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .sanad-pulse { animation: none; opacity: 0.25; } }
+
+/* ===== Community text cards (WhatsApp-style pen status) ===== */
+:root {
+  --card-navy: linear-gradient(150deg, oklch(0.32 0.08 255), oklch(0.20 0.06 260));
+  --card-ocean: linear-gradient(140deg, oklch(0.72 0.13 205), oklch(0.48 0.15 240));
+  --card-emerald: linear-gradient(140deg, oklch(0.72 0.15 165), oklch(0.45 0.11 185));
+  --card-gold: linear-gradient(140deg, oklch(0.88 0.12 92), oklch(0.66 0.16 55));
+  --card-rose: linear-gradient(140deg, oklch(0.78 0.12 10), oklch(0.55 0.18 350));
+  --card-lavender: linear-gradient(140deg, oklch(0.78 0.10 300), oklch(0.50 0.15 285));
+  --card-sunset: linear-gradient(135deg, oklch(0.80 0.15 60), oklch(0.62 0.20 25), oklch(0.45 0.16 330));
+  --card-night: radial-gradient(circle at 30% 20%, oklch(0.45 0.12 260), oklch(0.16 0.04 265));
+  --card-ink: oklch(0.98 0.005 90);
+}
+.card-bg-navy { background: var(--card-navy); }
+.card-bg-ocean { background: var(--card-ocean); }
+.card-bg-emerald { background: var(--card-emerald); }
+.card-bg-gold { background: var(--card-gold); }
+.card-bg-rose { background: var(--card-rose); }
+.card-bg-lavender { background: var(--card-lavender); }
+.card-bg-sunset { background: var(--card-sunset); }
+.card-bg-night { background: var(--card-night); }
+.card-ink { color: var(--card-ink); text-shadow: 0 2px 12px oklch(0 0 0 / 0.25); }
+.font-card-alexandria { font-family: "Alexandria", sans-serif; font-weight: 700; }
+.font-card-kufi { font-family: "Reem Kufi", sans-serif; font-weight: 700; }
+.font-card-ruqaa { font-family: "Aref Ruqaa", serif; font-weight: 700; }
+.font-card-lalezar { font-family: "Lalezar", sans-serif; }
+.font-card-amiri { font-family: "Amiri", serif; font-weight: 700; }
+.font-card-marhey { font-family: "Marhey", sans-serif; font-weight: 600; }
