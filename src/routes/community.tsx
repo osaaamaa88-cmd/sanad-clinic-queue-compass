@@ -14,6 +14,7 @@ import { getClinicStories, type StoryItem } from "@/lib/stories";
 import { compressImage } from "@/lib/media-upload";
 
 export const Route = createFileRoute("/community")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "مجتمع سَنَد — اسأل واستشر أطباء مصر" },
@@ -105,7 +106,7 @@ function CommunityPage() {
     const paths = list.map((p) => p.image_path).filter(Boolean);
     if (paths.length) {
       const { data: signed } = await supabase.storage.from("community").createSignedUrls(paths, 60 * 60);
-      setImages(Object.fromEntries((signed ?? []).filter((s) => s.signedUrl).map((s) => [s.path ?? "", s.signedUrl])));
+      setImages(Object.fromEntries((signed ?? []).filter((s) => s.signedUrl).map((s) => [s.path ?? "", s.signedUrl as string])));
     }
   }, [filter]);
 
