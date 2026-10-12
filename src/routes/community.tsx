@@ -204,26 +204,88 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-function StoriesBar() {
-  const [clinics, setClinics] = useState<{ id: string; doctor: string; avatar: string; phone: string }[]>([]);
+const STORY_TIPS = [
+  { bg: "ocean", text: "🚶 30 دقيقة مشي يومياً تحمي قلبك وتحسّن مزاجك" },
+  { bg: "emerald", text: "💧 اشرب 8 أكواب ماء موزعة على اليوم" },
+  { bg: "gold", text: "😴 نوم 7-8 ساعات يقوّي مناعتك وذاكرتك" },
+  { bg: "lavender", text: "🥗 أضف سلطة خضراء لوجبتين يومياً" },
+];
+
+function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
+  const navigate = useNavigate();
+  const [clinics, setClinics] = useState<{ id: string; doctor: string; avatar: string; phone: string; hasStory: boolean; cover: string }[]>([]);
   const [open, setOpen] = useState<{ items: StoryItem[]; clinic: { id: string; doctor: string; avatar: string; phone: string } } | null>(null);
   useEffect(() => {
     void svrFollowedStories({ data: { followerKey: getFollowerKey() } }).then((r) => setClinics(r.clinics)).catch(() => {});
   }, []);
-  if (!clinics.length) return null;
+  const openClinic = async (c: { id: string; doctor: string; avatar: string; phone: string }) => {
+    const s = await getClinicStories(c.id);
+    if (s.stories.length) setOpen({ items: s.stories, clinic: c });
+    else void navigate({ to: "/patient/clinic/$id", params: { id: c.id } });
+  };
   return (
     <>
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+      <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+        {/* Create-story card (always first) */}
+        <button
+          type="button"
+          onClick={() => {
+            if (doctorClinicIdOf(onCompose)) return;
+          }}
+          className="hidden"
+          tabIndex={-1}
+        />
+        <button
+          type="button"
+          onClick={() => { if (onCompose()) return; void navigate({ to: "/doctor/stories" }); }}
+          className="relative h-44 w-[6.5rem] shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-soft"
+        >
+          <span className="absolute inset-0 card-bg-navy opacity-90" />
+          <span className="absolute inset-0 grid place-items-center">
+            <span className="flex flex-col items-center gap-2">
+              <span className="grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/25">
+                <Plus className="h-6 w-6" />
+              </span>
+              <span className="text-[11px] font-extrabold text-white">إنشاء قصة</span>
+            </span>
+          </span>
+        </button>
+
         {clinics.map((c) => (
-          <button key={c.id} type="button" className="flex w-16 shrink-0 flex-col items-center gap-1"
-            onClick={async () => { const s = await getClinicStories(c.id); if (s.stories.length) setOpen({ items: s.stories, clinic: c }); }}>
-            <span className="gradient-story rounded-full p-[2.5px]">
-              <span className="block h-14 w-14 overflow-hidden rounded-full border-2 border-background bg-secondary">
-                {c.avatar ? <img src={c.avatar} alt="" className="h-full w-full object-cover" /> : <span className="grid h-full w-full place-items-center text-lg font-bold text-primary">{c.doctor.replace(/^د\.?\s*/, "").charAt(0)}</span>}
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => void openClinic(c)}
+            className="relative h-44 w-[6.5rem] shrink-0 overflow-hidden rounded-2xl border border-border shadow-soft"
+          >
+            {c.cover ? (
+              <img src={c.cover} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+            ) : c.avatar ? (
+              <img src={c.avatar} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+            ) : (
+              <span className="absolute inset-0 card-bg-ocean" />
+            )}
+            <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30" />
+            <span className="absolute right-2 top-2">
+              <span className={`block rounded-full ${c.hasStory ? "gradient-story p-[2.5px] shadow-[0_0_10px_2px_rgb(59_130_246/0.6)]" : "p-[1.5px] ring-1 ring-white/40"}`}>
+                <span className="block h-9 w-9 overflow-hidden rounded-full border border-background/60 bg-secondary">
+                  {c.avatar ? <img src={c.avatar} alt="" className="h-full w-full object-cover" loading="lazy" />
+                    : <span className="grid h-full w-full place-items-center text-sm font-black text-white">{c.doctor.replace(/^د\.?\s*/, "").charAt(0)}</span>}
+                </span>
               </span>
             </span>
-            <span className="w-full truncate text-center text-[11px] font-semibold">{c.doctor}</span>
+            <span className="absolute inset-x-1.5 bottom-2 line-clamp-2 text-center text-[11px] font-extrabold leading-tight text-white drop-shadow">{c.doctor}</span>
           </button>
+        ))}
+
+        {STORY_TIPS.map((t, i) => (
+          <span key={i} className="relative h-44 w-[6.5rem] shrink-0 overflow-hidden rounded-2xl">
+            <span className={`absolute inset-0 card-bg-${t.bg}`} />
+            <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3 text-center">
+              <span className="rounded-full bg-black/25 px-2 py-0.5 text-[9px] font-extrabold text-white">نصيحة سَنَد</span>
+              <span className="text-[11px] font-bold leading-relaxed text-white">{t.text}</span>
+            </span>
+          </span>
         ))}
       </div>
       {open && <StoryViewer items={open.items} title={open.clinic.doctor} avatar={open.clinic.avatar} clinicId={open.clinic.id} phone={open.clinic.phone} onClose={() => setOpen(null)} />}
