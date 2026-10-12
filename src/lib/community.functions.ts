@@ -37,6 +37,6 @@ export const svrFollowedStories = createServerFn({ method: "POST" })
       clinics: order
         .map((id) => byId.get(id))
         .filter((c): c is NonNullable<typeof c> => !!c)
-        .map((c) => ({ id: c.id, doctor: c.doctor, phone: c.phone, avatar: c.avatar_url ? signed[c.avatar_url] ?? "" : "" })),
+        .map((c) => ({ id: c.id, doctor: c.doctor, phone: c.phone, avatar: c.avatar_url ? signed.get(c.avatar_url) ?? "" : "" })),
     };
   });
