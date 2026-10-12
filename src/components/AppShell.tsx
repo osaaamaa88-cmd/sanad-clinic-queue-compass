@@ -46,8 +46,8 @@ export function AppShell({
   const onOwnClinic = !!doctorClinicId && pathname === `/patient/clinic/${doctorClinicId}`;
   const showDoctorNav =
     !!doctorClinicId &&
-    (onOwnClinic || pathname.startsWith("/messages") || pathname.startsWith("/reception") || pathname.startsWith("/doctor"));
-  const showPatientNav = !showDoctorNav && (pathname.startsWith("/patient") || pathname.startsWith("/messages"));
+    (onOwnClinic || pathname.startsWith("/community") || pathname.startsWith("/messages") || pathname.startsWith("/reception") || pathname.startsWith("/doctor"));
+  const showPatientNav = !showDoctorNav && (pathname.startsWith("/patient") || pathname.startsWith("/community") || pathname.startsWith("/messages"));
   return (
     <div className="min-h-screen bg-background">
       <div className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-md sm:max-w-xl lg:max-w-2xl"}`}>

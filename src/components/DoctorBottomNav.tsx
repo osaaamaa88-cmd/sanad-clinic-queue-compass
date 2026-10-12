@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ListOrdered, MessagesSquare, Pill, Search, Settings, Stethoscope } from "lucide-react";
+import { MessagesSquare, Pill, Search, Settings, Stethoscope, UsersRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { currentUserId, unreadCounts } from "@/lib/chat";
 import { RxComposer } from "@/components/RxComposer";
@@ -42,9 +42,9 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
 
   const items = [
     { key: "profile", label: "عيادتي", icon: Stethoscope, active: pathname === "/doctor" || pathname === "/doctor/" || pathname.startsWith("/patient/clinic/"), node: clinicId ? { to: "/patient/clinic/$id" as const, params: { id: clinicId } } : { to: "/doctor" as const } },
-    { key: "msgs", label: "الرسائل", icon: MessagesSquare, active: pathname.startsWith("/messages"), node: { to: "/messages" as const }, badge: unread },
+    { key: "community", label: "المجتمع", icon: UsersRound, active: pathname.startsWith("/community"), node: { to: "/community" as const } },
     { key: "rx" },
-    { key: "queue", label: "الطابور", icon: ListOrdered, active: pathname.startsWith("/reception"), node: { to: "/reception" as const } },
+    { key: "msgs", label: "الرسائل", icon: MessagesSquare, active: pathname.startsWith("/messages"), node: { to: "/messages" as const }, badge: unread },
     { key: "settings", label: "الإعدادات", icon: Settings, active: pathname.startsWith("/doctor-settings"), node: { to: "/doctor-settings" as const } },
   ];
 
