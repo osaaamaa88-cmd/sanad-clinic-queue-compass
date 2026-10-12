@@ -229,14 +229,6 @@ function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
         {/* Create-story card (always first) */}
         <button
           type="button"
-          onClick={() => {
-            if (doctorClinicIdOf(onCompose)) return;
-          }}
-          className="hidden"
-          tabIndex={-1}
-        />
-        <button
-          type="button"
           onClick={() => { if (onCompose()) return; void navigate({ to: "/doctor/stories" }); }}
           className="relative h-44 w-[6.5rem] shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-soft"
         >
