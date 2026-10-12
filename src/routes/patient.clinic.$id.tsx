@@ -256,10 +256,11 @@ function ClinicDetail() {
     await doBooking(who);
   };
 
-  if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient/search"><div /></AppShell>;
+  const backTarget = isOwner ? "/doctor" : "/patient/search";
+  if (!loaded) return <AppShell title="جاري التحميل…" backTo={backTarget}><div /></AppShell>;
   if (!clinic) {
     return (
-      <AppShell title="عيادة غير متاحة" backTo="/patient/search">
+      <AppShell title="عيادة غير متاحة" backTo={backTarget}>
         <div className="mt-4 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
           العيادة دي مش موجودة أو لسه ما تمّش توثيقها.
         </div>
