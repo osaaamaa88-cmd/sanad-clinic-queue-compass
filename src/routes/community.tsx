@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BadgeCheck, CalendarPlus, Heart, ImagePlus, Lock, MessageCircle, PenLine, Send, Trash2, X } from "lucide-react";
+import { BadgeCheck, CalendarPlus, Heart, ImagePlus, Lock, MessageCircle, PenLine, Plus, Send, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { PatientAuthModal } from "@/components/PatientAuthModal";
 import { StoryViewer } from "@/components/StoryViewer";
@@ -156,7 +156,7 @@ function CommunityPage() {
   return (
     <AppShell title="مجتمع سَنَد" subtitle="اسأل • شارك • اطمّن" backTo={doctorClinicId ? "/doctor" : "/patient"}>
       <div className="space-y-4 px-4 pb-28 pt-3">
-        <StoriesBar />
+        <StoriesBar onCompose={() => requireAuth() && (setComposer(doctorClinicId ? "post" : "card"), true)} />
 
         <div className="rounded-3xl border border-border bg-card p-3 shadow-soft">
           <button type="button" onClick={() => requireAuth() && setComposer("post")} className="w-full rounded-2xl bg-secondary px-4 py-3 text-right text-sm text-muted-foreground">
