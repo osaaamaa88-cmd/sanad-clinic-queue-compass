@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccessibilityAssistantRouteImport } from './routes/accessibility-assistant'
 import { Route as AdminAccessRouteImport } from './routes/admin-access'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as DirectionsRouteImport } from './routes/directions'
 import { Route as DoctorSettingsRouteImport } from './routes/doctor-settings'
@@ -56,6 +57,11 @@ const AccessibilityAssistantRoute = AccessibilityAssistantRouteImport.update({
 const AdminAccessRoute = AdminAccessRouteImport.update({
   id: '/admin-access',
   path: '/admin-access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeveloperRoute = DeveloperRouteImport.update({
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accessibility-assistant': typeof AccessibilityAssistantRoute
   '/admin-access': typeof AdminAccessRoute
+  '/community': typeof CommunityRoute
   '/developer': typeof DeveloperRoute
   '/directions': typeof DirectionsRoute
   '/doctor-settings': typeof DoctorSettingsRoute
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accessibility-assistant': typeof AccessibilityAssistantRoute
   '/admin-access': typeof AdminAccessRoute
+  '/community': typeof CommunityRoute
   '/developer': typeof DeveloperRoute
   '/directions': typeof DirectionsRoute
   '/doctor-settings': typeof DoctorSettingsRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/accessibility-assistant': typeof AccessibilityAssistantRoute
   '/admin-access': typeof AdminAccessRoute
+  '/community': typeof CommunityRoute
   '/developer': typeof DeveloperRoute
   '/directions': typeof DirectionsRoute
   '/doctor-settings': typeof DoctorSettingsRoute
@@ -321,6 +330,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accessibility-assistant'
     | '/admin-access'
+    | '/community'
     | '/developer'
     | '/directions'
     | '/doctor-settings'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accessibility-assistant'
     | '/admin-access'
+    | '/community'
     | '/developer'
     | '/directions'
     | '/doctor-settings'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accessibility-assistant'
     | '/admin-access'
+    | '/community'
     | '/developer'
     | '/directions'
     | '/doctor-settings'
@@ -427,6 +439,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccessibilityAssistantRoute: typeof AccessibilityAssistantRoute
   AdminAccessRoute: typeof AdminAccessRoute
+  CommunityRoute: typeof CommunityRoute
   DeveloperRoute: typeof DeveloperRoute
   DirectionsRoute: typeof DirectionsRoute
   DoctorSettingsRoute: typeof DoctorSettingsRoute
@@ -480,6 +493,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-access'
       fullPath: '/admin-access'
       preLoaderRoute: typeof AdminAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/developer': {
@@ -699,6 +719,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccessibilityAssistantRoute: AccessibilityAssistantRoute,
   AdminAccessRoute: AdminAccessRoute,
+  CommunityRoute: CommunityRoute,
   DeveloperRoute: DeveloperRoute,
   DirectionsRoute: DirectionsRoute,
   DoctorSettingsRoute: DoctorSettingsRoute,

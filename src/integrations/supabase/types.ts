@@ -666,6 +666,144 @@ export type Database = {
         }
         Relationships: []
       }
+      community_comments: {
+        Row: {
+          author_id: string
+          author_name: string
+          body: string
+          clinic_id: string | null
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          author_name?: string
+          body: string
+          clinic_id?: string | null
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          body?: string
+          clinic_id?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_id: string
+          author_name: string
+          bg_style: string
+          body: string
+          clinic_id: string | null
+          created_at: string
+          font_style: string
+          id: string
+          image_path: string
+          is_anonymous: boolean
+          kind: string
+          specialty_id: string
+        }
+        Insert: {
+          author_id: string
+          author_name?: string
+          bg_style?: string
+          body?: string
+          clinic_id?: string | null
+          created_at?: string
+          font_style?: string
+          id?: string
+          image_path?: string
+          is_anonymous?: boolean
+          kind?: string
+          specialty_id?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          bg_style?: string
+          body?: string
+          clinic_id?: string | null
+          created_at?: string
+          font_style?: string
+          id?: string
+          image_path?: string
+          is_anonymous?: boolean
+          kind?: string
+          specialty_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deletion_requests: {
         Row: {
           created_at: string
@@ -898,7 +1036,59 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      community_feed: {
+        Row: {
+          author_name: string | null
+          bg_style: string | null
+          body: string | null
+          clinic_id: string | null
+          created_at: string | null
+          font_style: string | null
+          id: string | null
+          image_path: string | null
+          is_anonymous: boolean | null
+          is_mine: boolean | null
+          kind: string | null
+          specialty_id: string | null
+        }
+        Insert: {
+          author_name?: never
+          bg_style?: string | null
+          body?: string | null
+          clinic_id?: string | null
+          created_at?: string | null
+          font_style?: string | null
+          id?: string | null
+          image_path?: string | null
+          is_anonymous?: boolean | null
+          is_mine?: never
+          kind?: string | null
+          specialty_id?: string | null
+        }
+        Update: {
+          author_name?: never
+          bg_style?: string | null
+          body?: string | null
+          clinic_id?: string | null
+          created_at?: string | null
+          font_style?: string | null
+          id?: string | null
+          image_path?: string | null
+          is_anonymous?: boolean | null
+          is_mine?: never
+          kind?: string | null
+          specialty_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_access_conversation: {
