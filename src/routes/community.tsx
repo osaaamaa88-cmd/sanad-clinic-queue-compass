@@ -169,6 +169,10 @@ function CommunityPage() {
           </div>
         </div>
 
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+          <Chip active={!filter} onClick={() => setFilter("")}>الكل</Chip>
+          {specialties.map((s) => <Chip key={s.id} active={filter === s.id} onClick={() => setFilter(s.id)}>{s.emoji} {s.name}</Chip>)}
+        </div>
 
         {loading ? (
           <div className="space-y-3">{[0, 1].map((i) => <div key={i} className="h-48 animate-pulse rounded-3xl bg-secondary" />)}</div>
