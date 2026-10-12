@@ -324,7 +324,7 @@ function ClinicDetail() {
   }
 
   return (
-    <AppShell title={clinic.doctor} subtitle={spec?.name} backTo="/patient/search">
+    <AppShell title={clinic.doctor} subtitle={spec?.name} backTo={backTarget}>
       <div>
           <input
             ref={postInputRef}
