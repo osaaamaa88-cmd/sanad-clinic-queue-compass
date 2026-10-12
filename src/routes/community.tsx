@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BadgeCheck, CalendarPlus, Heart, ImagePlus, Lock, MessageCircle, PenLine, Plus, Send, Trash2, X } from "lucide-react";
+import { BadgeCheck, CalendarPlus, Heart, ImagePlus, Lock, MessageCircle, PenLine, Plus, Search, Send, Trash2, X } from "lucide-react";
+import { unreadCounts } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
 import { PatientAuthModal } from "@/components/PatientAuthModal";
 import { StoryViewer } from "@/components/StoryViewer";
@@ -112,6 +113,13 @@ function CommunityPage() {
 
   useEffect(() => { void load(); }, [load]);
 
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [unreadTotal, setUnreadTotal] = useState(0);
+  useEffect(() => {
+    if (!userId) { setUnreadTotal(0); return; }
+    void unreadCounts(userId).then((m) => setUnreadTotal(Object.values(m).reduce((a, b) => a + b, 0))).catch(() => {});
+  }, [userId]);
+
   const requireAuth = () => { if (!userId) { setAuthOpen(true); return false; } return true; };
 
   const toggleLike = async (id: string) => {
@@ -154,7 +162,15 @@ function CommunityPage() {
   }, [doctorClinicId, clinics]);
 
   return (
-    <AppShell title="مجتمع سَنَد" subtitle="اسأل • شارك • اطمّن" backTo={doctorClinicId ? "/doctor" : "/patient"}>
+    <AppShell title="مجتمع سَنَد" subtitle="اسأل • شارك • اطمّن" backTo={doctorClinicId ? "/doctor" : "/patient"}
+      right={<>
+        <button type="button" onClick={() => setSearchOpen(true)} aria-label="بحث" className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground"><Search className="h-5 w-5" /></button>
+        <Link to="/messages" aria-label="الرسائل" className="relative grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground">
+          <MessageCircle className="h-5 w-5" />
+          {unreadTotal > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-black text-destructive-foreground ring-2 ring-card">{unreadTotal > 9 ? "9+" : unreadTotal}</span>}
+        </Link>
+      </>}>
+      {searchOpen && <SearchOverlay posts={posts} onClose={() => setSearchOpen(false)} />}
       <div className="space-y-4 px-4 pb-28 pt-3">
         <StoriesBar onCompose={() => { if (doctorClinicId) return false; if (!userId) { setAuthOpen(true); return true; } setComposer("card"); return true; }} />
 
@@ -195,6 +211,66 @@ function CommunityPage() {
       )}
       {authOpen && <PatientAuthModal title="سجّل دخولك للتفاعل في مجتمع سَنَد" onClose={() => setAuthOpen(false)} onDone={() => setAuthOpen(false)} />}
     </AppShell>
+  );
+}
+
+function SearchOverlay({ posts, onClose }: { posts: Post[]; onClose: () => void }) {
+  const [q, setQ] = useState("");
+  const [docs, setDocs] = useState<{ id: string; doctor: string; specialty_id: string }[]>([]);
+  useEffect(() => {
+    const term = q.trim();
+    if (term.length < 2) { setDocs([]); return; }
+    const t = setTimeout(() => {
+      const specIds = specialties.filter((s) => s.name.includes(term)).map((s) => s.id);
+      let query = supabase.from("clinics").select("id, doctor, specialty_id").eq("is_verified", true).limit(15);
+      query = specIds.length ? query.or(`doctor.ilike.%${term}%,specialty_id.in.(${specIds.join(",")})`) : query.ilike("doctor", `%${term}%`);
+      void query.then(({ data }) => setDocs((data ?? []) as typeof docs));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q]);
+  const term = q.trim();
+  const matched = term.length >= 2 ? posts.filter((p) => !p.is_anonymous && p.author_name.includes(term) || p.body.includes(term)).slice(0, 10) : [];
+  return (
+    <div className="fixed inset-0 z-[60] flex flex-col bg-background">
+      <div className="flex items-center gap-2 border-b border-border bg-card p-3">
+        <button type="button" onClick={onClose} aria-label="إغلاق" className="grid h-10 w-10 place-items-center rounded-full bg-secondary"><X className="h-5 w-5" /></button>
+        <div className="flex flex-1 items-center gap-2 rounded-full bg-secondary px-4">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث عن طبيب، تخصص، أو منشور..." className="h-10 w-full bg-transparent text-sm outline-none" />
+        </div>
+      </div>
+      <div className="flex-1 space-y-5 overflow-y-auto p-4">
+        {term.length < 2 && <p className="pt-10 text-center text-sm text-muted-foreground">اكتب حرفين على الأقل للبحث</p>}
+        {docs.length > 0 && (
+          <section>
+            <h3 className="mb-2 text-xs font-extrabold text-muted-foreground">الأطباء والعيادات</h3>
+            <div className="space-y-2">
+              {docs.map((d) => (
+                <Link key={d.id} to="/patient/clinic/$id" params={{ id: d.id }} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                  <span className="grid h-11 w-11 place-items-center rounded-full gradient-gold font-black text-gold-foreground">{d.doctor.replace(/^د\.?\s*/, "").charAt(0)}</span>
+                  <span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold">{d.doctor}</span><span className="text-[11px] text-muted-foreground">{getSpecialty(d.specialty_id)?.name ?? ""}</span></span>
+                  <BadgeCheck className="h-4 w-4 text-success" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+        {matched.length > 0 && (
+          <section>
+            <h3 className="mb-2 text-xs font-extrabold text-muted-foreground">المنشورات</h3>
+            <div className="space-y-2">
+              {matched.map((p) => (
+                <button key={p.id} type="button" onClick={() => { onClose(); setTimeout(() => document.getElementById(`post-${p.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }} className="block w-full rounded-2xl border border-border bg-card p-3 text-right">
+                  <span className="block text-xs font-bold text-muted-foreground">{p.author_name}</span>
+                  <span className="line-clamp-2 text-sm">{p.body || "📷 صورة"}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+        {term.length >= 2 && !docs.length && !matched.length && <p className="pt-10 text-center text-sm text-muted-foreground">لا توجد نتائج</p>}
+      </div>
+    </div>
   );
 }
 
@@ -305,7 +381,7 @@ function PostCard({ post, image, clinic, comments, clinics, likes, liked, userId
   const visible = showAll ? sorted : sorted.slice(0, 2);
 
   return (
-    <article className={`overflow-hidden rounded-3xl border bg-card shadow-soft ${clinic ? "border-gold/50" : "border-border"}`}>
+    <article id={`post-${post.id}`} className={`scroll-mt-20 overflow-hidden rounded-3xl border bg-card shadow-soft ${clinic ? "border-gold/50" : "border-border"}`}>
       <header className="flex items-center gap-3 p-4 pb-3">
         <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold ${clinic ? "gradient-gold text-gold-foreground" : post.is_anonymous ? "bg-secondary text-muted-foreground" : "bg-primary-soft text-primary"}`}>
           {post.is_anonymous ? <Lock className="h-4 w-4" /> : post.author_name.replace(/^د\.?\s*/, "").charAt(0)}
