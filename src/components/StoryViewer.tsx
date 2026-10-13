@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Trash2, AlertTriangle, Send, Eye } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { markStoryViewed, type StoryItem } from "@/lib/stories";
+import { markStoryViewed, parseCardStyle, type StoryItem } from "@/lib/stories";
 
 const IMAGE_MS = 5000;
 const HOLD_MS = 220;
@@ -157,7 +157,7 @@ export function StoryViewer({
     else prev();
   };
 
-  const contextText = `استفسار بخصوص الستوري${current.tag ? ` (${current.tag})` : ""}${current.caption ? `: «${current.caption.slice(0, 80)}»` : ""}`;
+  const contextText = `استفسار بخصوص الستوري${current.tag && !parseCardStyle(current.tag) ? ` (${current.tag})` : ""}${current.caption ? `: «${current.caption.slice(0, 80)}»` : ""}`;
   const sendInquiry = (via: "chat" | "wa") => {
     const text = `${contextText}\n${msg.trim()}`.trim();
     if (via === "wa") {
@@ -212,6 +212,10 @@ export function StoryViewer({
             ) : (
               <img src={current.url} alt={current.caption || title} className="h-full w-full object-contain" draggable={false} />
             )
+          ) : parseCardStyle(current.tag) ? (
+            <div className={`absolute inset-0 grid place-items-center p-8 card-bg-${parseCardStyle(current.tag)!.bg}`}>
+              <p className={`whitespace-pre-wrap text-center text-3xl leading-relaxed text-white drop-shadow font-card-${parseCardStyle(current.tag)!.font}`}>{current.caption}</p>
+            </div>
           ) : (
             <div className={`mx-6 rounded-3xl p-8 text-center ${current.kind === "urgent" ? "border border-destructive/50 bg-destructive/20" : "bg-white/10"}`}>
               {current.kind === "urgent" && <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-destructive" />}
