@@ -78,6 +78,7 @@ export const svrAddStory = createServerFn({ method: "POST" })
     contentType?: string;
     base64?: string;
     durationHours?: number;
+    cardStyle?: string;
   }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     const base64 = String(data.base64 ?? "");
@@ -95,6 +96,7 @@ export const svrAddStory = createServerFn({ method: "POST" })
       contentType,
       base64,
       durationHours: data.durationHours === 12 ? 12 : 24,
+      cardStyle: /^card:(navy|ocean|emerald|gold|rose|lavender|sunset|night):(alexandria|kufi|ruqaa|lalezar|amiri|marhey)$/.test(String(data.cardStyle ?? "")) && !base64 ? String(data.cardStyle) : "",
     };
   })
   .handler(async ({ data, context }) => {
@@ -123,6 +125,7 @@ export const svrAddStory = createServerFn({ method: "POST" })
       media_type: data.contentType.startsWith("video/") ? "video" : "image",
       caption: data.caption,
       kind: data.kind,
+      ...(data.cardStyle ? { tag: data.cardStyle } : {}),
       is_pinned: Boolean(data.highlightId),
     });
     if (error) {

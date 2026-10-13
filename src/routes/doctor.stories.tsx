@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Eye, ImagePlus, Loader2, Plus, Trash2, ArrowRight, X, Clock, Star, AlertTriangle, Settings } from "lucide-react";
+import { Camera, Eye, ImagePlus, Loader2, Plus, Trash2, ArrowRight, X, Clock, Star, AlertTriangle, Settings, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { StoryViewer } from "@/components/StoryViewer";
@@ -10,6 +10,7 @@ import {
   createHighlight,
   deleteStory,
   getClinicStories,
+  parseCardStyle,
   type ClinicStories,
   type StoryItem,
 } from "@/lib/stories";
@@ -28,6 +29,9 @@ export const Route = createFileRoute("/doctor/stories")({
   staticData: { sitemap: false },
   component: DoctorStories,
 });
+
+const PEN_BGS = ["navy", "ocean", "emerald", "gold", "rose", "lavender", "sunset", "night"];
+const PEN_FONTS = [["alexandria", "عادي"], ["kufi", "كوفي"], ["ruqaa", "رقعة"], ["lalezar", "عريض"], ["amiri", "أميري"], ["marhey", "مرح"]] as const;
 
 const TAGS = ["تنويه هام", "تأخير في المواعيد", "حالة جديدة", "عرض خاص"];
 
@@ -52,6 +56,9 @@ function DoctorStories() {
   const [highlightId, setHighlightId] = useState<string>("");
   const [newHl, setNewHl] = useState("");
   const [busy, setBusy] = useState(false);
+  const [pen, setPen] = useState(false);
+  const [penBg, setPenBg] = useState("navy");
+  const [penFont, setPenFont] = useState("alexandria");
   const [viewing, setViewing] = useState<{ items: StoryItem[]; i: number } | null>(null);
   const camRef = useRef<HTMLInputElement>(null);
   const galRef = useRef<HTMLInputElement>(null);
@@ -76,7 +83,8 @@ function DoctorStories() {
       if (!hl && newHl.trim()) hl = await createHighlight(clinicId, newHl.trim(), "✨");
       if (!hl) { setBusy(false); return toast.error("اختر هايلايت أو أنشئ واحدًا"); }
     }
-    const r = await addStory({ clinicId, file, caption: caption.trim(), tag, highlightId: hl, permanent, durationHours: hours, kind: tag === "تنويه هام" || tag === "تأخير في المواعيد" ? "urgent" : "story" });
+    if (pen && !caption.trim()) { setBusy(false); return toast.error("اكتب نص الحالة أولًا"); }
+    const r = await addStory({ clinicId, file: pen ? null : file, cardStyle: pen ? `card:${penBg}:${penFont}` : undefined, caption: caption.trim(), tag, highlightId: hl, permanent, durationHours: hours, kind: tag === "تنويه هام" || tag === "تأخير في المواعيد" ? "urgent" : "story" });
     setBusy(false);
     if (!r.ok) return toast.error(r.error || "تعذر النشر");
     toast.success("تم نشر القصة");
@@ -132,7 +140,7 @@ function DoctorStories() {
         <section className="rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between">
             <h2 className="font-extrabold">{permanent ? "قصة دائمة" : tag === "تنويه هام" ? "تنبيه عاجل" : "قصة جديدة"}</h2>
-            <button type="button" onClick={() => { setComposer(false); setFile(null); setPreview(""); }} aria-label="إلغاء" className="rounded-full p-1.5 hover:bg-secondary"><X className="h-4 w-4" /></button>
+            <button type="button" onClick={() => { setComposer(false); setPen(false); setFile(null); setPreview(""); }} aria-label="إلغاء" className="rounded-full p-1.5 hover:bg-secondary"><X className="h-4 w-4" /></button>
           </div>
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => camRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-secondary py-3 text-sm font-bold">
@@ -141,16 +149,32 @@ function DoctorStories() {
             <button type="button" onClick={() => galRef.current?.click()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-secondary py-3 text-sm font-bold">
               <ImagePlus className="h-4 w-4" /> المعرض
             </button>
+            <button type="button" aria-pressed={pen} onClick={() => { setPen(!pen); setFile(null); setPreview(""); }} className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold ${pen ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>
+              <PenLine className="h-4 w-4" /> القلم
+            </button>
             <input ref={camRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => pick(e.target.files?.[0])} />
             <input ref={galRef} type="file" accept="image/*,video/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
           </div>
+          {pen && (
+            <div className="mt-3 space-y-3">
+              <div className={`relative mx-auto grid aspect-[9/16] max-h-96 place-items-center overflow-hidden rounded-2xl p-6 card-bg-${penBg}`}>
+                <textarea autoFocus value={caption} onChange={(e) => setCaption(e.target.value.slice(0, 300))} placeholder="اكتب حالتك…" rows={5} className={`w-full resize-none bg-transparent text-center text-2xl leading-relaxed text-white placeholder:text-white/60 outline-none font-card-${penFont}`} />
+              </div>
+              <div className="flex justify-center gap-2">
+                {PEN_BGS.map((b) => <button key={b} type="button" aria-label={b} onClick={() => setPenBg(b)} className={`h-8 w-8 rounded-full card-bg-${b} ${penBg === b ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`} />)}
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {PEN_FONTS.map(([f, l]) => <button key={f} type="button" onClick={() => setPenFont(f)} className={`rounded-full px-3 py-1.5 text-sm font-card-${f} ${penFont === f ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>{l}</button>)}
+              </div>
+            </div>
+          )}
           {preview && (
             <div className="relative mt-3 aspect-[9/16] max-h-80 overflow-hidden rounded-xl bg-black">
               {file?.type.startsWith("video/") ? <video src={preview} className="h-full w-full object-contain" muted /> : <img src={preview} alt="معاينة" className="h-full w-full object-contain" />}
               <button type="button" onClick={() => { setFile(null); setPreview(""); }} className="absolute left-2 top-2 rounded-full bg-black/60 p-2 text-white" aria-label="إزالة"><Trash2 className="h-4 w-4" /></button>
             </div>
           )}
-          <textarea value={caption} onChange={(e) => setCaption(e.target.value.slice(0, 300))} placeholder="اكتب تعليقًا (اختياري)" rows={2} className="mt-3 w-full rounded-xl border border-border bg-background p-3 text-sm" />
+          {!pen && <textarea value={caption} onChange={(e) => setCaption(e.target.value.slice(0, 300))} placeholder="اكتب تعليقًا (اختياري)" rows={2} className="mt-3 w-full rounded-xl border border-border bg-background p-3 text-sm" />}
           <div className="mt-2 flex flex-wrap gap-2">
             {TAGS.map((t) => (
               <button key={t} type="button" onClick={() => setTag(tag === t ? "" : t)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${tag === t ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>{t}</button>
@@ -191,7 +215,7 @@ function DoctorStories() {
             {active.map((s, i) => (
               <div key={s.id} className="overflow-hidden rounded-xl border border-border bg-card">
                 <button type="button" onClick={() => setViewing({ items: active, i })} className="block aspect-[9/16] w-full bg-black">
-                  {s.url ? (s.mediaType === "video" ? <video src={s.url} className="h-full w-full object-cover" muted /> : <img src={s.url} alt={s.caption || "قصة"} className="h-full w-full object-cover" />) : <span className="flex h-full items-center justify-center p-2 text-xs text-white">{s.caption}</span>}
+                  {s.url ? (s.mediaType === "video" ? <video src={s.url} className="h-full w-full object-cover" muted /> : <img src={s.url} alt={s.caption || "قصة"} className="h-full w-full object-cover" />) : <span className={`flex h-full items-center justify-center p-2 text-center text-xs text-white ${parseCardStyle(s.tag) ? `card-bg-${parseCardStyle(s.tag)!.bg} font-card-${parseCardStyle(s.tag)!.font}` : ""}`}>{s.caption}</span>}
                 </button>
                 <div className="flex items-center justify-between p-1.5 text-[10px] text-muted-foreground">
                   <span className="flex items-center gap-0.5"><Eye className="h-3 w-3" />{s.views ?? 0}</span>
