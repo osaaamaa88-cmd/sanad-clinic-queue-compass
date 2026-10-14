@@ -24,6 +24,7 @@ import { Route as ReceptionRouteImport } from './routes/reception'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as UniversityDentalRouteImport } from './routes/university-dental'
 import { Route as DoctorIndexRouteImport } from './routes/doctor.index'
 import { Route as DoctorLoginRouteImport } from './routes/doctor.login'
 import { Route as DoctorStoriesRouteImport } from './routes/doctor.stories'
@@ -117,6 +118,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UniversityDentalRoute = UniversityDentalRouteImport.update({
+  id: '/university-dental',
+  path: '/university-dental',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DoctorIndexRoute = DoctorIndexRouteImport.update({
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/university-dental': typeof UniversityDentalRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/doctor/stories': typeof DoctorStoriesRoute
   '/hospital/$id': typeof HospitalIdRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/university-dental': typeof UniversityDentalRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/doctor/stories': typeof DoctorStoriesRoute
   '/hospital/$id': typeof HospitalIdRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/university-dental': typeof UniversityDentalRoute
   '/doctor/login': typeof DoctorLoginRoute
   '/doctor/stories': typeof DoctorStoriesRoute
   '/hospital/$id': typeof HospitalIdRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/terms'
+    | '/university-dental'
     | '/doctor/login'
     | '/doctor/stories'
     | '/hospital/$id'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/terms'
+    | '/university-dental'
     | '/doctor/login'
     | '/doctor/stories'
     | '/hospital/$id'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/terms'
+    | '/university-dental'
     | '/doctor/login'
     | '/doctor/stories'
     | '/hospital/$id'
@@ -451,6 +463,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  UniversityDentalRoute: typeof UniversityDentalRoute
   DoctorLoginRoute: typeof DoctorLoginRoute
   DoctorStoriesRoute: typeof DoctorStoriesRoute
   HospitalIdRoute: typeof HospitalIdRoute
@@ -577,6 +590,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/university-dental': {
+      id: '/university-dental'
+      path: '/university-dental'
+      fullPath: '/university-dental'
+      preLoaderRoute: typeof UniversityDentalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doctor/': {
@@ -731,6 +751,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  UniversityDentalRoute: UniversityDentalRoute,
   DoctorLoginRoute: DoctorLoginRoute,
   DoctorStoriesRoute: DoctorStoriesRoute,
   HospitalIdRoute: HospitalIdRoute,
