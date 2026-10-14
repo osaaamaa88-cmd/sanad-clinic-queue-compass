@@ -45,7 +45,7 @@ function PatientHome() {
   const [location, setLocation] = useState<PatientLocation>(defaultLocation);
   const [locOpen, setLocOpen] = useState(false);
   const queryClient = useQueryClient();
-  useEffect(() => setLocation(getPatientLocation()), []);
+  useEffect(() => { setLocation(getPatientLocation()); }, []);
 
   useEffect(() => {
     let cancelled = false;
