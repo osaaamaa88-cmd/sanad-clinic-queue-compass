@@ -79,7 +79,6 @@ export function applyFemaleVoice(u: SpeechSynthesisUtterance) {
   u.rate = FEMALE_RATE;
 }
 export function speak(text: string, onEnd?: (success: boolean) => void) {
-  if (typeof window !== "undefined" && isNativeApp()) return speakNative(text, onEnd);
   if (typeof window === "undefined" || !window.speechSynthesis) {
     onEnd?.(false);
     return () => {};
