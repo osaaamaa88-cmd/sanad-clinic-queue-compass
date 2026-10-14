@@ -22,6 +22,7 @@ const DEPTS = [
 type TicketT = { code: string; dept: string; name: string; phone: string; day: string; at: number };
 
 export const Route = createFileRoute("/university-dental")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "العيادات التعليمية لطب الأسنان - دراية | سَنَد" },
