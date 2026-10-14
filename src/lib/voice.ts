@@ -78,26 +78,6 @@ export function applyFemaleVoice(u: SpeechSynthesisUtterance) {
   u.pitch = FEMALE_PITCH;
   u.rate = FEMALE_RATE;
 }
-
-function speakNative(text: string, onEnd?: (success: boolean) => void) {
-  let cancelled = false;
-  let stop = () => {};
-  void import("@capacitor-community/text-to-speech")
-    .then(async ({ TextToSpeech }) => {
-      stop = () => void TextToSpeech.stop().catch(() => {});
-      if (cancelled) return;
-      await TextToSpeech.speak({ text: cleanForSpeech(text), lang: "ar-EG", rate: 0.95, pitch: 1.05, volume: 1, category: "playback" });
-      if (!cancelled) onEnd?.(true);
-    })
-    .catch(() => { if (!cancelled) onEnd?.(false); });
-  return () => { cancelled = true; stop(); };
-}
-
-function isNativeApp() {
-  const w = window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } };
-  return !!w.Capacitor?.isNativePlatform?.();
-}
-
 export function speak(text: string, onEnd?: (success: boolean) => void) {
   if (typeof window !== "undefined" && isNativeApp()) return speakNative(text, onEnd);
   if (typeof window === "undefined" || !window.speechSynthesis) {
