@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Phone, Navigation, GraduationCap, Ticket, Building2 } from "lucide-react";
+import { MapPin, Phone, Navigation, GraduationCap, Ticket, Building2, ScanLine, Syringe, Sparkles, Baby, Scissors, Droplets, Smile } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 
@@ -10,13 +10,13 @@ const PLACE = "عيادات طب الأسنان - جامعة دراية (مبن�
 const STORE = "sanad_university_dental_tickets";
 
 const DEPTS = [
-  { id: "diag", icon: "🩻", name: "التشخيص وأشعة الفم", hint: "أول زيارة؟ ابدأ من هنا" },
-  { id: "endo", icon: "🦷", name: "علاج الجذور وحشو العصب", hint: "ألم مع السخن أو البارد" },
-  { id: "oper", icon: "✨", name: "العلاج التحفظي والتجميل", hint: "تسوّس وحشوات" },
-  { id: "pedo", icon: "🧒", name: "طب أسنان الأطفال", hint: "للأطفال وصحة الفم" },
-  { id: "surg", icon: "🩺", name: "جراحة الفم والخلع", hint: "خلع بسيط أو جراحي" },
-  { id: "perio", icon: "🫧", name: "اللثة وتنظيف الجير", hint: "نزيف أو التهاب اللثة" },
-  { id: "pros", icon: "😁", name: "التركيبات الثابتة والمتحركة", hint: "تعويض الأسنان المفقودة" },
+  { id: "diag", icon: ScanLine, name: "التشخيص وأشعة الفم", hint: "أول زيارة؟ ابدأ من هنا" },
+  { id: "endo", icon: Syringe, name: "علاج الجذور وحشو العصب", hint: "ألم مع السخن أو البارد" },
+  { id: "oper", icon: Sparkles, name: "العلاج التحفظي والتجميل", hint: "تسوّس وحشوات" },
+  { id: "pedo", icon: Baby, name: "طب أسنان الأطفال", hint: "للأطفال وصحة الفم" },
+  { id: "surg", icon: Scissors, name: "جراحة الفم والخلع", hint: "خلع بسيط أو جراحي" },
+  { id: "perio", icon: Droplets, name: "اللثة وتنظيف الجير", hint: "نزيف أو التهاب اللثة" },
+  { id: "pros", icon: Smile, name: "التركيبات الثابتة والمتحركة", hint: "تعويض الأسنان المفقودة" },
 ];
 
 type TicketT = { code: string; dept: string; name: string; phone: string; day: string; at: number };
@@ -100,7 +100,7 @@ function UniversityDental() {
       <div className="mt-2 grid grid-cols-2 gap-2">
         {DEPTS.map((d) => (
           <button key={d.id} onClick={() => setDept(d.id)} className={`rounded-2xl border p-3 text-right transition ${dept === d.id ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50"}`}>
-            <div className="text-2xl">{d.icon}</div>
+            <div className={`flex h-11 w-11 items-center justify-center rounded-full ${dept === d.id ? "gradient-primary text-primary-foreground shadow-soft" : "bg-primary/10 text-primary"}`}><d.icon className="h-5 w-5" strokeWidth={2.2} /></div>
             <div className="mt-1 text-sm font-bold leading-snug">{d.name}</div>
             <div className="text-[11px] text-muted-foreground">{d.hint}</div>
           </button>
