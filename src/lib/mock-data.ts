@@ -308,7 +308,7 @@ export async function registerDoctorAccount(input: {
   phone: string;
 }): Promise<{ ok: true } | { ok: false; code: string }> {
   try {
-    await svrRegisterDoctor({ data: input });
+    await svrRegisterDoctor({ data: { ...input, redirectTo: `${window.location.origin}/doctor/login` } });
   } catch (e) {
     return { ok: false, code: (e as Error)?.message || "SIGNUP_FAILED" };
   }
@@ -316,7 +316,8 @@ export async function registerDoctorAccount(input: {
     email: input.email.trim().toLowerCase(),
     password: input.password,
   });
-  if (error) return { ok: false, code: error.message };
+  // Email must be confirmed first (or the email already had an account) — same neutral message.
+  if (error) return { ok: false, code: "CHECK_EMAIL" };
   return { ok: true };
 }
 

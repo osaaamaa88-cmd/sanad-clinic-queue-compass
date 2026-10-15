@@ -1,11 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { getRequestHeader } from "@tanstack/react-start/server";
 
-const TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const TTL_MS = 8 * 60 * 60 * 1000;
 
 function key() {
-  const k = process.env.ADMIN_SESSION_KEY;
-  if (!k) throw new Error("ADMIN_SESSION_KEY is not set");
+  const k = process.env.ADMIN_TOKEN_KEY || process.env.ADMIN_SESSION_KEY;
+  if (!k) throw new Error("ADMIN_TOKEN_KEY is not set");
   return k;
 }
 
@@ -13,7 +13,7 @@ export function sessionConfig() {
   return {
     password: key(),
     name: "sanad-admin-gate",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 8,
     cookie: { httpOnly: true, secure: true, sameSite: "none" as const, path: "/" },
   };
 }

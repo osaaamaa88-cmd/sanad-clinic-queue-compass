@@ -36,7 +36,14 @@ const rules: { id: string; words: string[]; advice: string }[] = [
   { id: "physiotherapy", words: ["علاج طبيعي", "تأهيل", "تيبس", "شد عضلي"], advice: "تمارين إطالة خفيفة بتساعد." },
 ];
 
-const emergencyWords = ["وجع صدر شديد", "الم صدر شديد", "مش قادر اتنفس", "صعوبه تنفس", "نزيف", "اغماء", "فقد الوعي", "تشنجات", "حادثه", "تسمم", "جلطه", "شلل مفاجئ", "حرق"];
+const emergencyWords = [
+  "وجع صدر شديد", "الم صدر شديد", "الم في الصدر", "وجع في صدري", "ضغط على صدري", "مش قادر اتنفس", "صعوبه تنفس", "بتخنق", "اختناق", "شفايفي زرقا",
+  "نزيف", "بينزف", "دم كتير", "ترجيع دم", "كحه بدم", "براز اسود", "اغماء", "اغمي", "فقد الوعي", "مش بيفوق", "تشنجات", "تشنج", "حادثه", "خبطه في الراس", "وقع على راسه",
+  "تسمم", "ابتلع", "جرعه زياده", "جلطه", "شلل مفاجئ", "وشي مايل", "لساني تقيل", "مش قادر احرك", "تنميل نص", "عايز انتحر", "انتحار", "اموت نفسي",
+  "حساسيه شديده", "ورم في الزور", "لدغه", "عضه تعبان", "عقرب", "صعقه", "غرق", "حرق في", "اتحرق", "اتحرقت", "حروق", "مايه سخنه", "زيت سخن",
+];
+// Words that contain an emergency keyword but describe non-emergency symptoms (e.g. burning urination).
+const benignPhrases = ["حرقان", "حرقه", "حموضه", "بلع الاكل", "صعوبه في البلع", "نار في المعده", "نار في البول"];
 const soonWords = ["شديد", "جامد", "مش قادر", "من امبارح", "ورم", "وارم", "سخونيه عاليه", "مستمر"];
 
 export function runLocalTriage(need: string): TriageResult {
@@ -46,7 +53,8 @@ export function runLocalTriage(need: string): TriageResult {
     .filter((x) => x.s > 0)
     .sort((a, b) => b.s - a.s);
   const picked = scores.slice(0, 2).map((x) => x.r);
-  const urgency = emergencyWords.some((w) => t.includes(norm(w)))
+  const tSafe = benignPhrases.reduce((acc, w) => acc.split(norm(w)).join(" "), t);
+  const urgency = emergencyWords.some((w) => tSafe.includes(norm(w)))
     ? "emergency"
     : soonWords.some((w) => t.includes(norm(w)))
       ? "soon"
@@ -66,4 +74,11 @@ export function runLocalTriage(need: string): TriageResult {
     summary: `على حسب كلامك، التخصص الأنسب ليك: ${names}.`,
     advice: picked[0].advice,
   };
+}
+
+const RANK = { routine: 0, soon: 1, emergency: 2 } as const;
+/** Never let AI lower urgency below the local rule-based result. */
+export function mergeTriageUrgency<T extends TriageResult>(ai: T, need: string): T {
+  const local = runLocalTriage(need).urgency;
+  return RANK[local] > RANK[ai.urgency] ? { ...ai, urgency: local } : ai;
 }

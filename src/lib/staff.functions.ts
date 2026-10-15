@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-/** Public: create a doctor account (auth user) + its clinic row in one step. */
+/** Public: create a doctor account via normal sign-up (email confirmation) + its unverified clinic. */
 export const svrRegisterDoctor = createServerFn({ method: "POST" })
   .inputValidator((data: {
     email: string;
@@ -9,53 +9,63 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
     doctor: string;
     specialtyId: string;
     phone: string;
+    redirectTo?: string;
   }) => {
     const email = String(data?.email ?? "").trim().toLowerCase();
     const password = String(data?.password ?? "");
     const doctor = String(data?.doctor ?? "").trim().slice(0, 120);
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("INVALID_EMAIL");
-    if (password.length < 6) throw new Error("WEAK_PASSWORD");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 200) throw new Error("INVALID_EMAIL");
+    if (password.length < 8 || password.length > 128) throw new Error("WEAK_PASSWORD");
     if (!doctor) throw new Error("INVALID_NAME");
+    const redirectTo = typeof data?.redirectTo === "string" && /^https:\/\/[^\s]+$/.test(data.redirectTo) ? data.redirectTo.slice(0, 300) : undefined;
     return {
       email,
       password,
       doctor,
-      specialtyId: String(data?.specialtyId ?? "internal"),
+      specialtyId: String(data?.specialtyId ?? "internal").slice(0, 60),
       phone: String(data?.phone ?? "").trim().slice(0, 40),
+      redirectTo,
     };
   })
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: created, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
+    await assertRateLimit(`signup:${await clientIp()}`, 5, 3600, "RATE_LIMITED");
+    const { createClient } = await import("@supabase/supabase-js");
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY!;
+    const pub = createClient(process.env.SUPABASE_URL!, key, {
+      auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
+      global: { fetch: (input, init) => {
+        const h = new Headers(init?.headers);
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
+        h.set("apikey", key);
+        return fetch(input, { ...init, headers: h });
+      } },
+    });
+    const { data: res, error } = await pub.auth.signUp({
       email: data.email,
       password: data.password,
-      email_confirm: true,
-      user_metadata: { full_name: data.doctor, role: "doctor" },
+      options: { data: { full_name: data.doctor, role: "doctor" }, emailRedirectTo: data.redirectTo },
     });
-    if (authError || !created?.user) {
-      const msg = (authError?.message || "").toLowerCase();
-      if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
-        throw new Error("EMAIL_TAKEN");
-      }
-      if (msg.includes("pwned") || msg.includes("leaked") || msg.includes("weak") || msg.includes("password")) {
-        throw new Error("WEAK_PASSWORD");
-      }
+    if (error) {
+      const msg = (error.message || "").toLowerCase();
+      if (msg.includes("pwned") || msg.includes("leaked") || msg.includes("weak") || msg.includes("password")) throw new Error("WEAK_PASSWORD");
+      if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) return { ok: true as const };
+      if (msg.includes("rate")) throw new Error("RATE_LIMITED");
       throw new Error("SIGNUP_FAILED");
     }
-    const { data: clinic, error } = await supabaseAdmin
-      .from("clinics")
-      .insert({
+    const user = res?.user;
+    // Existing emails come back obfuscated (no identities): respond identically, create nothing.
+    if (!user || !user.identities?.length) return { ok: true as const };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin.from("clinics").select("id").eq("owner_id", user.id).maybeSingle();
+    if (!existing) {
+      await supabaseAdmin.from("clinics").insert({
         doctor: data.doctor,
         specialty_id: data.specialtyId,
         phone: data.phone,
-        owner_id: created.user.id,
+        owner_id: user.id,
         is_verified: false,
-      })
-      .select()
-      .maybeSingle();
-    if (error || !clinic) {
-      await supabaseAdmin.auth.admin.deleteUser(created.user.id);
-      throw new Error("SIGNUP_FAILED");
+      });
     }
     return { ok: true as const };
   });
