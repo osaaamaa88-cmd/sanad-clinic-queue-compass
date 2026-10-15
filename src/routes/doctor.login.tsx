@@ -95,7 +95,7 @@ function DoctorEntry() {
     if (!name.trim()) return setSignupError("من فضلك اكتب اسم الطبيب");
     if (!phone.trim()) return setSignupError("من فضلك اكتب رقم الموبايل / الواتساب");
     if (!email.trim()) return setSignupError("من فضلك اكتب البريد الإلكتروني");
-    if (pass.length < 6) return setSignupError("كلمة السر لازم تكون ٦ حروف أو أرقام على الأقل");
+    if (pass.length < 8) return setSignupError("كلمة السر لازم تكون ٨ حروف أو أرقام على الأقل");
     setCreating(true);
     const res = await registerDoctorAccount({
       email: email.trim(),

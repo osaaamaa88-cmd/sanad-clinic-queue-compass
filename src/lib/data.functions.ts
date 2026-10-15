@@ -1,5 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
+
+const cleanName = (v: unknown) => {
+  const n = String(v ?? "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim();
+  if (n.length < 2 || n.length > 120) throw new Error("INVALID_NAME");
+  return n;
+};
+const cleanPhone = (v: unknown, required = true) => {
+  const p = String(v ?? "").replace(/[\s-]/g, "");
+  if (!p && !required) return "";
+  if (!/^\+?\d{8,15}$/.test(p)) throw new Error("INVALID_PHONE");
+  return p;
+};
+const uuid = (v: unknown) => {
+  if (typeof v !== "string" || !/^[0-9a-f-]{36}$/i.test(v)) throw new Error("Invalid input");
+  return v;
+};
 
 export const svrCreateBooking = createServerFn({ method: "POST" })
   .inputValidator((data: {
@@ -10,17 +27,19 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
     slot: string;
     visitType?: string;
   }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     return {
-      clinicId: data.clinicId,
-      patientName: String(data.patientName ?? "").slice(0, 120),
-      patientPhone: String(data.patientPhone ?? "").slice(0, 40),
+      clinicId: uuid(data?.clinicId),
+      patientName: cleanName(data.patientName),
+      patientPhone: cleanPhone(data.patientPhone),
       dayLabel: String(data.dayLabel ?? "").slice(0, 80),
       slot: String(data.slot ?? "").slice(0, 40),
       visitType: data.visitType === "followup" ? "followup" : "new",
     };
   })
   .handler(async ({ data }) => {
+    const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
+    await assertRateLimit(`booking:ip:${await clientIp()}`, 10, 60);
+    await assertRateLimit(`booking:phone:${data.patientPhone}`, 5, 3600);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Ensure the clinic exists and is verified before allowing a booking.
     const { data: clinic } = await supabaseAdmin
@@ -32,27 +51,11 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
     if (clinic.bookings_closed) throw new Error("Bookings closed");
 
     const code = `SND-${(await import("@/lib/device-key.server")).randomCode(8)}`;
-    const { count } = await supabaseAdmin
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .eq("clinic_id", data.clinicId);
-    const queueNumber = (count ?? 0) + 1;
-
-    const { data: row, error } = await supabaseAdmin
-      .from("bookings")
-      .insert({
-        code,
-        clinic_id: data.clinicId,
-        patient_name: data.patientName,
-        patient_phone: data.patientPhone,
-        day_label: data.dayLabel,
-        slot: data.slot,
-        queue_number: queueNumber,
-        visit_type: data.visitType,
-        status: "waiting",
-      })
-      .select()
-      .maybeSingle();
+    const { data: rows, error } = await supabaseAdmin.rpc("create_booking", {
+      p_clinic_id: data.clinicId, p_code: code, p_patient_name: data.patientName, p_patient_phone: data.patientPhone,
+      p_day_label: data.dayLabel, p_slot: data.slot, p_visit_type: data.visitType,
+    });
+    const row = Array.isArray(rows) ? rows[0] : rows;
     if (error || !row) {
       console.error("[svrCreateBooking]", error?.message ?? "no row returned");
       throw new Error("BOOKING_FAILED");
@@ -126,11 +129,10 @@ export const svrAddWalkIn = createServerFn({ method: "POST" })
     slot: string;
     visitType?: string;
   }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     return {
-      clinicId: data.clinicId,
-      patientName: String(data.patientName ?? "").slice(0, 120),
-      patientPhone: String(data.patientPhone ?? "").slice(0, 40),
+      clinicId: uuid(data?.clinicId),
+      patientName: cleanName(data.patientName),
+      patientPhone: cleanPhone(data.patientPhone, false),
       slot: String(data.slot ?? "").slice(0, 40),
       visitType: data.visitType === "followup" ? "followup" : "new",
     };
@@ -139,26 +141,15 @@ export const svrAddWalkIn = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
+    const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
+    await assertRateLimit(`booking:ip:${await clientIp()}`, 10, 60);
+    if (data.patientPhone) await assertRateLimit(`booking:phone:${data.patientPhone}`, 5, 3600);
     const code = `SND-${(await import("@/lib/device-key.server")).randomCode(8)}`;
-    const { count } = await supabaseAdmin
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .eq("clinic_id", data.clinicId);
-    const { data: row, error } = await supabaseAdmin
-      .from("bookings")
-      .insert({
-        code,
-        clinic_id: data.clinicId,
-        patient_name: data.patientName,
-        patient_phone: data.patientPhone,
-        day_label: "اليوم",
-        slot: data.slot,
-        queue_number: (count ?? 0) + 1,
-        visit_type: data.visitType,
-        status: "waiting",
-      })
-      .select()
-      .maybeSingle();
+    const { data: rows, error } = await supabaseAdmin.rpc("create_booking", {
+      p_clinic_id: data.clinicId, p_code: code, p_patient_name: data.patientName, p_patient_phone: data.patientPhone,
+      p_day_label: "اليوم", p_slot: data.slot, p_visit_type: data.visitType,
+    });
+    const row = Array.isArray(rows) ? rows[0] : rows;
     if (error || !row) {
       console.error("[svrAddWalkIn]", error?.message ?? "no row returned");
       throw new Error("SAVE_FAILED");
@@ -210,21 +201,19 @@ export const svrSetClinicOps = createServerFn({ method: "POST" })
 
 export const svrUpdateClinic = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
-    id: string;
-    doctor: string;
-    specialtyId: string;
-    address: string;
-    area: string;
-    phone: string;
-    price: number;
-    availableNow: boolean;
-    lat: number;
-    lng: number;
-  }) => {
-    if (!data || typeof data.id !== "string") throw new Error("Invalid input");
-    return data;
-  })
+  .inputValidator((d) =>
+    z.object({
+      id: z.string().uuid(),
+      doctor: z.string().trim().min(2).max(120),
+      specialtyId: z.string().trim().min(1).max(60),
+      address: z.string().trim().max(300),
+      area: z.string().trim().max(120),
+      phone: z.string().trim().max(40),
+      price: z.number().int().min(0).max(100000),
+      availableNow: z.boolean(),
+      lat: z.number().min(-90).max(90),
+      lng: z.number().min(-180).max(180),
+    }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
@@ -283,6 +272,8 @@ export const svrCreateClinic = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin.from("clinics").select("*").eq("owner_id", context.userId).maybeSingle();
+    if (existing) return { row: existing };
     const { data: row, error } = await supabaseAdmin
       .from("clinics")
       .insert({

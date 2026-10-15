@@ -5,6 +5,7 @@ import { logAudit } from "@/lib/audit.functions";
 
 export function authErrorMessage(raw?: string) {
   const msg = (raw || "").toLowerCase();
+  if (msg.includes("check_email")) return "لو البريد ده جديد، بعتنالك رسالة تفعيل — افتح بريدك واضغط الرابط وبعدين سجّل دخولك.";
   if (msg.includes("invalid login")) return "البريد أو كلمة السر غير صحيحة.";
   if (msg.includes("email not confirmed")) return "الحساب غير مفعّل بعد، تواصل مع إدارة سَنَد.";
   if (msg.includes("email_taken") || msg.includes("already")) return "البريد مستخدم بالفعل، جرّب تسجيل الدخول.";
