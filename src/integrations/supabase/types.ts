@@ -1010,6 +1010,24 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          count: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       save_failures: {
         Row: {
           action: string
@@ -1098,6 +1116,26 @@ export type Database = {
       can_send_kind: {
         Args: { _conv: string; _kind: string; _user: string }
         Returns: boolean
+      }
+      check_rate_limit: {
+        Args: { p_key: string; p_limit: number; p_window_seconds: number }
+        Returns: boolean
+      }
+      create_booking: {
+        Args: {
+          p_clinic_id: string
+          p_code: string
+          p_day_label: string
+          p_patient_name: string
+          p_patient_phone: string
+          p_slot: string
+          p_visit_type: string
+        }
+        Returns: {
+          code: string
+          id: string
+          queue_number: number
+        }[]
       }
       is_clinic_member: {
         Args: { _clinic_id: string; _user_id: string }
