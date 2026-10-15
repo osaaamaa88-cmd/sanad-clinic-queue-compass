@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type DrugAlt = { name: string; company: string; note: string };
 export type DrugScan = {
@@ -90,6 +91,28 @@ export function checkStatus(value: string, range: string, given: LabItem["status
   return given;
 }
 
+/** Deterministic critical-value check — independent of the model. */
+export function isCriticalLab(name: string, value: string, unit: string): boolean {
+  let v = parseFloat(value.replace(/,/g, "").match(/-?\d+(\.\d+)?/)?.[0] ?? "");
+  if (isNaN(v)) return false;
+  const n = name.toLowerCase(), u = unit.toLowerCase();
+  if (/potassium|\bk\+?\b|بوتاسيوم/.test(n)) return v < 2.8 || v > 6.0;
+  if (/sodium|\bna\+?\b|صوديوم/.test(n)) return v < 120 || v > 160;
+  if (/glucose|sugar|\bfbs\b|\brbs\b|سكر|جلوكوز/.test(n) && !/hba1c|a1c|تراكمي/.test(n)) {
+    if (u.includes("mmol")) v *= 18;
+    return v < 50 || v > 400;
+  }
+  if (/h(a)?emoglobin|\bhgb\b|\bhb\b|هيموجلوبين/.test(n) && !/a1c|glyc/.test(n)) {
+    if (u.includes("g/l") && !u.includes("dl")) v /= 10;
+    return v < 7;
+  }
+  if (/platelet|\bplt\b|صفائح/.test(n)) {
+    if (v < 2000) v *= 1000; // reported as x10^3/µL
+    return v < 20000;
+  }
+  return false;
+}
+
 type In = { image?: string; mime?: string; text?: string };
 const validate = (d: In) => {
   const image = typeof d?.image === "string" ? d.image : undefined;
@@ -104,9 +127,10 @@ const alts = (a: unknown, n: number): DrugAlt[] =>
   (Array.isArray(a) ? a : []).slice(0, n).map((x: any) => ({ name: s(x?.name, 80), company: s(x?.company, 60), note: s(x?.note, 120) }));
 
 export const scanDrug = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(validate)
-  .handler(async ({ data }): Promise<DrugScan> => {
-    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("scanDrug");
+  .handler(async ({ data, context }): Promise<DrugScan> => {
+    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("scanDrug", context.userId);
     const o = await callGemini(DRUG_PROMPT, data.text, data.image, data.mime);
     return {
       found: o.found !== false,
@@ -123,21 +147,23 @@ export const scanDrug = createServerFn({ method: "POST" })
   });
 
 export const readLab = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(validate)
-  .handler(async ({ data }): Promise<LabReport> => {
-    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("readLab");
+  .handler(async ({ data, context }): Promise<LabReport> => {
+    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("readLab", context.userId);
     const o = await callGemini(LAB_PROMPT, data.text, data.image, data.mime);
     const st = (v: unknown): LabItem["status"] => (["normal", "high", "low"].includes(String(v)) ? (v as any) : "unknown");
+    const items: LabItem[] = (Array.isArray(o.items) ? o.items : []).slice(0, 40).map((i: any) => {
+      const value = s(i?.value, 30), range = s(i?.range, 40);
+      return { name: s(i?.name, 60), value, unit: s(i?.unit, 20), range, status: checkStatus(value, range, st(i?.status)), explain: s(i?.explain, 250) };
+    });
     return {
       found: o.found !== false,
       type: s(o.type, 80),
       comfort: s(o.comfort, 400),
       summary: s(o.summary, 600),
-      urgent: o.urgent === true,
-      items: (Array.isArray(o.items) ? o.items : []).slice(0, 40).map((i: any) => {
-        const value = s(i?.value, 30), range = s(i?.range, 40);
-        return { name: s(i?.name, 60), value, unit: s(i?.unit, 20), range, status: checkStatus(value, range, st(i?.status)), explain: s(i?.explain, 250) };
-      }),
+      urgent: o.urgent === true || items.some((i) => isCriticalLab(i.name, i.value, i.unit)),
+      items,
       questions: (Array.isArray(o.questions) ? o.questions : []).slice(0, 5).map((q: any) => s(q, 200)),
     };
   });
