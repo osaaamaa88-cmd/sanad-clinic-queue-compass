@@ -120,6 +120,8 @@ export const reportRuntimeError = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     try {
+      const { checkRateLimit, clientIp } = await import("./rate-limit.server");
+      if (!(await checkRateLimit(`rterr:${await clientIp()}`, 10, 60))) return { ok: true as const };
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const since = new Date(Date.now() - 60_000).toISOString();
       const { count } = await supabaseAdmin.from("app_error_logs").select("id", { count: "exact", head: true }).gte("created_at", since);

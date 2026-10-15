@@ -8,7 +8,7 @@ import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientLocation, savePatientLocation, distanceKm, defaultLocation, type PatientLocation } from "@/lib/patient-location";
 import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
-import { runLocalTriage, type TriageResult } from "@/lib/triage-local";
+import { runLocalTriage, mergeTriageUrgency, type TriageResult } from "@/lib/triage-local";
 import { aiTriage } from "@/lib/triage.functions";
 import { listHospitals, HOSPITAL_TYPES, hospitalMapsUrl, type Hospital as HospitalRow } from "@/lib/hospitals.functions";
 
@@ -179,7 +179,7 @@ function Assistant() {
     setLoading(true);
     try {
       const ai = await aiTriage({ data: { need: q } });
-      setResult(ai ?? runLocalTriage(q));
+      setResult(ai ? mergeTriageUrgency(ai, q) : runLocalTriage(q));
     } catch {
       setResult(runLocalTriage(q));
     } finally {

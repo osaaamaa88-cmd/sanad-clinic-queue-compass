@@ -13,6 +13,8 @@ export const unlockAdmin = createServerFn({ method: "POST" })
     return { password: data.password };
   })
   .handler(async ({ data }) => {
+    const { assertRateLimit, clientIp } = await import("./rate-limit.server");
+    await assertRateLimit(`admin-unlock:${await clientIp()}`, 5, 15 * 60, "RATE_LIMITED: محاولات كتير، استنى ربع ساعة.");
     const { createHash, timingSafeEqual } = await import("node:crypto");
     const { useSession } = await import("@tanstack/react-start/server");
     const { sessionConfig, issueAdminToken } = await import("./admin-auth.server");

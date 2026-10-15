@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Camera, FlaskConical, Loader2, Siren, HelpCircle, Heart, ImageIcon } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { useAiConsent, aiErrorMessage } from "@/components/AiConsentDialog";
 import { readLab, type LabReport, type LabItem } from "@/lib/medscan.functions";
 import { imageToBase64 } from "@/lib/image-to-base64";
 
@@ -36,12 +37,14 @@ function LabReader() {
   const [preview, setPreview] = useState<string>();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>();
+  const consent = useAiConsent();
   const [res, setRes] = useState<LabReport>();
 
   async function run(input: { image?: string; mime?: string; text?: string }) {
+    if (!(await consent.ask())) return;
     setLoading(true); setErr(undefined); setRes(undefined);
     try { setRes(await readLab({ data: input })); }
-    catch (e: any) { setErr(e?.message || "حصل خطأ"); }
+    catch (e: any) { setErr(aiErrorMessage(e)); }
     finally { setLoading(false); }
   }
   async function onFile(f?: File) {
@@ -53,6 +56,7 @@ function LabReader() {
 
   return (
     <AppShell title="قارئ التحاليل" backTo={toolsBack}>
+      {consent.dialog}
       <div className="mx-auto max-w-xl space-y-4 p-4 pb-28">
         <header className="flex items-center gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground"><FlaskConical className="h-6 w-6" /></span>

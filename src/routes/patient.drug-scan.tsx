@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Camera, Loader2, Pill, Plus, Search, AlertTriangle, Repeat } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { useAiConsent, aiErrorMessage } from "@/components/AiConsentDialog";
 import { scanDrug, type DrugScan } from "@/lib/medscan.functions";
 import { imageToBase64 } from "@/lib/image-to-base64";
 
@@ -35,13 +36,15 @@ function DrugScanPage() {
   const [preview, setPreview] = useState<string>();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string>();
+  const consent = useAiConsent();
   const [res, setRes] = useState<DrugScan>();
   const [added, setAdded] = useState(false);
 
   async function run(input: { image?: string; mime?: string; text?: string }) {
+    if (!(await consent.ask())) return;
     setLoading(true); setErr(undefined); setRes(undefined); setAdded(false);
     try { setRes(await scanDrug({ data: input })); }
-    catch (e: any) { setErr(e?.message || "حصل خطأ"); }
+    catch (e: any) { setErr(aiErrorMessage(e)); }
     finally { setLoading(false); }
   }
   async function onFile(f?: File) {
@@ -53,6 +56,7 @@ function DrugScanPage() {
 
   return (
     <AppShell title="ماسح الأدوية" backTo={toolsBack}>
+      {consent.dialog}
       <div className="mx-auto max-w-xl space-y-4 p-4 pb-28">
         <header className="flex items-center gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-warning text-warning-foreground"><Pill className="h-6 w-6" /></span>

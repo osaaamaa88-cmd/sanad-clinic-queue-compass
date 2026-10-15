@@ -27,6 +27,8 @@ export const logAudit = createServerFn({ method: "POST" })
     return { event: d.event, details: String(d.details ?? "").replace(/<[^>]*>/g, "").slice(0, 200) };
   })
   .handler(async ({ data }) => {
+    const { checkRateLimit, clientIp } = await import("./rate-limit.server");
+    if (!(await checkRateLimit(`audit:${await clientIp()}`, 30, 60))) return { ok: true as const };
     let userId: string | null = null;
     try {
       const { getRequestHeader } = await import("@tanstack/react-start/server");
