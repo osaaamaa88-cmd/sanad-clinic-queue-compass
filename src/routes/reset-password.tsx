@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { authErrorMessage } from "@/components/StaffAuth";
 
 export const Route = createFileRoute("/reset-password")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "تعيين كلمة سر جديدة | سَنَد" },
