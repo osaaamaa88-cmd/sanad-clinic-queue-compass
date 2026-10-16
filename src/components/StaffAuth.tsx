@@ -33,6 +33,28 @@ export function StaffAuth({
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+
+  const forgot = async () => {
+    setError("");
+    setInfo("");
+    const addr = email.trim().toLowerCase();
+    if (!addr) {
+      setError("اكتب بريدك الإلكتروني الأول، وبعدين اضغط نسيت كلمة السر.");
+      return;
+    }
+    setBusy(true);
+    const { error: err } = await supabase.auth.resetPasswordForEmail(addr, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (err) {
+      setError(authErrorMessage(err.message));
+      return;
+    }
+    setInfo("لو البريد مسجل عندنا، هيوصلك رابط لتغيير كلمة السر خلال دقايق.");
+  };
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +119,17 @@ export function StaffAuth({
       >
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />} دخول
       </button>
+      <button
+        type="button"
+        onClick={forgot}
+        disabled={busy}
+        className="w-full text-center text-xs font-bold text-primary underline-offset-2 hover:underline"
+      >
+        نسيت كلمة السر؟
+      </button>
+      {info && (
+        <p className="rounded-xl bg-success/10 px-3 py-2 text-center text-[12px] font-bold text-success">{info}</p>
+      )}
       {footer}
     </form>
   );

@@ -21,6 +21,7 @@ import { Route as HospitalsRouteImport } from './routes/hospitals'
 import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ReceptionRouteImport } from './routes/reception'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -103,6 +104,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const ReceptionRoute = ReceptionRouteImport.update({
   id: '/reception',
   path: '/reception',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/nutrition': typeof NutritionRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -271,6 +278,7 @@ export interface FileRoutesByTo {
   '/nutrition': typeof NutritionRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/nutrition': typeof NutritionRoute
   '/privacy': typeof PrivacyRoute
   '/reception': typeof ReceptionRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -348,6 +357,7 @@ export interface FileRouteTypes {
     | '/nutrition'
     | '/privacy'
     | '/reception'
+    | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
     | '/terms'
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/nutrition'
     | '/privacy'
     | '/reception'
+    | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
     | '/terms'
@@ -422,6 +433,7 @@ export interface FileRouteTypes {
     | '/nutrition'
     | '/privacy'
     | '/reception'
+    | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
     | '/terms'
@@ -460,6 +472,7 @@ export interface RootRouteChildren {
   NutritionRoute: typeof NutritionRoute
   PrivacyRoute: typeof PrivacyRoute
   ReceptionRoute: typeof ReceptionRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
@@ -569,6 +582,13 @@ declare module '@tanstack/react-router' {
       path: '/reception'
       fullPath: '/reception'
       preLoaderRoute: typeof ReceptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -748,6 +768,7 @@ const rootRouteChildren: RootRouteChildren = {
   NutritionRoute: NutritionRoute,
   PrivacyRoute: PrivacyRoute,
   ReceptionRoute: ReceptionRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
