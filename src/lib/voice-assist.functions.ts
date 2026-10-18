@@ -1,3 +1,4 @@
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createServerFn } from "@tanstack/react-start";
 import { redact } from "@/lib/redact";
 import { createClient } from "@supabase/supabase-js";
@@ -90,6 +91,7 @@ const sanitize = (s: unknown) =>
     .slice(0, 500);
 
 export const voiceAssist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { text: string; lat?: number; lng?: number }) => ({
     text: sanitize(d?.text),
     lat: Number.isFinite(d?.lat) ? Math.max(-90, Math.min(90, Number(d.lat))) : 30.0444,
@@ -144,13 +146,7 @@ export const voiceAssist = createServerFn({ method: "POST" })
         name: "Groq",
         key: process.env.GROQ_API_KEY,
         endpoint: "https://api.groq.com/openai/v1/chat/completions",
-        model: "allam-2-7b",
-      },
-      {
-        name: "Groq-fast",
-        key: process.env.GROQ_API_KEY,
-        endpoint: "https://api.groq.com/openai/v1/chat/completions",
-        model: "llama-3.1-8b-instant",
+        model: "openai/gpt-oss-120b",
       },
       {
         name: "OpenAI",
