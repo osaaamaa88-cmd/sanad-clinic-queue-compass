@@ -57,8 +57,54 @@ function PatientLogin() {
   useEffect(() => {
     // Instant: show locally saved profile, then revalidate silently.
     setPatient(getPatientSession());
-    void syncPatientSessionFromAuth().then(setPatient);
-  }, []);
+    let active = true;
+    let googleSignInHandled = false;
+    const finishGoogleSignIn = (syncedPatient?: PatientSession | null) => {
+      if (googleSignInHandled) return;
+      googleSignInHandled = true;
+
+      const redirectToHome = (profile: PatientSession | null) => {
+        if (!active || !profile) return;
+        setPatient(profile);
+        void navigate({ to: "/patient", replace: true });
+      };
+
+      if (syncedPatient) {
+        redirectToHome(syncedPatient);
+        return;
+      }
+
+      window.setTimeout(() => {
+        void syncPatientSessionFromAuth()
+          .then(redirectToHome)
+          .catch((error: unknown) => {
+            console.error("[PatientLogin] Failed to sync Google patient session", error);
+          });
+      }, 0);
+    };
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event !== "SIGNED_IN" || session?.user.app_metadata.provider !== "google") return;
+      finishGoogleSignIn();
+    });
+    void syncPatientSessionFromAuth()
+      .then((syncedPatient) => {
+        if (!active || !syncedPatient) return;
+        setPatient(syncedPatient);
+        if (syncedPatient.via === "google" && syncedPatient.userId) {
+          finishGoogleSignIn(syncedPatient);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("[PatientLogin] Failed to load patient session", error);
+      });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const logout = async () => {
     clearPatientSession();

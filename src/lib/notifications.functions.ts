@@ -120,6 +120,19 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
     data.recipientKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.recipientKey);
     if (!data.recipientKey || !data.queueNumber) return { notified: false, ahead: null };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: bookings, error: bookingError } = await supabaseAdmin
+      .from("bookings")
+      .select("id")
+      .eq("clinic_id", data.clinicId)
+      .eq("queue_number", data.queueNumber)
+      .neq("status", "cancelled")
+      .limit(1);
+    if (bookingError) {
+      console.error("[svrCheckQueueProximity] booking lookup failed:", bookingError.message);
+      throw new Error("BOOKING_LOOKUP_FAILED");
+    }
+    if (!bookings?.length) return { notified: false, ahead: null };
+
     const { data: clinic } = await supabaseAdmin
       .from("clinics")
       .select("doctor, now_serving")

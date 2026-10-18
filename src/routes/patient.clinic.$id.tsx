@@ -326,6 +326,11 @@ function ClinicDetail() {
   return (
     <AppShell title={clinic.doctor} subtitle={spec?.name} backTo={backTarget}>
       <div>
+          {clinic.isDemo && (
+            <p className="mb-3 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-xs font-bold text-warning">
+              هذه عيادة تجريبية لعرض التطبيق فقط، وليست عيادة حقيقية أو موثقة.
+            </p>
+          )}
           <input
             ref={postInputRef}
             type="file"

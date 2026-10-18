@@ -1,172 +1,192 @@
-import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
-import { useRouterState } from "@tanstack/react-router";
-import { LoaderCircle, Mic, Volume2, X, MicOff } from "lucide-react";
-import { useFloatingVoiceAssistant } from "@/hooks/use-floating-voice-assistant";
-import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
-const PUBLIC_ROUTES = ["/login", "/register", "/auth", "/forgot-password", "/reset-password", "/landing", "/admin-access"];
+const POSITION_KEY = "sanad-nemo-widget-position";
+const BUTTON_SIZE = 56;
+const VIEWPORT_GAP = 12;
+const DRAG_THRESHOLD = 6;
 
-function useSignedIn() {
-  const [signedIn, setSignedIn] = useState(false);
-  useEffect(() => {
-    let active = true;
-    void supabase.auth.getUser().then(({ data }) => { if (active) setSignedIn(!!data.user); });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSignedIn(!!session?.user);
-      if (!session?.user) setVoiceMode(false);
-    });
-    return () => { active = false; sub.subscription.unsubscribe(); };
-  }, []);
-  return signedIn;
+type Position = { x: number; y: number };
+type DragStart = { pointerId: number; x: number; y: number; offsetX: number; offsetY: number };
+
+function clampPosition(position: Position): Position {
+  return {
+    x: Math.max(VIEWPORT_GAP, Math.min(position.x, window.innerWidth - BUTTON_SIZE - VIEWPORT_GAP)),
+    y: Math.max(
+      VIEWPORT_GAP,
+      Math.min(position.y, window.innerHeight - BUTTON_SIZE - VIEWPORT_GAP),
+    ),
+  };
 }
 
-const islandStyle = {
-  position: "fixed",
-  top: "calc(env(safe-area-inset-top) + 12px)",
-  left: "50%",
-  transform: "translateX(-50%)",
-  zIndex: 99999,
-  maxWidth: "calc(100vw - 32px)",
-} as const;
-
-const pillClass =
-  "rounded-full bg-black/80 backdrop-blur-md border border-white/10 shadow-2xl transition-all duration-500 ease-out";
-
-function WaveBars({ colorClass }: { colorClass: string }) {
-  return (
-    <span aria-hidden="true" className="flex items-end gap-[2px] h-4">
-      {[0, 1, 2, 3].map((i) => (
-        <span
-          key={i}
-          className={`w-[3px] rounded-full motion-safe:animate-pulse ${colorClass}`}
-          style={{ height: `${6 + ((i * 5) % 10)}px`, animationDelay: `${i * 150}ms` }}
-        />
-      ))}
-    </span>
-  );
+function getInitialPosition(): Position {
+  const fallback = {
+    x: window.innerWidth - BUTTON_SIZE - 20,
+    y: window.innerHeight - BUTTON_SIZE - 96,
+  };
+  try {
+    const stored = localStorage.getItem(POSITION_KEY);
+    if (stored) {
+      const position = JSON.parse(stored) as Position;
+      if (Number.isFinite(position.x) && Number.isFinite(position.y)) {
+        return clampPosition(position);
+      }
+    }
+  } catch (error) {
+    console.warn("[NemoWidget] Could not load saved position", error);
+  }
+  return clampPosition(fallback);
 }
 
 export function FloatingVoiceAssistant() {
-  const signedIn = useSignedIn();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isPublicRoute = PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`));
-  const allowed = signedIn && !isPublicRoute;
-  const { enabled, state, message, resume, stop } = useFloatingVoiceAssistant(allowed);
+  const navigate = useNavigate();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dragStartRef = useRef<DragStart | null>(null);
+  const movedRef = useRef(false);
+  const suppressClickRef = useRef(false);
+  const positionRef = useRef<Position>({ x: 0, y: 0 });
   const [mounted, setMounted] = useState(false);
-  const [askLogin, setAskLogin] = useState(false);
-  // The assistant stays hidden until the patient enables it from the account page.
-  const [voiceOn, setVoiceOn] = useState(false);
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+
   useEffect(() => {
+    const initialPosition = getInitialPosition();
+    positionRef.current = initialPosition;
+    setPosition(initialPosition);
     setMounted(true);
-    const sync = () => setVoiceOn(isVoiceModeOn());
-    sync();
-    window.addEventListener("sanad:voice-mode", sync);
-    return () => window.removeEventListener("sanad:voice-mode", sync);
-  }, []);
-  if (!mounted || isPublicRoute || !voiceOn) return null;
 
-  if (!signedIn) {
-    const onTap = () => {
-      setAskLogin(true);
-      try {
-        if ("speechSynthesis" in window) {
-          window.speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance("أهلاً بك في سَنَد، سجّل دخولك الأول عشان نبدأ المحادثة");
-          u.lang = "ar-EG";
-          u.rate = 0.88;
-          window.speechSynthesis.speak(u);
-        }
-      } catch { /* ignore */ }
+    const onPointerMove = (event: globalThis.PointerEvent) => {
+      const dragStart = dragStartRef.current;
+      if (!dragStart || dragStart.pointerId !== event.pointerId) return;
+      const deltaX = event.clientX - dragStart.x;
+      const deltaY = event.clientY - dragStart.y;
+      if (Math.abs(deltaX) > DRAG_THRESHOLD || Math.abs(deltaY) > DRAG_THRESHOLD) {
+        movedRef.current = true;
+      }
+      if (!movedRef.current) return;
+      event.preventDefault();
+      const nextPosition = clampPosition({
+        x: event.clientX - dragStart.offsetX,
+        y: event.clientY - dragStart.offsetY,
+      });
+      positionRef.current = nextPosition;
+      if (buttonRef.current) {
+        buttonRef.current.style.left = `${nextPosition.x}px`;
+        buttonRef.current.style.top = `${nextPosition.y}px`;
+      }
     };
-    return createPortal(
-      <aside aria-label="مساعد سَنَد الصوتي" style={islandStyle} dir="rtl">
-        {askLogin ? (
-          <div className={`${pillClass} flex items-center gap-2 px-3 py-2 text-white`} role="status">
-            <span className="text-xs font-semibold">سجّل دخولك لتفعيل المساعد الصوتي</span>
-            <a href="/patient/login" className="rounded-full bg-cyan-400 px-3 py-1 text-xs font-bold text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
-              تسجيل الدخول
-            </a>
-            <button type="button" aria-label="إغلاق" onClick={() => setAskLogin(false)} className="rounded-full p-1 hover:bg-white/10">
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ) : (
-          <button type="button" onClick={onTap} aria-label="تشغيل المساعد الصوتي" className={`${pillClass} flex items-center gap-2 px-4 py-2 text-white`}>
-            <Mic className="h-4 w-4 text-cyan-300" />
-            <span className="text-sm font-bold">سَنَد</span>
-          </button>
-        )}
-      </aside>,
-      document.body
-    );
-  }
-  if (!allowed) return null;
+    const onPointerEnd = (event: globalThis.PointerEvent) => {
+      const dragStart = dragStartRef.current;
+      if (dragStart?.pointerId !== event.pointerId) return;
+      dragStartRef.current = null;
+      if (!movedRef.current) return;
+      suppressClickRef.current = true;
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 400);
+      const finalPosition =
+        event.type === "pointercancel"
+          ? positionRef.current
+          : clampPosition({
+              x: event.clientX - dragStart.offsetX,
+              y: event.clientY - dragStart.offsetY,
+            });
+      positionRef.current = finalPosition;
+      setPosition(finalPosition);
+      if (buttonRef.current) {
+        buttonRef.current.style.left = `${finalPosition.x}px`;
+        buttonRef.current.style.top = `${finalPosition.y}px`;
+      }
+      try {
+        localStorage.setItem(POSITION_KEY, JSON.stringify(finalPosition));
+      } catch (error) {
+        console.warn("[NemoWidget] Could not save position", error);
+      }
+    };
+    const onResize = () => {
+      const nextPosition = clampPosition(positionRef.current);
+      positionRef.current = nextPosition;
+      setPosition(nextPosition);
+    };
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerEnd);
+    window.addEventListener("pointercancel", onPointerEnd);
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerEnd);
+      window.removeEventListener("pointercancel", onPointerEnd);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
 
-  // Idle: compact pill — glowing mic + "سَنَد"
-  if (!enabled) {
-    return createPortal(
-      <aside aria-label="مساعد سَنَد الصوتي" style={islandStyle} dir="rtl">
-        <button
-          type="button"
-          onClick={() => setVoiceMode(true)}
-          aria-label="تشغيل المساعد الصوتي"
-          title="تشغيل المساعد الصوتي"
-          className={`${pillClass} flex items-center gap-2 px-4 py-2 text-white`}
+  if (!mounted) return null;
+
+  const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    dragStartRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    };
+    movedRef.current = false;
+  };
+
+  const onClick = () => {
+    if (movedRef.current || suppressClickRef.current) {
+      movedRef.current = false;
+      return;
+    }
+    void navigate({ to: "/patient/assistant" });
+  };
+
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      onPointerDown={onPointerDown}
+      onClick={onClick}
+      aria-label="نيمو، افتح المساعد الصحي"
+      title="نيمو | رفيق الرعاية الصحية"
+      dir="rtl"
+      className="group fixed z-[99999] grid h-14 w-14 touch-none place-items-center rounded-full border border-amber-100 bg-white text-cyan-800 shadow-[0_6px_24px_rgba(34,211,238,0.2)] transition-shadow hover:shadow-[0_8px_30px_rgba(34,211,238,0.32)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
+      style={{ left: position.x, top: position.y }}
+    >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-1 rounded-full bg-cyan-100/60 motion-safe:animate-pulse"
+      />
+      <span
+        aria-hidden="true"
+        className="nemo-breathe relative z-10 grid h-10 w-9 place-items-center rounded-[48%_48%_42%_42%] border border-cyan-100 bg-gradient-to-b from-white via-white to-sky-100 shadow-[inset_0_-3px_6px_rgba(34,211,238,0.12)]"
+      >
+        <span
+          className="absolute -top-1 left-1/2 flex -translate-x-1/2 items-end gap-0.5"
+          aria-hidden="true"
         >
-          <span className="relative flex h-6 w-6 items-center justify-center">
-            <span aria-hidden="true" className="absolute inset-0 rounded-full bg-cyan-400/40 blur-[6px] motion-safe:animate-pulse" />
-            <Mic className="relative h-4 w-4 text-cyan-300" />
-          </span>
-          <span className="text-sm font-bold">سَنَد</span>
-        </button>
-      </aside>,
-      document.body
-    );
-  }
-
-  const label = { listening: "بستمع...", speaking: "برد عليك", thinking: "بلحظة...", paused: "متوقف مؤقتاً", error: "استئناف" }[state];
-  const Icon = state === "thinking" ? LoaderCircle : state === "speaking" ? Volume2 : state === "error" ? MicOff : Mic;
-  const expanded = state === "speaking" || state === "thinking";
-
-  return createPortal(
-    <aside aria-label="مساعد سَنَد الصوتي" style={islandStyle} dir="rtl" role="status" aria-live="polite">
-      <div className={`${pillClass} ${expanded ? "max-w-sm rounded-3xl px-4 py-3" : "px-4 py-2"} flex flex-col gap-2 text-white`}>
-        <div className="flex items-center gap-2">
-          {state === "listening" ? (
-            <WaveBars colorClass="bg-emerald-400" />
-          ) : state === "speaking" ? (
-            <WaveBars colorClass="bg-cyan-400" />
-          ) : (
-            <Icon className={`h-4 w-4 ${state === "thinking" ? "motion-safe:animate-spin text-cyan-300" : state === "error" ? "text-red-400" : "text-cyan-300"}`} />
-          )}
-          <span className="text-xs font-bold">{label}</span>
-          <span className="flex-1" />
-          <button
-            type="button"
-            onClick={state === "error" || state === "paused" ? resume : stop}
-            aria-label={state === "error" || state === "paused" ? "استئناف المساعد الصوتي" : "إيقاف المساعد الصوتي"}
-            title={state === "error" || state === "paused" ? message : "إيقاف مؤقت"}
-            className="rounded-full p-1 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            {state === "error" || state === "paused" ? <Mic className="h-3.5 w-3.5" /> : <MicOff className="h-3.5 w-3.5" />}
-          </button>
-          <button
-            type="button"
-            onClick={() => setVoiceMode(false)}
-            aria-label="إغلاق المساعد الصوتي"
-            title="إغلاق المساعد الصوتي"
-            className="rounded-full p-1 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        {expanded && message && (
-          <p className="max-h-24 overflow-y-auto text-xs leading-relaxed text-white/90">{message}</p>
-        )}
-      </div>
-    </aside>,
-    document.body
+          <span className="h-1 w-1 rounded-full border border-cyan-300 bg-white" />
+          <span className="h-1.5 w-1.5 rounded-full border border-cyan-300 bg-cyan-100" />
+          <span className="mb-0.5 h-0.5 w-0.5 rounded-full bg-sky-300" />
+        </span>
+        <span
+          className="absolute left-1 top-[42%] h-2 w-1.5 rounded-full bg-cyan-100/90"
+          aria-hidden="true"
+        />
+        <span
+          className="absolute right-1 top-[42%] h-2 w-1.5 rounded-full bg-sky-100"
+          aria-hidden="true"
+        />
+        <span className="flex -translate-y-0.5 items-center gap-3" aria-hidden="true">
+          <span className="nemo-eye h-1.5 w-1 rounded-full bg-slate-800" />
+          <span className="nemo-eye h-1.5 w-1 rounded-full bg-slate-800" />
+        </span>
+        <span
+          className="absolute top-[58%] h-1.5 w-2.5 rounded-b-full border-b border-cyan-500/80"
+          aria-hidden="true"
+        />
+      </span>
+    </button>
   );
 }
