@@ -58,7 +58,18 @@ function PatientLogin() {
     // Instant: show locally saved profile, then revalidate silently.
     setPatient(getPatientSession());
     void syncPatientSessionFromAuth().then(setPatient);
-  }, []);
+    // Pick up the session when returning from Google sign-in.
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN") return;
+      void syncPatientSessionFromAuth().then((s) => {
+        if (s) {
+          setPatient(s);
+          navigate({ to: "/patient", replace: true });
+        }
+      });
+    });
+    return () => data.subscription.unsubscribe();
+  }, [navigate]);
 
   const logout = async () => {
     clearPatientSession();
