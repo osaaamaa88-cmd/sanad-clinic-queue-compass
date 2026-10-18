@@ -41,7 +41,12 @@ export function useFloatingVoiceAssistant(allowed = true) {
         recognition.onend = () => {};
         recognition.onresult = () => {};
         recognition.onerror = () => {};
-        try { recognition.abort ? recognition.abort() : recognition.stop(); } catch {}
+        try {
+          if (recognition.abort) recognition.abort();
+          else recognition.stop();
+        } catch (error) {
+          console.warn("[voice-assistant] Could not stop speech recognition", error);
+        }
         recognition = null;
       }
       cancelSpeech();
@@ -114,6 +119,40 @@ export function useFloatingVoiceAssistant(allowed = true) {
         if (active && request === generation) fail("سجّل دخولك عشان تستخدم المساعد، أو اتأكد من النت. لو الحالة طارئة اتصل بالإسعاف 123.");
       }
     };
+    const quickPain = (event: Event) => {
+      const level = (event as CustomEvent<number>).detail;
+      if (!Number.isInteger(level) || level < 1 || level > 10 || !active || blocked) return;
+      cancelSpeech();
+      if (recognition) {
+        recognition.onend = () => {};
+        try {
+          if (recognition.abort) recognition.abort();
+          else recognition.stop();
+        } catch (error) {
+          console.warn("[voice-assistant] Could not stop speech recognition", error);
+        }
+        recognition = null;
+      }
+      void handle(`مستوى الألم عندي ${level} من 10`);
+    };
+    const finishSession = () => {
+      if (!active || blocked) return;
+      pendingCall = false;
+      cancelSpeech();
+      if (recognition) {
+        recognition.onend = () => {};
+        try {
+          if (recognition.abort) recognition.abort();
+          else recognition.stop();
+        } catch (error) {
+          console.warn("[voice-assistant] Could not stop speech recognition", error);
+        }
+        recognition = null;
+      }
+      say("شكراً لثقتك في نيمو. أتمنى لك دوام الصحة والعافية.", () => setVoiceMode(false));
+    };
+    window.addEventListener("sanad:voice-pain", quickPain);
+    window.addEventListener("sanad:voice-finish", finishSession);
     function listen() {
       if (!active || blocked || document.hidden) return;
       const r = createRecognizer();
@@ -180,6 +219,8 @@ export function useFloatingVoiceAssistant(allowed = true) {
       document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("offline", goOffline);
       window.removeEventListener("online", goOnline);
+      window.removeEventListener("sanad:voice-pain", quickPain);
+      window.removeEventListener("sanad:voice-finish", finishSession);
       // Wipe any transcript/reply text held in state as soon as the session ends.
       setMessage("");
       setState("paused");

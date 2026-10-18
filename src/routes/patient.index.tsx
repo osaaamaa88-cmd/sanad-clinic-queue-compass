@@ -263,6 +263,7 @@ function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfi
       <div className="relative aspect-[16/7] bg-primary-soft">
         {profile?.coverUrl ? <img src={profile.coverUrl} alt={`عيادة ${clinic.doctor}`} className="h-full w-full object-cover" /> : <ClinicPlaceholder cover />}
         {clinic.availableNow && <span className="absolute right-3 top-3 rounded-full bg-success px-2.5 py-1 text-[10px] font-extrabold text-success-foreground">متاح الآن</span>}
+        {clinic.isDemo && <span className="absolute left-3 top-3 rounded-full border border-warning/40 bg-card/95 px-2.5 py-1 text-[10px] font-extrabold text-warning">بيانات تجريبية</span>}
       </div>
       <div className="flex min-w-0 items-start gap-3 p-4 pb-3">
          <span className="-mt-9 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border-2 border-card bg-primary-soft text-primary">{profile?.avatarUrl ? <img src={profile.avatarUrl} alt={clinic.doctor} className="h-full w-full object-cover" /> : <ClinicPlaceholder compact />}</span>

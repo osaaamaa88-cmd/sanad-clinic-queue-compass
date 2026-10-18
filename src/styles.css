@@ -430,6 +430,40 @@ body[data-story-open="true"] [data-bottom-nav] {
 }
 @media (prefers-reduced-motion: reduce) { .sanad-pulse { animation: none; opacity: 0.25; } }
 
+@keyframes nemo-breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.035)} }
+@keyframes nemo-blink { 0%,94%,100%{transform:scaleY(1)} 96%,98%{transform:scaleY(.12)} }
+@keyframes nemo-speaking-glow {
+  0%,100%{box-shadow:0 0 22px 2px oklch(.78 .11 210 / .24),0 24px 55px -24px oklch(.48 .10 215 / .42)}
+  50%{box-shadow:0 0 42px 10px oklch(.78 .11 210 / .38),0 24px 55px -24px oklch(.48 .10 215 / .42)}
+}
+.nemo-breathe{animation:nemo-breathe 5s ease-in-out infinite}
+.nemo-eye{transform-origin:center;animation:nemo-blink 4s ease-in-out infinite}
+.nemo-eye:nth-child(2){animation-delay:80ms}
+.nemo-eye-happy{animation:none;transform:scaleY(.2);transition:transform 220ms ease}
+.nemo-speaking-glow{animation:nemo-speaking-glow 1.8s ease-in-out infinite}
+.nemo-emergency-flash{animation:nemo-emergency-flash 700ms ease-in-out infinite alternate}
+@keyframes nemo-emergency-flash {
+  from{border-color:oklch(.86 .12 65);box-shadow:0 0 20px 3px oklch(.78 .15 65 / .28)}
+  to{border-color:oklch(.78 .17 48);box-shadow:0 0 42px 12px oklch(.78 .15 65 / .46)}
+}
+.nemo-chat-message{animation:nemo-chat-in 280ms ease-out both}
+@keyframes nemo-chat-in { from{opacity:0;transform:translateY(8px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+.nemo-breath-orb{transform:scale(1)}
+.nemo-breath-inhale{transform:scale(1.22);transition:transform 4s ease-in-out}
+.nemo-breath-hold{transform:scale(1.22);transition:transform 7s linear}
+.nemo-breath-exhale{transform:scale(.82);transition:transform 8s ease-in-out}
+.nemo-breath-halo{animation:nemo-breathe 5s ease-in-out infinite}
+.nemo-emergency{animation:nemo-emergency-pulse 1.8s ease-in-out infinite}
+@keyframes nemo-emergency-pulse {
+  0%,100%{box-shadow:0 0 0 0 oklch(.65 .22 20 / 0)}
+  50%{box-shadow:0 0 0 4px oklch(.65 .22 20 / .12)}
+}
+@media (prefers-reduced-motion:reduce){
+  .nemo-breathe,.nemo-eye,.nemo-speaking-glow,.nemo-emergency-flash,.nemo-chat-message,.nemo-breath-halo,.nemo-emergency{animation:none}
+  .nemo-eye-happy{transform:scaleY(.2)}
+  .nemo-breath-orb,.nemo-breath-inhale,.nemo-breath-hold,.nemo-breath-exhale{transition:none}
+}
+
 /* ===== Community text cards (WhatsApp-style pen status) ===== */
 :root {
   --card-navy: linear-gradient(150deg, oklch(0.32 0.08 255), oklch(0.20 0.06 260));

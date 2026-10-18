@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { X, Loader2, UserRound, Phone as PhoneIcon } from "lucide-react";
-import { lovable } from "@/integrations/lovable";
-import { savePatientSession, syncPatientSessionFromAuth, type PatientSession } from "@/lib/patient-session";
+import { supabase } from "@/integrations/supabase/client";
+import { savePatientSession, type PatientSession } from "@/lib/patient-session";
 
 type Props = {
   onDone: (s: PatientSession) => void;
@@ -13,7 +13,10 @@ type Props = {
 /** Sign-in sheet shown when a guest tries an action that needs their identity. */
 export function PatientAuthModal({ onDone, onClose, title }: Props) {
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4"
+      onClick={onClose}
+    >
       <div
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md animate-in slide-in-from-bottom-10 fade-in duration-300 rounded-t-3xl border border-border bg-card p-5 shadow-soft sm:rounded-3xl"
@@ -22,7 +25,11 @@ export function PatientAuthModal({ onDone, onClose, title }: Props) {
           <h3 className="text-base font-extrabold leading-7">
             {title ?? "سجل دخولك أو أنشئ حسابك للتفاعل واستخدام كافة المميزات 🚀"}
           </h3>
-          <button onClick={onClose} aria-label="إغلاق" className="rounded-full p-2 text-muted-foreground">
+          <button
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="rounded-full p-2 text-muted-foreground"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -50,19 +57,29 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
     onDone(savePatientSession({ name, phone: digits, via: "guest" }));
   };
 
-  const google = async () => {
+  const signInWithGoogle = async () => {
     setBusy(true);
     setErr("");
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + window.location.pathname });
-    if (result.redirected) return;
-    if (result.error) {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/patient/login`,
+        },
+      });
+      if (error) {
+        setErr(error.message);
+        setBusy(false);
+      }
+    } catch (error) {
+      console.error("[PatientAuth] Google sign-in failed", error);
       setBusy(false);
-      setErr("الدخول بجوجل مش متاح دلوقتي، استخدم الاسم ورقم الموبايل.");
-      return;
+      setErr(
+        error instanceof Error
+          ? error.message
+          : "تعذر بدء تسجيل الدخول بحساب Google. حاول مرة أخرى أو استخدم تسجيل الدخول بالاسم ورقم الهاتف.",
+      );
     }
-    const s = await syncPatientSessionFromAuth();
-    setBusy(false);
-    if (s) onDone(s);
   };
 
   return (
@@ -108,7 +125,10 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
 
       {err && <p className="mt-3 text-xs font-bold text-destructive">{err}</p>}
 
-      <button onClick={submit} className="mt-4 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-primary-foreground shadow-soft">
+      <button
+        onClick={submit}
+        className="mt-4 w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-primary-foreground shadow-soft"
+      >
         {mode === "login" ? "دخول ومتابعة" : "إنشاء الحساب ومتابعة"}
       </button>
 
@@ -117,7 +137,7 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
       </div>
 
       <button
-        onClick={google}
+        onClick={() => void signInWithGoogle()}
         disabled={busy}
         className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background py-3.5 text-sm font-extrabold disabled:opacity-60"
       >
@@ -132,7 +152,10 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
         {mode === "login" ? "ليس لديك حساب؟ أنشئ حساباً جديداً" : "عندك حساب؟ سجل دخولك"}
       </button>
 
-      <Link to="/terms" className="mt-3 block text-center text-[11px] font-bold text-muted-foreground underline">
+      <Link
+        to="/terms"
+        className="mt-3 block text-center text-[11px] font-bold text-muted-foreground underline"
+      >
         إخلاء المسؤولية الطبية وشروط الاستخدام
       </Link>
     </>
@@ -142,10 +165,22 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
 function GoogleMark() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-      <path fill="#4285F4" d="M23 12.2c0-.8-.1-1.4-.2-2H12v3.8h6.2c-.1 1-.8 2.6-2.4 3.6l-.1.1 3.5 2.7.2.1c2.2-2 3.6-5 3.6-8.3" />
-      <path fill="#34A853" d="M12 23.5c3.2 0 5.8-1 7.7-2.8l-3.7-2.8c-1 .7-2.3 1.2-4 1.2-3.1 0-5.7-2-6.6-4.8l-.1.1-3.7 2.8v.1C3.5 20.9 7.4 23.5 12 23.5" />
-      <path fill="#FBBC05" d="M5.4 14.3c-.3-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3V9.6L1.6 6.8l-.1.1C.7 8.4.3 10.2.3 12s.4 3.6 1.2 5.1z" />
-      <path fill="#EA4335" d="M12 5c2.2 0 3.7.9 4.6 1.7l3.3-3.2C17.8 1.6 15.2.5 12 .5 7.4.5 3.5 3.1 1.5 6.9l3.9 3c.9-2.8 3.5-4.9 6.6-4.9" />
+      <path
+        fill="#4285F4"
+        d="M23 12.2c0-.8-.1-1.4-.2-2H12v3.8h6.2c-.1 1-.8 2.6-2.4 3.6l-.1.1 3.5 2.7.2.1c2.2-2 3.6-5 3.6-8.3"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23.5c3.2 0 5.8-1 7.7-2.8l-3.7-2.8c-1 .7-2.3 1.2-4 1.2-3.1 0-5.7-2-6.6-4.8l-.1.1-3.7 2.8v.1C3.5 20.9 7.4 23.5 12 23.5"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.4 14.3c-.3-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3V9.6L1.6 6.8l-.1.1C.7 8.4.3 10.2.3 12s.4 3.6 1.2 5.1z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5c2.2 0 3.7.9 4.6 1.7l3.3-3.2C17.8 1.6 15.2.5 12 .5 7.4.5 3.5 3.1 1.5 6.9l3.9 3c.9-2.8 3.5-4.9 6.6-4.9"
+      />
     </svg>
   );
 }

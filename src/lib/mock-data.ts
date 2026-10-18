@@ -75,6 +75,8 @@ export type Clinic = {
   /** Hospital location is approximate (not yet confirmed by the owner). */
   approxLocation?: boolean;
   hospitalType?: string;
+  /** Synthetic clinic data used only when the development database has no clinics. */
+  isDemo?: boolean;
 };
 
 export type ClinicStatus = "normal" | "delayed" | "paused";
@@ -143,6 +145,113 @@ function rowToClinic(r: Row): Clinic {
   };
 }
 
+const developmentDemoClinics: Clinic[] = [
+  {
+    id: "demo-clinic-cairo-nasr-city",
+    doctor: "عيادة سَنَد التجريبية — أسنان",
+    specialtyId: "dental",
+    address: "شارع عباس العقاد، مدينة نصر",
+    area: "مدينة نصر، القاهرة",
+    distanceKm: 0,
+    price: 0,
+    rating: 0,
+    reviews: 0,
+    availableNow: false,
+    phone: "",
+    nowServing: 0,
+    yourNumber: 0,
+    waitingCount: 0,
+    lat: 30.0561,
+    lng: 31.3300,
+    isVerified: false,
+    submittedAt: 0,
+    updatedAt: 0,
+    clinicStatus: "normal",
+    delayMinutes: 0,
+    bookingsClosed: true,
+    workingHours: "بيانات اختبارية فقط",
+    isDemo: true,
+  },
+  {
+    id: "demo-clinic-giza-mohandessin",
+    doctor: "عيادة سَنَد التجريبية — باطنة",
+    specialtyId: "internal",
+    address: "شارع جامعة الدول العربية، المهندسين",
+    area: "المهندسين، الجيزة",
+    distanceKm: 0,
+    price: 0,
+    rating: 0,
+    reviews: 0,
+    availableNow: false,
+    phone: "",
+    nowServing: 0,
+    yourNumber: 0,
+    waitingCount: 0,
+    lat: 30.0537,
+    lng: 31.2013,
+    isVerified: false,
+    submittedAt: 0,
+    updatedAt: 0,
+    clinicStatus: "normal",
+    delayMinutes: 0,
+    bookingsClosed: true,
+    workingHours: "بيانات اختبارية فقط",
+    isDemo: true,
+  },
+  {
+    id: "demo-clinic-giza-faisal",
+    doctor: "عيادة سَنَد التجريبية — أطفال",
+    specialtyId: "pediatrics",
+    address: "شارع الملك فيصل، فيصل",
+    area: "فيصل، الجيزة",
+    distanceKm: 0,
+    price: 0,
+    rating: 0,
+    reviews: 0,
+    availableNow: false,
+    phone: "",
+    nowServing: 0,
+    yourNumber: 0,
+    waitingCount: 0,
+    lat: 29.9995,
+    lng: 31.1669,
+    isVerified: false,
+    submittedAt: 0,
+    updatedAt: 0,
+    clinicStatus: "normal",
+    delayMinutes: 0,
+    bookingsClosed: true,
+    workingHours: "بيانات اختبارية فقط",
+    isDemo: true,
+  },
+  {
+    id: "demo-clinic-minya",
+    doctor: "عيادة سَنَد التجريبية — جلدية",
+    specialtyId: "derma",
+    address: "شارع طه حسين، وسط المدينة",
+    area: "مدينة المنيا، المنيا",
+    distanceKm: 0,
+    price: 0,
+    rating: 0,
+    reviews: 0,
+    availableNow: false,
+    phone: "",
+    nowServing: 0,
+    yourNumber: 0,
+    waitingCount: 0,
+    lat: 28.1099,
+    lng: 30.7503,
+    isVerified: false,
+    submittedAt: 0,
+    updatedAt: 0,
+    clinicStatus: "normal",
+    delayMinutes: 0,
+    bookingsClosed: true,
+    workingHours: "بيانات اختبارية فقط",
+    isDemo: true,
+  },
+];
+
 export async function setClinicOps(input: {
   id: string;
   nowServing?: number;
@@ -184,6 +293,7 @@ export async function getVerifiedClinics(): Promise<Clinic[]> {
     .order("submitted_at", { ascending: false })
     .limit(300);
   if (error) return [];
+  if (data.length === 0 && import.meta.env.DEV) return developmentDemoClinics;
   return (data as Row[]).map(rowToClinic);
 }
 
@@ -201,6 +311,11 @@ export async function getClinicsPage(page = 0, size = 20): Promise<{ rows: Clini
 }
 
 export async function getVerifiedClinic(id: string): Promise<Clinic | undefined> {
+  if (import.meta.env.DEV) {
+    const demoClinic = developmentDemoClinics.find((clinic) => clinic.id === id);
+    if (demoClinic) return demoClinic;
+  }
+
   const { data, error } = await supabase
     .from("clinics")
     .select("*")

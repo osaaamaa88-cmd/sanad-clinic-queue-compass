@@ -78,6 +78,14 @@ export function applyFemaleVoice(u: SpeechSynthesisUtterance) {
   u.pitch = FEMALE_PITCH;
   u.rate = FEMALE_RATE;
 }
+
+/** Apply Nemo's calm, unhurried Arabic speaking style. */
+export function applyBaymaxVoice(u: SpeechSynthesisUtterance) {
+  applyFemaleVoice(u);
+  u.pitch = 1;
+  u.rate = 0.82;
+}
+
 export function speak(text: string, onEnd?: (success: boolean) => void) {
   if (typeof window === "undefined" || !window.speechSynthesis) {
     onEnd?.(false);

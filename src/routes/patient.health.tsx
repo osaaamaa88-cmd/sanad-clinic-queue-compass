@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Activity, Droplet, Heart, Save, Siren, Trash2 } from "lucide-react";
+import { Activity, Download, Droplet, Heart, Save, Siren, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/patient/health")({
   staticData: { sitemap: true },
@@ -104,12 +105,138 @@ function saveReadings(list: Reading[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
+type MedicalId = { bloodType: string; allergies: string; conditions: string; emergencyPhone: string };
+
+function renderMedicalId(data: MedicalId): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("تعذر تجهيز صورة البطاقة");
+
+  const ctx = context;
+  const width = canvas.width;
+  const right = width - 88;
+  const maxTextWidth = width - 220;
+  const linesFor = (text: string, font: string) => {
+    ctx.font = font;
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return ["غير محدد"];
+    const lines: string[] = [];
+    let line = "";
+    for (const word of words) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (line && ctx.measureText(candidate).width <= maxTextWidth) {
+        line = candidate;
+        continue;
+      }
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
+      for (const character of word) {
+        if (line && ctx.measureText(line + character).width > maxTextWidth) {
+          lines.push(line);
+          line = character;
+        } else {
+          line += character;
+        }
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  };
+
+  const background = ctx.createLinearGradient(0, 0, width, canvas.height);
+  background.addColorStop(0, "#071f2b");
+  background.addColorStop(0.55, "#0f766e");
+  background.addColorStop(1, "#082f49");
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, canvas.height);
+
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(990, 120, 280, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(70, 1710, 250, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.direction = "rtl";
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#a7f3d0";
+  ctx.font = "bold 32px sans-serif";
+  ctx.fillText("سَنَد  |  SANAD", right, 150);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 66px sans-serif";
+  ctx.fillText("كارت طوارئ", right, 250);
+  ctx.font = "36px sans-serif";
+  ctx.fillStyle = "#d1fae5";
+  ctx.fillText("MEDICAL ID  •  معلومات مهمة للمسعفين", right, 315);
+
+  const cardX = 64;
+  const cardWidth = width - cardX * 2;
+  const cardY = 405;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.roundRect(cardX, cardY, cardWidth, 1090, 38);
+  ctx.fill();
+
+  const entries = [
+    { label: "فصيلة الدم", value: data.bloodType },
+    { label: "الحساسية الدوائية", value: data.allergies },
+    { label: "الأمراض المزمنة", value: data.conditions },
+    { label: "هاتف شخص للطوارئ", value: data.emergencyPhone },
+  ];
+  let y = cardY + 88;
+  for (const [index, entry] of entries.entries()) {
+    ctx.fillStyle = "#0f766e";
+    ctx.font = "bold 32px sans-serif";
+    ctx.fillText(entry.label, right - 20, y);
+    y += 56;
+    const valueLines = linesFor(entry.value || "غير محدد", "bold 42px sans-serif");
+    ctx.fillStyle = "#102a32";
+    ctx.font = "bold 42px sans-serif";
+    for (const line of valueLines) {
+      ctx.fillText(line, right - 20, y);
+      y += 54;
+    }
+    y += 34;
+    if (index < entries.length - 1) {
+      ctx.strokeStyle = "#dce8e7";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cardX + 42, y - 15);
+      ctx.lineTo(width - cardX - 42, y - 15);
+      ctx.stroke();
+    }
+  }
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 38px sans-serif";
+  ctx.fillText("في حالة الطوارئ، يُرجى التواصل مع الشخص المذكور", width / 2, 1625);
+  ctx.fillStyle = "#d1fae5";
+  ctx.font = "28px sans-serif";
+  ctx.fillText("هذه المعلومات مقدمة من صاحبها وتساعد الفريق الطبي", width / 2, 1680);
+  ctx.fillText("سَنَد | SANAD — رفيقك الصحي", width / 2, 1790);
+  return canvas;
+}
+
 function HealthTracker() {
   const [sys, setSys] = useState("");
   const [dia, setDia] = useState("");
   const [sugar, setSugar] = useState("");
   const [sugarState, setSugarState] = useState<SugarState>("fasting");
   const [readings, setReadings] = useState<Reading[]>([]);
+  const [medicalId, setMedicalId] = useState<MedicalId>({
+    bloodType: "",
+    allergies: "",
+    conditions: "",
+    emergencyPhone: "",
+  });
 
   useEffect(() => {
     setReadings(loadReadings());
@@ -146,6 +273,32 @@ function HealthTracker() {
     const next = readings.filter((_, idx) => idx !== i);
     setReadings(next);
     saveReadings(next);
+  }
+
+  async function downloadMedicalId() {
+    if (!Object.values(medicalId).some((value) => value.trim())) {
+      toast.error("أدخل معلومة واحدة على الأقل لإنشاء البطاقة");
+      return;
+    }
+    try {
+      const canvas = renderMedicalId(medicalId);
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob((image) => (image ? resolve(image) : reject(new Error("تعذر إنشاء ملف الصورة"))), "image/png"),
+      );
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "sanad-medical-id.png";
+      anchor.rel = "noopener";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast.success("تم تنزيل بطاقة الطوارئ");
+    } catch (error) {
+      console.error("[Medical ID] Image generation failed", error);
+      toast.error("تعذر إنشاء البطاقة. حاول مرة أخرى.");
+    }
   }
 
   return (
@@ -304,6 +457,83 @@ function HealthTracker() {
             <li>عشوائي: مرتفع من 140، ومرتفع جداً من 200</li>
           </ul>
         </details>
+      </section>
+
+      <section className="mt-5 rounded-2xl border border-primary/20 bg-card p-4 shadow-soft">
+        <div className="flex items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-destructive/15 text-destructive">
+            <Siren className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold">كارت طوارئ شاشة القفل (Medical ID)</h2>
+            <p className="text-xs text-muted-foreground">جهّز معلومات تساعد المسعفين وقت الطوارئ</p>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold">فصيلة الدم</span>
+            <select
+              value={medicalId.bloodType}
+              onChange={(event) => setMedicalId({ ...medicalId, bloodType: event.target.value })}
+              className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">اختر فصيلة الدم (اختياري)</option>
+              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold">الحساسية الدوائية</span>
+            <textarea
+              value={medicalId.allergies}
+              onChange={(event) => setMedicalId({ ...medicalId, allergies: event.target.value })}
+              maxLength={160}
+              placeholder="مثال: حساسية من البنسلين"
+              className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold">الأمراض المزمنة</span>
+            <textarea
+              value={medicalId.conditions}
+              onChange={(event) => setMedicalId({ ...medicalId, conditions: event.target.value })}
+              maxLength={160}
+              placeholder="مثال: السكري، الربو"
+              className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold">رقم هاتف الطوارئ</span>
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              value={medicalId.emergencyPhone}
+              onChange={(event) => setMedicalId({ ...medicalId, emergencyPhone: event.target.value })}
+              maxLength={30}
+              placeholder="رقم شخص يمكن التواصل معه"
+              className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </label>
+        </div>
+
+        <button
+          type="button"
+          onClick={downloadMedicalId}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground"
+        >
+          <Download className="h-4 w-4" /> إنشاء وتنزيل بطاقة الطوارئ
+        </button>
+        <p className="mt-2 text-center text-[11px] text-muted-foreground">
+          تُستخدم البيانات لإنشاء الصورة على جهازك ولا تُحفظ من هذه الصفحة.
+        </p>
       </section>
 
       {/* Saved log */}

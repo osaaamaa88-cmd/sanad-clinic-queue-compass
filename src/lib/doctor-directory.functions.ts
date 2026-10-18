@@ -7,6 +7,7 @@ export const svrDoctorDirectory = createServerFn({ method: "GET" }).handler(asyn
     .from("clinics")
     .select("id, doctor, specialty_id, area, address, avatar_url, is_verified, is_featured")
     .eq("is_disabled", false)
+    .eq("is_verified", true)
     .limit(500);
   const rows = clinics ?? [];
   const { data: stories } = await supabaseAdmin
