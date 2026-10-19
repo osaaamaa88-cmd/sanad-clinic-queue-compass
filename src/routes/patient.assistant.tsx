@@ -277,6 +277,7 @@ function Assistant() {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [painLevel, setPainLevel] = useState<number | null>(null);
+  const [showPainScale, setShowPainScale] = useState(false);
   const [happy, setHappy] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { id: 1, role: "nemo", text: GREETING_DISPLAY },
