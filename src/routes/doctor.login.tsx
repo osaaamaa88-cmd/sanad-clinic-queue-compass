@@ -38,6 +38,8 @@ function DoctorEntry() {
   const [pass, setPass] = useState("");
   const [signupError, setSignupError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [gBusy, setGBusy] = useState(false);
+  const [gErr, setGErr] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const route = useCallback(async () => {
@@ -109,6 +111,24 @@ function DoctorEntry() {
     setPass("");
     setLoading(true);
     await route();
+  };
+
+  const signInWithGoogle = async () => {
+    setGErr("");
+    setGBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/doctor/login` },
+      });
+      if (error) {
+        setGErr(error.message);
+        setGBusy(false);
+      }
+    } catch (e) {
+      setGErr(e instanceof Error ? e.message : "تعذر بدء تسجيل الدخول بحساب Google. حاول مرة أخرى أو استخدم البريد وكلمة السر.");
+      setGBusy(false);
+    }
   };
 
   if (loading) {
