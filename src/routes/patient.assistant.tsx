@@ -792,7 +792,7 @@ function Assistant() {
           </section>
         )}
 
-        <section className="hidden">
+        <section className="order-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <Stethoscope className="h-5 w-5 text-cyan-700" />
             <h3 className="font-extrabold text-slate-800">احكيلي إيه اللي حاسس بيه</h3>
