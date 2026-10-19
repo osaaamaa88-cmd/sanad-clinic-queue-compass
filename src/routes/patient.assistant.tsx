@@ -37,6 +37,7 @@ import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { runLocalTriage, mergeTriageUrgency, type TriageResult } from "@/lib/triage-local";
 import { aiTriage } from "@/lib/triage.functions";
+import { voiceAssist } from "@/lib/voice-assist.functions";
 import {
   listHospitals,
   HOSPITAL_TYPES,
@@ -407,12 +408,23 @@ function Assistant() {
     setBreathing(false);
     addChatMessage("patient", query);
     const localTriage = runLocalTriage(query);
-    const reply =
+    let reply =
       localTriage.urgency === "emergency"
-        ? "ألف سلامة عليك يا غالي، الأعراض دي محتاجة مساعدة عاجلة، اتصل بالإسعاف 123 أو توجّه لأقرب طوارئ الآن. لو تقدر من غير تأخير، قل لي مكان الألم وهل عندك أعراض تانية."
-        : "ألف سلامة عليك يا غالي، على مقياس من 1 إلى 10، كيف تصف مستوى ألمك الآن؟ وأين موضعه ومنذ متى بدأ، وهل عندك سخونية أو أعراض تانية؟";
+        ? "ألف سلامة عليك يا غالي، الأعراض دي محتاجة مساعدة عاجلة، اتصل بالإسعاف 123 أو توجّه لأقرب طوارئ الآن."
+        : "ألف سلامة عليك يا غالي، على مقياس من 1 إلى 10 كيف تصف ألمك الآن؟";
+    if (localTriage.urgency !== "emergency") {
+      try {
+        const res = await voiceAssist({ data: { text: query, lat: loc.lat, lng: loc.lng } });
+        if (res?.reply) reply = res.reply;
+      } catch (aiError) {
+        console.error("[Nemo] voice AI unavailable", aiError);
+      }
+    }
     addChatMessage("nemo", reply);
-    sayNemo(reply);
+    sayNemo(reply, () => {
+      setSpeaking(false);
+      toggleListening();
+    });
     setResult(localTriage);
     try {
       const ai = await aiTriage({ data: { need: query } });
