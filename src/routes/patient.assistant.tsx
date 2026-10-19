@@ -277,6 +277,7 @@ function Assistant() {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [painLevel, setPainLevel] = useState<number | null>(null);
+  const [showPainScale, setShowPainScale] = useState(false);
   const [happy, setHappy] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { id: 1, role: "nemo", text: GREETING_DISPLAY },
@@ -407,6 +408,8 @@ function Assistant() {
     setLoading(true);
     setBreathing(false);
     addChatMessage("patient", query);
+    // Baymax-style: show the pain scale only when the conversation is about pain.
+    if (/وجع|ألم|الم|بتوجعني|بيوجعني|تعبان|تعبانه|صداع|مغص/.test(query)) setShowPainScale(true);
     const localTriage = runLocalTriage(query);
     let reply =
       localTriage.urgency === "emergency"
@@ -420,6 +423,7 @@ function Assistant() {
         console.error("[Nemo] voice AI unavailable", aiError);
       }
     }
+    if (/مقياس|شدة|مستوى ألم|من 1 إلى 10|من واحد إلى عشرة/.test(reply)) setShowPainScale(true);
     addChatMessage("nemo", reply);
     sayNemo(reply, () => {
       setSpeaking(false);
@@ -624,45 +628,47 @@ function Assistant() {
           )}
         </section>
 
-        <section className="order-2 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-extrabold text-slate-800">مقياس شدة الألم</h3>
-              <p className="mt-1 text-xs text-slate-500">من 1 (خفيف) إلى 10 (شديد)</p>
+        {showPainScale && (
+          <section className="order-2 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="font-extrabold text-slate-800">مقياس شدة الألم</h3>
+                <p className="mt-1 text-xs text-slate-500">من 1 (خفيف) إلى 10 (شديد)</p>
+              </div>
+              <HeartPulse className={`h-6 w-6 ${urgent ? "text-rose-600" : "text-cyan-700"}`} />
             </div>
-            <HeartPulse className={`h-6 w-6 ${urgent ? "text-rose-600" : "text-cyan-700"}`} />
-          </div>
-          <div className="mt-3 grid grid-cols-5 gap-2" dir="ltr">
-            {Array.from({ length: 10 }, (_, index) => index + 1).map((level) => {
-              const tone =
-                level <= 3
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                  : level <= 7
-                    ? "border-orange-200 bg-orange-50 text-orange-800 hover:bg-orange-100"
-                    : "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100";
-              const critical = level >= 8;
-              return (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => selectPain(level)}
-                  aria-pressed={painLevel === level}
-                  aria-label={`شدة الألم ${level} من 10`}
-                  className={`grid h-10 place-items-center rounded-xl border text-sm font-extrabold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cyan-600 ${tone} ${
-                    critical ? "motion-safe:animate-pulse" : ""
-                  } ${painLevel === level ? "ring-2 ring-slate-700 ring-offset-1" : ""}`}
-                >
-                  {level}
-                </button>
-              );
-            })}
-          </div>
-          <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10px] font-semibold">
-            <span className="text-emerald-700">1–3 خفيف</span>
-            <span className="text-orange-700">4–7 متوسط</span>
-            <span className="text-rose-700">8–10 شديد</span>
-          </div>
-        </section>
+            <div className="mt-3 grid grid-cols-5 gap-2" dir="ltr">
+              {Array.from({ length: 10 }, (_, index) => index + 1).map((level) => {
+                const tone =
+                  level <= 3
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                    : level <= 7
+                      ? "border-orange-200 bg-orange-50 text-orange-800 hover:bg-orange-100"
+                      : "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100";
+                const critical = level >= 8;
+                return (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => selectPain(level)}
+                    aria-pressed={painLevel === level}
+                    aria-label={`شدة الألم ${level} من 10`}
+                    className={`grid h-10 place-items-center rounded-xl border text-sm font-extrabold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cyan-600 ${tone} ${
+                      critical ? "motion-safe:animate-pulse" : ""
+                    } ${painLevel === level ? "ring-2 ring-slate-700 ring-offset-1" : ""}`}
+                  >
+                    {level}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10px] font-semibold">
+              <span className="text-emerald-700">1–3 خفيف</span>
+              <span className="text-orange-700">4–7 متوسط</span>
+              <span className="text-rose-700">8–10 شديد</span>
+            </div>
+          </section>
+        )}
 
         <section aria-label="أدوات المحادثة" className="order-3 grid grid-cols-2 gap-3">
           <button
@@ -786,7 +792,7 @@ function Assistant() {
           </section>
         )}
 
-        <section className="hidden">
+        <section className="order-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <Stethoscope className="h-5 w-5 text-cyan-700" />
             <h3 className="font-extrabold text-slate-800">احكيلي إيه اللي حاسس بيه</h3>
