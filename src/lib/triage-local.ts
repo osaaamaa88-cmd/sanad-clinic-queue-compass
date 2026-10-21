@@ -76,6 +76,30 @@ export function runLocalTriage(need: string): TriageResult {
   };
 }
 
+export function getLocalNemoReply(text: string, triage: TriageResult): string {
+  if (triage.urgency === "emergency") {
+    return "ألف سلامة عليك، الأعراض دي محتاجة مساعدة عاجلة. اتصل بالإسعاف 123 أو توجّه لأقرب طوارئ الآن.";
+  }
+  if (/روشت|دواء|ادويه|أدوية|حبوب|قرص|علاج/.test(text)) {
+    return "أقدر أساعدك تفهم معلومات الدواء، لكن ما أقدرش أحدد جرعة مناسبة من غير طبيب. قل لي اسم الدواء وإيه اللي حابب تعرفه عنه.";
+  }
+  if (/تحليل|تحاليل|نتيجه التحليل|نتيجة التحليل|هيموجلوبين|صفائح|بوتاسيوم|صوديوم/.test(text)) {
+    return "أقدر أشرح نتيجة التحليل بشكل عام، لكن التفسير النهائي يكون مع طبيبك. قل لي اسم التحليل والنتيجة المكتوبة فيه، أو افتح قارئ التحاليل لقراءة التقرير.";
+  }
+  if (/قلق|متوتر|توتر|خايف|خايفه|خوف|مضغوط|مش مرتاح/.test(text)) {
+    return "أنا سامعك ومتفهم قلقك، ومش لازم تواجهه لوحدك. جرّب تاخد نفس هادي، واحكي لي إيه أكتر حاجة مقلقاك دلوقتي.";
+  }
+
+  if (triage.summary.startsWith("مش قادر أحدد التخصص")) {
+    return `${triage.summary} ${triage.advice} هل تقدر توضح مكان الألم أو العرض، ومنذ متى بدأ؟`;
+  }
+
+  const specialty = getSpecialty(triage.specialtyIds[0])?.name ?? "طب الأسرة";
+  const urgencyAdvice =
+    triage.urgency === "soon" ? "لو الأعراض مستمرة أو بتزيد، تواصل مع طبيب قريباً." : triage.advice;
+  return `ألف سلامة عليك يا غالي، من وصفك ممكن يكون تخصص ${specialty} مناسباً كبداية. ${urgencyAdvice} قل لي مكان الألم ومنذ متى بدأ، وهل عندك أعراض تانية؟`;
+}
+
 const RANK = { routine: 0, soon: 1, emergency: 2 } as const;
 /** Never let AI lower urgency below the local rule-based result. */
 export function mergeTriageUrgency<T extends TriageResult>(ai: T, need: string): T {

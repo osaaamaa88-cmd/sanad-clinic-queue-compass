@@ -13,6 +13,7 @@ import {
   Navigation,
   Phone,
   Pill,
+  Send,
   Siren,
   Sparkles,
   Square,
@@ -35,8 +36,8 @@ import {
 } from "@/lib/patient-location";
 import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
-import { runLocalTriage, mergeTriageUrgency, type TriageResult } from "@/lib/triage-local";
-import { aiTriage } from "@/lib/triage.functions";
+import { getLocalNemoReply, runLocalTriage, type TriageResult } from "@/lib/triage-local";
+import { voiceAssist } from "@/lib/voice-assist.functions";
 import {
   listHospitals,
   HOSPITAL_TYPES,
@@ -65,8 +66,6 @@ export const Route = createFileRoute("/patient/assistant")({
   component: Assistant,
 });
 
-const GREETING =
-  "مرحباً بك، أنا نيمو، رفيقك الشخصي للرعاية الصحية، كيف تشعر اليوم، وعلى مقياس من واحد إلى عشرة، كم مستوى ألمك الآن؟";
 const GREETING_DISPLAY = "مرحباً، أنا نيمو، رفيقك الصحي. كيف أقدر أساعدك اليوم؟";
 const CLOSING_MESSAGE = "سعيد برضاك وعافيتك يا غالي، أنا سند لك دائماً، وأتمنى لك يوماً هادئاً.";
 const examples = [
@@ -284,10 +283,11 @@ function Assistant() {
   const [breathElapsed, setBreathElapsed] = useState(0);
   const recogRef = useRef<SpeechRecognitionLike | null>(null);
   const stopSpeechRef = useRef<(() => void) | null>(null);
-  const needRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLElement>(null);
   const messageIdRef = useRef(1);
   const navigationTimerRef = useRef<number | null>(null);
+  const providerWarningShownRef = useRef(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState<number | null>(null);
 
   useEffect(
     () => () => {
@@ -328,28 +328,28 @@ function Assistant() {
       });
   }, []);
 
-  function sayNemo(text: string, onEnd = () => setSpeaking(false)) {
+  function playNemoMessage(message: ChatMessage) {
+    if (speaking && speakingMessageId === message.id) {
+      stopSpeechRef.current?.();
+      stopSpeechRef.current = null;
+      setSpeaking(false);
+      setSpeakingMessageId(null);
+      return;
+    }
     stopSpeechRef.current?.();
+    setSpeakingMessageId(message.id);
     setSpeaking(true);
-    stopSpeechRef.current = speakArabic(text, onEnd);
+    stopSpeechRef.current = speakArabic(message.text, () => {
+      setSpeaking(false);
+      setSpeakingMessageId(null);
+      stopSpeechRef.current = null;
+    });
   }
 
   function addChatMessage(role: ChatMessage["role"], text: string) {
     messageIdRef.current += 1;
     const id = messageIdRef.current;
     setChatMessages((messages) => [...messages, { id, role, text }]);
-  }
-
-  function toggleGreetingSpeech() {
-    if (speaking) {
-      stopSpeechRef.current?.();
-      setSpeaking(false);
-      return;
-    }
-    sayNemo(GREETING, () => {
-      setSpeaking(false);
-      toggleListening();
-    });
   }
 
   function toggleListening() {
@@ -389,7 +389,10 @@ function Assistant() {
       recognition.onend = () => {
         setListening(false);
         recogRef.current = null;
-        if (finalText.length >= 3) void submit(finalText);
+        if (finalText.length >= 3) {
+          setNeed(finalText);
+          void submit(finalText);
+        }
       };
       recogRef.current = recognition;
       recognition.start();
@@ -403,49 +406,75 @@ function Assistant() {
   async function submit(text: string) {
     const query = text.trim();
     if (query.length < 3 || loading) return;
+    stopSpeechRef.current?.();
+    stopSpeechRef.current = null;
+    setSpeaking(false);
+    setSpeakingMessageId(null);
     setLoading(true);
+    setNeed("");
     setBreathing(false);
+    setPainLevel(null);
     addChatMessage("patient", query);
     const localTriage = runLocalTriage(query);
-    const reply =
-      localTriage.urgency === "emergency"
-        ? "ألف سلامة عليك يا غالي، الأعراض دي محتاجة مساعدة عاجلة، اتصل بالإسعاف 123 أو توجّه لأقرب طوارئ الآن. لو تقدر من غير تأخير، قل لي مكان الألم وهل عندك أعراض تانية."
-        : "ألف سلامة عليك يا غالي، على مقياس من 1 إلى 10، كيف تصف مستوى ألمك الآن؟ وأين موضعه ومنذ متى بدأ، وهل عندك سخونية أو أعراض تانية؟";
-    addChatMessage("nemo", reply);
-    sayNemo(reply);
     setResult(localTriage);
-    try {
-      const ai = await aiTriage({ data: { need: query } });
-      const triage = ai ? mergeTriageUrgency(ai, query) : runLocalTriage(query);
-      setResult(triage);
-    } catch (triageError) {
-      console.error("[Nemo] AI triage unavailable; using local rules", triageError);
-      setResult(localTriage);
-    } finally {
+
+    if (localTriage.urgency === "emergency") {
+      const emergencyReply =
+        "ألف سلامة عليك يا غالي، الأعراض دي محتاجة مساعدة عاجلة، اتصل بالإسعاف 123 أو توجّه لأقرب طوارئ الآن. لو تقدر من غير تأخير، قل لي مكان الألم وهل عندك أعراض تانية.";
+      addChatMessage("nemo", emergencyReply);
       setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await voiceAssist({
+        data: {
+          text: query,
+          lat: loc.lat,
+          lng: loc.lng,
+          history: chatMessages.slice(-8).map((message) => ({
+            role: message.role === "patient" ? ("user" as const) : ("assistant" as const),
+            content: message.text,
+          })),
+        },
+      });
+      const reply = (response.ai ? response.reply : getLocalNemoReply(query, localTriage)).trim();
+      if (!reply) throw new Error("Nemo returned an empty reply");
+      addChatMessage("nemo", reply);
+      if (!response.ai && !providerWarningShownRef.current) {
+        providerWarningShownRef.current = true;
+        toast.warning("المساعد الذكي غير متاح حالياً، أقدّم لك توجيهاً أولياً حسب الأعراض.");
+      }
+    } catch (assistantError) {
+      console.error("[Nemo] AI assistant unavailable; using a safe local reply", assistantError);
+      const fallbackReply = getLocalNemoReply(query, localTriage);
+      addChatMessage("nemo", fallbackReply);
+      toast.warning("تعذر الاتصال بالمساعد الذكي الآن، أقدّم لك توجيهاً أولياً حسب الأعراض.");
+        } finally {
+      setLoading(false);
+      // Removed automatic toggleListening
     }
   }
 
   function selectPain(level: number) {
     setPainLevel(level);
-    setResult(null);
+    setResult((current) =>
+      current && level >= 8 ? { ...current, urgency: "emergency" } : current,
+    );
     setHappy(false);
     addChatMessage("patient", `مستوى الألم عندي ${level} من 10`);
     if (level <= 3) {
       const reply =
         "ألف سلامة عليك، يبدو أن الألم خفيف. خذ قسطاً من الراحة واشرب سوائل مناسبة، وأسأل الله لك الشفاء.";
       addChatMessage("nemo", reply);
-      sayNemo(reply);
     } else if (level <= 7) {
       const reply =
         "ألف سلامة عليك يا غالي، أين موضع الألم ومنذ متى بدأ؟ إذا استمر أو زاد، راجع الطبيب المناسب.";
       addChatMessage("nemo", reply);
-      sayNemo(reply);
     } else {
       const reply =
         "هذا الألم شديد ويحتاج رعاية فورية. اتصل بالإسعاف 123 الآن أو توجّه لأقرب مستشفى، خصوصاً مع ألم الصدر أو صعوبة التنفس.";
       addChatMessage("nemo", reply);
-      sayNemo(reply);
     }
   }
 
@@ -462,13 +491,6 @@ function Assistant() {
     };
     if (navigationTimerRef.current !== null) window.clearTimeout(navigationTimerRef.current);
     navigationTimerRef.current = window.setTimeout(navigateBack, 12_000);
-    sayNemo(CLOSING_MESSAGE, () => {
-      setSpeaking(false);
-      if (navigationTimerRef.current !== null) window.clearTimeout(navigationTimerRef.current);
-      navigationTimerRef.current = window.setTimeout(() => {
-        navigateBack();
-      }, 2000);
-    });
   }
 
   const matches = result
@@ -516,7 +538,11 @@ function Assistant() {
   const urgent = (painLevel !== null && painLevel >= 8) || result?.urgency === "emergency";
   const lastPatientMessage =
     [...chatMessages].reverse().find((message) => message.role === "patient")?.text ?? "";
+  const hasPatientMessages = chatMessages.some((message) => message.role === "patient");
   const normalizedContext = lastPatientMessage.toLowerCase();
+  const mentionsPain = /ألم|الم|وجع|وجعني|بتوجع|بيوجع|بيوجعني|صداع|مغص|حرقان|تعب/.test(
+    normalizedContext,
+  );
   const mentionsMedication = /روشت|دواء|ادويه|أدوية|حبوب|قرص|علاج/.test(normalizedContext);
   const mentionsLab =
     /تحليل|تحاليل|نتيجه التحليل|نتيجة التحليل|هيموجلوبين|صفائح|بوتاسيوم|صوديوم/.test(
@@ -531,6 +557,7 @@ function Assistant() {
     !mentionsLab &&
     !mentionsAnxiety &&
     !urgent;
+  const showCareRecommendations = !!result && (hasSymptomResult || result.urgency === "emergency");
   const nearestClinic = matches[0];
   const relevantHospital = hospitalMatches[0] ?? nearestHospital;
 
@@ -570,24 +597,20 @@ function Assistant() {
                 ? "نيمو بيتكلم معاك بهدوء"
                 : "أنا هنا أسمعك وأساعدك"}
           </p>
-          <button type="button" onClick={toggleGreetingSpeech} className="hidden">
-            {speaking ? <Square className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            {speaking ? "إيقاف الصوت" : "اسمع صوت نيمو"}
-          </button>
         </section>
 
         <section
           aria-label="محادثتك مع نيمو"
           aria-live="polite"
           ref={chatContainerRef}
-          className="order-4 max-h-64 space-y-3 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
+          className="order-2 max-h-64 space-y-3 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
         >
           {chatMessages.map((message) => (
             <div
               key={message.id}
-              className={`nemo-chat-message flex ${message.role === "patient" ? "justify-start" : "justify-end"}`}
+              className={`nemo-chat-message flex items-end gap-2 ${message.role === "patient" ? "justify-start" : "justify-end"}`}
             >
-              <p
+              <div
                 className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${
                   message.role === "patient"
                     ? "rounded-tr-md bg-slate-100 text-slate-800"
@@ -600,7 +623,29 @@ function Assistant() {
                   </span>
                 )}
                 {message.text}
-              </p>
+              </div>
+              {message.role === "nemo" && (
+                <button
+                  type="button"
+                  onClick={() => playNemoMessage(message)}
+                  aria-label={
+                    speaking && speakingMessageId === message.id
+                      ? "إيقاف قراءة رسالة نيمو"
+                      : "استمع إلى رسالة نيمو"
+                  }
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
+                    speaking && speakingMessageId === message.id
+                      ? "bg-cyan-700 text-white"
+                      : "bg-cyan-100 text-cyan-800 hover:bg-cyan-200"
+                  }`}
+                >
+                  {speaking && speakingMessageId === message.id ? (
+                    <Square className="h-4 w-4" />
+                  ) : (
+                    <Volume2 className="h-4 w-4" />
+                  )}
+                </button>
+              )}
             </div>
           ))}
           {loading && (
@@ -612,88 +657,118 @@ function Assistant() {
           )}
         </section>
 
-        <section className="order-2 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-extrabold text-slate-800">مقياس شدة الألم</h3>
-              <p className="mt-1 text-xs text-slate-500">من 1 (خفيف) إلى 10 (شديد)</p>
+        {(mentionsPain || painLevel !== null) && (
+          <section className="order-4 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="font-extrabold text-slate-800">مقياس شدة الألم</h3>
+                <p className="mt-1 text-xs text-slate-500">من 1 (خفيف) إلى 10 (شديد)</p>
+              </div>
+              <HeartPulse className={`h-6 w-6 ${urgent ? "text-rose-600" : "text-cyan-700"}`} />
             </div>
-            <HeartPulse className={`h-6 w-6 ${urgent ? "text-rose-600" : "text-cyan-700"}`} />
-          </div>
-          <div className="mt-3 grid grid-cols-5 gap-2" dir="ltr">
-            {Array.from({ length: 10 }, (_, index) => index + 1).map((level) => {
-              const tone =
-                level <= 3
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                  : level <= 7
-                    ? "border-orange-200 bg-orange-50 text-orange-800 hover:bg-orange-100"
-                    : "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100";
-              const critical = level >= 8;
-              return (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => selectPain(level)}
-                  aria-pressed={painLevel === level}
-                  aria-label={`شدة الألم ${level} من 10`}
-                  className={`grid h-10 place-items-center rounded-xl border text-sm font-extrabold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cyan-600 ${tone} ${
-                    critical ? "motion-safe:animate-pulse" : ""
-                  } ${painLevel === level ? "ring-2 ring-slate-700 ring-offset-1" : ""}`}
-                >
-                  {level}
-                </button>
-              );
-            })}
-          </div>
-          <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10px] font-semibold">
-            <span className="text-emerald-700">1–3 خفيف</span>
-            <span className="text-orange-700">4–7 متوسط</span>
-            <span className="text-rose-700">8–10 شديد</span>
-          </div>
-        </section>
+            <div className="mt-3 grid grid-cols-5 gap-2" dir="ltr">
+              {Array.from({ length: 10 }, (_, index) => index + 1).map((level) => {
+                const tone =
+                  level <= 3
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                    : level <= 7
+                      ? "border-orange-200 bg-orange-50 text-orange-800 hover:bg-orange-100"
+                      : "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100";
+                const critical = level >= 8;
+                return (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => selectPain(level)}
+                    aria-pressed={painLevel === level}
+                    aria-label={`شدة الألم ${level} من 10`}
+                    className={`grid h-10 place-items-center rounded-xl border text-sm font-extrabold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cyan-600 ${tone} ${
+                      critical ? "motion-safe:animate-pulse" : ""
+                    } ${painLevel === level ? "ring-2 ring-slate-700 ring-offset-1" : ""}`}
+                  >
+                    {level}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10px] font-semibold">
+              <span className="text-emerald-700">1–3 خفيف</span>
+              <span className="text-orange-700">4–7 متوسط</span>
+              <span className="text-rose-700">8–10 شديد</span>
+            </div>
+          </section>
+        )}
 
-        <section aria-label="أدوات المحادثة" className="order-3 grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              if (speaking) {
-                stopSpeechRef.current?.();
-                setSpeaking(false);
-              }
-              toggleListening();
-            }}
-            aria-label={listening ? "إيقاف التسجيل" : "التحدث مع نيمو"}
-            className={`flex min-h-14 items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-extrabold shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
-              listening
-                ? "animate-pulse bg-rose-600 text-white"
-                : "bg-cyan-700 text-white hover:bg-cyan-800"
-            }`}
-          >
-            {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-            {listening ? "إيقاف الاستماع" : "اتكلم مع نيمو"}
-          </button>
-          <button
-            type="button"
-            onClick={toggleGreetingSpeech}
-            aria-label={speaking ? "إيقاف صوت نيمو" : "استمع لنيمو"}
-            className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-cyan-200 bg-white px-3 py-3 text-sm font-extrabold text-cyan-900 shadow-sm transition hover:bg-cyan-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700"
-          >
-            {speaking ? <Square className="h-4 w-4" /> : <Volume2 className="h-5 w-5" />}
-            {speaking ? "إيقاف الصوت" : "اسمع نيمو وتكلم"}
-          </button>
-        </section>
+        <form
+          aria-label="أرسل رسالة إلى نيمو"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit(need);
+          }}
+          className="order-3 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
+        >
+          <div className="flex items-center gap-2">
+            <input
+              value={need}
+              onChange={(event) => setNeed(event.target.value)}
+              maxLength={800}
+              aria-label="اكتب رسالتك لنيمو"
+              placeholder={listening ? "نيمو بيسمعك… اتكلم براحتك" : "اكتب رسالتك لنيمو…"}
+              className={`min-w-0 flex-1 rounded-xl border bg-white px-3 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100 ${
+                listening ? "border-rose-400" : "border-transparent"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (speaking) {
+                  stopSpeechRef.current?.();
+                  stopSpeechRef.current = null;
+                  setSpeaking(false);
+                  setSpeakingMessageId(null);
+                }
+                toggleListening();
+              }}
+              aria-label={listening ? "إيقاف التسجيل" : "التحدث مع نيمو"}
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
+                listening
+                  ? "animate-pulse bg-rose-600 text-white"
+                  : "bg-cyan-100 text-cyan-800 hover:bg-cyan-200"
+              }`}
+            >
+              {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </button>
+            <button
+              type="submit"
+              disabled={loading || need.trim().length < 3}
+              aria-label="إرسال الرسالة"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-cyan-700 text-white transition hover:bg-cyan-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+            </button>
+          </div>
+          {listening && (
+            <p className="px-3 pb-1 text-xs font-semibold text-rose-700" aria-live="polite">
+              جاري الاستماع… اضغط الميكروفون لإيقاف التسجيل
+            </p>
+          )}
+        </form>
 
-        {hasSymptomResult && result && (
+        {showCareRecommendations && result && (
           <section
             className="order-5 rounded-2xl border border-cyan-100 bg-white p-4 shadow-sm"
             aria-live="polite"
           >
-            <p className="text-xs font-semibold text-slate-500">مساعدة قريبة حسب كلامك</p>
-            <p className="mt-1 font-extrabold text-cyan-950">
-              التخصص المقترح: {getSpecialty(result.specialtyIds[0])?.name ?? "طب الأسرة"}
+            <p className="text-xs font-semibold text-slate-500">
+              {urgent ? "مساعدة طبية قريبة" : "مساعدة قريبة حسب كلامك"}
             </p>
+            {!urgent && (
+              <p className="mt-1 font-extrabold text-cyan-950">
+                التخصص المقترح: {getSpecialty(result.specialtyIds[0])?.name ?? "طب الأسرة"}
+              </p>
+            )}
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {nearestClinic ? (
+              {!urgent && nearestClinic && (
                 <Link
                   to="/patient/clinic/$id"
                   params={{ id: nearestClinic.clinic.id }}
@@ -701,7 +776,8 @@ function Assistant() {
                 >
                   أقرب عيادة: {nearestClinic.clinic.doctor} · {nearestClinic.distance.toFixed(1)} كم
                 </Link>
-              ) : (
+              )}
+              {!urgent && !nearestClinic && (
                 <p className="rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600">
                   لا توجد عيادة مناسبة متاحة حالياً
                 </p>
@@ -721,6 +797,13 @@ function Assistant() {
                 </p>
               )}
             </div>
+            <button
+              type="button"
+              onClick={() => setPicker(true)}
+              className="mt-3 inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+            >
+              <MapPin className="h-4 w-4 text-cyan-700" /> تغيير موقعي
+            </button>
           </section>
         )}
 
@@ -792,7 +875,6 @@ function Assistant() {
           </button>
           <div className="relative">
             <textarea
-              ref={needRef}
               value={need}
               onChange={(event) => setNeed(event.target.value)}
               maxLength={800}
@@ -808,7 +890,15 @@ function Assistant() {
             />
             <button
               type="button"
-              onClick={toggleListening}
+              onClick={() => {
+                if (speaking) {
+                  stopSpeechRef.current?.();
+                  stopSpeechRef.current = null;
+                  setSpeaking(false);
+                  setSpeakingMessageId(null);
+                }
+                toggleListening();
+              }}
               aria-label={listening ? "إيقاف التسجيل" : "التحدث مع نيمو"}
               className={`absolute bottom-3 end-3 grid h-10 w-10 place-items-center rounded-full transition ${
                 listening
@@ -932,11 +1022,13 @@ function Assistant() {
                     const names = result.specialtyIds
                       .map((id) => getSpecialty(id)?.name ?? id)
                       .join("، ");
-                    sayNemo(
-                      [result.summary, names && `التخصصات المناسبة: ${names}.`, result.advice]
+                    playNemoMessage({
+                      id: -1,
+                      role: "nemo",
+                      text: [result.summary, names && `التخصصات المناسبة: ${names}.`, result.advice]
                         .filter(Boolean)
                         .join(" "),
-                    );
+                    });
                   }}
                   aria-label={speaking ? "إيقاف الاستماع" : "استماع للنتيجة"}
                   className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition ${
@@ -1076,18 +1168,22 @@ function Assistant() {
           </section>
         )}
 
-        <button
-          type="button"
-          onClick={finishSession}
-          disabled={happy}
-          className="order-8 flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-100 bg-white px-4 py-3.5 text-sm font-extrabold text-cyan-950 shadow-[0_8px_28px_rgba(14,116,144,0.15)] transition hover:bg-cyan-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-700 disabled:cursor-wait disabled:opacity-70"
-        >
-          <Check className="h-4 w-4 text-cyan-700" />{" "}
-          {happy ? "سعيد برضاك وعافيتك يا غالي 🤍" : "أنا راضٍ عن خدمتك الصحية 🤍"}
-        </button>
-        <p className="order-9 text-center text-[11px] leading-5 text-slate-500">
-          نيمو للإرشاد فقط ولا يغني عن استشارة الطبيب. لو في طارئ اتصل بالإسعاف 123.
-        </p>
+        {hasPatientMessages && (
+          <>
+            <button
+              type="button"
+              onClick={finishSession}
+              disabled={happy}
+              className="order-8 flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-100 bg-white px-4 py-3.5 text-sm font-extrabold text-cyan-950 shadow-[0_8px_28px_rgba(14,116,144,0.15)] transition hover:bg-cyan-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-700 disabled:cursor-wait disabled:opacity-70"
+            >
+              <Check className="h-4 w-4 text-cyan-700" />{" "}
+              {happy ? "سعيد برضاك وعافيتك يا غالي 🤍" : "أنا راضٍ عن خدمتك الصحية 🤍"}
+            </button>
+            <p className="order-9 text-center text-[11px] leading-5 text-slate-500">
+              نيمو للإرشاد فقط ولا يغني عن استشارة الطبيب. لو في طارئ اتصل بالإسعاف 123.
+            </p>
+          </>
+        )}
       </div>
       {picker && (
         <LocationPickerModal

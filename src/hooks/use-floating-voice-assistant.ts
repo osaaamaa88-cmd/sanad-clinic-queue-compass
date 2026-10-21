@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { createRecognizer, isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
 import { voiceAssist } from "@/lib/voice-assist.functions";
 import { getPatientLocation } from "@/lib/patient-location";
+import { getLocalNemoReply, runLocalTriage } from "@/lib/triage-local";
 
 export type VoiceAssistantState = "listening" | "speaking" | "thinking" | "paused" | "error";
 
@@ -70,7 +71,12 @@ export function useFloatingVoiceAssistant(allowed = true) {
       setState("speaking");
       cancelSpeech = speak(text, (success) => {
         if (!active || blocked || document.hidden) return;
-        if (!success) { fail("الصوت التلقائي غير متاح؛ اضغط على الفقاعة للاستئناف أو اسمح بالصوت في المتصفح."); return; }
+        if (!success) {
+          setMessage("الصوت التلقائي غير متاح، لكن يمكنك التحدث معي. اسمح بالميكروفون إذا طُلب منك.");
+          toast.warning("الصوت التلقائي غير متاح؛ سيظل المساعد يستمع لك.");
+          scheduleListen();
+          return;
+        }
         if (after) after();
         else scheduleListen();
       });
@@ -115,8 +121,12 @@ export function useFloatingVoiceAssistant(allowed = true) {
         lastExchange = `السؤال السابق: ${text.slice(0, 100)}\nالرد السابق: ${result.reply.slice(0, 200)}`;
         if (!result.ai) toast.warning("التحليل الذكي غير متاح حالياً؛ الرد من دليل المستشفيات، وليس تحليلًا للأعراض.");
         say(result.reply);
-      } catch {
-        if (active && request === generation) fail("سجّل دخولك عشان تستخدم المساعد، أو اتأكد من النت. لو الحالة طارئة اتصل بالإسعاف 123.");
+      } catch (assistantError) {
+        if (active && request === generation) {
+          console.error("[voice-assistant] AI unavailable; using a safe local reply", assistantError);
+          toast.warning("تعذر الاتصال بالمساعد الذكي الآن، أقدّم لك توجيهاً أولياً حسب الأعراض.");
+          say(getLocalNemoReply(text, runLocalTriage(text)));
+        }
       }
     };
     const quickPain = (event: Event) => {
@@ -207,8 +217,8 @@ export function useFloatingVoiceAssistant(allowed = true) {
     window.addEventListener("online", goOnline);
     if (!navigator.onLine) {
       goOffline();
-    } else if (!createRecognizer() || !window.speechSynthesis) {
-      fail("المتصفح ده مش بيدعم المساعد الصوتي بالكامل؛ جرّب متصفح يدعم الميكروفون والصوت.");
+    } else if (!createRecognizer()) {
+      fail("الميكروفون غير مدعوم في المتصفح ده؛ جرّب متصفح يدعم الإدخال الصوتي.");
     } else {
       say("أهلاً بك في سَنَد، أنا هنا لمساعدتك. احكيلي إيه اللي تعبك، وهنلاقي المساعدة المناسبة سوا.");
     }

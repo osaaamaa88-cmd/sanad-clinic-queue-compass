@@ -123,7 +123,7 @@ export function FloatingVoiceAssistant() {
     };
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted || pathname === "/patient/assistant") return null;
 
   const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) return;

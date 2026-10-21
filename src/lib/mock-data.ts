@@ -290,6 +290,7 @@ export async function getVerifiedClinics(): Promise<Clinic[]> {
     .from("clinics")
     .select("*")
     .eq("is_disabled", false)
+    .eq("is_verified", true)
     .order("submitted_at", { ascending: false })
     .limit(300);
   if (error) return [];
@@ -304,6 +305,7 @@ export async function getClinicsPage(page = 0, size = 20): Promise<{ rows: Clini
     .from("clinics")
     .select("*")
     .eq("is_disabled", false)
+    .eq("is_verified", true)
     .order("submitted_at", { ascending: false })
     .range(from, from + size);
   if (error || !data) return { rows: [], hasMore: false };
@@ -321,6 +323,7 @@ export async function getVerifiedClinic(id: string): Promise<Clinic | undefined>
     .select("*")
     .eq("id", id)
     .eq("is_disabled", false)
+    .eq("is_verified", true)
     .maybeSingle();
   if (error || !data) return undefined;
   return rowToClinic(data as Row);
