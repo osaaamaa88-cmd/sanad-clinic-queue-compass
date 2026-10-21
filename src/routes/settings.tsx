@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Mic, UserRound } from "lucide-react";
-import { isVoiceModeOn, setVoiceMode } from "@/lib/voice";
+import { isSeniorModeOn, isVoiceModeOn, setSeniorMode, setVoiceMode } from "@/lib/voice";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/settings")({
@@ -21,11 +21,18 @@ export const Route = createFileRoute("/settings")({
 
 export function SettingsPage() {
   const [on, setOn] = useState(false);
+  const [senior, setSenior] = useState(false);
   useEffect(() => {
     const sync = () => setOn(isVoiceModeOn());
+    const syncSenior = () => setSenior(isSeniorModeOn());
     sync();
+    syncSenior();
     window.addEventListener("sanad:voice-mode", sync);
-    return () => window.removeEventListener("sanad:voice-mode", sync);
+    window.addEventListener("sanad:senior-mode", syncSenior);
+    return () => {
+      window.removeEventListener("sanad:voice-mode", sync);
+      window.removeEventListener("sanad:senior-mode", syncSenior);
+    };
   }, []);
 
   const toggle = () => {
@@ -52,6 +59,19 @@ export function SettingsPage() {
       <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
         <Mic /> {on ? "إيقاف المساعد الصوتي" : "تفعيل المساعد الصوتي هنا"}
       </Button>
+      <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 rounded-2xl border bg-card p-4">
+        <span className="flex items-center gap-3">
+          <span aria-hidden="true" className="text-xl">👵</span>
+          <span className="font-bold">وضع كبار السن داخل نيمو — ردود صوتية تلقائية وأزرار أكبر</span>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          checked={senior}
+          onChange={() => setSeniorMode(!senior)}
+          className="h-6 w-11 accent-primary"
+        />
+      </label>
       <Link
         to="/developer"
         className="mt-4 flex items-center gap-3 rounded-2xl border bg-card p-4 transition active:scale-[0.99]"

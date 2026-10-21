@@ -26,6 +26,26 @@ export function setVoiceMode(on: boolean) {
   }
 }
 
+// --- Senior-friendly mode ---
+export const SENIOR_KEY = "sanad_senior_mode";
+
+export function isSeniorModeOn(): boolean {
+  try {
+    return localStorage.getItem(SENIOR_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setSeniorMode(on: boolean) {
+  try {
+    localStorage.setItem(SENIOR_KEY, on ? "true" : "false");
+    window.dispatchEvent(new Event("sanad:senior-mode"));
+  } catch {
+    // Storage may be unavailable.
+  }
+}
+
 // Priority list for warm, high-quality female Arabic voices across iOS, Android, and Web.
 const PREFERRED_FEMALE_NAMES = [
   "laila",
@@ -97,7 +117,7 @@ export function applyFemaleVoice(u: SpeechSynthesisUtterance) {
 export function applyBaymaxVoice(u: SpeechSynthesisUtterance) {
   applyFemaleVoice(u);
   u.pitch = 1;
-  u.rate = 0.82;
+  u.rate = isSeniorModeOn() ? 0.72 : 0.82;
 }
 
 export function speak(text: string, onEnd?: (success: boolean) => void) {

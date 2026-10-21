@@ -23,7 +23,7 @@ import {
   Wind,
 } from "lucide-react";
 import { toast } from "sonner";
-import { applyBaymaxVoice, cleanForSpeech } from "@/lib/voice";
+import { applyBaymaxVoice, cleanForSpeech, isSeniorModeOn, setSeniorMode } from "@/lib/voice";
 import { isNative } from "@/lib/native";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
@@ -68,6 +68,14 @@ export const Route = createFileRoute("/patient/assistant")({
 
 const GREETING_DISPLAY = "مرحباً، أنا نيمو، رفيقك الصحي. كيف أقدر أساعدك اليوم؟";
 const CLOSING_MESSAGE = "سعيد برضاك وعافيتك يا غالي، أنا سند لك دائماً، وأتمنى لك يوماً هادئاً.";
+
+function nemoSpeechText(text: string) {
+  return cleanForSpeech(text)
+    .replace(/[.,:;\-–—]+/g, "،")
+    .replace(/،\s*،+/g, "،")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
 const examples = [
   "سناني بتوجعني ولثتي وارمة",
   "ابني عنده سخونية وكحة من يومين",
@@ -106,11 +114,7 @@ function speakArabic(text: string, onEnd: () => void): () => void {
     onEnd();
     return () => {};
   }
-  const spokenText = cleanForSpeech(text)
-    .replace(/[.,:;\-–—]+/g, "،")
-    .replace(/،\s*،+/g, "،")
-    .replace(/\s{2,}/g, " ")
-    .trim();
+  const spokenText = nemoSpeechText(text);
 
   if (isNative()) {
     let cancelled = false;
@@ -288,6 +292,17 @@ function Assistant() {
   const navigationTimerRef = useRef<number | null>(null);
   const providerWarningShownRef = useRef(false);
   const [speakingMessageId, setSpeakingMessageId] = useState<number | null>(null);
+  const [senior, setSenior] = useState(isSeniorModeOn());
+
+  useEffect(() => {
+    const syncSenior = () => setSenior(isSeniorModeOn());
+    window.addEventListener("sanad:senior-mode", syncSenior);
+    window.addEventListener("storage", syncSenior);
+    return () => {
+      window.removeEventListener("sanad:senior-mode", syncSenior);
+      window.removeEventListener("storage", syncSenior);
+    };
+  }, []);
 
   useEffect(
     () => () => {
@@ -350,6 +365,18 @@ function Assistant() {
     messageIdRef.current += 1;
     const id = messageIdRef.current;
     setChatMessages((messages) => [...messages, { id, role, text }]);
+    // In senior mode, Nemo reads every reply aloud automatically so older users
+    // never have to find or press the small speaker button.
+    if (role === "nemo" && isSeniorModeOn()) {
+      stopSpeechRef.current?.();
+      setSpeakingMessageId(id);
+      setSpeaking(true);
+      stopSpeechRef.current = speakArabic(text, () => {
+        setSpeaking(false);
+        setSpeakingMessageId(null);
+        stopSpeechRef.current = null;
+      });
+    }
   }
 
   function toggleListening() {
@@ -590,6 +617,26 @@ function Assistant() {
             <h2 className="text-xl font-extrabold text-slate-800">نيمو، رفيقك الصحي</h2>
             <Sparkles className="h-4 w-4 text-cyan-600" aria-hidden="true" />
           </div>
+          <button
+            type="button"
+            onClick={() => setSeniorMode(!senior)}
+            role="switch"
+            aria-checked={senior}
+            aria-label="وضع كبار السن — ردود صوتية تلقائية وأزرار أكبر"
+            className={`mx-auto mt-3 flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-extrabold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
+              senior
+                ? "border-amber-300 bg-amber-100 text-amber-900"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            <span aria-hidden="true">👵</span>
+            وضع كبار السن {senior ? "— مُفعّل" : ""}
+          </button>
+          {senior && (
+            <p className="mx-auto mt-2 max-w-sm text-xs font-semibold text-amber-800" aria-live="polite">
+              نيمو هيقرأ الردود بصوت عالي تلقائياً، والأزرار أكبر وأهدأ في السرعة.
+            </p>
+          )}
           <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-slate-600">
             {listening
               ? "نيمو بيسمعك… اتكلم براحتك"
@@ -611,7 +658,9 @@ function Assistant() {
               className={`nemo-chat-message flex items-end gap-2 ${message.role === "patient" ? "justify-start" : "justify-end"}`}
             >
               <div
-                className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-6 ${
+                className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 leading-6 ${
+                  senior ? "text-base" : "text-sm"
+                } ${
                   message.role === "patient"
                     ? "rounded-tr-md bg-slate-100 text-slate-800"
                     : "rounded-tl-md border border-cyan-100 bg-cyan-50 text-cyan-950"
@@ -714,7 +763,9 @@ function Assistant() {
               maxLength={800}
               aria-label="اكتب رسالتك لنيمو"
               placeholder={listening ? "نيمو بيسمعك… اتكلم براحتك" : "اكتب رسالتك لنيمو…"}
-              className={`min-w-0 flex-1 rounded-xl border bg-white px-3 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100 ${
+              className={`min-w-0 flex-1 rounded-xl border bg-white px-3 text-slate-800 outline-none placeholder:text-slate-400 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100 ${
+                senior ? "py-4 text-base" : "py-3 text-sm"
+              } ${
                 listening ? "border-rose-400" : "border-transparent"
               }`}
             />
@@ -730,7 +781,9 @@ function Assistant() {
                 toggleListening();
               }}
               aria-label={listening ? "إيقاف التسجيل" : "التحدث مع نيمو"}
-              className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
+              className={`shrink-0 place-items-center rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
+                senior ? "grid h-14 w-14" : "grid h-11 w-11"
+              } ${
                 listening
                   ? "animate-pulse bg-rose-600 text-white"
                   : "bg-cyan-100 text-cyan-800 hover:bg-cyan-200"
@@ -742,7 +795,9 @@ function Assistant() {
               type="submit"
               disabled={loading || need.trim().length < 3}
               aria-label="إرسال الرسالة"
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-cyan-700 text-white transition hover:bg-cyan-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className={`shrink-0 place-items-center rounded-xl bg-cyan-700 text-white transition hover:bg-cyan-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 disabled:cursor-not-allowed disabled:opacity-50 ${
+                senior ? "grid h-14 w-14" : "grid h-11 w-11"
+              }`}
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
