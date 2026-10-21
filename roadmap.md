@@ -1,4 +1,6 @@
 # Current work
+- [ ] Verify and restore the global voice accessibility switch.
+- [ ] Verify and preserve the page that initiated Google patient sign-in.
 - [x] Floating voice accessibility: automatic loop, voice preference, no activation navigation, permission/cleanup browser checks with simulated speech; real server round trip returned directory fallback, not verified Groq analysis. Physical microphone/audio requires device testing.
 
 - [x] Map polish: clustering, compact circular medical pins, safe selection preview, GPS/auto-fit, browser checks.

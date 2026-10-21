@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useFloatingVoiceAssistant } from "@/hooks/use-floating-voice-assistant";
 
 const POSITION_KEY = "sanad-nemo-widget-position";
 const BUTTON_SIZE = 56;
@@ -40,6 +41,9 @@ function getInitialPosition(): Position {
 
 export function FloatingVoiceAssistant() {
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // The dedicated Nemo page owns its microphone; all other routes share this root-mounted lifecycle.
+  const voice = useFloatingVoiceAssistant(pathname !== "/patient/assistant");
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dragStartRef = useRef<DragStart | null>(null);
   const movedRef = useRef(false);
@@ -139,6 +143,10 @@ export function FloatingVoiceAssistant() {
       movedRef.current = false;
       return;
     }
+    if (voice.enabled) {
+      voice.resume();
+      return;
+    }
     void navigate({ to: "/patient/assistant" });
   };
 
@@ -148,12 +156,13 @@ export function FloatingVoiceAssistant() {
       type="button"
       onPointerDown={onPointerDown}
       onClick={onClick}
-      aria-label="نيمو، افتح المساعد الصحي"
-      title="نيمو | رفيق الرعاية الصحية"
+      aria-label={voice.enabled ? "نيمو، استئناف المساعد الصوتي" : "نيمو، افتح المساعد الصحي"}
+      title={voice.enabled ? voice.message || "نيمو | المساعد الصوتي" : "نيمو | رفيق الرعاية الصحية"}
       dir="rtl"
       className="group fixed z-[99999] grid h-14 w-14 touch-none place-items-center rounded-full border border-amber-100 bg-white text-cyan-800 shadow-[0_6px_24px_rgba(34,211,238,0.2)] transition-shadow hover:shadow-[0_8px_30px_rgba(34,211,238,0.32)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
       style={{ left: position.x, top: position.y }}
     >
+      <span className="sr-only" role="status" aria-live="polite">{voice.enabled ? voice.message : ""}</span>
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-1 rounded-full bg-cyan-100/60 motion-safe:animate-pulse"
