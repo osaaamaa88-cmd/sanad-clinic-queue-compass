@@ -450,7 +450,7 @@ function Assistant() {
       const fallbackReply = getLocalNemoReply(query, localTriage);
       addChatMessage("nemo", fallbackReply);
       toast.warning("تعذر الاتصال بالمساعد الذكي الآن، أقدّم لك توجيهاً أولياً حسب الأعراض.");
-        } finally {
+    } finally {
       setLoading(false);
       // Removed automatic toggleListening
     }
@@ -744,7 +744,11 @@ function Assistant() {
               aria-label="إرسال الرسالة"
               className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-cyan-700 text-white transition hover:bg-cyan-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
             </button>
           </div>
           {listening && (

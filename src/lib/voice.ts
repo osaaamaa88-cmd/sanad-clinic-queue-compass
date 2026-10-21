@@ -21,11 +21,23 @@ export function setVoiceMode(on: boolean) {
           toast.warning(VOICE_DISCLAIMER, { duration: 10000, closeButton: true }),
       );
     }
-  } catch {}
+  } catch {
+    // Ignore disclaimer storage failures; TTS still works without it.
+  }
 }
 
 // Priority list for warm, high-quality female Arabic voices across iOS, Android, and Web.
-const PREFERRED_FEMALE_NAMES = ["laila", "zeina", "salma", "maryam", "google", "female", "ar-eg", "ar-sa", "siri"];
+const PREFERRED_FEMALE_NAMES = [
+  "laila",
+  "zeina",
+  "salma",
+  "maryam",
+  "google",
+  "female",
+  "ar-eg",
+  "ar-sa",
+  "siri",
+];
 // Known male Arabic system voices to avoid.
 const MALE_VOICE_PATTERN = /maged|majed|tarik|tariq|hamed|naayf|arabic male|\bmale\b|ذكر/i;
 export const FEMALE_PITCH = 1.1;
@@ -34,7 +46,7 @@ export const FEMALE_PITCH = 1.1;
 export function cleanForSpeech(text: string) {
   return text
     .replace(/https?:\/\/\S+/g, "")
-    .replace(/[*_#`~>|\[\]{}()<>"“”]/g, " ")
+    .replace(/[*_#`~>|[]{}()<>"“”]/g, " ")
     .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, "")
     .replace(/^\s*[-•\d]+[.)-]?\s+/gm, "")
     .replace(/\s*\n+\s*/g, "، ")
@@ -62,7 +74,9 @@ if (typeof window !== "undefined" && window.speechSynthesis) {
 export function getBestFemaleArabicVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !window.speechSynthesis) return null;
   const voices = loadVoices();
-  const arabic = voices.filter((v) => v.lang.toLowerCase().startsWith("ar") && !MALE_VOICE_PATTERN.test(v.name));
+  const arabic = voices.filter(
+    (v) => v.lang.toLowerCase().startsWith("ar") && !MALE_VOICE_PATTERN.test(v.name),
+  );
   for (const key of PREFERRED_FEMALE_NAMES) {
     const found = arabic.find((v) => `${v.name} ${v.lang}`.toLowerCase().includes(key));
     if (found) return found;
@@ -137,8 +151,14 @@ type Rec = {
 
 export function createRecognizer(): Rec | null {
   if (typeof window === "undefined") return null;
-  const C = (window as unknown as { SpeechRecognition?: new () => Rec; webkitSpeechRecognition?: new () => Rec })
-    .SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: new () => Rec }).webkitSpeechRecognition;
+  const C =
+    (
+      window as unknown as {
+        SpeechRecognition?: new () => Rec;
+        webkitSpeechRecognition?: new () => Rec;
+      }
+    ).SpeechRecognition ??
+    (window as unknown as { webkitSpeechRecognition?: new () => Rec }).webkitSpeechRecognition;
   if (!C) return null;
   const r = new C();
   r.lang = "ar-EG";

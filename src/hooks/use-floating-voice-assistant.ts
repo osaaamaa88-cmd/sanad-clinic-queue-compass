@@ -72,7 +72,9 @@ export function useFloatingVoiceAssistant(allowed = true) {
       cancelSpeech = speak(text, (success) => {
         if (!active || blocked || document.hidden) return;
         if (!success) {
-          setMessage("الصوت التلقائي غير متاح، لكن يمكنك التحدث معي. اسمح بالميكروفون إذا طُلب منك.");
+          setMessage(
+            "الصوت التلقائي غير متاح، لكن يمكنك التحدث معي. اسمح بالميكروفون إذا طُلب منك.",
+          );
           toast.warning("الصوت التلقائي غير متاح؛ سيظل المساعد يستمع لك.");
           scheduleListen();
           return;
@@ -91,7 +93,10 @@ export function useFloatingVoiceAssistant(allowed = true) {
       if (pendingCall && /^(نعم|أيوه|ايوه|أكد الاتصال|اتصل)$/.test(normalized) && hospital) {
         pendingCall = false;
         const phone = hospital.phone.replace(/[^+\d]/g, "");
-        if (!phone) { say("رقم المستشفى مش متاح حالياً."); return; }
+        if (!phone) {
+          say("رقم المستشفى مش متاح حالياً.");
+          return;
+        }
         say(`حاضر، هفتح الاتصال بـ ${hospital.name}.`, () => {
           if (!active) return;
           window.location.href = `tel:${phone}`;
@@ -105,8 +110,13 @@ export function useFloatingVoiceAssistant(allowed = true) {
         say(`تحب أفتح الاتصال بـ ${hospital.name}؟ قول أكد الاتصال أو لا.`);
         return;
       }
-      if (hospital && /^(العنوان|عنوان|اوصف العنوان|أوصف العنوان|ازاي اروح|إزاي أروح)$/.test(normalized)) {
-        say(`${hospital.name}، عنوانها ${hospital.address}.${hospital.approx ? " الموقع على الخريطة تقريبي." : ""}`);
+      if (
+        hospital &&
+        /^(العنوان|عنوان|اوصف العنوان|أوصف العنوان|ازاي اروح|إزاي أروح)$/.test(normalized)
+      ) {
+        say(
+          `${hospital.name}، عنوانها ${hospital.address}.${hospital.approx ? " الموقع على الخريطة تقريبي." : ""}`,
+        );
         return;
       }
       const request = ++generation;
@@ -115,15 +125,23 @@ export function useFloatingVoiceAssistant(allowed = true) {
       try {
         const loc = getPatientLocation();
         const context = lastExchange ? `${lastExchange}\nمتابعة المستخدم: ${text}` : text;
-        const result = await voiceAssist({ data: { text: context.slice(-500), lat: loc.lat, lng: loc.lng } });
+        const result = await voiceAssist({
+          data: { text: context.slice(-500), lat: loc.lat, lng: loc.lng },
+        });
         if (!active || blocked || request !== generation || document.hidden) return;
         hospital = result.hospital;
         lastExchange = `السؤال السابق: ${text.slice(0, 100)}\nالرد السابق: ${result.reply.slice(0, 200)}`;
-        if (!result.ai) toast.warning("التحليل الذكي غير متاح حالياً؛ الرد من دليل المستشفيات، وليس تحليلًا للأعراض.");
+        if (!result.ai)
+          toast.warning(
+            "التحليل الذكي غير متاح حالياً؛ الرد من دليل المستشفيات، وليس تحليلًا للأعراض.",
+          );
         say(result.reply);
       } catch (assistantError) {
         if (active && request === generation) {
-          console.error("[voice-assistant] AI unavailable; using a safe local reply", assistantError);
+          console.error(
+            "[voice-assistant] AI unavailable; using a safe local reply",
+            assistantError,
+          );
           toast.warning("تعذر الاتصال بالمساعد الذكي الآن، أقدّم لك توجيهاً أولياً حسب الأعراض.");
           say(getLocalNemoReply(text, runLocalTriage(text)));
         }
@@ -166,7 +184,10 @@ export function useFloatingVoiceAssistant(allowed = true) {
     function listen() {
       if (!active || blocked || document.hidden) return;
       const r = createRecognizer();
-      if (!r) { fail("الميكروفون غير مدعوم في المتصفح ده؛ جرّب متصفح يدعم الإدخال الصوتي."); return; }
+      if (!r) {
+        fail("الميكروفون غير مدعوم في المتصفح ده؛ جرّب متصفح يدعم الإدخال الصوتي.");
+        return;
+      }
       recognition = r;
       let gotResult = false;
       setState("listening");
@@ -184,16 +205,23 @@ export function useFloatingVoiceAssistant(allowed = true) {
       r.onerror = ({ error }) => {
         if (!active || blocked) return;
         if (error === "no-speech") return;
-        fail(error === "not-allowed" || error === "service-not-allowed"
-          ? "اسمح بالميكروفون من إعدادات المتصفح، ثم اضغط الفقاعة للاستئناف."
-          : error === "audio-capture" ? "الميكروفون غير متاح؛ تأكد إنه متصل ومش مستخدم في مكالمة."
-          : "الإدخال الصوتي توقف؛ تأكد من الإنترنت ثم اضغط الفقاعة للاستئناف.");
+        fail(
+          error === "not-allowed" || error === "service-not-allowed"
+            ? "اسمح بالميكروفون من إعدادات المتصفح، ثم اضغط الفقاعة للاستئناف."
+            : error === "audio-capture"
+              ? "الميكروفون غير متاح؛ تأكد إنه متصل ومش مستخدم في مكالمة."
+              : "الإدخال الصوتي توقف؛ تأكد من الإنترنت ثم اضغط الفقاعة للاستئناف.",
+        );
       };
       r.onend = () => {
         if (recognition === r) recognition = null;
         if (!gotResult) scheduleListen();
       };
-      try { r.start(); } catch { fail("المتصفح محتاج تفعيل الميكروفون؛ اضغط الفقاعة للاستئناف."); }
+      try {
+        r.start();
+      } catch {
+        fail("المتصفح محتاج تفعيل الميكروفون؛ اضغط الفقاعة للاستئناف.");
+      }
     }
     const visibility = () => {
       generation++;
@@ -220,7 +248,9 @@ export function useFloatingVoiceAssistant(allowed = true) {
     } else if (!createRecognizer()) {
       fail("الميكروفون غير مدعوم في المتصفح ده؛ جرّب متصفح يدعم الإدخال الصوتي.");
     } else {
-      say("أهلاً بك في سَنَد، أنا هنا لمساعدتك. احكيلي إيه اللي تعبك، وهنلاقي المساعدة المناسبة سوا.");
+      say(
+        "أهلاً بك في سَنَد، أنا هنا لمساعدتك. احكيلي إيه اللي تعبك، وهنلاقي المساعدة المناسبة سوا.",
+      );
     }
     return () => {
       active = false;
@@ -237,5 +267,11 @@ export function useFloatingVoiceAssistant(allowed = true) {
     };
   }, [enabled, restart]);
 
-  return { enabled, state, message, resume: () => setRestart((v) => v + 1), stop: () => setVoiceMode(false) };
+  return {
+    enabled,
+    state,
+    message,
+    resume: () => setRestart((v) => v + 1),
+    stop: () => setVoiceMode(false),
+  };
 }

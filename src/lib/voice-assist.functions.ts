@@ -73,7 +73,7 @@ function dist(a: { lat: number; lng: number }, b: { lat: number; lng: number }) 
 const sanitize = (s: unknown) =>
   String(s ?? "")
     .replace(/<[^>]*>/g, " ")
-    .replace(/[\u0000-\u001f]/g, " ")
+    .replace(/[^\P{Cc}]/gu, " ")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 500);
@@ -182,7 +182,7 @@ export const voiceAssist = createServerFn({ method: "POST" })
 
 const clip = (s: unknown, n: number) =>
   String(s ?? "")
-    .replace(/[\u0000-\u001f]/g, " ")
+    .replace(/[^\P{Cc}]/gu, " ")
     .slice(0, n);
 
 // Public: logs real runtime errors (rate-limited) into app_error_logs for the admin health panel.

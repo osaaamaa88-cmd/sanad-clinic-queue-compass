@@ -157,12 +157,16 @@ export function FloatingVoiceAssistant() {
       onPointerDown={onPointerDown}
       onClick={onClick}
       aria-label={voice.enabled ? "نيمو، استئناف المساعد الصوتي" : "نيمو، افتح المساعد الصحي"}
-      title={voice.enabled ? voice.message || "نيمو | المساعد الصوتي" : "نيمو | رفيق الرعاية الصحية"}
+      title={
+        voice.enabled ? voice.message || "نيمو | المساعد الصوتي" : "نيمو | رفيق الرعاية الصحية"
+      }
       dir="rtl"
       className="group fixed z-[99999] grid h-14 w-14 touch-none place-items-center rounded-full border border-amber-100 bg-white text-cyan-800 shadow-[0_6px_24px_rgba(34,211,238,0.2)] transition-shadow hover:shadow-[0_8px_30px_rgba(34,211,238,0.32)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
       style={{ left: position.x, top: position.y }}
     >
-      <span className="sr-only" role="status" aria-live="polite">{voice.enabled ? voice.message : ""}</span>
+      <span className="sr-only" role="status" aria-live="polite">
+        {voice.enabled ? voice.message : ""}
+      </span>
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-1 rounded-full bg-cyan-100/60 motion-safe:animate-pulse"
