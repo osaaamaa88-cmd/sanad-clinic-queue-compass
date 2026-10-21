@@ -12,8 +12,12 @@ import { clearPatientSession, getPatientSession, syncPatientSessionFromAuth, typ
 import { clearAllLocalUserData } from "@/lib/user-profile-cache";
 import { Button } from "@/components/ui/button";
 import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
+import { safePatientReturnPath } from "@/lib/patient-auth-return";
 
 export const Route = createFileRoute("/patient/login")({
+  validateSearch: (search: Record<string, unknown>): { returnTo?: string } => ({
+    returnTo: safePatientReturnPath(search.returnTo),
+  }),
   staticData: { sitemap: false },
   head: () => ({
     meta: [
@@ -52,6 +56,7 @@ function VoiceModeToggle() {
 
 function PatientLogin() {
   const navigate = useNavigate();
+  const { returnTo } = Route.useSearch();
   const [patient, setPatient] = useState<PatientSession | null>(null);
 
   useEffect(() => {
@@ -63,20 +68,20 @@ function PatientLogin() {
       if (googleSignInHandled) return;
       googleSignInHandled = true;
 
-      const redirectToHome = (profile: PatientSession | null) => {
+      const completeSignIn = (profile: PatientSession | null) => {
         if (!active || !profile) return;
         setPatient(profile);
-        void navigate({ to: "/patient", replace: true });
+        void navigate({ to: returnTo ?? "/patient", replace: true });
       };
 
       if (syncedPatient) {
-        redirectToHome(syncedPatient);
+        completeSignIn(syncedPatient);
         return;
       }
 
       window.setTimeout(() => {
         void syncPatientSessionFromAuth()
-          .then(redirectToHome)
+          .then(completeSignIn)
           .catch((error: unknown) => {
             console.error("[PatientLogin] Failed to sync Google patient session", error);
           });
@@ -104,7 +109,7 @@ function PatientLogin() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, returnTo]);
 
   const logout = async () => {
     clearPatientSession();

@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { X, Loader2, UserRound, Phone as PhoneIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { savePatientSession, type PatientSession } from "@/lib/patient-session";
+import { patientOAuthCallback } from "@/lib/patient-auth-return";
 
 type Props = {
   onDone: (s: PatientSession) => void;
@@ -64,7 +65,7 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/patient/login`,
+          redirectTo: patientOAuthCallback(window.location.origin, `${window.location.pathname}${window.location.search}${window.location.hash}`),
         },
       });
       if (error) {
