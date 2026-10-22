@@ -37,6 +37,8 @@ import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { getLocalNemoReply, runLocalTriage, type TriageResult } from "@/lib/triage-local";
 import { voiceAssist } from "@/lib/voice-assist.functions";
+import { Button } from "@/components/ui/button";
+import { finalNemoTranscript, isNemoSessionComplete, shouldResumeNemo } from "@/lib/nemo-conversation";
 import {
   listHospitals,
   HOSPITAL_TYPES,
@@ -65,7 +67,7 @@ export const Route = createFileRoute("/patient/assistant")({
   component: Assistant,
 });
 
-const GREETING_DISPLAY = "مرحباً، أنا نيمو، رفيقك الصحي. كيف أقدر أساعدك اليوم؟";
+const GREETING_DISPLAY = "مرحباً، أنا نيمو، رفيقك الشخصي للرعاية الصحية. كيف تشعر اليوم؟";
 const CLOSING_MESSAGE = "سعيد برضاك وعافيتك يا غالي، أنا سند لك دائماً، وأتمنى لك يوماً هادئاً.";
 
 function nemoSpeechText(text: string) {
@@ -107,10 +109,10 @@ function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
   };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
-function speakArabic(text: string, onEnd: () => void): () => void {
+function speakArabic(text: string, onEnd: (success: boolean) => void): () => void {
   if (typeof window === "undefined") {
     toast.error("القراءة الصوتية مش مدعومة على الجهاز ده");
-    onEnd();
+    onEnd(false);
     return () => {};
   }
   const spokenText = nemoSpeechText(text);
@@ -121,7 +123,7 @@ function speakArabic(text: string, onEnd: () => void): () => void {
   // with "window is not defined" and made the published site return 500.
   if (!("speechSynthesis" in window)) {
     toast.error("القراءة الصوتية مش مدعومة على الجهاز ده");
-    onEnd();
+    onEnd(false);
     return () => {};
   }
 
@@ -134,28 +136,28 @@ function speakArabic(text: string, onEnd: () => void): () => void {
   let cancelled = false;
   let started = false;
   let completed = false;
-  const finish = () => {
+  const finish = (success: boolean) => {
     if (cancelled || completed) return;
     completed = true;
     window.clearTimeout(startTimer);
-    onEnd();
+    onEnd(success);
   };
   const startTimer = window.setTimeout(() => {
     if (started || cancelled || completed) return;
     synthesis.cancel();
     toast.error("المتصفح لم يبدأ تشغيل الصوت. تحقق من مستوى الصوت أو جرّب متصفحاً آخر.");
-    finish();
+    finish(false);
   }, 5000);
   utterance.onstart = () => {
     started = true;
     window.clearTimeout(startTimer);
   };
-  utterance.onend = finish;
+  utterance.onend = () => finish(true);
   utterance.onerror = (event) => {
     if (cancelled || completed) return;
     console.error("[Nemo] Browser speech failed", event.error);
     toast.error("تعذّر تشغيل الصوت في المتصفح. تحقق من إعدادات الصوت ثم حاول مجدداً.");
-    finish();
+    finish(false);
   };
   synthesis.speak(utterance);
   return () => {
@@ -247,6 +249,7 @@ function Assistant() {
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [hospitals, setHospitals] = useState<HospitalRow[]>([]);
   const [listening, setListening] = useState(false);
+  const [handsFree, setHandsFree] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [painLevel, setPainLevel] = useState<number | null>(null);
   const [happy, setHappy] = useState(false);
@@ -261,6 +264,11 @@ function Assistant() {
   const messageIdRef = useRef(1);
   const navigationTimerRef = useRef<number | null>(null);
   const providerWarningShownRef = useRef(false);
+  const handsFreeRef = useRef(false);
+  const mountedRef = useRef(false);
+  const requestRef = useRef(0);
+  const submitRef = useRef(submit);
+  submitRef.current = submit;
   const [speakingMessageId, setSpeakingMessageId] = useState<number | null>(null);
   const [senior, setSenior] = useState(isSeniorModeOn());
 
@@ -274,14 +282,36 @@ function Assistant() {
     };
   }, []);
 
-  useEffect(
-    () => () => {
-      recogRef.current?.stop();
+  useEffect(() => {
+    mountedRef.current = true;
+    const pauseWhenHidden = () => {
+      if (document.hidden) {
+        disableHandsFree();
+        stopSpeechRef.current?.();
+        stopSpeechRef.current = null;
+        setSpeaking(false);
+        setSpeakingMessageId(null);
+      }
+    };
+    document.addEventListener("visibilitychange", pauseWhenHidden);
+    return () => {
+      mountedRef.current = false;
+      handsFreeRef.current = false;
+      requestRef.current += 1;
+      stopRecognition();
       stopSpeechRef.current?.();
+      document.removeEventListener("visibilitychange", pauseWhenHidden);
       if (navigationTimerRef.current !== null) window.clearTimeout(navigationTimerRef.current);
-    },
-    [],
-  );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shouldResumeNemo({ enabled: handsFree, listening, speaking, loading, complete: happy })) return;
+    const timer = window.setTimeout(() => {
+      if (mountedRef.current && handsFreeRef.current && !document.hidden) startListening();
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [handsFree, listening, speaking, loading, happy]);
 
   useEffect(() => {
     const container = chatContainerRef.current;
@@ -321,10 +351,14 @@ function Assistant() {
       setSpeakingMessageId(null);
       return;
     }
+    stopRecognition();
+    setListening(false);
     stopSpeechRef.current?.();
     setSpeakingMessageId(message.id);
     setSpeaking(true);
-    stopSpeechRef.current = speakArabic(message.text, () => {
+    stopSpeechRef.current = speakArabic(message.text, (success) => {
+      if (!mountedRef.current) return;
+      if (!success) disableHandsFree();
       setSpeaking(false);
       setSpeakingMessageId(null);
       stopSpeechRef.current = null;
@@ -337,10 +371,14 @@ function Assistant() {
     setChatMessages((messages) => [...messages, { id, role, text }]);
     // Like Baymax, Nemo always speaks every reply aloud automatically.
     if (role === "nemo") {
+      stopRecognition();
+      setListening(false);
       stopSpeechRef.current?.();
       setSpeakingMessageId(id);
       setSpeaking(true);
-      stopSpeechRef.current = speakArabic(text, () => {
+      stopSpeechRef.current = speakArabic(text, (success) => {
+        if (!mountedRef.current) return;
+        if (!success) disableHandsFree();
         setSpeaking(false);
         setSpeakingMessageId(null);
         stopSpeechRef.current = null;
@@ -348,9 +386,26 @@ function Assistant() {
     }
   }
 
+  function stopRecognition() {
+    const recognition = recogRef.current;
+    recogRef.current = null;
+    if (!recognition) return;
+    recognition.onend = null;
+    recognition.onresult = null;
+    recognition.onerror = null;
+    try { recognition.stop(); } catch { /* Already stopped. */ }
+  }
+
+  function disableHandsFree() {
+    handsFreeRef.current = false;
+    setHandsFree(false);
+    stopRecognition();
+    setListening(false);
+  }
+
   function toggleListening() {
-    if (listening) {
-      recogRef.current?.stop();
+    if (handsFreeRef.current) {
+      disableHandsFree();
       return;
     }
     // Unlock speech inside this tap so Nemo's later spoken reply isn't blocked.
@@ -363,8 +418,20 @@ function Assistant() {
     } catch {
       // ignore
     }
+    stopSpeechRef.current?.();
+    stopSpeechRef.current = null;
+    setSpeaking(false);
+    setSpeakingMessageId(null);
+    handsFreeRef.current = true;
+    setHandsFree(true);
+    if (!loading) startListening();
+  }
+
+  function startListening() {
+    if (recogRef.current || !handsFreeRef.current || !mountedRef.current || document.hidden) return;
     const Constructor = getSpeechRecognition();
     if (!Constructor) {
+      disableHandsFree();
       toast.error("الإدخال الصوتي مش مدعوم في المتصفح ده — جرّب كروم أو سفاري");
       return;
     }
@@ -375,17 +442,15 @@ function Assistant() {
       recognition.continuous = false;
       let finalText = "";
       recognition.onresult = (event) => {
-        let interimText = "";
-        let nextFinalText = "";
-        for (let index = 0; index < event.results.length; index++) {
-          const result = event.results[index];
-          if (result.isFinal) nextFinalText += result[0].transcript;
-          else interimText += result[0].transcript;
-        }
-        finalText = `${finalText} ${nextFinalText}`.trim();
+        if (recogRef.current !== recognition) return;
+        finalText = finalNemoTranscript(event.results);
+        setNeed(finalText);
+        if (finalText.length >= 3) recognition.stop();
       };
       recognition.onerror = (event) => {
-        setListening(false);
+        if (recogRef.current !== recognition) return;
+        if (event.error === "no-speech") return;
+        disableHandsFree();
         if (event.error === "not-allowed" || event.error === "service-not-allowed") {
           toast.error("المايكروفون مرفوض — اسمح بالوصول للمايك من إعدادات المتصفح");
         } else if (event.error !== "aborted") {
@@ -393,17 +458,19 @@ function Assistant() {
         }
       };
       recognition.onend = () => {
+        if (recogRef.current !== recognition || !mountedRef.current) return;
         setListening(false);
         recogRef.current = null;
         if (finalText.length >= 3) {
           setNeed(finalText);
-          void submit(finalText);
+          void submitRef.current(finalText);
         }
       };
       recogRef.current = recognition;
       recognition.start();
       setListening(true);
     } catch (recognitionError) {
+      disableHandsFree();
       console.error("[Nemo] Could not start speech recognition", recognitionError);
       toast.error("تعذّر تشغيل المايكروفون على الجهاز ده");
     }
@@ -412,6 +479,14 @@ function Assistant() {
   async function submit(text: string) {
     const query = text.trim();
     if (query.length < 3 || loading) return;
+    if (isNemoSessionComplete(query)) {
+      addChatMessage("patient", query);
+      finishSession();
+      return;
+    }
+    stopRecognition();
+    setListening(false);
+    const requestId = ++requestRef.current;
     stopSpeechRef.current?.();
     stopSpeechRef.current = null;
     setSpeaking(false);
@@ -444,6 +519,7 @@ function Assistant() {
           })),
         },
       });
+      if (!mountedRef.current || requestRef.current !== requestId) return;
       const reply = (response.ai ? response.reply : getLocalNemoReply(query, localTriage)).trim();
       if (!reply) throw new Error("Nemo returned an empty reply");
       addChatMessage("nemo", reply);
@@ -452,13 +528,13 @@ function Assistant() {
         toast.warning("المساعد الذكي غير متاح حالياً، أقدّم لك توجيهاً أولياً حسب الأعراض.");
       }
     } catch (assistantError) {
+      if (!mountedRef.current || requestRef.current !== requestId) return;
       console.error("[Nemo] AI assistant unavailable; using a safe local reply", assistantError);
       const fallbackReply = getLocalNemoReply(query, localTriage);
       addChatMessage("nemo", fallbackReply);
       toast.warning("تعذر الاتصال بالمساعد الذكي الآن، أقدّم لك توجيهاً أولياً حسب الأعراض.");
     } finally {
-      setLoading(false);
-      // Removed automatic toggleListening
+      if (mountedRef.current && requestRef.current === requestId) setLoading(false);
     }
   }
 
@@ -486,8 +562,9 @@ function Assistant() {
 
   function finishSession() {
     if (happy) return;
-    recogRef.current?.stop();
-    setListening(false);
+    disableHandsFree();
+    requestRef.current += 1;
+    setLoading(false);
     setBreathing(false);
     setHappy(true);
     addChatMessage("nemo", CLOSING_MESSAGE);
@@ -748,28 +825,20 @@ function Assistant() {
                 listening ? "border-rose-400" : "border-transparent"
               }`}
             />
-            <button
+            <Button
               type="button"
-              onClick={() => {
-                if (speaking) {
-                  stopSpeechRef.current?.();
-                  stopSpeechRef.current = null;
-                  setSpeaking(false);
-                  setSpeakingMessageId(null);
-                }
-                toggleListening();
-              }}
-              aria-label={listening ? "إيقاف التسجيل" : "التحدث مع نيمو"}
-              className={`shrink-0 place-items-center rounded-xl transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
+              onClick={toggleListening}
+              disabled={happy}
+              aria-pressed={handsFree}
+              aria-label={handsFree ? "إيقاف المحادثة الصوتية" : "التحدث مع نيمو"}
+              title={handsFree ? "إيقاف المحادثة الصوتية" : "التحدث مع نيمو"}
+              variant={handsFree ? "destructive" : "secondary"}
+              className={`shrink-0 place-items-center rounded-lg p-0 ${
                 senior ? "grid h-14 w-14" : "grid h-11 w-11"
-              } ${
-                listening
-                  ? "animate-pulse bg-rose-600 text-white"
-                  : "bg-cyan-100 text-cyan-800 hover:bg-cyan-200"
               }`}
             >
-              {listening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-            </button>
+              {handsFree ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </Button>
             <button
               type="submit"
               disabled={loading || need.trim().length < 3}
@@ -787,7 +856,7 @@ function Assistant() {
           </div>
           {listening && (
             <p className="px-3 pb-1 text-xs font-semibold text-rose-700" aria-live="polite">
-              جاري الاستماع… اضغط الميكروفون لإيقاف التسجيل
+              جاري الاستماع…
             </p>
           )}
         </form>
