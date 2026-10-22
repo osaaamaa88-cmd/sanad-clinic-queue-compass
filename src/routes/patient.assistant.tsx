@@ -116,39 +116,10 @@ function speakArabic(text: string, onEnd: () => void): () => void {
   }
   const spokenText = nemoSpeechText(text);
 
-  if (isNative()) {
-    let cancelled = false;
-    let stopNativeSpeech: (() => void) | null = null;
-    void import("@capacitor-community/text-to-speech")
-      .then(async ({ TextToSpeech, QueueStrategy }) => {
-        if (cancelled) return;
-        stopNativeSpeech = () => {
-          void TextToSpeech.stop().catch((error: unknown) => {
-            console.error("[Nemo] Could not stop native speech", error);
-          });
-        };
-        await TextToSpeech.speak({
-          text: spokenText,
-          lang: "ar-EG",
-          rate: 0.82,
-          pitch: 1,
-          volume: 1,
-          queueStrategy: QueueStrategy.Flush,
-        });
-        if (!cancelled) onEnd();
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        console.error("[Nemo] Native speech failed", error);
-        toast.error("تعذّر تشغيل الصوت. تأكد من تفعيل خدمة تحويل النص إلى كلام في الجهاز.");
-        onEnd();
-      });
-    return () => {
-      cancelled = true;
-      stopNativeSpeech?.();
-    };
-  }
-
+  // Native Android WebView also exposes the standard speechSynthesis API,
+  // so we use the same browser path everywhere. A dynamic import of
+  // @capacitor-community/text-to-speech previously crashed SSR workers
+  // with "window is not defined" and made the published site return 500.
   if (!("speechSynthesis" in window)) {
     toast.error("القراءة الصوتية مش مدعومة على الجهاز ده");
     onEnd();
