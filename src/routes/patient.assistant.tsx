@@ -335,9 +335,8 @@ function Assistant() {
     messageIdRef.current += 1;
     const id = messageIdRef.current;
     setChatMessages((messages) => [...messages, { id, role, text }]);
-    // In senior mode, Nemo reads every reply aloud automatically so older users
-    // never have to find or press the small speaker button.
-    if (role === "nemo" && isSeniorModeOn()) {
+    // Like Baymax, Nemo always speaks every reply aloud automatically.
+    if (role === "nemo") {
       stopSpeechRef.current?.();
       setSpeakingMessageId(id);
       setSpeaking(true);
@@ -353,6 +352,16 @@ function Assistant() {
     if (listening) {
       recogRef.current?.stop();
       return;
+    }
+    // Unlock speech inside this tap so Nemo's later spoken reply isn't blocked.
+    try {
+      if ("speechSynthesis" in window) {
+        const unlock = new SpeechSynthesisUtterance(" ");
+        unlock.volume = 0;
+        window.speechSynthesis.speak(unlock);
+      }
+    } catch {
+      // ignore
     }
     const Constructor = getSpeechRecognition();
     if (!Constructor) {
