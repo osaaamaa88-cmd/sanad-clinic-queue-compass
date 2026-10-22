@@ -17,6 +17,7 @@
 - Patient maps retain Leaflet/OpenStreetMap and load markercluster only after hydration; use cached marker groups and a nonmodal preview above bottom navigation to keep geographic browsing interactive.
 - Mount voice accessibility once in the root, outside keyed route content; one hook owns recognition/speech lifecycle and ignores stale requests so navigation cannot restart or duplicate conversations. Keep Groq requests in the existing server function, never browser credentials.
 - Pause global voice accessibility on the dedicated Nemo page, which owns its own microphone; this prevents competing recognition and speech sessions.
+- Nemo resumes recognition only after successful speech completion in an explicitly enabled session; stop, hidden-page, errors and unmount cancel it, preventing echo and unwanted microphone restarts. Browser-safe conversation rules live separately for testing.
 - Patient Google OAuth returns through the public account route with a validated local returnTo destination; this preserves the initiating page without allowing external redirects.
 - Voice and diagnostic Groq requests use the available replacement model with bounded request timeouts; this avoids silent fallback from an inaccessible model.
 - Community feed reads through the `community_feed` view (hides authors of anonymous posts); doctor badges come only from a DB trigger that verifies verified-clinic membership. Why: badges and anonymity cannot be spoofed from the browser.
