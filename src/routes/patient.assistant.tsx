@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { applyBaymaxVoice, cleanForSpeech, isSeniorModeOn, setSeniorMode } from "@/lib/voice";
-import { isNative } from "@/lib/native";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import {
