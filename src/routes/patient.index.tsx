@@ -99,7 +99,6 @@ function PatientHome() {
         <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-[11px] font-bold text-primary">تغيير ▾</span>
       </button>
       <Link to="/patient/assistant" className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-3 text-right transition hover:border-primary"><span className="text-2xl">🤖</span><span className="flex-1"><span className="block text-sm font-bold">مش عارف تروح لأنهي دكتور؟</span><span className="block text-xs text-muted-foreground">اكتب اللي بتحس بيه والمساعد الذكي يرشّح لك</span></span><span className="text-xs font-bold text-primary">جرّب ←</span></Link>
-      <Link to="/university-dental" className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-gold/50 bg-gold-soft p-3 text-right transition hover:border-gold"><span className="text-2xl">🎓</span><span className="flex-1"><span className="block text-sm font-bold">العيادات التعليمية لطب الأسنان - دراية</span><span className="block text-xs text-muted-foreground">احجز كشف في مبنى B6 بإشراف أساتذة الكلية</span></span><span className="text-xs font-bold text-primary">احجز ←</span></Link>
       {locOpen && <LocationPickerModal current={location} onClose={() => setLocOpen(false)} onSelect={(l) => { savePatientLocation(l); setLocation(l); setLocOpen(false); }} />}
 
       <Link to="/patient/search" className="mt-4 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition hover:border-primary/50">
