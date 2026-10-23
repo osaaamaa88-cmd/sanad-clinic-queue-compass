@@ -126,10 +126,9 @@ function haptic(p: number | number[]) {
   }
 }
 
+/** Taps are silent: vibration only is handled by installGlobalHaptics. */
 export function playClick() {
-  if (!isSoundOn()) return;
-  tock(0.16);
-  haptic(8);
+  void tock;
 }
 
 /** Apple Pay–style confirmation: two bright glass notes. */
@@ -188,14 +187,6 @@ let installed = false;
 export function installGlobalSounds(toast: { success: (...a: never[]) => unknown }) {
   if (installed || typeof window === "undefined") return;
   installed = true;
-  document.addEventListener(
-    "pointerdown",
-    (e) => {
-      const el = (e.target as HTMLElement | null)?.closest("button, a, [role=button]");
-      if (el && !(el as HTMLButtonElement).disabled) playClick();
-    },
-    { capture: true, passive: true },
-  );
   const orig = toast.success.bind(toast);
   (toast as { success: (...a: unknown[]) => unknown }).success = (...a: unknown[]) => {
     playSuccess();
