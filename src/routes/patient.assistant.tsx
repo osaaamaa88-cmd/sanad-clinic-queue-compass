@@ -804,6 +804,26 @@ function Assistant() {
           </section>
         )}
 
+        {!hasPatientMessages && !loading && (
+          <div aria-label="أمثلة سريعة" className="order-3 flex flex-wrap justify-center gap-2">
+            {[
+              "عندي صداع جامد من الصبح",
+              "بطني بتوجعني ومش قادر أنام",
+              "عندي ضيق في التنفس",
+              "محتاج أقرب مستشفى طوارئ",
+            ].map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => void submit(example)}
+                className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-bold text-cyan-800 transition active:scale-95 hover:bg-cyan-100"
+              >
+                {example}
+              </button>
+            ))}
+          </div>
+        )}
+
         <form
           aria-label="أرسل رسالة إلى نيمو"
           onSubmit={(event) => {
