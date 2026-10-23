@@ -51,16 +51,16 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
   return (
     <>
       {!pathname.startsWith("/find-doctor") && (
-        <Link to="/find-doctor" aria-label="ابحث عن زميل" data-bottom-nav className="fixed left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[80] grid h-10 w-10 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow backdrop-blur">
+        <Link to="/find-doctor" aria-label="ابحث عن زميل" data-bottom-nav className="fixed left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[80] grid h-10 w-10 place-items-center rounded-full border border-border bg-card/70 text-foreground shadow backdrop-blur-2xl transition-transform active:scale-90">
           <Search className="h-5 w-5" />
         </Link>
       )}
       <nav aria-label="تنقل الطبيب" data-bottom-nav className="fixed inset-x-0 bottom-0 z-[80] pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-2xl border border-primary/30 bg-card/95 px-1 shadow-[0_-8px_24px_hsl(var(--primary)/0.15)] backdrop-blur-xl sm:max-w-xl" style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}>
+        <div className="mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-3xl border border-border/40 bg-card/70 px-1 shadow-[0_-8px_24px_hsl(var(--primary)/0.12)] backdrop-blur-2xl backdrop-saturate-150 sm:max-w-xl" style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}>
           {items.map((it) => {
             if (it.key === "rx") {
               return (
-                <button key="rx" type="button" onClick={() => setRxOpen(true)} aria-label="روشتة جديدة" className="relative flex flex-col items-center justify-end pb-1 text-[11px] font-bold text-primary">
+                <button key="rx" type="button" onClick={() => setRxOpen(true)} aria-label="روشتة جديدة" className="relative flex flex-col items-center justify-end pb-1 transition-transform active:scale-90 text-[11px] font-bold text-primary">
                   <span className="absolute -top-6 grid h-14 w-14 place-items-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-[0_6px_20px_hsl(var(--primary)/0.5)]">
                     <Pill className="h-6 w-6" />
                   </span>
@@ -85,7 +85,7 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
                 key={it.key}
                 {...(it.node as { to: "/doctor" })}
                 aria-current={it.active ? "page" : undefined}
-                className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold ${it.active ? "text-primary" : "text-muted-foreground"}`}
+                className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold transition-transform active:scale-90 ${it.active ? "text-primary" : "text-muted-foreground"}`}
               >
                 <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${it.active ? "bg-primary text-primary-foreground" : ""}`}>
                   <Icon className="h-5 w-5" />
