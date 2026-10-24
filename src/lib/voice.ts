@@ -97,11 +97,16 @@ export function getBestFemaleArabicVoice(): SpeechSynthesisVoice | null {
   const arabic = voices.filter(
     (v) => v.lang.toLowerCase().startsWith("ar") && !MALE_VOICE_PATTERN.test(v.name),
   );
+  // Prefer modern natural/neural voices, Egyptian first.
+  const natural = arabic.filter((v) => /natural|neural|online|google|premium|enhanced/i.test(v.name));
+  const egNatural = natural.find((v) => v.lang.toLowerCase() === "ar-eg");
+  if (egNatural) return egNatural;
+  if (natural[0]) return natural[0];
   for (const key of PREFERRED_FEMALE_NAMES) {
     const found = arabic.find((v) => `${v.name} ${v.lang}`.toLowerCase().includes(key));
     if (found) return found;
   }
-  return arabic[0] ?? null;
+  return arabic.find((v) => v.lang.toLowerCase() === "ar-eg") ?? arabic[0] ?? null;
 }
 
 /** Apply the warm female voice settings to any utterance. */
@@ -116,8 +121,8 @@ export function applyFemaleVoice(u: SpeechSynthesisUtterance) {
 /** Apply Nemo's calm, unhurried Arabic speaking style. */
 export function applyBaymaxVoice(u: SpeechSynthesisUtterance) {
   applyFemaleVoice(u);
-  u.pitch = 0.95;
-  u.rate = isSeniorModeOn() ? 0.72 : 0.8;
+  u.pitch = 0.96;
+  u.rate = isSeniorModeOn() ? 0.74 : 0.84;
 }
 
 export function speak(text: string, onEnd?: (success: boolean) => void) {
