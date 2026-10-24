@@ -1,7 +1,16 @@
 import { ModeSwitch } from "@/components/ModeSwitch";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, ListOrdered, Loader2, Megaphone, MessagesSquare, Pill, Settings, Utensils } from "lucide-react";
+import {
+  Eye,
+  ListOrdered,
+  Loader2,
+  Megaphone,
+  MessagesSquare,
+  Pill,
+  Settings,
+  Utensils,
+} from "lucide-react";
 import { DoctorBottomNav } from "@/components/DoctorBottomNav";
 import { RxComposer } from "@/components/RxComposer";
 import { AppShell } from "@/components/AppShell";
@@ -44,13 +53,17 @@ function DoctorHome() {
       setClinic(m.clinic);
       setLoading(false);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
   if (loading || !clinic) {
     return (
       <AppShell title="لوحة الطبيب" backTo="/">
-        <div className="mt-4"><ModeSwitch current="doctor" /></div>
+        <div className="mt-4">
+          <ModeSwitch current="doctor" />
+        </div>
         <div className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> جاري التحميل…
         </div>
@@ -60,12 +73,42 @@ function DoctorHome() {
 
   const c = clinic as unknown as Record<string, unknown>;
   const tools = [
-    { label: "الروشتة الذكية", desc: "اكتب واطبع روشتة", icon: Pill, onClick: () => setRxOpen(true) },
-    { label: "الاستقبال والطابور", desc: "الحجوزات والدور", icon: ListOrdered, to: "/reception" as const },
-    { label: "رسائل المرضى", desc: "رد على الاستفسارات", icon: MessagesSquare, to: "/messages" as const },
-    { label: "الستوري والتنبيهات", desc: "انشر لمرضاك", icon: Megaphone, to: "/doctor/stories" as const },
-    { label: "إعدادات العيادة", desc: "المواعيد والأسعار", icon: Settings, to: "/doctor-settings" as const },
-    { label: "التغذية والسعرات", desc: "أنظمة للمرضى ولك", icon: Utensils, to: "/nutrition" as const },
+    {
+      label: "الروشتة الذكية",
+      desc: "اكتب واطبع روشتة",
+      icon: Pill,
+      onClick: () => setRxOpen(true),
+    },
+    {
+      label: "الاستقبال والطابور",
+      desc: "الحجوزات والدور",
+      icon: ListOrdered,
+      to: "/reception" as const,
+    },
+    {
+      label: "رسائل المرضى",
+      desc: "رد على الاستفسارات",
+      icon: MessagesSquare,
+      to: "/messages" as const,
+    },
+    {
+      label: "الستوري والتنبيهات",
+      desc: "انشر لمرضاك",
+      icon: Megaphone,
+      to: "/doctor/stories" as const,
+    },
+    {
+      label: "إعدادات العيادة",
+      desc: "المواعيد والأسعار",
+      icon: Settings,
+      to: "/doctor-settings" as const,
+    },
+    {
+      label: "التغذية والسعرات",
+      desc: "أنظمة للمرضى ولك",
+      icon: Utensils,
+      to: "/nutrition" as const,
+    },
   ];
 
   return (
@@ -81,23 +124,51 @@ function DoctorHome() {
           {tools.map((t) => {
             const inner = (
               <>
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-soft text-primary"><t.icon className="h-5 w-5" /></span>
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-soft text-primary">
+                  <t.icon className="h-5 w-5" />
+                </span>
                 <span className="mt-2 block text-sm font-extrabold text-foreground">{t.label}</span>
                 <span className="block text-xs text-muted-foreground">{t.desc}</span>
               </>
             );
-            const cls = "rounded-2xl border border-border bg-card p-4 text-right shadow-soft transition active:scale-95";
-            return t.to ? <Link key={t.label} to={t.to} className={cls}>{inner}</Link> : <button key={t.label} type="button" onClick={t.onClick} className={cls}>{inner}</button>;
+            const cls =
+              "rounded-2xl border border-border bg-card p-4 text-right shadow-soft transition active:scale-95";
+            return t.to ? (
+              <Link key={t.label} to={t.to} className={cls}>
+                {inner}
+              </Link>
+            ) : (
+              <button key={t.label} type="button" onClick={t.onClick} className={cls}>
+                {inner}
+              </button>
+            );
           })}
-          <Link to="/patient/clinic/$id" params={{ id: clinic.id }} className="rounded-2xl border border-border bg-card p-4 text-right shadow-soft transition active:scale-95">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-soft text-primary"><Eye className="h-5 w-5" /></span>
+          <Link
+            to="/patient/clinic/$id"
+            params={{ id: clinic.id }}
+            className="rounded-2xl border border-border bg-card p-4 text-right shadow-soft transition active:scale-95"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-soft text-primary">
+              <Eye className="h-5 w-5" />
+            </span>
             <span className="mt-2 block text-sm font-extrabold text-foreground">صفحة عيادتي</span>
             <span className="block text-xs text-muted-foreground">زي ما المريض بيشوفها</span>
           </Link>
         </div>
       </div>
       <DoctorBottomNav clinicId={clinic.id} />
-      {rxOpen && <RxComposer defaults={{ patient: "", doctor: String(c.doctor ?? ""), specialty: "", clinicAddress: String(c.address ?? ""), clinicPhone: String(c.phone ?? "") }} onClose={() => setRxOpen(false)} />}
+      {rxOpen && (
+        <RxComposer
+          defaults={{
+            patient: "",
+            doctor: String(c.doctor ?? ""),
+            specialty: "",
+            clinicAddress: String(c.address ?? ""),
+            clinicPhone: String(c.phone ?? ""),
+          }}
+          onClose={() => setRxOpen(false)}
+        />
+      )}
     </AppShell>
   );
 }

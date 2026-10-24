@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Share2, X, ChevronUp, ChevronDown, Send, Trash2, BadgeCheck, Loader2 } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  X,
+  ChevronUp,
+  ChevronDown,
+  Send,
+  Trash2,
+  BadgeCheck,
+  Loader2,
+} from "lucide-react";
 import {
   addClinicReply,
   addPostComment,
@@ -105,7 +116,9 @@ export function PostViewer({
     if (!post) return;
     const res = await shareLink({
       title: `${doctor} — سَنَد`,
-      text: post.caption ? `${post.caption}\nمن عيادة ${doctor} على سَنَد` : `شوف منشور عيادة ${doctor} على سَنَد`,
+      text: post.caption
+        ? `${post.caption}\nمن عيادة ${doctor} على سَنَد`
+        : `شوف منشور عيادة ${doctor} على سَنَد`,
       url: postShareUrl(post.id),
     });
     if (res === "copied") flash("تم نسخ رابط المنشور ✅");
@@ -115,7 +128,9 @@ export function PostViewer({
     if (!post || !text.trim()) return;
     setBusy(true);
     const body = text.trim();
-    const res = isOwner ? await addClinicReply(post.id, body) : await addPostComment(post.id, body, name.trim());
+    const res = isOwner
+      ? await addClinicReply(post.id, body)
+      : await addPostComment(post.id, body, name.trim());
     setBusy(false);
     if (!res) return flash("حصلت مشكلة، حاول تاني");
     if (!isOwner && name.trim()) localStorage.setItem(NAME_KEY, name.trim());
@@ -158,7 +173,12 @@ export function PostViewer({
             controls
           />
         ) : (
-          <img key={post.id} src={post.url} alt={post.caption || `منشور عيادة ${doctor}`} className="h-full w-full object-contain" />
+          <img
+            key={post.id}
+            src={post.url}
+            alt={post.caption || `منشور عيادة ${doctor}`}
+            className="h-full w-full object-contain"
+          />
         )}
 
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/80 to-transparent" />
@@ -169,7 +189,11 @@ export function PostViewer({
             <span className="text-sm font-extrabold">{doctor}</span>
             {isVerified && <BadgeCheck className="h-4 w-4 text-primary" />}
           </div>
-          <button onClick={onClose} aria-label="إغلاق" className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur">
+          <button
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -196,19 +220,33 @@ export function PostViewer({
         )}
 
         <div className="absolute bottom-24 left-4 flex flex-col items-center gap-4">
-          <button onClick={onLike} aria-label="إعجاب" className="flex flex-col items-center gap-1 text-white">
-            <span className={`grid h-11 w-11 place-items-center rounded-full backdrop-blur ${liked ? "bg-destructive" : "bg-white/15"}`}>
+          <button
+            onClick={onLike}
+            aria-label="إعجاب"
+            className="flex flex-col items-center gap-1 text-white"
+          >
+            <span
+              className={`grid h-11 w-11 place-items-center rounded-full backdrop-blur ${liked ? "bg-destructive" : "bg-white/15"}`}
+            >
               <Heart className={`h-5 w-5 ${liked ? "fill-white" : ""}`} />
             </span>
             <span className="text-[11px] font-extrabold">{likes}</span>
           </button>
-          <button onClick={() => setShowComments(true)} aria-label="التعليقات" className="flex flex-col items-center gap-1 text-white">
+          <button
+            onClick={() => setShowComments(true)}
+            aria-label="التعليقات"
+            className="flex flex-col items-center gap-1 text-white"
+          >
             <span className="grid h-11 w-11 place-items-center rounded-full bg-white/15 backdrop-blur">
               <MessageCircle className="h-5 w-5" />
             </span>
             <span className="text-[11px] font-extrabold">{comments.length}</span>
           </button>
-          <button onClick={onShare} aria-label="مشاركة" className="flex flex-col items-center gap-1 text-white">
+          <button
+            onClick={onShare}
+            aria-label="مشاركة"
+            className="flex flex-col items-center gap-1 text-white"
+          >
             <span className="grid h-11 w-11 place-items-center rounded-full bg-white/15 backdrop-blur">
               <Share2 className="h-5 w-5" />
             </span>
@@ -217,7 +255,9 @@ export function PostViewer({
         </div>
 
         {post.caption && (
-          <p className="absolute bottom-6 right-4 max-w-[70%] text-sm font-bold leading-relaxed text-white">{post.caption}</p>
+          <p className="absolute bottom-6 right-4 max-w-[70%] text-sm font-bold leading-relaxed text-white">
+            {post.caption}
+          </p>
         )}
 
         {loading && (
@@ -228,21 +268,30 @@ export function PostViewer({
       </div>
 
       {showComments && (
-        <div className="absolute inset-0 flex flex-col justify-end bg-black/50" onClick={() => setShowComments(false)}>
+        <div
+          className="absolute inset-0 flex flex-col justify-end bg-black/50"
+          onClick={() => setShowComments(false)}
+        >
           <div
             className="max-h-[75%] rounded-t-3xl border-t border-border bg-card p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-extrabold">التعليقات والاستفسارات ({comments.length})</p>
-              <button onClick={() => setShowComments(false)} aria-label="إغلاق التعليقات" className="grid h-8 w-8 place-items-center rounded-full bg-secondary">
+              <button
+                onClick={() => setShowComments(false)}
+                aria-label="إغلاق التعليقات"
+                className="grid h-8 w-8 place-items-center rounded-full bg-secondary"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="max-h-[38vh] space-y-3 overflow-y-auto pb-2">
               {comments.length === 0 && (
-                <p className="py-6 text-center text-xs text-muted-foreground">لسه مفيش تعليقات — اكتب استفسارك والعيادة هتردّ عليك.</p>
+                <p className="py-6 text-center text-xs text-muted-foreground">
+                  لسه مفيش تعليقات — اكتب استفسارك والعيادة هتردّ عليك.
+                </p>
               )}
               {comments.map((c) => (
                 <div
@@ -250,12 +299,18 @@ export function PostViewer({
                   className={`rounded-2xl border p-3 ${c.isClinicReply ? "border-primary/40 bg-primary-soft" : "border-border bg-secondary/40"}`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className={`text-xs font-extrabold ${c.isClinicReply ? "text-primary" : ""}`}>
+                    <p
+                      className={`text-xs font-extrabold ${c.isClinicReply ? "text-primary" : ""}`}
+                    >
                       {c.name}
                       {c.isClinicReply ? " • رد العيادة" : ""}
                     </p>
                     {isOwner && (
-                      <button onClick={() => removeComment(c.id)} aria-label="حذف التعليق" className="text-muted-foreground">
+                      <button
+                        onClick={() => removeComment(c.id)}
+                        aria-label="حذف التعليق"
+                        className="text-muted-foreground"
+                      >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     )}
@@ -292,7 +347,11 @@ export function PostViewer({
                   aria-label="إرسال"
                   className="grid h-11 w-11 shrink-0 place-items-center rounded-xl gradient-primary text-white disabled:opacity-50"
                 >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {busy ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </button>
               </div>
               <p className="text-[10px] leading-relaxed text-muted-foreground">
@@ -305,7 +364,9 @@ export function PostViewer({
 
       {toast && (
         <div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
-          <span className="rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background">{toast}</span>
+          <span className="rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background">
+            {toast}
+          </span>
         </div>
       )}
     </div>

@@ -12,7 +12,11 @@ export function ClinicQrCard({ clinic, specName }: { clinic: Clinic; specName: s
     setUrl(link);
     import("qrcode")
       .then((mod) =>
-        mod.default.toDataURL(link, { width: 512, margin: 1, color: { dark: "#0F172A", light: "#FFFFFF" } }),
+        mod.default.toDataURL(link, {
+          width: 512,
+          margin: 1,
+          color: { dark: "#0F172A", light: "#FFFFFF" },
+        }),
       )
       .then((d) => {
         if (!cancelled) setDataUrl(d);
@@ -43,13 +47,19 @@ export function ClinicQrCard({ clinic, specName }: { clinic: Clinic; specName: s
         <p className="mt-2 text-lg font-black">{clinic.doctor}</p>
         <p className="text-xs">{specName}</p>
         {dataUrl ? (
-          <img src={dataUrl} alt={`رمز QR لعيادة ${clinic.doctor}`} className="mx-auto mt-3 h-40 w-40" />
+          <img
+            src={dataUrl}
+            alt={`رمز QR لعيادة ${clinic.doctor}`}
+            className="mx-auto mt-3 h-40 w-40"
+          />
         ) : (
           <div className="mx-auto mt-3 grid h-40 w-40 place-items-center text-xs text-[#64748B]">
             جاري توليد الرمز…
           </div>
         )}
-        <p className="mt-2 text-[11px]">{clinic.address || ""} {clinic.area ? `— ${clinic.area}` : ""}</p>
+        <p className="mt-2 text-[11px]">
+          {clinic.address || ""} {clinic.area ? `— ${clinic.area}` : ""}
+        </p>
         <p className="text-[11px] font-bold">{clinic.phone || ""}</p>
         <p className="mt-1 break-all text-[9px] text-[#64748B]">{url}</p>
       </div>

@@ -5,7 +5,8 @@ import { reportSaveFailure } from "@/lib/health.functions";
 
 // After an app update, an open tab may request old code chunks that no longer
 // exist ("Importing a module script failed"). Reload once to fetch fresh code.
-const STALE_RE = /Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i;
+const STALE_RE =
+  /Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i;
 function reloadOnceForStaleChunk() {
   try {
     const last = Number(sessionStorage.getItem("sanad:chunk-reload") || 0);
@@ -31,7 +32,13 @@ if (typeof window !== "undefined") {
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { staleTime: 60 * 60 * 1000, gcTime: 2 * 60 * 60 * 1000, refetchOnWindowFocus: false } },
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 60 * 1000,
+        gcTime: 2 * 60 * 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
     mutationCache: new MutationCache({
       onError: (error, _v, _c, mutation) => {
         if (typeof window === "undefined") return;

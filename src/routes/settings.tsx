@@ -9,7 +9,10 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "الإعدادات | سَنَد" },
-      { name: "description", content: "إعدادات سَنَد وتفعيل نمط المساعد الصوتي لكبار السن وفاقدي البصر." },
+      {
+        name: "description",
+        content: "إعدادات سَنَد وتفعيل نمط المساعد الصوتي لكبار السن وفاقدي البصر.",
+      },
       { property: "og:title", content: "الإعدادات | سَنَد" },
       { property: "og:description", content: "فعّل المساعد الصوتي في سَنَد." },
       { property: "og:type", content: "website" },
@@ -44,7 +47,9 @@ export function SettingsPage() {
   return (
     <main className="mx-auto min-h-screen max-w-lg bg-background p-4">
       <header className="mb-6 flex items-center gap-3">
-        <Link to="/" aria-label="رجوع" className="rounded-full border p-2"><ArrowRight className="h-5 w-5" /></Link>
+        <Link to="/" aria-label="رجوع" className="rounded-full border p-2">
+          <ArrowRight className="h-5 w-5" />
+        </Link>
         <h1 className="text-xl font-extrabold">الإعدادات</h1>
       </header>
       <div className="flex items-stretch gap-2">
@@ -53,7 +58,13 @@ export function SettingsPage() {
             <Mic className="h-6 w-6 text-primary" />
             <span className="font-bold">نمط المساعد الصوتي (لكبار السن وفاقدي البصر)</span>
           </span>
-          <input type="checkbox" role="switch" checked={on} onChange={toggle} className="h-6 w-11 accent-primary" />
+          <input
+            type="checkbox"
+            role="switch"
+            checked={on}
+            onChange={toggle}
+            className="h-6 w-11 accent-primary"
+          />
         </label>
       </div>
       <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
@@ -61,8 +72,12 @@ export function SettingsPage() {
       </Button>
       <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 rounded-2xl border bg-card p-4">
         <span className="flex items-center gap-3">
-          <span aria-hidden="true" className="text-xl">👵</span>
-          <span className="font-bold">وضع كبار السن داخل نيمو — ردود صوتية تلقائية وأزرار أكبر</span>
+          <span aria-hidden="true" className="text-xl">
+            👵
+          </span>
+          <span className="font-bold">
+            وضع كبار السن داخل نيمو — ردود صوتية تلقائية وأزرار أكبر
+          </span>
         </span>
         <input
           type="checkbox"

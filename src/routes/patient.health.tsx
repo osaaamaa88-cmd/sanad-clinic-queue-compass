@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Activity, Download, Droplet, Heart, Save, Siren, Trash2 } from "lucide-react";
+import { Activity, Download, Droplet, Heart, Save, Siren, Trash2, QrCode } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { toast } from "sonner";
 
@@ -62,7 +62,11 @@ function evaluateSugar(value: number, state: SugarState): SugarCategory {
     if (value < 100) return { label: "طبيعي", tone: "success", advice: "قراءة صيام طبيعية." };
     if (value <= 125)
       return { label: "ما قبل السكري", tone: "warning", advice: "راجع طبيبك لعمل فحوصات تكميلية." };
-    return { label: "مرتفع — سكري محتمل", tone: "destructive", advice: "يلزم التوجه لطبيب باطنة/سكر." };
+    return {
+      label: "مرتفع — سكري محتمل",
+      tone: "destructive",
+      advice: "يلزم التوجه لطبيب باطنة/سكر.",
+    };
   }
   if (state === "postmeal") {
     if (value < 140) return { label: "طبيعي", tone: "success", advice: "قراءة بعد الأكل طبيعية." };
@@ -72,7 +76,8 @@ function evaluateSugar(value: number, state: SugarState): SugarCategory {
   }
   // random
   if (value < 140) return { label: "طبيعي", tone: "success", advice: "ضمن المعدل الطبيعي." };
-  if (value <= 199) return { label: "مرتفع نسبياً", tone: "warning", advice: "أعد القياس صائماً وراجع طبيبك." };
+  if (value <= 199)
+    return { label: "مرتفع نسبياً", tone: "warning", advice: "أعد القياس صائماً وراجع طبيبك." };
   return { label: "مرتفع جداً", tone: "destructive", advice: "استشر الطبيب فوراً." };
 }
 
@@ -105,7 +110,30 @@ function saveReadings(list: Reading[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
-type MedicalId = { bloodType: string; allergies: string; conditions: string; emergencyPhone: string };
+type MedicalId = {
+  bloodType: string;
+  allergies: string;
+  conditions: string;
+  emergencyPhone: string;
+};
+
+const MEDICAL_ID_KEY = "sanad_medical_id_v1";
+
+function loadMedicalId(): MedicalId {
+  if (typeof window === "undefined")
+    return { bloodType: "", allergies: "", conditions: "", emergencyPhone: "" };
+  try {
+    return {
+      bloodType: "",
+      allergies: "",
+      conditions: "",
+      emergencyPhone: "",
+      ...(JSON.parse(localStorage.getItem(MEDICAL_ID_KEY) || "{}") as Partial<MedicalId>),
+    };
+  } catch {
+    return { bloodType: "", allergies: "", conditions: "", emergencyPhone: "" };
+  }
+}
 
 function renderMedicalId(data: MedicalId): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
@@ -231,12 +259,48 @@ function HealthTracker() {
   const [sugar, setSugar] = useState("");
   const [sugarState, setSugarState] = useState<SugarState>("fasting");
   const [readings, setReadings] = useState<Reading[]>([]);
-  const [medicalId, setMedicalId] = useState<MedicalId>({
-    bloodType: "",
-    allergies: "",
-    conditions: "",
-    emergencyPhone: "",
-  });
+  const [medicalId, setMedicalId] = useState<MedicalId>(loadMedicalId);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MEDICAL_ID_KEY, JSON.stringify(medicalId));
+    } catch {
+      /* ignore */
+    }
+    const filled = Object.values(medicalId).some((value) => value.trim());
+    if (!filled) {
+      setQrDataUrl("");
+      return;
+    }
+    let cancelled = false;
+    const payload = [
+      `سَنَد — كارت طوارئ`,
+      medicalId.bloodType && `فصيلة الدم: ${medicalId.bloodType}`,
+      medicalId.allergies && `الحساسية: ${medicalId.allergies}`,
+      medicalId.conditions && `الأمراض المزمنة: ${medicalId.conditions}`,
+      medicalId.emergencyPhone && `هاتف الطوارئ: ${medicalId.emergencyPhone}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    import("qrcode")
+      .then((mod) =>
+        mod.default.toDataURL(payload, {
+          width: 512,
+          margin: 1,
+          color: { dark: "#0F172A", light: "#FFFFFF" },
+        }),
+      )
+      .then((d) => {
+        if (!cancelled) setQrDataUrl(d);
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [medicalId]);
 
   useEffect(() => {
     setReadings(loadReadings());
@@ -263,7 +327,13 @@ function HealthTracker() {
   function saveSugar() {
     if (!sug) return;
     const next: Reading[] = [
-      { kind: "sugar" as const, value: sugarN, state: sugarState, label: sug.label, at: new Date().toISOString() },
+      {
+        kind: "sugar" as const,
+        value: sugarN,
+        state: sugarState,
+        label: sug.label,
+        at: new Date().toISOString(),
+      },
       ...readings,
     ].slice(0, 50);
     setReadings(next);
@@ -283,7 +353,10 @@ function HealthTracker() {
     try {
       const canvas = renderMedicalId(medicalId);
       const blob = await new Promise<Blob>((resolve, reject) =>
-        canvas.toBlob((image) => (image ? resolve(image) : reject(new Error("تعذر إنشاء ملف الصورة"))), "image/png"),
+        canvas.toBlob(
+          (image) => (image ? resolve(image) : reject(new Error("تعذر إنشاء ملف الصورة"))),
+          "image/png",
+        ),
       );
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
@@ -516,7 +589,9 @@ function HealthTracker() {
               inputMode="tel"
               autoComplete="tel"
               value={medicalId.emergencyPhone}
-              onChange={(event) => setMedicalId({ ...medicalId, emergencyPhone: event.target.value })}
+              onChange={(event) =>
+                setMedicalId({ ...medicalId, emergencyPhone: event.target.value })
+              }
               maxLength={30}
               placeholder="رقم شخص يمكن التواصل معه"
               className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -531,6 +606,22 @@ function HealthTracker() {
         >
           <Download className="h-4 w-4" /> إنشاء وتنزيل بطاقة الطوارئ
         </button>
+        {qrDataUrl && (
+          <div className="mt-4 rounded-2xl border border-primary/20 bg-secondary/40 p-4 text-center">
+            <p className="flex items-center justify-center gap-2 text-sm font-extrabold">
+              <QrCode className="h-4 w-4 text-primary" /> كود QR للطوارئ
+            </p>
+            <img
+              src={qrDataUrl}
+              alt="كود QR لكارت الطوارئ الطبي"
+              className="mx-auto mt-3 h-40 w-40 rounded-xl bg-white p-2"
+            />
+            <p className="mt-2 text-xs text-muted-foreground">
+              اطبع الكود أو حطه في جيب محفظتك — أي حد يقدر يمسحه ويقرأ بيانات الطوارئ حتى لو الهاتف
+              مقفول.
+            </p>
+          </div>
+        )}
         <p className="mt-2 text-center text-[11px] text-muted-foreground">
           تُستخدم البيانات لإنشاء الصورة على جهازك ولا تُحفظ من هذه الصفحة.
         </p>
@@ -557,19 +648,25 @@ function HealthTracker() {
                       : "bg-primary-soft text-primary"
                   }`}
                 >
-                  {r.kind === "bp" ? <Heart className="h-4 w-4" /> : <Droplet className="h-4 w-4" />}
+                  {r.kind === "bp" ? (
+                    <Heart className="h-4 w-4" />
+                  ) : (
+                    <Droplet className="h-4 w-4" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold">
                     {r.kind === "bp"
                       ? `ضغط ${r.sys}/${r.dia} — ${r.label}`
                       : `سكر ${r.value} mg/dL (${
-                          r.state === "fasting" ? "صائم" : r.state === "postmeal" ? "بعد الأكل" : "عشوائي"
+                          r.state === "fasting"
+                            ? "صائم"
+                            : r.state === "postmeal"
+                              ? "بعد الأكل"
+                              : "عشوائي"
                         }) — ${r.label}`}
                   </p>
-                  <p className="text-muted-foreground">
-                    {new Date(r.at).toLocaleString("ar-EG")}
-                  </p>
+                  <p className="text-muted-foreground">{new Date(r.at).toLocaleString("ar-EG")}</p>
                 </div>
                 <button
                   onClick={() => removeAt(i)}

@@ -58,7 +58,10 @@ export async function listEmergencyFacilities(): Promise<EmergencyFacility[]> {
   return list;
 }
 
-export const facilityTypeLabel: Record<EmergencyFacility["type"], { label: string; emoji: string }> = {
+export const facilityTypeLabel: Record<
+  EmergencyFacility["type"],
+  { label: string; emoji: string }
+> = {
   hospital: { label: "مستشفى", emoji: "🏥" },
   radiology: { label: "أشعة", emoji: "🩻" },
   clinic: { label: "عيادة", emoji: "🩺" },

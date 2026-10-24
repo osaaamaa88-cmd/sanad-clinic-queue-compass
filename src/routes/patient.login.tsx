@@ -8,7 +8,12 @@ import { MessagesSquare } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { PatientAuthForm } from "@/components/PatientAuthModal";
 import { supabase } from "@/integrations/supabase/client";
-import { clearPatientSession, getPatientSession, syncPatientSessionFromAuth, type PatientSession } from "@/lib/patient-session";
+import {
+  clearPatientSession,
+  getPatientSession,
+  syncPatientSessionFromAuth,
+  type PatientSession,
+} from "@/lib/patient-session";
 import { clearAllLocalUserData } from "@/lib/user-profile-cache";
 import { Button } from "@/components/ui/button";
 import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
@@ -24,7 +29,10 @@ export const Route = createFileRoute("/patient/login")({
       { title: "حسابي — سَنَد" },
       { name: "description", content: "حساب المريض وأدوات متابعة الصحة ومواعيد الأدوية في سَنَد." },
       { property: "og:title", content: "حسابي — سَنَد" },
-      { property: "og:description", content: "حساب المريض وأدوات متابعة الصحة ومواعيد الأدوية في سَنَد." },
+      {
+        property: "og:description",
+        content: "حساب المريض وأدوات متابعة الصحة ومواعيد الأدوية في سَنَد.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -46,10 +54,18 @@ function VoiceModeToggle() {
         <Mic className="h-5 w-5 text-primary" />
         <span>
           <span className="block text-sm font-extrabold">المساعد الصوتي</span>
-          <span className="block text-xs text-muted-foreground">لكبار السن وفاقدي البصر — يظهر فوق كل الصفحات</span>
+          <span className="block text-xs text-muted-foreground">
+            لكبار السن وفاقدي البصر — يظهر فوق كل الصفحات
+          </span>
         </span>
       </span>
-      <input type="checkbox" role="switch" checked={on} onChange={() => setVoiceMode(!on)} className="h-6 w-11 accent-primary" />
+      <input
+        type="checkbox"
+        role="switch"
+        checked={on}
+        onChange={() => setVoiceMode(!on)}
+        className="h-6 w-11 accent-primary"
+      />
     </label>
   );
 }
@@ -122,44 +138,106 @@ function PatientLogin() {
   return (
     <AppShell title="حسابي" subtitle="بياناتك وأدواتك الصحية" backTo="/patient">
       <section className="mb-4 grid grid-cols-2 gap-3">
-        <Link to="/patient/health" className="group min-w-0 rounded-2xl border border-primary/30 bg-primary-soft/30 p-4 transition hover:-translate-y-0.5 hover:shadow-soft">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground"><Activity className="h-5 w-5" /></span>
-          <span className="mt-3 flex items-center justify-between gap-2"><span className="min-w-0 text-sm font-extrabold">مؤشرات الصحة</span><ArrowLeft className="h-4 w-4 shrink-0 text-primary" /></span>
-          <span className="mt-1 block text-xs leading-5 text-muted-foreground">الضغط والسكر والحاسبات الصحية</span>
+        <Link
+          to="/patient/health"
+          className="group min-w-0 rounded-2xl border border-primary/30 bg-primary-soft/30 p-4 transition hover:-translate-y-0.5 hover:shadow-soft"
+        >
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <Activity className="h-5 w-5" />
+          </span>
+          <span className="mt-3 flex items-center justify-between gap-2">
+            <span className="min-w-0 text-sm font-extrabold">مؤشرات الصحة</span>
+            <ArrowLeft className="h-4 w-4 shrink-0 text-primary" />
+          </span>
+          <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+            الضغط والسكر والحاسبات الصحية
+          </span>
         </Link>
-        <Link to="/patient/meds" className="group min-w-0 rounded-2xl border border-warning/30 bg-warning/10 p-4 transition hover:-translate-y-0.5 hover:shadow-soft">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-warning text-warning-foreground"><Pill className="h-5 w-5" /></span>
-          <span className="mt-3 flex items-center justify-between gap-2"><span className="min-w-0 text-sm font-extrabold">مواعيد الأدوية</span><ArrowLeft className="h-4 w-4 shrink-0 text-warning" /></span>
-          <span className="mt-1 block text-xs leading-5 text-muted-foreground">جرعاتك وتنبيهات مواعيد الدواء</span>
+        <Link
+          to="/patient/meds"
+          className="group min-w-0 rounded-2xl border border-warning/30 bg-warning/10 p-4 transition hover:-translate-y-0.5 hover:shadow-soft"
+        >
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-warning text-warning-foreground">
+            <Pill className="h-5 w-5" />
+          </span>
+          <span className="mt-3 flex items-center justify-between gap-2">
+            <span className="min-w-0 text-sm font-extrabold">مواعيد الأدوية</span>
+            <ArrowLeft className="h-4 w-4 shrink-0 text-warning" />
+          </span>
+          <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+            جرعاتك وتنبيهات مواعيد الدواء
+          </span>
         </Link>
-        <Link to="/nutrition" className="col-span-2 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary-soft/30 p-4 transition hover:shadow-soft">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground"><Activity className="h-5 w-5" /></span>
-          <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">التغذية والسعرات</span><span className="block text-xs text-muted-foreground">صوّر أكلك واعرف سعراته وتابع يومك</span></span>
+        <Link
+          to="/nutrition"
+          className="col-span-2 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary-soft/30 p-4 transition hover:shadow-soft"
+        >
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <Activity className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-extrabold">التغذية والسعرات</span>
+            <span className="block text-xs text-muted-foreground">
+              صوّر أكلك واعرف سعراته وتابع يومك
+            </span>
+          </span>
           <ArrowLeft className="h-4 w-4 text-primary" />
         </Link>
-        <Link to="/patient/drug-scan" className="flex flex-col rounded-2xl border border-warning/30 bg-warning/10 p-4 transition hover:shadow-soft">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-warning text-warning-foreground"><Pill className="h-5 w-5" /></span>
+        <Link
+          to="/patient/drug-scan"
+          className="flex flex-col rounded-2xl border border-warning/30 bg-warning/10 p-4 transition hover:shadow-soft"
+        >
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-warning text-warning-foreground">
+            <Pill className="h-5 w-5" />
+          </span>
           <span className="mt-3 text-sm font-extrabold">ماسح الأدوية</span>
           <span className="mt-1 text-xs leading-5 text-muted-foreground">بدائل الدواء الناقص</span>
         </Link>
-        <Link to="/patient/lab-reader" className="flex flex-col rounded-2xl border border-primary/30 bg-primary-soft/30 p-4 transition hover:shadow-soft">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground"><FlaskConical className="h-5 w-5" /></span>
+        <Link
+          to="/patient/lab-reader"
+          className="flex flex-col rounded-2xl border border-primary/30 bg-primary-soft/30 p-4 transition hover:shadow-soft"
+        >
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <FlaskConical className="h-5 w-5" />
+          </span>
           <span className="mt-3 text-sm font-extrabold">قارئ التحاليل</span>
           <span className="mt-1 text-xs leading-5 text-muted-foreground">افهم نتيجة تحليلك</span>
         </Link>
-        <Link to="/messages" className="col-span-2 flex items-center gap-3 rounded-2xl border border-success/30 bg-success/10 p-4 transition hover:shadow-soft">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-success text-success-foreground"><MessagesSquare className="h-5 w-5" /></span>
-          <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">رسايلي مع العيادات</span><span className="block text-xs text-muted-foreground">محادثاتك المباشرة مع الدكاترة</span></span>
+        <Link
+          to="/messages"
+          className="col-span-2 flex items-center gap-3 rounded-2xl border border-success/30 bg-success/10 p-4 transition hover:shadow-soft"
+        >
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-success text-success-foreground">
+            <MessagesSquare className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-extrabold">رسايلي مع العيادات</span>
+            <span className="block text-xs text-muted-foreground">
+              محادثاتك المباشرة مع الدكاترة
+            </span>
+          </span>
           <ArrowLeft className="h-4 w-4 text-success" />
         </Link>
-        <Link to="/settings" className="col-span-2 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-4 transition hover:shadow-soft">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground">🎤</span>
-          <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold">المساعد الصوتي والإعدادات</span><span className="block text-xs text-muted-foreground">لكبار السن وفاقدي البصر</span></span>
+        <Link
+          to="/settings"
+          className="col-span-2 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-4 transition hover:shadow-soft"
+        >
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground">
+            🎤
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-extrabold">المساعد الصوتي والإعدادات</span>
+            <span className="block text-xs text-muted-foreground">لكبار السن وفاقدي البصر</span>
+          </span>
           <ArrowLeft className="h-4 w-4 text-primary" />
         </Link>
       </section>
-      <div className="mb-4 space-y-3"><ModeSwitch current="patient" /><VoiceModeToggle /><SoundToggle />
-<ThemeSetting /></div>
+      <div className="mb-4 space-y-3">
+        <ModeSwitch current="patient" />
+        <VoiceModeToggle />
+        <SoundToggle />
+        <ThemeSetting />
+      </div>
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="mb-2 flex items-center gap-3">
           <span className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-primary-foreground">
@@ -167,16 +245,28 @@ function PatientLogin() {
           </span>
           <div>
             <h2 className="text-lg font-extrabold">أهلاً بك في سَنَد</h2>
-            <p className="text-xs text-muted-foreground">حجوزاتك ومؤشراتك الصحية محفوظة مع حسابك على الجهاز.</p>
+            <p className="text-xs text-muted-foreground">
+              حجوزاتك ومؤشراتك الصحية محفوظة مع حسابك على الجهاز.
+            </p>
           </div>
         </div>
         {patient ? (
           <div className="mt-4 space-y-3">
-            <p className="text-sm">مسجل الدخول باسم <b>{patient.name}</b> {patient.phone && <span dir="ltr">({patient.phone})</span>}</p>
-            <Button onClick={() => navigate({ to: "/patient" })} className="w-full rounded-2xl gradient-primary py-3 font-extrabold text-primary-foreground">
+            <p className="text-sm">
+              مسجل الدخول باسم <b>{patient.name}</b>{" "}
+              {patient.phone && <span dir="ltr">({patient.phone})</span>}
+            </p>
+            <Button
+              onClick={() => navigate({ to: "/patient" })}
+              className="w-full rounded-2xl gradient-primary py-3 font-extrabold text-primary-foreground"
+            >
               الذهاب للرئيسية
             </Button>
-            <Button variant="outline" onClick={logout} className="flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold">
+            <Button
+              variant="outline"
+              onClick={logout}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold"
+            >
               <LogOut className="h-4 w-4" /> تسجيل الخروج
             </Button>
           </div>
@@ -184,10 +274,16 @@ function PatientLogin() {
           <PatientAuthForm onDone={() => navigate({ to: "/patient", replace: true })} />
         )}
         <div className="mt-4 border-t border-border pt-3 text-center">
-          <Link to="/developer" className="text-[11px] font-bold text-muted-foreground underline" dir="ltr">
+          <Link
+            to="/developer"
+            className="text-[11px] font-bold text-muted-foreground underline"
+            dir="ltr"
+          >
             About the Developer
           </Link>
-          <p className="mt-1 text-[10px] text-muted-foreground" dir="ltr">SANAD {APP_VERSION_LABEL}</p>
+          <p className="mt-1 text-[10px] text-muted-foreground" dir="ltr">
+            SANAD {APP_VERSION_LABEL}
+          </p>
         </div>
       </div>
     </AppShell>

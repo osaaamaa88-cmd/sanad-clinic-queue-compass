@@ -65,7 +65,10 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: patientOAuthCallback(window.location.origin, `${window.location.pathname}${window.location.search}${window.location.hash}`),
+          redirectTo: patientOAuthCallback(
+            window.location.origin,
+            `${window.location.pathname}${window.location.search}${window.location.hash}`,
+          ),
         },
       });
       if (error) {

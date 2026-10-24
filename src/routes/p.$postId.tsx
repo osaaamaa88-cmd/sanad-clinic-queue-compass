@@ -18,10 +18,7 @@ export const Route = createFileRoute("/p/$postId")({
     const post = loaderData?.post;
     if (!post) {
       return {
-        meta: [
-          { title: "المنشور غير متاح — سَنَد" },
-          { name: "robots", content: "noindex" },
-        ],
+        meta: [{ title: "المنشور غير متاح — سَنَد" }, { name: "robots", content: "noindex" }],
       };
     }
     const title = `${post.doctor} — سَنَد`;
@@ -50,12 +47,16 @@ export const Route = createFileRoute("/p/$postId")({
   },
   errorComponent: () => (
     <AppShell title="المنشور غير متاح" backTo="/patient">
-      <p className="mt-6 text-center text-sm text-muted-foreground">حصلت مشكلة في تحميل المنشور، حاول تاني.</p>
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        حصلت مشكلة في تحميل المنشور، حاول تاني.
+      </p>
     </AppShell>
   ),
   notFoundComponent: () => (
     <AppShell title="المنشور غير متاح" backTo="/patient">
-      <p className="mt-6 text-center text-sm text-muted-foreground">المنشور ده مش موجود أو تم حذفه.</p>
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        المنشور ده مش موجود أو تم حذفه.
+      </p>
     </AppShell>
   ),
   component: PostPage,
@@ -73,7 +74,9 @@ function PostPage() {
   if (!post) {
     return (
       <AppShell title="المنشور غير متاح" backTo="/patient">
-        <p className="mt-6 text-center text-sm text-muted-foreground">المنشور ده مش موجود أو تم حذفه.</p>
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          المنشور ده مش موجود أو تم حذفه.
+        </p>
         <Link
           to="/patient/search"
           className="mt-4 flex items-center justify-center rounded-2xl gradient-primary py-3 text-sm font-extrabold text-white"
@@ -94,7 +97,10 @@ function PostPage() {
   return (
     <AppShell title={post.doctor} subtitle="منشور من العيادة" backTo="/patient">
       <div className="overflow-hidden rounded-3xl border border-border bg-card">
-        <button onClick={() => setOpen(true)} className="relative block aspect-square w-full bg-surface-deep">
+        <button
+          onClick={() => setOpen(true)}
+          className="relative block aspect-square w-full bg-surface-deep"
+        >
           {post.mediaType === "video" ? (
             <>
               <video src={post.url} className="h-full w-full object-cover" muted playsInline />
@@ -105,7 +111,11 @@ function PostPage() {
               </span>
             </>
           ) : (
-            <img src={post.url} alt={post.caption || `منشور عيادة ${post.doctor}`} className="h-full w-full object-cover" />
+            <img
+              src={post.url}
+              alt={post.caption || `منشور عيادة ${post.doctor}`}
+              className="h-full w-full object-cover"
+            />
           )}
         </button>
         <div className="space-y-3 p-4">
@@ -113,7 +123,9 @@ function PostPage() {
             <p className="text-sm font-extrabold">{post.doctor}</p>
             {post.isVerified && <BadgeCheck className="h-4 w-4 text-primary" />}
           </div>
-          {post.caption && <p className="text-sm leading-relaxed text-muted-foreground">{post.caption}</p>}
+          {post.caption && (
+            <p className="text-sm leading-relaxed text-muted-foreground">{post.caption}</p>
+          )}
           <div className="flex items-center gap-2">
             <Link
               to="/patient/clinic/$id"
@@ -150,4 +162,3 @@ function PostPage() {
     </AppShell>
   );
 }
-

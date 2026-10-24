@@ -101,7 +101,9 @@ export function DeletionRequestsTab() {
               <p className="mt-1 text-muted-foreground">
                 {r.phone ? `هاتف: ${r.phone} · ` : ""}
                 مطلوب من {new Date(r.created_at).toLocaleString("ar-EG")}
-                {r.processed_at ? ` · نُفّذ ${new Date(r.processed_at).toLocaleString("ar-EG")}` : ""}
+                {r.processed_at
+                  ? ` · نُفّذ ${new Date(r.processed_at).toLocaleString("ar-EG")}`
+                  : ""}
               </p>
               {r.status === "pending" && (
                 <button

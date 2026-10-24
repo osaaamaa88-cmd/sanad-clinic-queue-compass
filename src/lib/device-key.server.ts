@@ -9,9 +9,20 @@ export async function deviceIdentity(raw: string | undefined | null): Promise<st
   const secret = process.env.SESSION_SECRET || process.env.ADMIN_SESSION_KEY;
   if (!secret) throw new Error("Server misconfigured");
   const enc = new TextEncoder();
-  const k = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const k = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
   const sig = new Uint8Array(await crypto.subtle.sign("HMAC", k, enc.encode(`device:${key}`)));
-  return "d1:" + Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("").slice(0, 48);
+  return (
+    "d1:" +
+    Array.from(sig, (b) => b.toString(16).padStart(2, "0"))
+      .join("")
+      .slice(0, 48)
+  );
 }
 
 /** Unpredictable short code (e.g. booking codes). */

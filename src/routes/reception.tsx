@@ -254,7 +254,9 @@ function Reception() {
         </div>
         <p className="mt-2 text-sm font-extrabold">
           الطابور المباشر وشاشة صالة الانتظار{" "}
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold">قريباً</span>
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold">
+            قريباً
+          </span>
         </p>
         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
           حالياً الدفتر للمرضى الحاضرين في العيادة فقط — سجّلهم يدوي واطبع كشف اليوم.
@@ -289,7 +291,9 @@ function Reception() {
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-muted-foreground">رقم الموبايل (اختياري)</label>
+            <label className="text-xs font-bold text-muted-foreground">
+              رقم الموبايل (اختياري)
+            </label>
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -301,7 +305,12 @@ function Reception() {
           <div>
             <label className="text-xs font-bold text-muted-foreground">نوع الزيارة</label>
             <div className="mt-1 grid grid-cols-2 gap-2">
-              {([["new", "كشف جديد"], ["followup", "استشارة"]] as const).map(([v, l]) => (
+              {(
+                [
+                  ["new", "كشف جديد"],
+                  ["followup", "استشارة"],
+                ] as const
+              ).map(([v, l]) => (
                 <button
                   key={v}
                   onClick={() => setVisitType(v)}
@@ -359,14 +368,16 @@ function Reception() {
               r.status === "in"
                 ? "bg-primary-soft"
                 : r.status === "cancelled"
-                ? "opacity-50"
-                : r.status === "done"
-                ? "bg-secondary/40"
-                : ""
+                  ? "opacity-50"
+                  : r.status === "done"
+                    ? "bg-secondary/40"
+                    : ""
             }`}
           >
             <div className="grid grid-cols-[2.5rem_1fr_4.5rem_3.5rem] items-center gap-2">
-              <span className="text-sm font-black text-muted-foreground">{r.queueNumber || i + 1}</span>
+              <span className="text-sm font-black text-muted-foreground">
+                {r.queueNumber || i + 1}
+              </span>
               <div className="min-w-0">
                 <p
                   className={`truncate text-sm font-bold ${
@@ -462,14 +473,14 @@ function SheetBtn({
     tone === "primary"
       ? "bg-primary text-primary-foreground"
       : tone === "warn"
-      ? "bg-warning text-warning-foreground"
-      : "bg-destructive text-destructive-foreground";
+        ? "bg-warning text-warning-foreground"
+        : "bg-destructive text-destructive-foreground";
   const idleCls =
     tone === "primary"
       ? "border border-border bg-card text-primary"
       : tone === "warn"
-      ? "border border-border bg-card text-warning"
-      : "border border-border bg-card text-destructive";
+        ? "border border-border bg-card text-warning"
+        : "border border-border bg-card text-destructive";
   return (
     <button
       onClick={onClick}

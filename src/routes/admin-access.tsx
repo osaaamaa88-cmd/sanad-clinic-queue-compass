@@ -86,8 +86,7 @@ function AdminGate({ onUnlock }: { onUnlock: () => void }) {
       if (res.ok) {
         saveAdminToken(res.token);
         onUnlock();
-      }
-      else setError("كلمة السر غير صحيحة، غير مصرح لك بالدخول");
+      } else setError("كلمة السر غير صحيحة، غير مصرح لك بالدخول");
     } catch {
       setError("حصل خطأ أثناء التحقق. حاول تاني.");
     } finally {
@@ -173,7 +172,21 @@ function Admin() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [stats, setStats] = useState({ total: 0, verified: 0, pending: 0, bookings: 0 });
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [tab, setTab] = useState<"analytics" | "pending" | "verified" | "bookings" | "users" | "live" | "media" | "system" | "health" | "hospitals" | "security" | "deletions" | "ai">("ai");
+  const [tab, setTab] = useState<
+    | "analytics"
+    | "pending"
+    | "verified"
+    | "bookings"
+    | "users"
+    | "live"
+    | "media"
+    | "system"
+    | "health"
+    | "hospitals"
+    | "security"
+    | "deletions"
+    | "ai"
+  >("ai");
   const featureFn = useServerFn(godSetFeatured);
   const [editing, setEditing] = useState<ClinicRow | null>(null);
 
@@ -329,29 +342,40 @@ function Admin() {
     <AppShell title="لوحة تحكم الأدمن" subtitle="سَنَد — الإدارة" backTo="/" tone="primary">
       {/* KPI */}
       <div className="-mt-6 grid grid-cols-2 gap-3">
-        <KPI icon={Building2} label="عيادات موثّقة" value={String(clinics.filter((c) => c.isVerified && !c.isDisabled).length)} />
+        <KPI
+          icon={Building2}
+          label="عيادات موثّقة"
+          value={String(clinics.filter((c) => c.isVerified && !c.isDisabled).length)}
+        />
         <KPI icon={Users} label="إجمالي العيادات" value={String(stats.total)} />
         <KPI icon={Calendar} label="إجمالي الحجوزات" value={String(stats.bookings)} />
-        <KPI icon={ShieldCheck} label="بانتظار التوثيق" value={String(pending.length)} tone="warn" />
+        <KPI
+          icon={ShieldCheck}
+          label="بانتظار التوثيق"
+          value={String(pending.length)}
+          tone="warn"
+        />
       </div>
 
       {/* Tabs */}
       <div className="mt-6 grid grid-cols-4 gap-1 rounded-2xl bg-secondary p-1">
-        {([
-          ["analytics", "التحليلات"],
-          ["pending", `التوثيق (${pending.length})`],
-          ["verified", `العيادات (${verified.length})`],
-          ["bookings", "تقارير الحجز"],
-          ["users", "الحسابات"],
-          ["live", "حجوزات مباشرة"],
-          ["media", "الوسائط"],
-          ["system", "الطوارئ"],
-          ["health", "صحة النظام"],
-          ["hospitals", "مواقع المستشفيات"],
-          ["security", "الأمان والتشخيص"],
-          ["deletions", "طلبات الحذف"],
-          ["ai", "مساعد المالك 🤖"],
-        ] as const).map(([k, l]) => (
+        {(
+          [
+            ["analytics", "التحليلات"],
+            ["pending", `التوثيق (${pending.length})`],
+            ["verified", `العيادات (${verified.length})`],
+            ["bookings", "تقارير الحجز"],
+            ["users", "الحسابات"],
+            ["live", "حجوزات مباشرة"],
+            ["media", "الوسائط"],
+            ["system", "الطوارئ"],
+            ["health", "صحة النظام"],
+            ["hospitals", "مواقع المستشفيات"],
+            ["security", "الأمان والتشخيص"],
+            ["deletions", "طلبات الحذف"],
+            ["ai", "مساعد المالك 🤖"],
+          ] as const
+        ).map(([k, l]) => (
           <button
             key={k}
             onClick={() => setTab(k)}
@@ -447,7 +471,9 @@ function Admin() {
                     {c.isVerified ? (
                       <BadgeCheck className="h-4 w-4 shrink-0 text-success" />
                     ) : (
-                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">غير موثّق</span>
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                        غير موثّق
+                      </span>
                     )}
                     {c.isDisabled && (
                       <span className="rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-bold text-warning">
@@ -516,11 +542,7 @@ function Admin() {
       )}
 
       {tab === "bookings" && (
-        <BookingsTab
-          bookings={bookings}
-          clinics={clinics}
-          onExport={exportBookingsCSV}
-        />
+        <BookingsTab bookings={bookings} clinics={clinics} onExport={exportBookingsCSV} />
       )}
 
       {editing && (
@@ -703,13 +725,15 @@ function BookingsTab({
       </div>
 
       <div className="flex flex-wrap gap-1.5">
-        {([
-          ["all", "الكل"],
-          ["waiting", "بانتظار التأكيد"],
-          ["in", "قيد الكشف"],
-          ["done", "مكتمل"],
-          ["cancelled", "ملغي"],
-        ] as const).map(([k, l]) => (
+        {(
+          [
+            ["all", "الكل"],
+            ["waiting", "بانتظار التأكيد"],
+            ["in", "قيد الكشف"],
+            ["done", "مكتمل"],
+            ["cancelled", "ملغي"],
+          ] as const
+        ).map(([k, l]) => (
           <button
             key={k}
             onClick={() => setStatus(k)}
@@ -822,7 +846,10 @@ function EditClinicModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-3" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-3"
+      onClick={onClose}
+    >
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
@@ -908,7 +935,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function KPI({ icon: Icon, label, value, tone }: { icon: typeof Users; label: string; value: string; tone?: "warn" }) {
+function KPI({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: typeof Users;
+  label: string;
+  value: string;
+  tone?: "warn";
+}) {
   return (
     <div className="rounded-2xl bg-card p-4 shadow-soft">
       <div

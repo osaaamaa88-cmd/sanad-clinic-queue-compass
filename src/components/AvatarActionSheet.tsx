@@ -29,10 +29,14 @@ export function AvatarActionSheet({
     if (f) void onFile(f);
   };
 
-  const row = "flex w-full items-center gap-3 px-5 py-4 text-sm font-bold transition-colors active:bg-secondary";
+  const row =
+    "flex w-full items-center gap-3 px-5 py-4 text-sm font-bold transition-colors active:bg-secondary";
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/60" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[120] flex items-end justify-center bg-black/60"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-md overflow-hidden rounded-t-3xl border border-border bg-card pb-[calc(env(safe-area-inset-bottom)+0.75rem)]"
         onClick={(e) => e.stopPropagation()}
@@ -40,14 +44,22 @@ export function AvatarActionSheet({
         <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-border" />
         <p className="px-5 pb-2 pt-3 text-center text-sm font-extrabold">
           {busy ? (
-            <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> جاري الرفع…</span>
+            <span className="inline-flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> جاري الرفع…
+            </span>
           ) : (
             "الصورة الشخصية"
           )}
         </p>
         <div className="divide-y divide-border border-t border-border">
           {onViewStory && (
-            <button className={row} onClick={() => { onClose(); onViewStory(); }}>
+            <button
+              className={row}
+              onClick={() => {
+                onClose();
+                onViewStory();
+              }}
+            >
               <Eye className="h-5 w-5 text-gold" /> مشاهدة الستوري
             </button>
           )}
@@ -58,7 +70,11 @@ export function AvatarActionSheet({
             <ImageIcon className="h-5 w-5 text-gold" /> اختيار من المعرض
           </button>
           {hasPhoto && (
-            <button className={`${row} text-destructive`} disabled={busy} onClick={() => void onRemove()}>
+            <button
+              className={`${row} text-destructive`}
+              disabled={busy}
+              onClick={() => void onRemove()}
+            >
               <Trash2 className="h-5 w-5" /> حذف الصورة الحالية
             </button>
           )}
@@ -66,7 +82,14 @@ export function AvatarActionSheet({
             إلغاء
           </button>
         </div>
-        <input ref={camRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handle} />
+        <input
+          ref={camRef}
+          type="file"
+          accept="image/*"
+          capture="user"
+          className="hidden"
+          onChange={handle}
+        />
         <input ref={galRef} type="file" accept="image/*" className="hidden" onChange={handle} />
       </div>
     </div>

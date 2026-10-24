@@ -27,13 +27,18 @@ export const getAppSettings = createServerFn({ method: "GET" }).handler(async ()
     global: {
       fetch: (input, init) => {
         const h = new Headers(init?.headers);
-        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`)
+          h.delete("Authorization");
         h.set("apikey", key);
         return fetch(input, { ...init, headers: h });
       },
     },
   });
-  const { data } = await sb.from("app_settings").select("maintenance, broadcast, broadcast_tone, updated_at").eq("id", 1).maybeSingle();
+  const { data } = await sb
+    .from("app_settings")
+    .select("maintenance, broadcast, broadcast_tone, updated_at")
+    .eq("id", 1)
+    .maybeSingle();
   return data ?? { maintenance: false, broadcast: "", broadcast_tone: "info", updated_at: "" };
 });
 
@@ -45,7 +50,12 @@ export const godSetSettings = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const sb = await admin();
-    const patch: { updated_at: string; maintenance?: boolean; broadcast?: string; broadcast_tone?: string } = { updated_at: new Date().toISOString() };
+    const patch: {
+      updated_at: string;
+      maintenance?: boolean;
+      broadcast?: string;
+      broadcast_tone?: string;
+    } = { updated_at: new Date().toISOString() };
     if (data.maintenance !== undefined) patch.maintenance = data.maintenance;
     if (data.broadcast !== undefined) patch.broadcast = data.broadcast;
     if (data.tone) patch.broadcast_tone = data.tone;
@@ -59,13 +69,20 @@ export const godListUsers = createServerFn({ method: "GET" })
   .inputValidator(pageInput)
   .handler(async ({ data }) => {
     const sb = await admin();
-    const { data: res, error } = await sb.auth.admin.listUsers({ page: data.page + 1, perPage: PAGE });
+    const { data: res, error } = await sb.auth.admin.listUsers({
+      page: data.page + 1,
+      perPage: PAGE,
+    });
     if (error) throw new Error(error.message);
     const users = res.users;
     const ids = users.map((u) => u.id);
     const [owners, staff] = await Promise.all([
-      ids.length ? sb.from("clinics").select("id, owner_id, doctor").in("owner_id", ids) : Promise.resolve({ data: [] }),
-      ids.length ? sb.from("clinic_staff").select("user_id, role").in("user_id", ids) : Promise.resolve({ data: [] }),
+      ids.length
+        ? sb.from("clinics").select("id, owner_id, doctor").in("owner_id", ids)
+        : Promise.resolve({ data: [] }),
+      ids.length
+        ? sb.from("clinic_staff").select("user_id, role").in("user_id", ids)
+        : Promise.resolve({ data: [] }),
     ]);
     const ownerMap = new Map((owners.data ?? []).map((o: any) => [o.owner_id, o.doctor]));
     const staffMap = new Map((staff.data ?? []).map((s: any) => [s.user_id, s.role]));
@@ -78,7 +95,8 @@ export const godListUsers = createServerFn({ method: "GET" })
         name: (u.user_metadata?.full_name as string) || (u.user_metadata?.name as string) || "",
         createdAt: u.created_at,
         lastSignIn: u.last_sign_in_at ?? null,
-        banned: !!(u as any).banned_until && new Date((u as any).banned_until).getTime() > Date.now(),
+        banned:
+          !!(u as any).banned_until && new Date((u as any).banned_until).getTime() > Date.now(),
         role: ownerMap.has(u.id) ? "doctor" : staffMap.has(u.id) ? "secretary" : "patient",
         clinic: ownerMap.get(u.id) ?? "",
       }))
@@ -87,10 +105,15 @@ export const godListUsers = createServerFn({ method: "GET" })
   });
 
 export const godSuspendUser = createServerFn({ method: "POST" })
-  .inputValidator((d: { id: string; suspend: boolean }) => ({ ...idInput(d), suspend: !!d.suspend }))
+  .inputValidator((d: { id: string; suspend: boolean }) => ({
+    ...idInput(d),
+    suspend: !!d.suspend,
+  }))
   .handler(async ({ data }) => {
     const sb = await admin();
-    const { error } = await sb.auth.admin.updateUserById(data.id, { ban_duration: data.suspend ? "876000h" : "none" });
+    const { error } = await sb.auth.admin.updateUserById(data.id, {
+      ban_duration: data.suspend ? "876000h" : "none",
+    });
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
@@ -107,10 +130,16 @@ export const godDeleteUser = createServerFn({ method: "POST" })
   });
 
 export const godSetFeatured = createServerFn({ method: "POST" })
-  .inputValidator((d: { id: string; featured: boolean }) => ({ ...idInput(d), featured: !!d.featured }))
+  .inputValidator((d: { id: string; featured: boolean }) => ({
+    ...idInput(d),
+    featured: !!d.featured,
+  }))
   .handler(async ({ data }) => {
     const sb = await admin();
-    const { error } = await sb.from("clinics").update({ is_featured: data.featured }).eq("id", data.id);
+    const { error } = await sb
+      .from("clinics")
+      .update({ is_featured: data.featured })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
@@ -122,10 +151,15 @@ export const godListBookings = createServerFn({ method: "GET" })
     const sb = await admin();
     let query = sb
       .from("bookings")
-      .select("id, code, clinic_id, patient_name, patient_phone, day_label, slot, queue_number, status, created_at, clinics(doctor)")
+      .select(
+        "id, code, clinic_id, patient_name, patient_phone, day_label, slot, queue_number, status, created_at, clinics(doctor)",
+      )
       .order("created_at", { ascending: false })
       .range(data.page * PAGE, data.page * PAGE + PAGE - 1);
-    if (data.q) query = query.or(`patient_name.ilike.%${data.q.replace(/[%,()]/g, "")}%,code.ilike.%${data.q.replace(/[%,()]/g, "")}%`);
+    if (data.q)
+      query = query.or(
+        `patient_name.ilike.%${data.q.replace(/[%,()]/g, "")}%,code.ilike.%${data.q.replace(/[%,()]/g, "")}%`,
+      );
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
     return { rows: rows ?? [], hasMore: (rows ?? []).length === PAGE };
@@ -161,24 +195,45 @@ export const godListMedia = createServerFn({ method: "GET" })
     const to = from + PAGE - 1;
     if (data.kind === "youtube") {
       const { data: rows } = await sb
-        .from("clinics").select("id, doctor, youtube_url").neq("youtube_url", "")
-        .order("updated_at", { ascending: false }).range(from, to);
+        .from("clinics")
+        .select("id, doctor, youtube_url")
+        .neq("youtube_url", "")
+        .order("updated_at", { ascending: false })
+        .range(from, to);
       return {
-        rows: (rows ?? []).map((r: any) => ({ id: r.id, clinicId: r.id, doctor: r.doctor, url: r.youtube_url, mediaType: "youtube", caption: "", createdAt: "" })),
+        rows: (rows ?? []).map((r: any) => ({
+          id: r.id,
+          clinicId: r.id,
+          doctor: r.doctor,
+          url: r.youtube_url,
+          mediaType: "youtube",
+          caption: "",
+          createdAt: "",
+        })),
         hasMore: (rows ?? []).length === PAGE,
       };
     }
     const table = data.kind === "stories" ? "clinic_stories" : "clinic_posts";
     const { data: rows, error } = await sb
-      .from(table).select("id, clinic_id, media_url, media_type, caption, created_at, clinics(doctor)")
-      .order("created_at", { ascending: false }).range(from, to);
+      .from(table)
+      .select("id, clinic_id, media_url, media_type, caption, created_at, clinics(doctor)")
+      .order("created_at", { ascending: false })
+      .range(from, to);
     if (error) throw new Error(error.message);
     const { signMediaRefs } = await import("@/lib/media-sign.server");
-    const signed = await signMediaRefs(sb, (rows ?? []).map((r: any) => r.media_url));
+    const signed = await signMediaRefs(
+      sb,
+      (rows ?? []).map((r: any) => r.media_url),
+    );
     return {
       rows: (rows ?? []).map((r: any) => ({
-        id: r.id, clinicId: r.clinic_id, doctor: r.clinics?.doctor ?? "",
-        url: signed.get(r.media_url) ?? "", mediaType: r.media_type, caption: r.caption, createdAt: r.created_at,
+        id: r.id,
+        clinicId: r.clinic_id,
+        doctor: r.clinics?.doctor ?? "",
+        url: signed.get(r.media_url) ?? "",
+        mediaType: r.media_type,
+        caption: r.caption,
+        createdAt: r.created_at,
       })),
       hasMore: (rows ?? []).length === PAGE,
     };

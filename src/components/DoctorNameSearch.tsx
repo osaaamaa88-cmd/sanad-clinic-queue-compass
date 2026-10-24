@@ -22,7 +22,13 @@ function norm(s: string) {
     .trim();
 }
 
-function Avatar({ d, size = 52 }: { d: { doctor: string; avatarUrl: string; hasStory?: boolean }; size?: number }) {
+function Avatar({
+  d,
+  size = 52,
+}: {
+  d: { doctor: string; avatarUrl: string; hasStory?: boolean };
+  size?: number;
+}) {
   return (
     <span
       className={`grid shrink-0 place-items-center rounded-full p-[2px] ${d.hasStory ? "bg-gradient-to-tr from-primary via-accent to-destructive" : "bg-border"}`}
@@ -30,9 +36,16 @@ function Avatar({ d, size = 52 }: { d: { doctor: string; avatarUrl: string; hasS
     >
       <span className="grid h-full w-full place-items-center overflow-hidden rounded-full border-2 border-background bg-secondary">
         {d.avatarUrl ? (
-          <img src={d.avatarUrl} alt={d.doctor} loading="lazy" className="h-full w-full object-cover" />
+          <img
+            src={d.avatarUrl}
+            alt={d.doctor}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
         ) : (
-          <span className="text-lg font-extrabold text-primary">{d.doctor.replace(TITLE_PREFIX, "").charAt(0) || "د"}</span>
+          <span className="text-lg font-extrabold text-primary">
+            {d.doctor.replace(TITLE_PREFIX, "").charAt(0) || "د"}
+          </span>
         )}
       </span>
     </span>
@@ -67,7 +80,12 @@ export function DoctorNameSearch({ title = "ابحث عن طبيب" }: { title?:
     }
   };
   const remember = (d: DirectoryDoctor) =>
-    saveRecent([{ id: d.id, doctor: d.doctor, avatarUrl: d.avatarUrl, specialtyId: d.specialtyId }, ...recent.filter((r) => r.id !== d.id)].slice(0, 10));
+    saveRecent(
+      [
+        { id: d.id, doctor: d.doctor, avatarUrl: d.avatarUrl, specialtyId: d.specialtyId },
+        ...recent.filter((r) => r.id !== d.id),
+      ].slice(0, 10),
+    );
 
   const term = norm(q);
   const results = useMemo(() => {
@@ -85,13 +103,23 @@ export function DoctorNameSearch({ title = "ابحث عن طبيب" }: { title?:
       .sort((a, b) => {
         const as = norm(a.doctor).startsWith(term) ? 0 : 1;
         const bs = norm(b.doctor).startsWith(term) ? 0 : 1;
-        return as - bs || Number(b.isVerified) - Number(a.isVerified) || Number(b.isFeatured) - Number(a.isFeatured);
+        return (
+          as - bs ||
+          Number(b.isVerified) - Number(a.isVerified) ||
+          Number(b.isFeatured) - Number(a.isFeatured)
+        );
       })
       .slice(0, 40);
   }, [list, term, tab]);
 
   const suggested = useMemo(
-    () => [...list].sort((a, b) => Number(b.hasStory) - Number(a.hasStory) || Number(b.isVerified) - Number(a.isVerified)).slice(0, 12),
+    () =>
+      [...list]
+        .sort(
+          (a, b) =>
+            Number(b.hasStory) - Number(a.hasStory) || Number(b.isVerified) - Number(a.isVerified),
+        )
+        .slice(0, 12),
     [list],
   );
 
@@ -149,14 +177,24 @@ export function DoctorNameSearch({ title = "ابحث عن طبيب" }: { title?:
               <ul className="space-y-1">
                 {recent.map((r) => (
                   <li key={r.id} className="flex items-center gap-3 py-1.5">
-                    <Link to="/patient/clinic/$id" params={{ id: r.id }} className="flex flex-1 items-center gap-3">
+                    <Link
+                      to="/patient/clinic/$id"
+                      params={{ id: r.id }}
+                      className="flex flex-1 items-center gap-3"
+                    >
                       <Avatar d={r} size={44} />
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-bold">{r.doctor}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{getSpecialty(r.specialtyId)?.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {getSpecialty(r.specialtyId)?.name}
+                        </span>
                       </span>
                     </Link>
-                    <button aria-label="حذف" onClick={() => saveRecent(recent.filter((x) => x.id !== r.id))} className="p-2 text-muted-foreground">
+                    <button
+                      aria-label="حذف"
+                      onClick={() => saveRecent(recent.filter((x) => x.id !== r.id))}
+                      className="p-2 text-muted-foreground"
+                    >
                       <X className="h-4 w-4" />
                     </button>
                   </li>
@@ -169,7 +207,14 @@ export function DoctorNameSearch({ title = "ابحث عن طبيب" }: { title?:
             <h3 className="mb-2 text-sm font-extrabold">تخصصات</h3>
             <div className="flex flex-wrap gap-2">
               {specialties.slice(0, 10).map((s) => (
-                <button key={s.id} onClick={() => { setQ(s.name); setTab("specialties"); }} className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold">
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    setQ(s.name);
+                    setTab("specialties");
+                  }}
+                  className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold"
+                >
                   {s.name}
                 </button>
               ))}
@@ -202,7 +247,13 @@ export function DoctorNameSearch({ title = "ابحث عن طبيب" }: { title?:
   );
 }
 
-function ResultList({ items, onPick }: { items: DirectoryDoctor[]; onPick: (d: DirectoryDoctor) => void }) {
+function ResultList({
+  items,
+  onPick,
+}: {
+  items: DirectoryDoctor[];
+  onPick: (d: DirectoryDoctor) => void;
+}) {
   return (
     <ul className="space-y-1">
       {items.map((d) => (
@@ -217,7 +268,12 @@ function ResultList({ items, onPick }: { items: DirectoryDoctor[]; onPick: (d: D
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1">
                 <span className="truncate text-sm font-extrabold">{d.doctor}</span>
-                {d.isVerified && <BadgeCheck className="h-4 w-4 shrink-0 fill-primary text-primary-foreground" aria-label="موثق" />}
+                {d.isVerified && (
+                  <BadgeCheck
+                    className="h-4 w-4 shrink-0 fill-primary text-primary-foreground"
+                    aria-label="موثق"
+                  />
+                )}
               </span>
               <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
                 {getSpecialty(d.specialtyId)?.name}

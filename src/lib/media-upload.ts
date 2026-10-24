@@ -19,7 +19,10 @@ export async function compressImage(file: File, maxDim: number, quality = 0.8): 
     const toBlob = (type: string) => new Promise<Blob | null>((r) => c.toBlob(r, type, quality));
     let blob = await toBlob("image/webp");
     let ext = "webp";
-    if (!blob || blob.type !== "image/webp") { blob = await toBlob("image/jpeg"); ext = "jpg"; }
+    if (!blob || blob.type !== "image/webp") {
+      blob = await toBlob("image/jpeg");
+      ext = "jpg";
+    }
     if (!blob || blob.size >= file.size) return file;
     const base = file.name.replace(/\.[^.]+$/, "") || "image";
     return new File([blob], `${base}.${ext}`, { type: blob.type });
@@ -34,8 +37,10 @@ function putWithProgress(url: string, file: File, onProgress: (p: number) => voi
     xhr.open("PUT", url);
     xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
     xhr.setRequestHeader("x-upsert", "true");
-    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
-    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("UPLOAD_FAILED")));
+    xhr.upload.onprogress = (e) =>
+      e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
+    xhr.onload = () =>
+      xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("UPLOAD_FAILED"));
     xhr.onerror = () => reject(new Error("NETWORK"));
     xhr.send(file);
   });
@@ -79,15 +84,30 @@ export async function uploadMedia(input: {
   const id = toast.loading("جاري الرفع… 0%");
   try {
     const ticket = await svrCreateUploadTicket({
-      data: { clinicId: input.clinicId, kind, fileName: file.name, contentType: file.type, size: file.size },
+      data: {
+        clinicId: input.clinicId,
+        kind,
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+      },
     });
-    await putWithProgress(ticket.signedUrl, file, (p) => toast.loading(`جاري الرفع… ${p}%`, { id }));
+    await putWithProgress(ticket.signedUrl, file, (p) =>
+      toast.loading(`جاري الرفع… ${p}%`, { id }),
+    );
     toast.loading("جاري الحفظ…", { id });
     await svrFinalizeUpload({
       data: {
-        clinicId: input.clinicId, kind, path: ticket.path, contentType: file.type,
-        caption: input.caption, highlightId: input.highlightId ?? null, storyKind: input.storyKind,
-        tag: input.tag, permanent: input.permanent, durationHours: input.durationHours,
+        clinicId: input.clinicId,
+        kind,
+        path: ticket.path,
+        contentType: file.type,
+        caption: input.caption,
+        highlightId: input.highlightId ?? null,
+        storyKind: input.storyKind,
+        tag: input.tag,
+        permanent: input.permanent,
+        durationHours: input.durationHours,
       },
     });
     toast.success("تم الرفع بنجاح ✅", { id });
@@ -95,7 +115,11 @@ export async function uploadMedia(input: {
   } catch (e) {
     const msg = (e as Error)?.message ?? "";
     toast.error(
-      msg === "FILE_TOO_LARGE" ? "الملف أكبر من المسموح" : msg === "NETWORK" ? "انقطع الاتصال أثناء الرفع" : "تعذر رفع الملف، حاول تاني",
+      msg === "FILE_TOO_LARGE"
+        ? "الملف أكبر من المسموح"
+        : msg === "NETWORK"
+          ? "انقطع الاتصال أثناء الرفع"
+          : "تعذر رفع الملف، حاول تاني",
       { id },
     );
     return { ok: false, error: msg };

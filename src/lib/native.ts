@@ -32,7 +32,9 @@ export async function setupStatusBar() {
 export function installGlobalHaptics() {
   if (typeof document === "undefined") return () => {};
   const onClick = (e: Event) => {
-    const t = (e.target as HTMLElement | null)?.closest?.("button, a, [role='button'], [role='tab']");
+    const t = (e.target as HTMLElement | null)?.closest?.(
+      "button, a, [role='button'], [role='tab']",
+    );
     if (t) void hapticLight();
   };
   document.addEventListener("click", onClick, { capture: true, passive: true });
@@ -59,7 +61,9 @@ export async function syncNativeMedReminders(meds: NativeMed[]) {
     }
     const pending = await LocalNotifications.getPending();
     if (pending.notifications.length) {
-      await LocalNotifications.cancel({ notifications: pending.notifications.map((n) => ({ id: n.id })) });
+      await LocalNotifications.cancel({
+        notifications: pending.notifications.map((n) => ({ id: n.id })),
+      });
     }
     const notifications = meds.flatMap((m) =>
       m.times
@@ -85,22 +89,32 @@ export function installAndroidBack(toast: (msg: string) => unknown) {
   if (!isNative()) return () => {};
   let lastPress = 0;
   let remove: (() => void) | undefined;
-  void import("@capacitor/app").then(async ({ App }) => {
-    const h = await App.addListener("backButton", () => {
-      const dialog = document.querySelector('[role="dialog"][data-state="open"], [role="dialog"]');
-      if (dialog) {
-        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-        return;
-      }
-      const p = window.location.pathname;
-      const isRoot = p === "/" || p === "/patient" || p === "/doctor";
-      if (!isRoot && window.history.length > 1) { window.history.back(); return; }
-      const now = Date.now();
-      if (now - lastPress < 2000) { void App.exitApp(); return; }
-      lastPress = now;
-      toast("اضغط رجوع مرة تانية للخروج");
-    });
-    remove = () => void h.remove();
-  }).catch(() => {});
+  void import("@capacitor/app")
+    .then(async ({ App }) => {
+      const h = await App.addListener("backButton", () => {
+        const dialog = document.querySelector(
+          '[role="dialog"][data-state="open"], [role="dialog"]',
+        );
+        if (dialog) {
+          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+          return;
+        }
+        const p = window.location.pathname;
+        const isRoot = p === "/" || p === "/patient" || p === "/doctor";
+        if (!isRoot && window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+        const now = Date.now();
+        if (now - lastPress < 2000) {
+          void App.exitApp();
+          return;
+        }
+        lastPress = now;
+        toast("اضغط رجوع مرة تانية للخروج");
+      });
+      remove = () => void h.remove();
+    })
+    .catch(() => {});
   return () => remove?.();
 }

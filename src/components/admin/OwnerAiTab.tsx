@@ -5,7 +5,12 @@ import { ownerAiChat } from "@/lib/owner-ai.functions";
 
 type Msg = { role: "user" | "assistant"; text: string };
 
-const QUICK = ["ملخص نشاط النهارده", "إحصائيات الحجوزات", "فيه أخطاء أو مشاكل في النظام؟", "العيادات اللي مستنية توثيق"];
+const QUICK = [
+  "ملخص نشاط النهارده",
+  "إحصائيات الحجوزات",
+  "فيه أخطاء أو مشاكل في النظام؟",
+  "العيادات اللي مستنية توثيق",
+];
 
 export function OwnerAiTab() {
   const chat = useServerFn(ownerAiChat);
@@ -13,7 +18,9 @@ export function OwnerAiTab() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, busy]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs, busy]);
 
   async function send(text: string) {
     const t = text.trim();
@@ -47,7 +54,11 @@ export function OwnerAiTab() {
         {msgs.length === 0 && (
           <div className="grid grid-cols-2 gap-2">
             {QUICK.map((q) => (
-              <button key={q} onClick={() => send(q)} className="rounded-xl bg-secondary p-3 text-start text-xs font-semibold text-foreground active:scale-95">
+              <button
+                key={q}
+                onClick={() => send(q)}
+                className="rounded-xl bg-secondary p-3 text-start text-xs font-semibold text-foreground active:scale-95"
+              >
                 {q}
               </button>
             ))}
@@ -84,7 +95,11 @@ export function OwnerAiTab() {
           placeholder="اسأل عن أي حاجة في التطبيق…"
           className="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
         />
-        <button type="submit" disabled={busy || !input.trim()} className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground disabled:opacity-50">
+        <button
+          type="submit"
+          disabled={busy || !input.trim()}
+          className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground disabled:opacity-50"
+        >
           <Send className="h-4 w-4" />
         </button>
       </form>

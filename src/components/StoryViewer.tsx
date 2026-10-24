@@ -116,7 +116,9 @@ export function StoryViewer({
 
   useEffect(() => {
     document.body.dataset.storyOpen = "true";
-    return () => { delete document.body.dataset.storyOpen; };
+    return () => {
+      delete document.body.dataset.storyOpen;
+    };
   }, []);
 
   if (!current) return null;
@@ -186,7 +188,9 @@ export function StoryViewer({
       <div
         className="relative h-full w-full max-w-md overflow-hidden bg-black sm:h-[92vh] sm:rounded-3xl"
         style={{
-          transform: closing ? "translateY(100%) scale(0.9)" : `translateY(${dragY}px) scale(${scale})`,
+          transform: closing
+            ? "translateY(100%) scale(0.9)"
+            : `translateY(${dragY}px) scale(${scale})`,
           transition: dragY && !closing ? "none" : "transform 260ms cubic-bezier(.2,.9,.3,1.2)",
           borderRadius: dragY ? 24 : undefined,
         }}
@@ -210,15 +214,30 @@ export function StoryViewer({
                 onEnded={next}
               />
             ) : (
-              <img src={current.url} alt={current.caption || title} className="h-full w-full object-contain" draggable={false} />
+              <img
+                src={current.url}
+                alt={current.caption || title}
+                className="h-full w-full object-contain"
+                draggable={false}
+              />
             )
           ) : parseCardStyle(current.tag) ? (
-            <div className={`absolute inset-0 grid place-items-center p-8 card-bg-${parseCardStyle(current.tag)!.bg}`}>
-              <p className={`whitespace-pre-wrap text-center text-3xl leading-relaxed text-white drop-shadow font-card-${parseCardStyle(current.tag)!.font}`}>{current.caption}</p>
+            <div
+              className={`absolute inset-0 grid place-items-center p-8 card-bg-${parseCardStyle(current.tag)!.bg}`}
+            >
+              <p
+                className={`whitespace-pre-wrap text-center text-3xl leading-relaxed text-white drop-shadow font-card-${parseCardStyle(current.tag)!.font}`}
+              >
+                {current.caption}
+              </p>
             </div>
           ) : (
-            <div className={`mx-6 rounded-3xl p-8 text-center ${current.kind === "urgent" ? "border border-destructive/50 bg-destructive/20" : "bg-white/10"}`}>
-              {current.kind === "urgent" && <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-destructive" />}
+            <div
+              className={`mx-6 rounded-3xl p-8 text-center ${current.kind === "urgent" ? "border border-destructive/50 bg-destructive/20" : "bg-white/10"}`}
+            >
+              {current.kind === "urgent" && (
+                <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-destructive" />
+              )}
               <p className="text-xl font-extrabold leading-relaxed text-white">{current.caption}</p>
             </div>
           )}
@@ -235,7 +254,9 @@ export function StoryViewer({
         />
 
         {/* header */}
-        <div className={`absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/70 to-transparent pb-6 transition-opacity duration-200 ${hideUi ? "opacity-0" : "opacity-100"}`}>
+        <div
+          className={`absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/70 to-transparent pb-6 transition-opacity duration-200 ${hideUi ? "opacity-0" : "opacity-100"}`}
+        >
           <div className="flex gap-1 p-2 pt-[calc(env(safe-area-inset-top)+0.5rem)]">
             {items.map((s, i) => (
               <span key={s.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
@@ -249,11 +270,19 @@ export function StoryViewer({
           <div className="flex items-center justify-between gap-2 px-3">
             <div className="flex min-w-0 items-center gap-2">
               <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-white/15 ring-2 ring-white/70">
-                {avatar ? <img src={avatar} alt={title} className="h-full w-full object-cover" /> : <span className="text-sm font-black text-white">{title.replace(/^(دكتوره|دكتور|د\.?)\s*/, "").charAt(0)}</span>}
+                {avatar ? (
+                  <img src={avatar} alt={title} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-sm font-black text-white">
+                    {title.replace(/^(دكتوره|دكتور|د\.?)\s*/, "").charAt(0)}
+                  </span>
+                )}
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-extrabold text-white">{title}</p>
-                <p className="text-[11px] font-medium text-white/70">{timeAgo(current.createdAt)}</p>
+                <p className="text-[11px] font-medium text-white/70">
+                  {timeAgo(current.createdAt)}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -263,11 +292,19 @@ export function StoryViewer({
                 </span>
               )}
               {isOwner && onDelete && (
-                <button onClick={() => onDelete(current.id)} aria-label="حذف الستوري" className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur">
+                <button
+                  onClick={() => onDelete(current.id)}
+                  aria-label="حذف الستوري"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
               )}
-              <button onClick={close} aria-label="إغلاق" className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur">
+              <button
+                onClick={close}
+                aria-label="إغلاق"
+                className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -275,11 +312,17 @@ export function StoryViewer({
         </div>
 
         {/* caption + inquiry */}
-        <div className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-10 transition-opacity duration-200 ${hideUi ? "opacity-0" : "opacity-100"}`}>
+        <div
+          className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-10 transition-opacity duration-200 ${hideUi ? "opacity-0" : "opacity-100"}`}
+        >
           {current.tag && (
-            <span className="mb-2 inline-block rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold text-primary-foreground">{current.tag}</span>
+            <span className="mb-2 inline-block rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold text-primary-foreground">
+              {current.tag}
+            </span>
           )}
-          {current.url && current.caption && <p className="mb-3 text-sm font-bold leading-relaxed text-white">{current.caption}</p>}
+          {current.url && current.caption && (
+            <p className="mb-3 text-sm font-bold leading-relaxed text-white">{current.caption}</p>
+          )}
           {!isOwner && (
             <div className="flex items-center gap-2">
               <input
@@ -291,11 +334,19 @@ export function StoryViewer({
                 placeholder="ارسل استفسار للطبيب…"
                 className="h-11 min-w-0 flex-1 rounded-full border border-white/40 bg-transparent px-4 text-sm text-white placeholder:text-white/60 focus:outline-none"
               />
-              <button onClick={() => sendInquiry("chat")} aria-label="إرسال داخل التطبيق" className="grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground">
+              <button
+                onClick={() => sendInquiry("chat")}
+                aria-label="إرسال داخل التطبيق"
+                className="grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground"
+              >
                 <Send className="h-4 w-4 -scale-x-100" />
               </button>
               {waNumber(phone ?? "") && (
-                <button onClick={() => sendInquiry("wa")} aria-label="واتساب" className="h-11 rounded-full bg-white/15 px-3 text-xs font-extrabold text-white">
+                <button
+                  onClick={() => sendInquiry("wa")}
+                  aria-label="واتساب"
+                  className="h-11 rounded-full bg-white/15 px-3 text-xs font-extrabold text-white"
+                >
                   واتساب
                 </button>
               )}

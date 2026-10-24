@@ -21,7 +21,9 @@ export const svrGetClinicStories = createServerFn({ method: "POST" })
 
     const { data: rows } = await supabaseAdmin
       .from("clinic_stories")
-      .select("id, media_url, media_type, caption, kind, tag, views_count, highlight_id, expires_at, is_pinned, created_at")
+      .select(
+        "id, media_url, media_type, caption, kind, tag, views_count, highlight_id, expires_at, is_pinned, created_at",
+      )
       .eq("clinic_id", data.clinicId)
       .order("created_at", { ascending: false })
       .limit(120);
@@ -30,7 +32,9 @@ export const svrGetClinicStories = createServerFn({ method: "POST" })
     const paths = all.map((s) => s.media_url).filter((p) => !!p);
     const signed = new Map<string, string>();
     if (paths.length) {
-      const { data: urls } = await supabaseAdmin.storage.from(BUCKET).createSignedUrls(paths, 60 * 60 * 6);
+      const { data: urls } = await supabaseAdmin.storage
+        .from(BUCKET)
+        .createSignedUrls(paths, 60 * 60 * 6);
       for (const u of urls ?? []) if (u.path && u.signedUrl) signed.set(u.path, u.signedUrl);
     }
 
@@ -69,36 +73,46 @@ export const svrGetClinicStories = createServerFn({ method: "POST" })
 /** Clinic staff: publish a story (media or urgent text), optionally pinned to a highlight. */
 export const svrAddStory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
-    clinicId: string;
-    kind?: "story" | "urgent";
-    caption?: string;
-    highlightId?: string | null;
-    fileName?: string;
-    contentType?: string;
-    base64?: string;
-    durationHours?: number;
-    cardStyle?: string;
-  }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-    const base64 = String(data.base64 ?? "");
-    if (base64 && base64.length > 9_000_000) throw new Error("FILE_TOO_LARGE");
-    const contentType = String(data.contentType ?? "");
-    if (base64 && !/^(image|video)\//.test(contentType)) throw new Error("INVALID_TYPE");
-    const caption = String(data.caption ?? "").slice(0, 300);
-    if (!base64 && !caption) throw new Error("Invalid input");
-    return {
-      clinicId: data.clinicId,
-      kind: data.kind === "urgent" ? ("urgent" as const) : ("story" as const),
-      caption,
-      highlightId: typeof data.highlightId === "string" && data.highlightId ? data.highlightId : null,
-      fileName: String(data.fileName ?? "story").slice(-60).replace(/[^a-zA-Z0-9._-]/g, "_"),
-      contentType,
-      base64,
-      durationHours: data.durationHours === 12 ? 12 : 24,
-      cardStyle: /^card:(navy|ocean|emerald|gold|rose|lavender|sunset|night):(alexandria|kufi|ruqaa|lalezar|amiri|marhey)$/.test(String(data.cardStyle ?? "")) && !base64 ? String(data.cardStyle) : "",
-    };
-  })
+  .inputValidator(
+    (data: {
+      clinicId: string;
+      kind?: "story" | "urgent";
+      caption?: string;
+      highlightId?: string | null;
+      fileName?: string;
+      contentType?: string;
+      base64?: string;
+      durationHours?: number;
+      cardStyle?: string;
+    }) => {
+      if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+      const base64 = String(data.base64 ?? "");
+      if (base64 && base64.length > 9_000_000) throw new Error("FILE_TOO_LARGE");
+      const contentType = String(data.contentType ?? "");
+      if (base64 && !/^(image|video)\//.test(contentType)) throw new Error("INVALID_TYPE");
+      const caption = String(data.caption ?? "").slice(0, 300);
+      if (!base64 && !caption) throw new Error("Invalid input");
+      return {
+        clinicId: data.clinicId,
+        kind: data.kind === "urgent" ? ("urgent" as const) : ("story" as const),
+        caption,
+        highlightId:
+          typeof data.highlightId === "string" && data.highlightId ? data.highlightId : null,
+        fileName: String(data.fileName ?? "story")
+          .slice(-60)
+          .replace(/[^a-zA-Z0-9._-]/g, "_"),
+        contentType,
+        base64,
+        durationHours: data.durationHours === 12 ? 12 : 24,
+        cardStyle:
+          /^card:(navy|ocean|emerald|gold|rose|lavender|sunset|night):(alexandria|kufi|ruqaa|lalezar|amiri|marhey)$/.test(
+            String(data.cardStyle ?? ""),
+          ) && !base64
+            ? String(data.cardStyle)
+            : "",
+      };
+    },
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
@@ -120,7 +134,9 @@ export const svrAddStory = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("clinic_stories").insert({
       clinic_id: data.clinicId,
       highlight_id: data.highlightId,
-      expires_at: new Date(Date.now() + (data.highlightId ? 3650 * 864e5 : data.durationHours * 36e5)).toISOString(),
+      expires_at: new Date(
+        Date.now() + (data.highlightId ? 3650 * 864e5 : data.durationHours * 36e5),
+      ).toISOString(),
       media_url: path,
       media_type: data.contentType.startsWith("video/") ? "video" : "image",
       caption: data.caption,
@@ -162,7 +178,9 @@ export const svrCreateHighlight = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { clinicId: string; title: string; emoji?: string }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-    const title = String(data.title ?? "").trim().slice(0, 40);
+    const title = String(data.title ?? "")
+      .trim()
+      .slice(0, 40);
     if (!title) throw new Error("Invalid input");
     return { clinicId: data.clinicId, title, emoji: String(data.emoji ?? "✨").slice(0, 8) };
   })
@@ -206,7 +224,8 @@ export const svrDeleteHighlight = createServerFn({ method: "POST" })
 export const svrPinStories = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { highlightId: string; storyIds: string[] }) => {
-    if (!data || typeof data.highlightId !== "string" || !Array.isArray(data.storyIds)) throw new Error("Invalid input");
+    if (!data || typeof data.highlightId !== "string" || !Array.isArray(data.storyIds))
+      throw new Error("Invalid input");
     const storyIds = data.storyIds.filter((s) => typeof s === "string").slice(0, 50);
     if (!storyIds.length) throw new Error("Invalid input");
     return { highlightId: data.highlightId, storyIds };
@@ -215,7 +234,10 @@ export const svrPinStories = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     const { data: h } = await supabaseAdmin
-      .from("clinic_highlights").select("id, clinic_id").eq("id", data.highlightId).maybeSingle();
+      .from("clinic_highlights")
+      .select("id, clinic_id")
+      .eq("id", data.highlightId)
+      .maybeSingle();
     if (!h) throw new Error("FORBIDDEN");
     await assertClinicManager(supabaseAdmin, h.clinic_id, context.userId);
     const { error } = await supabaseAdmin
@@ -238,7 +260,10 @@ export const svrRemoveClinicAvatar = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
-    const { error } = await supabaseAdmin.from("clinics").update({ avatar_url: "" }).eq("id", data.clinicId);
+    const { error } = await supabaseAdmin
+      .from("clinics")
+      .update({ avatar_url: "" })
+      .eq("id", data.clinicId);
     if (error) throw new Error("REMOVE_FAILED");
     return { ok: true as const };
   });
@@ -246,12 +271,21 @@ export const svrRemoveClinicAvatar = createServerFn({ method: "POST" })
 /** Public: count one view of a story (best effort). */
 export const svrViewStory = createServerFn({ method: "POST" })
   .inputValidator((data: { storyId: string }) => {
-    if (!data || typeof data.storyId !== "string" || !/^[0-9a-f-]{36}$/i.test(data.storyId)) throw new Error("Invalid input");
+    if (!data || typeof data.storyId !== "string" || !/^[0-9a-f-]{36}$/i.test(data.storyId))
+      throw new Error("Invalid input");
     return { storyId: data.storyId };
   })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await supabaseAdmin.from("clinic_stories").select("views_count").eq("id", data.storyId).maybeSingle();
-    if (row) await supabaseAdmin.from("clinic_stories").update({ views_count: (row.views_count ?? 0) + 1 }).eq("id", data.storyId);
+    const { data: row } = await supabaseAdmin
+      .from("clinic_stories")
+      .select("views_count")
+      .eq("id", data.storyId)
+      .maybeSingle();
+    if (row)
+      await supabaseAdmin
+        .from("clinic_stories")
+        .update({ views_count: (row.views_count ?? 0) + 1 })
+        .eq("id", data.storyId);
     return { ok: true as const };
   });

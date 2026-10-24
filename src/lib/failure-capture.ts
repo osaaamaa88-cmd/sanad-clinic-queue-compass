@@ -8,7 +8,11 @@ if (typeof window !== "undefined" && !(toast as unknown as { __sanad?: boolean }
   (toast as unknown as { __sanad: boolean }).__sanad = true;
   (toast as { error: typeof toast.error }).error = ((msg, opts) => {
     reportSaveFailure({
-      data: { action: document.title.split("|")[0].trim() || "حفظ", message: redact(typeof msg === "function" ? "error" : msg), path: location.pathname },
+      data: {
+        action: document.title.split("|")[0].trim() || "حفظ",
+        message: redact(typeof msg === "function" ? "error" : msg),
+        path: location.pathname,
+      },
     }).catch(() => {});
     return orig(msg, opts);
   }) as typeof toast.error;
@@ -24,7 +28,9 @@ if (typeof window !== "undefined" && !(window as unknown as { __sanadRt?: boolea
     seen.add(msg);
     import("@/lib/voice-assist.functions")
       .then(({ reportRuntimeError }) =>
-        reportRuntimeError({ data: { message: msg, screen: location.pathname, device: navigator.userAgent } }),
+        reportRuntimeError({
+          data: { message: msg, screen: location.pathname, device: navigator.userAgent },
+        }),
       )
       .catch(() => {});
   };

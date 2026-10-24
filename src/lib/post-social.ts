@@ -29,17 +29,23 @@ export function getViewerKey(): string {
 }
 
 export function postShareUrl(postId: string): string {
-  const origin = typeof window === "undefined" ? "https://tabeebak-egypt.lovable.app" : window.location.origin;
+  const origin =
+    typeof window === "undefined" ? "https://tabeebak-egypt.lovable.app" : window.location.origin;
   return `${origin}/p/${postId}`;
 }
 
 export function clinicShareUrl(clinicId: string): string {
-  const origin = typeof window === "undefined" ? "https://tabeebak-egypt.lovable.app" : window.location.origin;
+  const origin =
+    typeof window === "undefined" ? "https://tabeebak-egypt.lovable.app" : window.location.origin;
   return `${origin}/patient/clinic/${clinicId}`;
 }
 
 /** Native share sheet with a WhatsApp fallback. */
-export async function shareLink(opts: { title: string; text: string; url: string }): Promise<"shared" | "whatsapp" | "copied"> {
+export async function shareLink(opts: {
+  title: string;
+  text: string;
+  url: string;
+}): Promise<"shared" | "whatsapp" | "copied"> {
   const nav = typeof navigator === "undefined" ? undefined : navigator;
   if (nav && typeof nav.share === "function") {
     try {

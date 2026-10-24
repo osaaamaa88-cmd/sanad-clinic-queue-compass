@@ -10,7 +10,8 @@ function ensureAuthListener() {
   if (listening || typeof window === "undefined") return;
   listening = true;
   supabase.auth.onAuthStateChange((event) => {
-    if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") resetDoctorModeCache();
+    if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED")
+      resetDoctorModeCache();
   });
 }
 
@@ -21,7 +22,9 @@ export function useDoctorClinicId(): string | null {
     ensureAuthListener();
     let alive = true;
     const load = () => {
-      cache ??= getMyClinicMembership().then((m) => m.clinic?.id ?? null).catch(() => null);
+      cache ??= getMyClinicMembership()
+        .then((m) => m.clinic?.id ?? null)
+        .catch(() => null);
       void cache.then((v) => alive && setId(v));
     };
     load();

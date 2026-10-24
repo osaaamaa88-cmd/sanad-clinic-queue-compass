@@ -6,10 +6,7 @@
     "framework": "react",
     "css_framework": "tailwind",
     "starter_template": "custom_design_system_tailwind",
-    "theme_files": [
-      "src/lib/theme.ts",
-      "src/styles.css"
-    ],
+    "theme_files": ["src/lib/theme.ts", "src/styles.css"],
     "source_type": "local",
     "source_manifest": {
       "#enrichment": "cc27faa7867ae585151f0f39f58cda1f707948d4d787d371fd56a51d1e45fcfe",
@@ -597,10 +594,7 @@
         {
           "name": "size",
           "type": "enum",
-          "values": [
-            "default",
-            "compact"
-          ],
+          "values": ["default", "compact"],
           "default": "default"
         }
       ],
@@ -776,25 +770,13 @@
         {
           "name": "variant",
           "type": "enum",
-          "values": [
-            "default",
-            "destructive",
-            "outline",
-            "secondary",
-            "ghost",
-            "link"
-          ],
+          "values": ["default", "destructive", "outline", "secondary", "ghost", "link"],
           "default": "default"
         },
         {
           "name": "size",
           "type": "enum",
-          "values": [
-            "default",
-            "sm",
-            "lg",
-            "icon"
-          ],
+          "values": ["default", "sm", "lg", "icon"],
           "default": "default"
         },
         {

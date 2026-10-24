@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 import { Users, Clock, Bell, MapPin } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import { checkQueueProximity, ensureNotificationPermission, pushLocalNotification } from "@/lib/notifications";
+import {
+  checkQueueProximity,
+  ensureNotificationPermission,
+  pushLocalNotification,
+} from "@/lib/notifications";
 import { getVerifiedClinic, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/queue/$id")({
@@ -66,7 +70,12 @@ function Queue() {
     };
   }, [id, yourNumber]);
 
-  if (!loaded) return <AppShell title="جاري التحميل…" backTo="/patient"><div /></AppShell>;
+  if (!loaded)
+    return (
+      <AppShell title="جاري التحميل…" backTo="/patient">
+        <div />
+      </AppShell>
+    );
   if (!clinic) {
     return (
       <AppShell title="غير متاح" backTo="/patient">
@@ -89,19 +98,21 @@ function Queue() {
     >
       <div className="-mt-6 rounded-3xl bg-card p-6 text-center shadow-soft">
         <p className="text-sm text-muted-foreground">دورك</p>
-        <div className="mt-1 text-6xl font-black text-primary">
-          {yourNumber}
-        </div>
+        <div className="mt-1 text-6xl font-black text-primary">{yourNumber}</div>
         <p className="mt-3 text-sm text-muted-foreground">النمرة اللي جوه دلوقتي</p>
-        <div className="mt-1 text-4xl font-extrabold">
-          {current}
-        </div>
+        <div className="mt-1 text-4xl font-extrabold">{current}</div>
 
-        <div className={`mt-5 rounded-2xl p-4 text-center ${
-          arrived ? "bg-success text-success-foreground" : "bg-primary-soft text-primary"
-        }`}>
+        <div
+          className={`mt-5 rounded-2xl p-4 text-center ${
+            arrived ? "bg-success text-success-foreground" : "bg-primary-soft text-primary"
+          }`}
+        >
           <p className="text-lg font-extrabold">
-            {arrived ? "🎉 دورك دلوقتي! اتفضل" : ahead === 0 ? "دورك بعد المريض ده مباشرة" : `فاضل قدامك ${ahead} مرضى`}
+            {arrived
+              ? "🎉 دورك دلوقتي! اتفضل"
+              : ahead === 0
+                ? "دورك بعد المريض ده مباشرة"
+                : `فاضل قدامك ${ahead} مرضى`}
           </p>
           {!arrived && (
             <p className="mt-1 text-xs opacity-80">
@@ -122,7 +133,9 @@ function Queue() {
           <MapPin className="mt-0.5 h-5 w-5 text-primary" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold">{clinic.doctor}</p>
-            <p className="text-xs text-muted-foreground">{clinic.address} — {clinic.area}</p>
+            <p className="text-xs text-muted-foreground">
+              {clinic.address} — {clinic.area}
+            </p>
           </div>
         </div>
       </div>

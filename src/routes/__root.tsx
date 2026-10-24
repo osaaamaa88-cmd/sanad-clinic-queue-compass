@@ -52,7 +52,11 @@ function ErrorComponent({ error, reset }: import("@tanstack/react-router").Error
   const router = useRouter();
   useEffect(() => {
     const msg = error instanceof Error ? error.message : String(error);
-    if (/Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module|evaluating 'e\[t\?\?|reading 'default'|\['default'\]/i.test(msg)) {
+    if (
+      /Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module|evaluating 'e\[t\?\?|reading 'default'|\['default'\]/i.test(
+        msg,
+      )
+    ) {
       try {
         const last = Number(sessionStorage.getItem("sanad:chunk-reload") || 0);
         if (Date.now() - last > 10000) {
@@ -60,7 +64,9 @@ function ErrorComponent({ error, reset }: import("@tanstack/react-router").Error
           window.location.reload();
           return;
         }
-      } catch {}
+      } catch {
+        // Reload failure inside the error boundary — nothing more we can do.
+      }
     }
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -101,7 +107,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
+      },
       { title: "سَنَد — اختر دورك" },
       { name: "description", content: "سَنَد: احجز عند أقرب طبيب واعرف دورك أول بأول." },
       { property: "og:title", content: "سَنَد — اختر دورك" },
@@ -165,7 +175,10 @@ function RootComponent() {
     void setupStatusBar();
     const offBack = installAndroidBack(toast);
     const offHaptics = installGlobalHaptics();
-    return () => { offBack(); offHaptics(); };
+    return () => {
+      offBack();
+      offHaptics();
+    };
   }, []);
 
   return (

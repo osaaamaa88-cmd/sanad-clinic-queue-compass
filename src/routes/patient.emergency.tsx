@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Phone, MapPin, Clock, Filter, MessageCircle } from "lucide-react";
+import { Phone, MapPin, Clock, Filter, MessageCircle, HeartPulse } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { NearestHospitals } from "@/components/NearestHospitals";
 import {
@@ -10,10 +10,31 @@ import {
   type EmergencyFacility,
 } from "@/lib/emergency-data";
 import { useEffect } from "react";
-import { Siren, ShieldAlert, Flame, Skull, Hospital, ScanLine, Stethoscope, Pill, LayoutGrid, type LucideIcon } from "lucide-react";
+import {
+  Siren,
+  ShieldAlert,
+  Flame,
+  Skull,
+  Hospital,
+  ScanLine,
+  Stethoscope,
+  Pill,
+  LayoutGrid,
+  type LucideIcon,
+} from "lucide-react";
 
-const hotlineIcons: Record<string, LucideIcon> = { amb: Siren, pol: ShieldAlert, fire: Flame, poison: Skull };
-const typeIcons: Record<string, LucideIcon> = { hospital: Hospital, radiology: ScanLine, clinic: Stethoscope, pharmacy: Pill };
+const hotlineIcons: Record<string, LucideIcon> = {
+  amb: Siren,
+  pol: ShieldAlert,
+  fire: Flame,
+  poison: Skull,
+};
+const typeIcons: Record<string, LucideIcon> = {
+  hospital: Hospital,
+  radiology: ScanLine,
+  clinic: Stethoscope,
+  pharmacy: Pill,
+};
 
 export const Route = createFileRoute("/patient/emergency")({
   staticData: { sitemap: true },
@@ -22,7 +43,8 @@ export const Route = createFileRoute("/patient/emergency")({
       { title: "طوارئ سَنَد — أقرب مستشفى ومركز أشعة مفتوح الآن" },
       {
         name: "description",
-        content: "المستشفيات ومراكز الأشعة والعيادات المفتوحة 24 ساعة قريب منك مع اتصال مباشر بالطوارئ.",
+        content:
+          "المستشفيات ومراكز الأشعة والعيادات المفتوحة 24 ساعة قريب منك مع اتصال مباشر بالطوارئ.",
       },
     ],
   }),
@@ -63,8 +85,13 @@ function EmergencyPage() {
       backTo="/patient"
       tone="primary"
     >
-      <Link to="/hospitals" className="relative z-10 -mt-6 mb-8 flex items-center justify-between rounded-2xl bg-card p-4 font-bold shadow-soft">
-        <span className="flex items-center gap-2"><Hospital className="h-5 w-5 text-primary" /> دليل المستشفيات الحكومية في كل المحافظات</span>
+      <Link
+        to="/hospitals"
+        className="relative z-10 -mt-6 mb-8 flex items-center justify-between rounded-2xl bg-card p-4 font-bold shadow-soft"
+      >
+        <span className="flex items-center gap-2">
+          <Hospital className="h-5 w-5 text-primary" /> دليل المستشفيات الحكومية في كل المحافظات
+        </span>
         <span>←</span>
       </Link>
       <NearestHospitals />
@@ -86,7 +113,14 @@ function EmergencyPage() {
               href={`tel:${h.phone}`}
               className="flex items-center gap-2 rounded-2xl border border-border bg-secondary p-3"
             >
-              {(() => { const I = hotlineIcons[h.id] ?? Siren; return <span className="grid h-9 w-9 place-items-center rounded-xl bg-destructive/15 text-destructive"><I className="h-5 w-5" /></span>; })()}
+              {(() => {
+                const I = hotlineIcons[h.id] ?? Siren;
+                return (
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-destructive/15 text-destructive">
+                    <I className="h-5 w-5" />
+                  </span>
+                );
+              })()}
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">{h.label}</p>
                 <p className="text-xs text-muted-foreground">{h.phone}</p>
@@ -96,6 +130,22 @@ function EmergencyPage() {
           ))}
         </div>
       </div>
+
+      <Link
+        to="/patient/first-aid"
+        className="mt-4 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400"
+      >
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-700">
+          <HeartPulse className="h-6 w-6" />
+        </span>
+        <span className="flex-1">
+          <span className="block text-sm font-extrabold text-rose-950">دليل الإسعافات الأولية</span>
+          <span className="block text-xs text-rose-800">
+            خطوات سريعة تعمل بدون إنترنت — احفظه في جهازك
+          </span>
+        </span>
+        <span className="text-xs font-bold text-rose-700">افتح ←</span>
+      </Link>
 
       {/* Filters */}
       <div className="mt-5">
@@ -115,15 +165,15 @@ function EmergencyPage() {
             ).map((t) => {
               const I = t.id === "all" ? LayoutGrid : typeIcons[t.id];
               return (
-              <button
-                key={t.id}
-                onClick={() => setType(t.id)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
-                  type === t.id ? "gradient-primary text-white" : "bg-secondary text-foreground"
-                }`}
-              >
-                <I className="h-3.5 w-3.5" /> {t.label}
-              </button>
+                <button
+                  key={t.id}
+                  onClick={() => setType(t.id)}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold ${
+                    type === t.id ? "gradient-primary text-white" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  <I className="h-3.5 w-3.5" /> {t.label}
+                </button>
               );
             })}
           </div>
@@ -171,7 +221,10 @@ function EmergencyPage() {
             <div key={f.id} className="rounded-2xl border border-border bg-card p-4">
               <div className="flex items-start gap-3">
                 <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary-soft text-2xl">
-                  {(() => { const I = typeIcons[f.type] ?? Stethoscope; return <I className="h-6 w-6 text-primary" />; })()}
+                  {(() => {
+                    const I = typeIcons[f.type] ?? Stethoscope;
+                    return <I className="h-6 w-6 text-primary" />;
+                  })()}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">

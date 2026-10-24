@@ -15,4 +15,3 @@ The full machine-readable catalog lives in this library's `design-system.json` (
 - `@/design-system/{slug}/assets/osama-portrait.jpg.asset.json` (jpg, R2 pointer)
 - `@/design-system/{slug}/assets/osama-retro-2004.png.asset.json` (png, R2 pointer)
 - `@/design-system/{slug}/assets/sanad-favicon.png` (png)
-

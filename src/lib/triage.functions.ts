@@ -40,7 +40,10 @@ export const aiTriage = createServerFn({ method: "POST" })
             headers: { "content-type": "application/json", "x-goog-api-key": key },
             body: JSON.stringify({
               contents: [{ role: "user", parts: [{ text: prompt }] }],
-              generationConfig: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
+              generationConfig: {
+                responseMimeType: "application/json",
+                thinkingConfig: { thinkingLevel: "low" },
+              },
             }),
             signal: AbortSignal.timeout(40_000),
           },
@@ -50,11 +53,17 @@ export const aiTriage = createServerFn({ method: "POST" })
           return null;
         }
         const json: any = await res.json().catch(() => ({}));
-        const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? "").join("");
+        const raw = (json?.candidates?.[0]?.content?.parts ?? [])
+          .map((p: any) => p.text ?? "")
+          .join("");
         const o = JSON.parse(raw.replace(/```json|```/g, "").trim());
-        const valid = (Array.isArray(o?.specialtyIds) ? o.specialtyIds : []).filter((id: string) => ids.includes(id)).slice(0, 2);
+        const valid = (Array.isArray(o?.specialtyIds) ? o.specialtyIds : [])
+          .filter((id: string) => ids.includes(id))
+          .slice(0, 2);
         if (!valid.length) return null;
-        const urgency = ["emergency", "soon", "routine"].includes(o?.urgency) ? o.urgency : "routine";
+        const urgency = ["emergency", "soon", "routine"].includes(o?.urgency)
+          ? o.urgency
+          : "routine";
         return {
           specialtyIds: valid,
           urgency,

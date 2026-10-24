@@ -10,7 +10,12 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [unread, setUnread] = useState(0);
   const [rxOpen, setRxOpen] = useState(false);
-  const [info, setInfo] = useState({ doctor: "", specialty: "", clinicAddress: "", clinicPhone: "" });
+  const [info, setInfo] = useState({
+    doctor: "",
+    specialty: "",
+    clinicAddress: "",
+    clinicPhone: "",
+  });
 
   useEffect(() => {
     let alive = true;
@@ -23,7 +28,11 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
     void refresh();
     const ch = supabase
       .channel(`doctor-nav-unread-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "clinic_messages" }, () => void refresh())
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "clinic_messages" },
+        () => void refresh(),
+      )
       .subscribe();
     return () => {
       alive = false;
@@ -33,34 +42,92 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
 
   useEffect(() => {
     if (!clinicId) return;
-    void supabase.from("clinics").select("*").eq("id", clinicId).maybeSingle().then(({ data }) => {
-      if (!data) return;
-      const d = data as Record<string, unknown>;
-      setInfo({ doctor: String(d.doctor ?? ""), specialty: getSpecialty(String(d.specialty_id ?? ""))?.name ?? "", clinicAddress: [d.address, d.area].filter(Boolean).map(String).join(" — "), clinicPhone: String(d.phone ?? "") });
-    });
+    void supabase
+      .from("clinics")
+      .select("*")
+      .eq("id", clinicId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const d = data as Record<string, unknown>;
+        setInfo({
+          doctor: String(d.doctor ?? ""),
+          specialty: getSpecialty(String(d.specialty_id ?? ""))?.name ?? "",
+          clinicAddress: [d.address, d.area].filter(Boolean).map(String).join(" — "),
+          clinicPhone: String(d.phone ?? ""),
+        });
+      });
   }, [clinicId]);
 
   const items = [
-    { key: "profile", label: "عيادتي", icon: Stethoscope, active: pathname === "/doctor" || pathname === "/doctor/" || pathname.startsWith("/patient/clinic/"), node: clinicId ? { to: "/patient/clinic/$id" as const, params: { id: clinicId } } : { to: "/doctor" as const } },
-    { key: "community", label: "المجتمع", icon: UsersRound, active: pathname.startsWith("/community"), node: { to: "/community" as const } },
+    {
+      key: "profile",
+      label: "عيادتي",
+      icon: Stethoscope,
+      active:
+        pathname === "/doctor" ||
+        pathname === "/doctor/" ||
+        pathname.startsWith("/patient/clinic/"),
+      node: clinicId
+        ? { to: "/patient/clinic/$id" as const, params: { id: clinicId } }
+        : { to: "/doctor" as const },
+    },
+    {
+      key: "community",
+      label: "المجتمع",
+      icon: UsersRound,
+      active: pathname.startsWith("/community"),
+      node: { to: "/community" as const },
+    },
     { key: "rx" },
-    { key: "msgs", label: "الرسائل", icon: MessagesSquare, active: pathname.startsWith("/messages"), node: { to: "/messages" as const }, badge: unread },
-    { key: "settings", label: "الإعدادات", icon: Settings, active: pathname.startsWith("/doctor-settings"), node: { to: "/doctor-settings" as const } },
+    {
+      key: "msgs",
+      label: "الرسائل",
+      icon: MessagesSquare,
+      active: pathname.startsWith("/messages"),
+      node: { to: "/messages" as const },
+      badge: unread,
+    },
+    {
+      key: "settings",
+      label: "الإعدادات",
+      icon: Settings,
+      active: pathname.startsWith("/doctor-settings"),
+      node: { to: "/doctor-settings" as const },
+    },
   ];
 
   return (
     <>
       {!pathname.startsWith("/find-doctor") && (
-        <Link to="/find-doctor" aria-label="ابحث عن زميل" data-bottom-nav className="fixed left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[80] grid h-10 w-10 place-items-center rounded-full border border-border bg-card/70 text-foreground shadow backdrop-blur-2xl transition-transform active:scale-90">
+        <Link
+          to="/find-doctor"
+          aria-label="ابحث عن زميل"
+          data-bottom-nav
+          className="fixed left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[80] grid h-10 w-10 place-items-center rounded-full border border-border bg-card/70 text-foreground shadow backdrop-blur-2xl transition-transform active:scale-90"
+        >
           <Search className="h-5 w-5" />
         </Link>
       )}
-      <nav aria-label="تنقل الطبيب" data-bottom-nav className="fixed inset-x-0 bottom-0 z-[80] pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-3xl border border-border/40 bg-card/70 px-1 shadow-[0_-8px_24px_hsl(var(--primary)/0.12)] backdrop-blur-2xl backdrop-saturate-150 sm:max-w-xl" style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}>
+      <nav
+        aria-label="تنقل الطبيب"
+        data-bottom-nav
+        className="fixed inset-x-0 bottom-0 z-[80] pb-[max(0.25rem,env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-4 md:left-1/2 md:w-full md:max-w-lg md:-translate-x-1/2"
+      >
+        <div
+          className="mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-3xl border border-border/40 bg-card/70 px-1 shadow-[0_-8px_24px_hsl(var(--primary)/0.12)] backdrop-blur-2xl backdrop-saturate-150 sm:max-w-xl"
+          style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}
+        >
           {items.map((it) => {
             if (it.key === "rx") {
               return (
-                <button key="rx" type="button" onClick={() => setRxOpen(true)} aria-label="روشتة جديدة" className="relative flex flex-col items-center justify-end pb-1 transition-transform active:scale-90 text-[11px] font-bold text-primary">
+                <button
+                  key="rx"
+                  type="button"
+                  onClick={() => setRxOpen(true)}
+                  aria-label="روشتة جديدة"
+                  className="relative flex flex-col items-center justify-end pb-1 transition-transform active:scale-90 text-[11px] font-bold text-primary"
+                >
                   <span className="absolute -top-6 grid h-14 w-14 place-items-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-[0_6px_20px_hsl(var(--primary)/0.5)]">
                     <Pill className="h-6 w-6" />
                   </span>
@@ -71,10 +138,17 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
             const Icon = it.icon!;
             if ((it as { soon?: boolean }).soon) {
               return (
-                <button key={it.key} type="button" onClick={() => alert("إدارة الطابور والحجوزات قريباً ⏳")} className="relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold text-muted-foreground opacity-70">
+                <button
+                  key={it.key}
+                  type="button"
+                  onClick={() => alert("إدارة الطابور والحجوزات قريباً ⏳")}
+                  className="relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold text-muted-foreground opacity-70"
+                >
                   <span className="relative grid h-8 w-11 place-items-center rounded-xl">
                     <Icon className="h-5 w-5" />
-                    <span className="absolute -top-1.5 -left-2 rounded-full bg-secondary px-1 text-[8px] font-extrabold text-foreground">قريباً</span>
+                    <span className="absolute -top-1.5 -left-2 rounded-full bg-secondary px-1 text-[8px] font-extrabold text-foreground">
+                      قريباً
+                    </span>
                   </span>
                   {it.label}
                 </button>
@@ -87,7 +161,9 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
                 aria-current={it.active ? "page" : undefined}
                 className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold transition-transform active:scale-90 ${it.active ? "text-primary" : "text-muted-foreground"}`}
               >
-                <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${it.active ? "bg-primary text-primary-foreground" : ""}`}>
+                <span
+                  className={`relative grid h-8 w-11 place-items-center rounded-xl ${it.active ? "bg-primary text-primary-foreground" : ""}`}
+                >
                   <Icon className="h-5 w-5" />
                   {!!it.badge && (
                     <span className="absolute -top-1 -left-1 grid min-w-[18px] place-items-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-destructive-foreground">
@@ -101,7 +177,9 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
           })}
         </div>
       </nav>
-      {rxOpen && <RxComposer defaults={{ patient: "", ...info }} onClose={() => setRxOpen(false)} />}
+      {rxOpen && (
+        <RxComposer defaults={{ patient: "", ...info }} onClose={() => setRxOpen(false)} />
+      )}
     </>
   );
 }

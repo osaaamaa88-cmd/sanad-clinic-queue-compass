@@ -98,18 +98,20 @@ export const adminToggleDisableClinic = createServerFn({ method: "POST" })
   });
 
 export const adminEditClinic = createServerFn({ method: "POST" })
-  .inputValidator((data: {
-    id: string;
-    doctor?: string;
-    specialtyId?: string;
-    address?: string;
-    area?: string;
-    phone?: string;
-    price?: number;
-  }) => {
-    if (!data || typeof data.id !== "string") throw new Error("Invalid input");
-    return data;
-  })
+  .inputValidator(
+    (data: {
+      id: string;
+      doctor?: string;
+      specialtyId?: string;
+      address?: string;
+      area?: string;
+      phone?: string;
+      price?: number;
+    }) => {
+      if (!data || typeof data.id !== "string") throw new Error("Invalid input");
+      return data;
+    },
+  )
   .handler(async ({ data }) => {
     await assertAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -195,8 +197,16 @@ export const adminAnalytics = createServerFn({ method: "GET" }).handler(async ()
 export const adminUpdateHospitalLocation = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; lat: number; lng: number; verified: boolean }) => {
     if (!d || typeof d.id !== "string") throw new Error("Invalid input");
-    const lat = Number(d.lat), lng = Number(d.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < 21 || lat > 32.5 || lng < 24 || lng > 37.5)
+    const lat = Number(d.lat),
+      lng = Number(d.lng);
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      lat < 21 ||
+      lat > 32.5 ||
+      lng < 24 ||
+      lng > 37.5
+    )
       throw new Error("الإحداثيات خارج حدود مصر");
     return { id: d.id, lat, lng, verified: !!d.verified };
   })
@@ -205,7 +215,12 @@ export const adminUpdateHospitalLocation = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("governmental_hospitals")
-      .update({ lat: data.lat, lng: data.lng, location_verified: data.verified, location_updated_at: new Date().toISOString() })
+      .update({
+        lat: data.lat,
+        lng: data.lng,
+        location_verified: data.verified,
+        location_updated_at: new Date().toISOString(),
+      })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };

@@ -1,6 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { MapPin, Phone, Navigation, GraduationCap, Ticket, Building2, ScanLine, Syringe, Sparkles, Baby, Scissors, Droplets, Smile } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  Navigation,
+  GraduationCap,
+  Ticket,
+  Building2,
+  ScanLine,
+  Syringe,
+  Sparkles,
+  Baby,
+  Scissors,
+  Droplets,
+  Smile,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 
@@ -26,9 +40,16 @@ export const Route = createFileRoute("/university-dental")({
   head: () => ({
     meta: [
       { title: "العيادات التعليمية لطب الأسنان - دراية | سَنَد" },
-      { name: "description", content: "احجز كشف في العيادات التعليمية بكلية طب الفم والأسنان بجامعة دراية - مبنى B6 بالمنيا الجديدة." },
+      {
+        name: "description",
+        content:
+          "احجز كشف في العيادات التعليمية بكلية طب الفم والأسنان بجامعة دراية - مبنى B6 بالمنيا الجديدة.",
+      },
       { property: "og:title", content: "العيادات التعليمية لطب الأسنان | سَنَد" },
-      { property: "og:description", content: "كشف وعلاج بأيدي أطباء المستقبل تحت إشراف أساتذة الكلية - مبنى B6." },
+      {
+        property: "og:description",
+        content: "كشف وعلاج بأيدي أطباء المستقبل تحت إشراف أساتذة الكلية - مبنى B6.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -58,7 +79,11 @@ function UniversityDental() {
 
   useEffect(() => {
     setDays(nextDays());
-    try { setTickets(JSON.parse(localStorage.getItem(STORE) || "[]")); } catch { /* ignore */ }
+    try {
+      setTickets(JSON.parse(localStorage.getItem(STORE) || "[]"));
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   function book() {
@@ -67,21 +92,39 @@ function UniversityDental() {
     if (name.trim().length < 3) return setErr("اكتب الاسم بالكامل");
     if (!/^01[0125]\d{8}$/.test(phone.trim())) return setErr("رقم موبايل مصري غير صحيح");
     if (!day) return setErr("اختار يوم الزيارة");
-    const t: TicketT = { code: "B6-" + Math.random().toString(36).slice(2, 7).toUpperCase(), dept, name: name.trim(), phone: phone.trim(), day, at: Date.now() };
+    const t: TicketT = {
+      code: "B6-" + Math.random().toString(36).slice(2, 7).toUpperCase(),
+      dept,
+      name: name.trim(),
+      phone: phone.trim(),
+      day,
+      at: Date.now(),
+    };
     const next = [t, ...tickets].slice(0, 10);
     setTickets(next);
     localStorage.setItem(STORE, JSON.stringify(next));
-    setName(""); setPhone(""); setDay(""); setDept(null);
+    setName("");
+    setPhone("");
+    setDay("");
+    setDept(null);
   }
 
   const deptName = (id: string) => DEPTS.find((d) => d.id === id)?.name ?? "";
 
   return (
-    <AppShell title="العيادات التعليمية" subtitle="كلية طب الفم والأسنان - جامعة دراية" backTo="/patient">
+    <AppShell
+      title="العيادات التعليمية"
+      subtitle="كلية طب الفم والأسنان - جامعة دراية"
+      backTo="/patient"
+    >
       <section className="rounded-3xl gradient-primary p-5 text-primary-foreground shadow-soft">
-        <div className="flex items-center gap-2 text-xs font-bold opacity-90"><GraduationCap className="h-4 w-4" /> خدمة مجتمعية</div>
+        <div className="flex items-center gap-2 text-xs font-bold opacity-90">
+          <GraduationCap className="h-4 w-4" /> خدمة مجتمعية
+        </div>
         <h1 className="mt-2 text-xl font-extrabold leading-snug">عيادات طب الأسنان التعليمية</h1>
-        <p className="mt-1 text-sm opacity-90">كشف وعلاج بأيدي أطباء المستقبل تحت إشراف أساتذة الكلية</p>
+        <p className="mt-1 text-sm opacity-90">
+          كشف وعلاج بأيدي أطباء المستقبل تحت إشراف أساتذة الكلية
+        </p>
         <div className="mt-4 flex items-center gap-2 rounded-2xl bg-background/15 px-3 py-2 text-sm font-bold">
           <Building2 className="h-4 w-4" /> مبنى B6 — ميدان دراية، المنيا الجديدة
         </div>
@@ -89,18 +132,30 @@ function UniversityDental() {
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <Button asChild variant="outline" className="h-12 rounded-2xl font-bold">
-          <Link to="/directions" search={{ lat: LAT, lng: LNG, name: PLACE }}><Navigation className="ml-1 h-4 w-4" /> الاتجاهات</Link>
+          <Link to="/directions" search={{ lat: LAT, lng: LNG, name: PLACE }}>
+            <Navigation className="ml-1 h-4 w-4" /> الاتجاهات
+          </Link>
         </Button>
         <Button asChild variant="outline" className="h-12 rounded-2xl font-bold">
-          <a href="tel:16283"><Phone className="ml-1 h-4 w-4" /> 16283</a>
+          <a href="tel:16283">
+            <Phone className="ml-1 h-4 w-4" /> 16283
+          </a>
         </Button>
       </div>
 
       <h2 className="mt-6 text-lg font-extrabold">1. اختار القسم</h2>
       <div className="mt-2 grid grid-cols-2 gap-2">
         {DEPTS.map((d) => (
-          <button key={d.id} onClick={() => setDept(d.id)} className={`rounded-2xl border p-3 text-right transition ${dept === d.id ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50"}`}>
-            <div className={`flex h-11 w-11 items-center justify-center rounded-full ${dept === d.id ? "gradient-primary text-primary-foreground shadow-soft" : "bg-primary/10 text-primary"}`}><d.icon className="h-5 w-5" strokeWidth={2.2} /></div>
+          <button
+            key={d.id}
+            onClick={() => setDept(d.id)}
+            className={`rounded-2xl border p-3 text-right transition ${dept === d.id ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50"}`}
+          >
+            <div
+              className={`flex h-11 w-11 items-center justify-center rounded-full ${dept === d.id ? "gradient-primary text-primary-foreground shadow-soft" : "bg-primary/10 text-primary"}`}
+            >
+              <d.icon className="h-5 w-5" strokeWidth={2.2} />
+            </div>
             <div className="mt-1 text-sm font-bold leading-snug">{d.name}</div>
             <div className="text-[11px] text-muted-foreground">{d.hint}</div>
           </button>
@@ -109,29 +164,64 @@ function UniversityDental() {
 
       <h2 className="mt-6 text-lg font-extrabold">2. بيانات المريض</h2>
       <div className="mt-2 space-y-2">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="الاسم بالكامل" className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-sm" />
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="رقم الموبايل 01xxxxxxxxx" inputMode="tel" dir="ltr" className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-right text-sm" />
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="الاسم بالكامل"
+          className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-sm"
+        />
+        <input
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="رقم الموبايل 01xxxxxxxxx"
+          inputMode="tel"
+          dir="ltr"
+          className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-right text-sm"
+        />
       </div>
 
       <h2 className="mt-6 text-lg font-extrabold">3. يوم الزيارة</h2>
       <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
         {days.map((d) => (
-          <button key={d} onClick={() => setDay(d)} className={`shrink-0 rounded-2xl border px-3 py-2 text-xs font-bold ${day === d ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>{d}</button>
+          <button
+            key={d}
+            onClick={() => setDay(d)}
+            className={`shrink-0 rounded-2xl border px-3 py-2 text-xs font-bold ${day === d ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+          >
+            {d}
+          </button>
         ))}
       </div>
 
       {err && <p className="mt-3 text-sm font-bold text-destructive">{err}</p>}
-      <Button onClick={book} className="mt-4 h-12 w-full rounded-2xl gradient-primary text-base font-extrabold text-primary-foreground">احجز تذكرة الكشف</Button>
+      <Button
+        onClick={book}
+        className="mt-4 h-12 w-full rounded-2xl gradient-primary text-base font-extrabold text-primary-foreground"
+      >
+        احجز تذكرة الكشف
+      </Button>
 
       {tickets.length > 0 && (
         <>
           <h2 className="mt-8 text-lg font-extrabold">تذاكري</h2>
           <div className="mt-2 space-y-2">
             {tickets.map((t) => (
-              <div key={t.code} className="rounded-2xl border border-dashed border-primary/50 bg-card p-4">
-                <div className="flex items-center justify-between"><span className="flex items-center gap-1 text-xs font-bold text-primary"><Ticket className="h-4 w-4" /> تذكرة كشف</span><span dir="ltr" className="font-mono text-lg font-extrabold">{t.code}</span></div>
+              <div
+                key={t.code}
+                className="rounded-2xl border border-dashed border-primary/50 bg-card p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1 text-xs font-bold text-primary">
+                    <Ticket className="h-4 w-4" /> تذكرة كشف
+                  </span>
+                  <span dir="ltr" className="font-mono text-lg font-extrabold">
+                    {t.code}
+                  </span>
+                </div>
                 <div className="mt-2 text-sm font-bold">{deptName(t.dept)}</div>
-                <div className="text-xs text-muted-foreground">{t.name} — {t.day}</div>
+                <div className="text-xs text-muted-foreground">
+                  {t.name} — {t.day}
+                </div>
               </div>
             ))}
           </div>
@@ -139,7 +229,9 @@ function UniversityDental() {
       )}
 
       <section className="mt-6 rounded-2xl border border-border bg-muted/40 p-4 text-sm leading-relaxed">
-        <div className="mb-1 flex items-center gap-1 font-extrabold"><MapPin className="h-4 w-4" /> قبل الزيارة</div>
+        <div className="mb-1 flex items-center gap-1 font-extrabold">
+          <MapPin className="h-4 w-4" /> قبل الزيارة
+        </div>
         <ul className="list-disc space-y-1 pr-5 text-muted-foreground">
           <li>هات البطاقة الشخصية وتذكرة الحجز.</li>
           <li>توجّه لاستقبال مبنى B6 لفتح الملف والتشخيص.</li>

@@ -98,15 +98,25 @@ export const svrGetPost = createServerFn({ method: "POST" })
 /** Public: like counters (and whether this viewer liked) for a batch of posts. */
 export const svrPostsSocialCounts = createServerFn({ method: "POST" })
   .inputValidator((data: { postIds: string[]; viewerKey?: string }) => {
-    const ids = Array.isArray(data?.postIds) ? data.postIds.filter((i) => typeof i === "string").slice(0, 80) : [];
+    const ids = Array.isArray(data?.postIds)
+      ? data.postIds.filter((i) => typeof i === "string").slice(0, 80)
+      : [];
     return { postIds: ids, viewerKey: String(data?.viewerKey ?? "").slice(0, 80) };
   })
   .handler(async ({ data }) => {
     data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
-    if (!data.postIds.length) return { likes: {} as Record<string, number>, liked: {} as Record<string, boolean>, comments: {} as Record<string, number> };
+    if (!data.postIds.length)
+      return {
+        likes: {} as Record<string, number>,
+        liked: {} as Record<string, boolean>,
+        comments: {} as Record<string, number>,
+      };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: likeRows }, { data: commentRows }] = await Promise.all([
-      supabaseAdmin.from("clinic_post_likes").select("post_id, liker_key").in("post_id", data.postIds),
+      supabaseAdmin
+        .from("clinic_post_likes")
+        .select("post_id, liker_key")
+        .in("post_id", data.postIds),
       supabaseAdmin.from("clinic_post_comments").select("post_id").in("post_id", data.postIds),
     ]);
     const likes: Record<string, number> = {};
@@ -134,7 +144,10 @@ export const svrTogglePostLike = createServerFn({ method: "POST" })
     if (data.like) {
       const { error } = await supabaseAdmin
         .from("clinic_post_likes")
-        .upsert({ post_id: data.postId, liker_key: data.viewerKey }, { onConflict: "post_id,liker_key" });
+        .upsert(
+          { post_id: data.postId, liker_key: data.viewerKey },
+          { onConflict: "post_id,liker_key" },
+        );
       if (error) {
         console.error("[svrTogglePostLike]", error.message);
         throw new Error("LIKE_FAILED");
@@ -158,9 +171,18 @@ export const svrAddPostComment = createServerFn({ method: "POST" })
   .inputValidator((data: { postId: string; viewerKey: string; name?: string; body: string }) => {
     if (!data || typeof data.postId !== "string") throw new Error("Invalid input");
     const key = String(data.viewerKey ?? "").slice(0, 80);
-    const body = String(data.body ?? "").trim().slice(0, 500);
+    const body = String(data.body ?? "")
+      .trim()
+      .slice(0, 500);
     if (!key || !body) throw new Error("Invalid input");
-    return { postId: data.postId, viewerKey: key, name: String(data.name ?? "").trim().slice(0, 60), body };
+    return {
+      postId: data.postId,
+      viewerKey: key,
+      name: String(data.name ?? "")
+        .trim()
+        .slice(0, 60),
+      body,
+    };
   })
   .handler(async ({ data }) => {
     data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
@@ -197,7 +219,9 @@ export const svrAddClinicReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { postId: string; body: string; viewerKey?: string }) => {
     if (!data || typeof data.postId !== "string") throw new Error("Invalid input");
-    const body = String(data.body ?? "").trim().slice(0, 500);
+    const body = String(data.body ?? "")
+      .trim()
+      .slice(0, 500);
     if (!body) throw new Error("Invalid input");
     return { postId: data.postId, body, viewerKey: String(data.viewerKey ?? "").slice(0, 80) };
   })

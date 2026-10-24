@@ -27,7 +27,11 @@ export const getHospital = createServerFn({ method: "GET" })
       process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"]!,
       { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
-    const { data: row, error } = await sb.from("governmental_hospitals").select("*").eq("id", data.id).maybeSingle();
+    const { data: row, error } = await sb
+      .from("governmental_hospitals")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
     if (error) throw new Error(error.message);
     return (row ?? null) as Hospital | null;
   });
@@ -40,6 +44,8 @@ export const HOSPITAL_TYPES: Record<string, string> = {
   specialized: "تخصصي",
 };
 
-export function hospitalMapsUrl(h: Pick<Hospital, "name" | "governorate" | "lat" | "lng" | "location_verified">) {
+export function hospitalMapsUrl(
+  h: Pick<Hospital, "name" | "governorate" | "lat" | "lng" | "location_verified">,
+) {
   return `/directions?lat=${h.lat}&lng=${h.lng}&name=${encodeURIComponent(h.name)}`;
 }

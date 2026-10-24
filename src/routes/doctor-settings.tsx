@@ -34,7 +34,10 @@ export const Route = createFileRoute("/doctor-settings")({
   head: () => ({
     meta: [
       { title: "إعدادات العيادة — سَنَد" },
-      { name: "description", content: "دخول الطبيب لإدارة بروفايل عيادته وحساب السكرتير ومتابعة التوثيق." },
+      {
+        name: "description",
+        content: "دخول الطبيب لإدارة بروفايل عيادته وحساب السكرتير ومتابعة التوثيق.",
+      },
       { property: "og:title", content: "إعدادات العيادة — سَنَد" },
       { property: "og:description", content: "سجّل عيادتك على سَنَد وأدر بياناتك وحساب السكرتير." },
       { property: "og:type", content: "website" },
@@ -128,7 +131,9 @@ function DoctorSettings() {
     let targetId = clinicId;
     if (!targetId) {
       try {
-        const res = await svrCreateMyClinic({ data: { doctor: name.trim(), specialtyId: spec, phone: phone.trim().replace(/^0/, "20") } });
+        const res = await svrCreateMyClinic({
+          data: { doctor: name.trim(), specialtyId: spec, phone: phone.trim().replace(/^0/, "20") },
+        });
         targetId = res.id;
         setClinicId(targetId);
         resetDoctorModeCache();
@@ -256,13 +261,19 @@ function DoctorSettings() {
                 <div className="flex items-start gap-3">
                   <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <p className="text-xs font-bold leading-relaxed text-primary">
-                    ٥ بيانات بس وحسابك يبقى جاهز. تقدر تكمّل باقي بيانات بروفايلك بعد الدخول للوحة التحكم.
+                    ٥ بيانات بس وحسابك يبقى جاهز. تقدر تكمّل باقي بيانات بروفايلك بعد الدخول للوحة
+                    التحكم.
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 space-y-4 rounded-2xl border border-border bg-card p-4">
-                <Field label="اسم الطبيب *" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
+                <Field
+                  label="اسم الطبيب *"
+                  value={name}
+                  onChange={setName}
+                  placeholder="د. الاسم الكامل"
+                />
                 <div>
                   <label className="text-xs font-bold text-muted-foreground">التخصص *</label>
                   <div className="mt-2 -mx-1 overflow-x-auto px-1">
@@ -282,7 +293,9 @@ function DoctorSettings() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground">رقم الموبايل / الواتساب *</label>
+                  <label className="text-xs font-bold text-muted-foreground">
+                    رقم الموبايل / الواتساب *
+                  </label>
                   <input
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -292,7 +305,9 @@ function DoctorSettings() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground">البريد الإلكتروني *</label>
+                  <label className="text-xs font-bold text-muted-foreground">
+                    البريد الإلكتروني *
+                  </label>
                   <input
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -359,7 +374,10 @@ function DoctorSettings() {
           >
             افتح دفتر الحجز
           </button>
-          <button onClick={signOut} className="mt-2 w-full rounded-xl border border-border py-3 text-sm font-bold">
+          <button
+            onClick={signOut}
+            className="mt-2 w-full rounded-xl border border-border py-3 text-sm font-bold"
+          >
             خروج
           </button>
         </div>
@@ -382,8 +400,10 @@ function DoctorSettings() {
         </button>
       }
     >
-      <div className="mb-4"><SoundToggle />
-<ThemeSetting /></div>
+      <div className="mb-4">
+        <SoundToggle />
+        <ThemeSetting />
+      </div>
       {clinicId && !isVerified && (
         <div className="mb-4 rounded-2xl border border-warning bg-warning/10 p-4">
           <div className="flex items-start gap-3">
@@ -393,8 +413,8 @@ function DoctorSettings() {
             <div className="min-w-0">
               <p className="text-sm font-extrabold text-foreground">حسابك قيد المراجعة والتوثيق</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                حسابك قيد المراجعة والتوثيق من قبل إدارة التطبيق، وسيتم تفعيله فور التأكد من البيانات.
-                لحد ما يتم التوثيق، عيادتك مش هتظهر للمرضى في البحث أو الخريطة.
+                حسابك قيد المراجعة والتوثيق من قبل إدارة التطبيق، وسيتم تفعيله فور التأكد من
+                البيانات. لحد ما يتم التوثيق، عيادتك مش هتظهر للمرضى في البحث أو الخريطة.
               </p>
             </div>
           </div>
@@ -408,7 +428,9 @@ function DoctorSettings() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-extrabold text-foreground">حسابك موثّق ✓</p>
-              <p className="mt-1 text-xs text-muted-foreground">عيادتك ظاهرة للمرضى في البحث والخريطة.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                عيادتك ظاهرة للمرضى في البحث والخريطة.
+              </p>
             </div>
           </div>
         </div>
@@ -489,10 +511,25 @@ function DoctorSettings() {
             </div>
           </div>
         </div>
-        <Field label="المنطقة / الحي (اختياري)" value={area} onChange={setArea} placeholder="مثال: المهندسين" />
-        <Field label="الشارع (اختياري)" value={street} onChange={setStreet} placeholder="اسم الشارع" />
+        <Field
+          label="المنطقة / الحي (اختياري)"
+          value={area}
+          onChange={setArea}
+          placeholder="مثال: المهندسين"
+        />
+        <Field
+          label="الشارع (اختياري)"
+          value={street}
+          onChange={setStreet}
+          placeholder="اسم الشارع"
+        />
         <div className="grid grid-cols-2 gap-3">
-          <Field label="العمارة (اختياري)" value={building} onChange={setBuilding} placeholder="عمارة رقم…" />
+          <Field
+            label="العمارة (اختياري)"
+            value={building}
+            onChange={setBuilding}
+            placeholder="عمارة رقم…"
+          />
           <Field label="الدور (اختياري)" value={floor} onChange={setFloor} placeholder="الدور…" />
         </div>
         <div>
@@ -536,16 +573,22 @@ function DoctorSettings() {
       {/* Secretary accounts */}
       <h2 className="mt-6 text-base font-bold">حسابات السكرتير</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        السكرتير بيدخل بالبريد وكلمة السر ويقدر يفتح دفتر الحجز ويعدّل رقم الدور — المرضى مش بيقدروا.
+        السكرتير بيدخل بالبريد وكلمة السر ويقدر يفتح دفتر الحجز ويعدّل رقم الدور — المرضى مش
+        بيقدروا.
       </p>
       <div className="mt-3 space-y-2">
         {secretaries.map((s) => (
-          <div key={s.id} className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card shadow-soft p-3">
+          <div
+            key={s.id}
+            className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card shadow-soft p-3"
+          >
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-soft font-bold text-primary">
               {(s.full_name || "س").charAt(0)}
             </div>
             <p className="min-w-0 flex-1 truncate text-sm font-bold">{s.full_name || "سكرتير"}</p>
-            <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">مفعّل</span>
+            <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">
+              مفعّل
+            </span>
           </div>
         ))}
       </div>
@@ -573,14 +616,21 @@ function DoctorSettings() {
           className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
         />
         {secError && (
-          <p className="rounded-xl bg-destructive/10 px-3 py-2 text-[12px] font-bold text-destructive">{secError}</p>
+          <p className="rounded-xl bg-destructive/10 px-3 py-2 text-[12px] font-bold text-destructive">
+            {secError}
+          </p>
         )}
         <button
           onClick={addSecretary}
           disabled={secBusy}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-sm font-bold disabled:opacity-60"
         >
-          {secBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} إضافة حساب سكرتير
+          {secBusy ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <UserPlus className="h-4 w-4" />
+          )}{" "}
+          إضافة حساب سكرتير
         </button>
       </div>
 
@@ -596,7 +646,9 @@ function DoctorSettings() {
           تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سَنَد.
         </div>
       )}
-      <p className="mt-6 text-center text-[11px] text-muted-foreground" dir="ltr">SANAD {APP_VERSION_LABEL} · Stable</p>
+      <p className="mt-6 text-center text-[11px] text-muted-foreground" dir="ltr">
+        SANAD {APP_VERSION_LABEL} · Stable
+      </p>
     </AppShell>
   );
 }

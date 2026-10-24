@@ -69,22 +69,43 @@ function ResetPasswordPage() {
           </p>
         ) : !ready ? (
           <p className="text-sm text-muted-foreground">
-            افتح هذه الصفحة من الرابط اللي وصلك على البريد. لو الرابط انتهى، اطلب رابط جديد من صفحة الدخول.
+            افتح هذه الصفحة من الرابط اللي وصلك على البريد. لو الرابط انتهى، اطلب رابط جديد من صفحة
+            الدخول.
           </p>
         ) : (
           <form onSubmit={submit} className="space-y-3">
             <div>
               <label className="text-xs font-bold text-muted-foreground">كلمة السر الجديدة</label>
-              <input type="password" dir="ltr" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className={input} />
+              <input
+                type="password"
+                dir="ltr"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={input}
+              />
             </div>
             <div>
               <label className="text-xs font-bold text-muted-foreground">تأكيد كلمة السر</label>
-              <input type="password" dir="ltr" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} className={input} />
+              <input
+                type="password"
+                dir="ltr"
+                autoComplete="new-password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className={input}
+              />
             </div>
             {error && (
-              <p className="rounded-xl bg-destructive/10 px-3 py-2 text-center text-[12px] font-bold text-destructive">{error}</p>
+              <p className="rounded-xl bg-destructive/10 px-3 py-2 text-center text-[12px] font-bold text-destructive">
+                {error}
+              </p>
             )}
-            <button type="submit" disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-xl gradient-primary py-3 text-sm font-extrabold text-primary-foreground shadow-soft disabled:opacity-60">
+            <button
+              type="submit"
+              disabled={busy}
+              className="flex w-full items-center justify-center gap-2 rounded-xl gradient-primary py-3 text-sm font-extrabold text-primary-foreground shadow-soft disabled:opacity-60"
+            >
               {busy && <Loader2 className="h-4 w-4 animate-spin" />} حفظ كلمة السر
             </button>
           </form>

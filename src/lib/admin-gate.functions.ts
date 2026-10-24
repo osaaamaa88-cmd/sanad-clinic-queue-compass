@@ -14,7 +14,12 @@ export const unlockAdmin = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const { assertRateLimit, clientIp } = await import("./rate-limit.server");
-    await assertRateLimit(`admin-unlock:${await clientIp()}`, 5, 15 * 60, "RATE_LIMITED: محاولات كتير، استنى ربع ساعة.");
+    await assertRateLimit(
+      `admin-unlock:${await clientIp()}`,
+      5,
+      15 * 60,
+      "RATE_LIMITED: محاولات كتير، استنى ربع ساعة.",
+    );
     const { createHash, timingSafeEqual } = await import("node:crypto");
     const { useSession } = await import("@tanstack/react-start/server");
     const { sessionConfig, issueAdminToken } = await import("./admin-auth.server");
@@ -26,7 +31,9 @@ export const unlockAdmin = createServerFn({ method: "POST" })
     try {
       const session = await useSession<{ unlocked?: boolean }>(sessionConfig());
       await session.update({ unlocked: true });
-    } catch { /* cookie optional */ }
+    } catch {
+      /* cookie optional */
+    }
     return { ok: true as const, token: issueAdminToken() };
   });
 
@@ -36,6 +43,8 @@ export const lockAdmin = createServerFn({ method: "POST" }).handler(async () => 
   try {
     const session = await useSession(sessionConfig());
     await session.clear();
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return { ok: true as const };
 });

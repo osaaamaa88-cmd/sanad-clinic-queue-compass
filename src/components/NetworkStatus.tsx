@@ -10,7 +10,8 @@ export function NetworkStatus() {
     if (typeof navigator !== "undefined") setOffline(!navigator.onLine);
     // Offline support: only on the real published app (not inside the editor preview or dev).
     const host = window.location.hostname;
-    const inPreview = host.startsWith("id-preview--") || host === "localhost" || window.self !== window.top;
+    const inPreview =
+      host.startsWith("id-preview--") || host === "localhost" || window.self !== window.top;
     if ("serviceWorker" in navigator) {
       if (import.meta.env.PROD && !inPreview) {
         navigator.serviceWorker.register("/sw.js").catch(() => {});
@@ -44,7 +45,10 @@ export function NetworkStatus() {
         {offline ? <WifiOff className="h-3.5 w-3.5" /> : <Wifi className="h-3.5 w-3.5" />}
         {offline ? "وضع عدم الاتصال" : "تم استرجاع الاتصال"}
         {offline && (
-          <a href="tel:123" className="mr-1 rounded-full bg-destructive px-2 py-0.5 text-destructive-foreground">
+          <a
+            href="tel:123"
+            className="mr-1 rounded-full bg-destructive px-2 py-0.5 text-destructive-foreground"
+          >
             🚑 123
           </a>
         )}

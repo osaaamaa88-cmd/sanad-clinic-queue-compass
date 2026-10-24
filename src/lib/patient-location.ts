@@ -1,4 +1,10 @@
-export type PatientLocation = { name: string; city: string; lat: number; lng: number; gps?: boolean };
+export type PatientLocation = {
+  name: string;
+  city: string;
+  lat: number;
+  lng: number;
+  gps?: boolean;
+};
 
 const KEY = "sanad.patient.location";
 
@@ -44,12 +50,16 @@ export function savePatientLocation(loc: PatientLocation) {
 
 export function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
   const r = (d: number) => (d * Math.PI) / 180;
-  const h = Math.sin(r(b.lat - a.lat) / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(r(b.lng - a.lng) / 2) ** 2;
+  const h =
+    Math.sin(r(b.lat - a.lat) / 2) ** 2 +
+    Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(r(b.lng - a.lng) / 2) ** 2;
   return 6371 * 2 * Math.asin(Math.sqrt(h));
 }
 
 export function nearestArea(lat: number, lng: number) {
-  return egyptAreas.reduce((best, a) => (distanceKm(a, { lat, lng }) < distanceKm(best, { lat, lng }) ? a : best));
+  return egyptAreas.reduce((best, a) =>
+    distanceKm(a, { lat, lng }) < distanceKm(best, { lat, lng }) ? a : best,
+  );
 }
 
 export function detectGpsLocation(): Promise<PatientLocation> {
@@ -58,9 +68,22 @@ export function detectGpsLocation(): Promise<PatientLocation> {
     navigator.geolocation.getCurrentPosition(
       (p) => {
         const near = nearestArea(p.coords.latitude, p.coords.longitude);
-        resolve({ name: `بالقرب من ${near.name}`, city: near.city, lat: p.coords.latitude, lng: p.coords.longitude, gps: true });
+        resolve({
+          name: `بالقرب من ${near.name}`,
+          city: near.city,
+          lat: p.coords.latitude,
+          lng: p.coords.longitude,
+          gps: true,
+        });
       },
-      (e) => reject(new Error(e.code === 1 ? "اسمح للتطبيق بالوصول لموقعك من إعدادات المتصفح." : "تعذّر تحديد موقعك، جرّب مرة أخرى أو اختر منطقتك.")),
+      (e) =>
+        reject(
+          new Error(
+            e.code === 1
+              ? "اسمح للتطبيق بالوصول لموقعك من إعدادات المتصفح."
+              : "تعذّر تحديد موقعك، جرّب مرة أخرى أو اختر منطقتك.",
+          ),
+        ),
       { timeout: 10000, enableHighAccuracy: true },
     );
   });

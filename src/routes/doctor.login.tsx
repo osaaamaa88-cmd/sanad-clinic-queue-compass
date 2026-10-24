@@ -4,7 +4,12 @@ import { Sparkles, Lock, Loader2, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { specialties, getMyClinicMembership, registerDoctorAccount, signOutStaff } from "@/lib/mock-data";
+import {
+  specialties,
+  getMyClinicMembership,
+  registerDoctorAccount,
+  signOutStaff,
+} from "@/lib/mock-data";
 import { getCachedProfile, saveCachedProfile } from "@/lib/user-profile-cache";
 
 export const Route = createFileRoute("/doctor/login")({
@@ -12,7 +17,10 @@ export const Route = createFileRoute("/doctor/login")({
   head: () => ({
     meta: [
       { title: "دخول الطبيب — سَنَد" },
-      { name: "description", content: "دخول الطبيب لبروفايل عيادته على سَنَد، أو إنشاء حساب عيادة جديد." },
+      {
+        name: "description",
+        content: "دخول الطبيب لبروفايل عيادته على سَنَد، أو إنشاء حساب عيادة جديد.",
+      },
       { property: "og:title", content: "دخول الطبيب — سَنَد" },
       { property: "og:description", content: "سجّل عيادتك على سَنَد وافتح بروفايلك التفاعلي." },
       { property: "og:type", content: "website" },
@@ -53,7 +61,8 @@ function DoctorEntry() {
     const cached = getCachedProfile();
     if (cached && cached.userId === session.user.id) {
       if (cached.role === "secretary") navigate({ to: "/reception", replace: true });
-      else if (cached.clinicId) navigate({ to: "/patient/clinic/$id", params: { id: cached.clinicId }, replace: true });
+      else if (cached.clinicId)
+        navigate({ to: "/patient/clinic/$id", params: { id: cached.clinicId }, replace: true });
     }
     const membership = await getMyClinicMembership();
     const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>;
@@ -71,7 +80,11 @@ function DoctorEntry() {
       role,
       clinicId: membership.clinic?.id,
     });
-    if (cached && cached.userId === session.user.id && (cached.role === "secretary" || cached.clinicId)) {
+    if (
+      cached &&
+      cached.userId === session.user.id &&
+      (cached.role === "secretary" || cached.clinicId)
+    ) {
       const same = cached.role === role && cached.clinicId === membership.clinic?.id;
       if (same) return;
     }
@@ -126,7 +139,11 @@ function DoctorEntry() {
         setGBusy(false);
       }
     } catch (e) {
-      setGErr(e instanceof Error ? e.message : "تعذر بدء تسجيل الدخول بحساب Google. حاول مرة أخرى أو استخدم البريد وكلمة السر.");
+      setGErr(
+        e instanceof Error
+          ? e.message
+          : "تعذر بدء تسجيل الدخول بحساب Google. حاول مرة أخرى أو استخدم البريد وكلمة السر.",
+      );
       setGBusy(false);
     }
   };
@@ -146,7 +163,9 @@ function DoctorEntry() {
       <AppShell title="حساب الطبيب" backTo="/">
         <div className="rounded-2xl border border-border bg-card p-5 text-center">
           <p className="text-sm font-bold">مفيش عيادة مربوطة بحسابك</p>
-          <p className="mt-1 text-xs text-muted-foreground">اكمل بيانات عيادتك من صفحة الإعدادات.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            اكمل بيانات عيادتك من صفحة الإعدادات.
+          </p>
           <Link
             to="/doctor-settings"
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl gradient-primary py-3 text-sm font-extrabold text-white"
@@ -212,7 +231,8 @@ function DoctorEntry() {
             </div>
             <div className="mt-3 rounded-2xl border border-border bg-card p-4 text-xs leading-relaxed text-muted-foreground">
               <p className="font-extrabold text-foreground">سكرتير أو موظف استقبال؟</p>
-              حسابك بيعمله الطبيب من «إعدادات العيادة ← حسابات السكرتير». خد منه البريد وكلمة السر وادخل بيهم هنا.
+              حسابك بيعمله الطبيب من «إعدادات العيادة ← حسابات السكرتير». خد منه البريد وكلمة السر
+              وادخل بيهم هنا.
             </div>
           </>
         ) : (
@@ -221,13 +241,19 @@ function DoctorEntry() {
               <div className="flex items-start gap-3">
                 <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                 <p className="text-xs font-bold leading-relaxed text-primary">
-                  ٥ بيانات بس وحسابك يبقى جاهز. تقدر تكمّل باقي بيانات بروفايلك من الإعدادات بعد الدخول.
+                  ٥ بيانات بس وحسابك يبقى جاهز. تقدر تكمّل باقي بيانات بروفايلك من الإعدادات بعد
+                  الدخول.
                 </p>
               </div>
             </div>
 
             <div className="mt-4 space-y-4 rounded-2xl border border-border bg-card p-4">
-              <Field label="اسم الطبيب *" value={name} onChange={setName} placeholder="د. الاسم الكامل" />
+              <Field
+                label="اسم الطبيب *"
+                value={name}
+                onChange={setName}
+                placeholder="د. الاسم الكامل"
+              />
               <div>
                 <label className="text-xs font-bold text-muted-foreground">التخصص *</label>
                 <div className="mt-2 -mx-1 overflow-x-auto px-1">
@@ -247,7 +273,9 @@ function DoctorEntry() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-muted-foreground">رقم الموبايل / الواتساب *</label>
+                <label className="text-xs font-bold text-muted-foreground">
+                  رقم الموبايل / الواتساب *
+                </label>
                 <input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -257,7 +285,9 @@ function DoctorEntry() {
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-muted-foreground">البريد الإلكتروني *</label>
+                <label className="text-xs font-bold text-muted-foreground">
+                  البريد الإلكتروني *
+                </label>
                 <input
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

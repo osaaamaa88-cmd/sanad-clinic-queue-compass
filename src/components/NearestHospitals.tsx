@@ -12,7 +12,9 @@ export function NearestHospitals() {
 
   useEffect(() => {
     let off = false;
-    listHospitals().then((l) => !off && setHospitals(l as Hospital[])).catch(() => {});
+    listHospitals()
+      .then((l) => !off && setHospitals(l as Hospital[]))
+      .catch(() => {});
     const saved = getPatientLocation();
     setMe({ lat: saved.lat, lng: saved.lng });
     navigator.geolocation?.getCurrentPosition(
@@ -61,7 +63,10 @@ export function NearestHospitals() {
                 </p>
               </Link>
               <div className="mt-2 flex gap-2">
-                <a href={`tel:${phone}`} className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-destructive p-2 text-sm font-bold text-destructive-foreground">
+                <a
+                  href={`tel:${phone}`}
+                  className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-destructive p-2 text-sm font-bold text-destructive-foreground"
+                >
                   <Phone className="h-4 w-4" /> اتصال
                 </a>
                 <a

@@ -9,7 +9,10 @@ export function BroadcastBanner() {
   const [dismissed, setDismissed] = useState<string | null>(null);
   useEffect(() => {
     setDismissed(localStorage.getItem("sanad-broadcast-dismissed"));
-    const load = () => getAppSettings().then((r) => setS(r as S)).catch(() => {});
+    const load = () =>
+      getAppSettings()
+        .then((r) => setS(r as S))
+        .catch(() => {});
     load();
     const i = setInterval(load, 60000);
     return () => clearInterval(i);
@@ -18,7 +21,12 @@ export function BroadcastBanner() {
   const key = `${s.updated_at}|${s.broadcast}`;
   const showMsg = s.broadcast && dismissed !== key;
   if (!s.maintenance && !showMsg) return null;
-  const tone = s.broadcast_tone === "urgent" ? "bg-destructive text-destructive-foreground" : s.broadcast_tone === "warn" ? "bg-warning text-warning-foreground" : "bg-primary text-primary-foreground";
+  const tone =
+    s.broadcast_tone === "urgent"
+      ? "bg-destructive text-destructive-foreground"
+      : s.broadcast_tone === "warn"
+        ? "bg-warning text-warning-foreground"
+        : "bg-primary text-primary-foreground";
   return (
     <div className="fixed inset-x-0 top-0 z-[120] space-y-px" dir="rtl">
       {s.maintenance && (
@@ -30,7 +38,13 @@ export function BroadcastBanner() {
         <div className={`flex items-center gap-2 px-4 py-2 text-xs font-bold ${tone}`}>
           <Megaphone className="h-4 w-4 shrink-0" />
           <p className="flex-1">{s.broadcast}</p>
-          <button aria-label="إغلاق" onClick={() => { localStorage.setItem("sanad-broadcast-dismissed", key); setDismissed(key); }}>
+          <button
+            aria-label="إغلاق"
+            onClick={() => {
+              localStorage.setItem("sanad-broadcast-dismissed", key);
+              setDismissed(key);
+            }}
+          >
             <X className="h-4 w-4" />
           </button>
         </div>

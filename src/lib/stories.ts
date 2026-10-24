@@ -44,9 +44,15 @@ export async function addStory(input: {
   if (input.file) {
     const { uploadMedia } = await import("@/lib/media-upload");
     return uploadMedia({
-      clinicId: input.clinicId, kind: "story", file: input.file, caption: input.caption,
-      highlightId: input.highlightId ?? null, storyKind: input.kind ?? "story",
-      tag: input.tag, permanent: input.permanent, durationHours: input.durationHours,
+      clinicId: input.clinicId,
+      kind: "story",
+      file: input.file,
+      caption: input.caption,
+      highlightId: input.highlightId ?? null,
+      storyKind: input.kind ?? "story",
+      tag: input.tag,
+      permanent: input.permanent,
+      durationHours: input.durationHours,
     });
   }
   try {
@@ -79,7 +85,11 @@ export async function deleteStory(storyId: string): Promise<boolean> {
   }
 }
 
-export async function createHighlight(clinicId: string, title: string, emoji: string): Promise<string | null> {
+export async function createHighlight(
+  clinicId: string,
+  title: string,
+  emoji: string,
+): Promise<string | null> {
   try {
     const r = await svrCreateHighlight({ data: { clinicId, title, emoji } });
     return r.id;
@@ -96,7 +106,10 @@ export async function deleteHighlight(highlightId: string): Promise<boolean> {
     return false;
   }
 }
-export async function pinStoriesToHighlight(highlightId: string, storyIds: string[]): Promise<boolean> {
+export async function pinStoriesToHighlight(
+  highlightId: string,
+  storyIds: string[],
+): Promise<boolean> {
   try {
     const { svrPinStories } = await import("@/lib/stories.functions");
     await svrPinStories({ data: { highlightId, storyIds } });
@@ -120,7 +133,9 @@ const viewed = new Set<string>();
 export function markStoryViewed(storyId: string) {
   if (viewed.has(storyId)) return;
   viewed.add(storyId);
-  import("@/lib/stories.functions").then((m) => m.svrViewStory({ data: { storyId } })).catch(() => {});
+  import("@/lib/stories.functions")
+    .then((m) => m.svrViewStory({ data: { storyId } }))
+    .catch(() => {});
 }
 
 /** Parses a pen-card story style stored in the tag ("card:<bg>:<font>"). */

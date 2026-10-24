@@ -1,16 +1,28 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { getClinicById, getSpecialty, subscribeClinic, clinicStatusLabels, type Clinic } from "@/lib/mock-data";
+import {
+  getClinicById,
+  getSpecialty,
+  subscribeClinic,
+  clinicStatusLabels,
+  type Clinic,
+} from "@/lib/mock-data";
 
 export const Route = createFileRoute("/tv/$id")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "شاشة صالة الانتظار — سَنَد" },
-      { name: "description", content: "شاشة عرض رقم الدور الحالي لمرضى العيادة على تلفزيون صالة الانتظار." },
+      {
+        name: "description",
+        content: "شاشة عرض رقم الدور الحالي لمرضى العيادة على تلفزيون صالة الانتظار.",
+      },
       { property: "og:title", content: "شاشة صالة الانتظار — سَنَد" },
-      { property: "og:description", content: "عرض رقم الدور الحالي بخط كبير وواضح داخل صالة انتظار العيادة." },
+      {
+        property: "og:description",
+        content: "عرض رقم الدور الحالي بخط كبير وواضح داخل صالة انتظار العيادة.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -58,7 +70,11 @@ function TvScreen() {
   }, [id]);
 
   if (!loaded) {
-    return <div className="grid min-h-screen place-items-center bg-background text-2xl">جاري التحميل…</div>;
+    return (
+      <div className="grid min-h-screen place-items-center bg-background text-2xl">
+        جاري التحميل…
+      </div>
+    );
   }
   if (!clinic) {
     return (
@@ -101,7 +117,9 @@ function TvScreen() {
           {clinic.nowServing}
         </div>
         <p className="mt-6 text-2xl text-muted-foreground md:text-3xl">
-          {clinic.waitingCount > 0 ? `عدد المنتظرين: ${clinic.waitingCount}` : "برجاء متابعة الشاشة"}
+          {clinic.waitingCount > 0
+            ? `عدد المنتظرين: ${clinic.waitingCount}`
+            : "برجاء متابعة الشاشة"}
         </p>
       </main>
 

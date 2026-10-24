@@ -1,4 +1,5 @@
 # Current work
+
 - [ ] Nemo: continuous opt-in microphone conversation, calm speech, spoken satisfaction and stop/cleanup verification.
 - [x] Restore the global voice accessibility switch: simulated microphone/TTS verified startup, real reply, navigation continuity, and disable cleanup; physical audio still needs device testing.
 - [x] Preserve the page that initiated Google patient sign-in: clinic popup callback and authenticated return verified; external Google consent was not exercised.

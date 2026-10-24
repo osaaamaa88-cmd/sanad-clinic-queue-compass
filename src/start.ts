@@ -23,7 +23,14 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 // file opts out, so re-add it explicitly to keep server functions protected
 // from cross-site requests.
 let envChecked = false;
-const REQUIRED_ENV = ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY", "GROQ_API_KEY", "SITE_PASSWORD", "ADMIN_SESSION_KEY"];
+const REQUIRED_ENV = [
+  "SUPABASE_URL",
+  "SUPABASE_PUBLISHABLE_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "GROQ_API_KEY",
+  "SITE_PASSWORD",
+  "ADMIN_SESSION_KEY",
+];
 
 const securityHeaders = createMiddleware().server(async ({ next }) => {
   if (!envChecked) {
@@ -34,7 +41,8 @@ const securityHeaders = createMiddleware().server(async ({ next }) => {
   }
   const res = await next();
   try {
-    const h = (res as { response?: Response }).response?.headers ?? (res as unknown as Response).headers;
+    const h =
+      (res as { response?: Response }).response?.headers ?? (res as unknown as Response).headers;
     h?.set("X-Content-Type-Options", "nosniff");
     h?.set("Referrer-Policy", "strict-origin-when-cross-origin");
   } catch {

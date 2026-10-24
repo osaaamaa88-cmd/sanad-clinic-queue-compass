@@ -70,7 +70,9 @@ export function AccountDeletion() {
       await askDelete({ data: { phone } });
       const res = await loadRequest();
       setRequest(res.request as RequestRow | null);
-      setNote("تم استلام طلب حذف حسابك وبياناتك. هيتم التنفيذ بدون تأخير غير مبرر، وبحد أقصى 30 يوم.");
+      setNote(
+        "تم استلام طلب حذف حسابك وبياناتك. هيتم التنفيذ بدون تأخير غير مبرر، وبحد أقصى 30 يوم.",
+      );
     } catch {
       setNote("مقدرناش نسجّل الطلب دلوقتي. جرّب تاني بعد شوية.");
     } finally {
@@ -95,7 +97,9 @@ export function AccountDeletion() {
   };
 
   const clearDevice = () => {
-    if (window.confirm("مسح بيانات هذا الجهاز؟ هيتشيل حجزك المحفوظ وجلسة المريض من الجهاز ده بس.")) {
+    if (
+      window.confirm("مسح بيانات هذا الجهاز؟ هيتشيل حجزك المحفوظ وجلسة المريض من الجهاز ده بس.")
+    ) {
       for (const k of LOCAL_PATIENT_KEYS) window.localStorage.removeItem(k);
       setNote("تم مسح بيانات هذا الجهاز.");
     }
@@ -116,7 +120,7 @@ export function AccountDeletion() {
         حسابي وبياناتي
       </p>
       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-        ليك الحق تطلب حذف حسابك وكل بياناتك نهائياً. {" "}
+        ليك الحق تطلب حذف حسابك وكل بياناتك نهائياً.{" "}
         <Link to="/privacy" className="font-bold text-primary underline">
           سياسة الخصوصية
         </Link>{" "}
@@ -145,7 +149,8 @@ export function AccountDeletion() {
       {userId && request?.status === "pending" && (
         <div className="mt-3 space-y-2">
           <p className="rounded-xl bg-warning/10 p-3 text-xs font-bold leading-relaxed text-foreground">
-            طلب الحذف بتاعك مستلم وقيد التنفيذ من تاريخ {new Date(request.created_at).toLocaleDateString("ar-EG")}.
+            طلب الحذف بتاعك مستلم وقيد التنفيذ من تاريخ{" "}
+            {new Date(request.created_at).toLocaleDateString("ar-EG")}.
           </p>
           <button
             onClick={cancel}

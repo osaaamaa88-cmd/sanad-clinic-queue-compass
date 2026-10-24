@@ -3,7 +3,12 @@ import { createServerFn } from "@tanstack/react-start";
 /** Public: clinics the viewer follows that currently have active stories (for the community stories bar). */
 export const svrFollowedStories = createServerFn({ method: "POST" })
   .inputValidator((data: { followerKey: string }) => {
-    if (!data || typeof data.followerKey !== "string" || data.followerKey.length < 32 || data.followerKey.length > 80) {
+    if (
+      !data ||
+      typeof data.followerKey !== "string" ||
+      data.followerKey.length < 32 ||
+      data.followerKey.length > 80
+    ) {
       return { followerKey: "" };
     }
     return { followerKey: data.followerKey };
@@ -13,7 +18,11 @@ export const svrFollowedStories = createServerFn({ method: "POST" })
     const now = new Date().toISOString();
     let clinicIds: string[] = [];
     if (data.followerKey) {
-      const { data: f } = await supabaseAdmin.from("clinic_followers").select("clinic_id").eq("follower_key", data.followerKey).limit(200);
+      const { data: f } = await supabaseAdmin
+        .from("clinic_followers")
+        .select("clinic_id")
+        .eq("follower_key", data.followerKey)
+        .limit(200);
       clinicIds = (f ?? []).map((r) => r.clinic_id);
     }
     // Active stories first (followed clinics preferred), each with its newest story as a cover.
@@ -31,7 +40,9 @@ export const svrFollowedStories = createServerFn({ method: "POST" })
       if (!order.includes(s.clinic_id)) order.push(s.clinic_id);
       if (!covers.has(s.clinic_id) && s.media_url) covers.set(s.clinic_id, s.media_url);
     }
-    let entries = order.slice(0, 30).map((id) => ({ id, hasStory: true, cover: covers.get(id) ?? "" }));
+    let entries = order
+      .slice(0, 30)
+      .map((id) => ({ id, hasStory: true, cover: covers.get(id) ?? "" }));
     if (!entries.length) {
       // Fall back to recent verified clinics + health tips so the bar is never empty.
       const { data: fc } = await supabaseAdmin
@@ -47,7 +58,10 @@ export const svrFollowedStories = createServerFn({ method: "POST" })
     const { data: clinics } = await supabaseAdmin
       .from("clinics")
       .select("id, doctor, avatar_url, phone")
-      .in("id", entries.map((e) => e.id))
+      .in(
+        "id",
+        entries.map((e) => e.id),
+      )
       .eq("is_verified", true)
       .eq("is_disabled", false);
     const { signMediaRefs } = await import("@/lib/media-sign.server");
@@ -66,9 +80,9 @@ export const svrFollowedStories = createServerFn({ method: "POST" })
             id: c.id,
             doctor: c.doctor,
             phone: c.phone,
-            avatar: c.avatar_url ? signed.get(c.avatar_url) ?? "" : "",
+            avatar: c.avatar_url ? (signed.get(c.avatar_url) ?? "") : "",
             hasStory: e.hasStory,
-            cover: e.cover ? signed.get(e.cover) ?? "" : "",
+            cover: e.cover ? (signed.get(e.cover) ?? "") : "",
           };
         })
         .filter((c): c is NonNullable<typeof c> => !!c),

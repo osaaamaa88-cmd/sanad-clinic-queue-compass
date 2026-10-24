@@ -12,11 +12,22 @@ describe("Google patient sign-in return", () => {
   });
   it("preserves community and home sign-in destinations", () => {
     for (const path of ["/community", "/"]) {
-      assert.equal(new URL(patientOAuthCallback("https://sanad.example", path)).searchParams.get("returnTo"), path);
+      assert.equal(
+        new URL(patientOAuthCallback("https://sanad.example", path)).searchParams.get("returnTo"),
+        path,
+      );
     }
   });
   it("rejects external destinations and login redirect loops", () => {
-    for (const path of ["https://evil.example", "//evil.example", "/\\evil.example", "/patient/login", "/patient/login?returnTo=/community", "/\nevil.example", undefined]) {
+    for (const path of [
+      "https://evil.example",
+      "//evil.example",
+      "/\\evil.example",
+      "/patient/login",
+      "/patient/login?returnTo=/community",
+      "/\nevil.example",
+      undefined,
+    ]) {
       assert.equal(safePatientReturnPath(path), undefined);
     }
   });

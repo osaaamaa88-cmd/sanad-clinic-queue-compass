@@ -18,10 +18,16 @@ export function SoundToggle() {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-extrabold">أصوات التطبيق</span>
-        <span className="block text-xs text-muted-foreground">{on ? "شغالة — نقر ونجاح وتنبيهات ومنبه" : "مكتومة"}</span>
+        <span className="block text-xs text-muted-foreground">
+          {on ? "شغالة — نقر ونجاح وتنبيهات ومنبه" : "مكتومة"}
+        </span>
       </span>
-      <span className={`relative h-6 w-11 rounded-full transition ${on ? "bg-primary" : "bg-muted"}`}>
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all ${on ? "left-0.5" : "left-[22px]"}`} />
+      <span
+        className={`relative h-6 w-11 rounded-full transition ${on ? "bg-primary" : "bg-muted"}`}
+      >
+        <span
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all ${on ? "left-0.5" : "left-[22px]"}`}
+        />
       </span>
     </button>
   );
@@ -58,10 +64,16 @@ export function ThemeSetting() {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-extrabold">الوضع الداكن</span>
-        <span className="block text-xs text-muted-foreground">{dark ? "مفعّل" : "الوضع الفاتح"}</span>
+        <span className="block text-xs text-muted-foreground">
+          {dark ? "مفعّل" : "الوضع الفاتح"}
+        </span>
       </span>
-      <span className={`relative h-6 w-11 rounded-full transition ${dark ? "bg-primary" : "bg-muted"}`}>
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all ${dark ? "left-0.5" : "left-[22px]"}`} />
+      <span
+        className={`relative h-6 w-11 rounded-full transition ${dark ? "bg-primary" : "bg-muted"}`}
+      >
+        <span
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-background shadow transition-all ${dark ? "left-0.5" : "left-[22px]"}`}
+        />
       </span>
     </button>
   );

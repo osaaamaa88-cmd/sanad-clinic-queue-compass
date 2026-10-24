@@ -26,7 +26,7 @@ export const svrGetClinicProfile = createServerFn({ method: "POST" })
     const paths = [
       ...(clinic?.avatar_url ? [clinic.avatar_url] : []),
       ...(clinic?.cover_url ? [clinic.cover_url] : []),
-      ...((posts ?? []).map((p) => p.media_url)),
+      ...(posts ?? []).map((p) => p.media_url),
     ];
     const { signMediaRefs } = await import("@/lib/media-sign.server");
     const signedMap = await signMediaRefs(supabaseAdmin, paths);
@@ -98,7 +98,9 @@ export const svrToggleFollow = createServerFn({ method: "POST" })
     return { clinicId: data.clinicId, followerKey: key, follow: Boolean(data.follow) };
   })
   .handler(async ({ data }) => {
-    data.followerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.followerKey);
+    data.followerKey = await (
+      await import("@/lib/device-key.server")
+    ).deviceIdentity(data.followerKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (data.follow) {
       await supabaseAdmin
@@ -128,7 +130,9 @@ export const svrIsFollowing = createServerFn({ method: "POST" })
     return { clinicId: data.clinicId, followerKey: String(data.followerKey ?? "").slice(0, 80) };
   })
   .handler(async ({ data }) => {
-    data.followerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.followerKey);
+    data.followerKey = await (
+      await import("@/lib/device-key.server")
+    ).deviceIdentity(data.followerKey);
     if (!data.followerKey) return { following: false };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row } = await supabaseAdmin
@@ -143,19 +147,21 @@ export const svrIsFollowing = createServerFn({ method: "POST" })
 /** Doctor/secretary: edit the profile fields shown on the clinic page. */
 export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
-    clinicId: string;
-    doctor?: string;
-    specialtyId?: string;
-    price?: number;
-    phone?: string;
-    bio?: string;
-    workingHours?: string;
-    youtubeUrl?: string;
-  }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-    return data;
-  })
+  .inputValidator(
+    (data: {
+      clinicId: string;
+      doctor?: string;
+      specialtyId?: string;
+      price?: number;
+      phone?: string;
+      bio?: string;
+      workingHours?: string;
+      youtubeUrl?: string;
+    }) => {
+      if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+      return data;
+    },
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
@@ -169,19 +175,26 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
       working_hours?: string;
       youtube_url?: string;
     } = {};
-    if (typeof data.doctor === "string" && data.doctor.trim()) patch.doctor = data.doctor.trim().slice(0, 120);
-    if (typeof data.specialtyId === "string" && data.specialtyId) patch.specialty_id = data.specialtyId;
-    if (typeof data.price === "number" && Number.isFinite(data.price)) patch.price = Math.max(0, Math.floor(data.price));
+    if (typeof data.doctor === "string" && data.doctor.trim())
+      patch.doctor = data.doctor.trim().slice(0, 120);
+    if (typeof data.specialtyId === "string" && data.specialtyId)
+      patch.specialty_id = data.specialtyId;
+    if (typeof data.price === "number" && Number.isFinite(data.price))
+      patch.price = Math.max(0, Math.floor(data.price));
     if (typeof data.phone === "string") patch.phone = data.phone.trim().slice(0, 40);
     if (typeof data.bio === "string") patch.bio = data.bio.slice(0, 600);
-    if (typeof data.workingHours === "string") patch.working_hours = data.workingHours.slice(0, 300);
+    if (typeof data.workingHours === "string")
+      patch.working_hours = data.workingHours.slice(0, 300);
     if (typeof data.youtubeUrl === "string") {
       const { youtubeId } = await import("@/lib/youtube");
       const raw = data.youtubeUrl.trim();
       if (raw && !youtubeId(raw)) throw new Error("INVALID_YOUTUBE");
       patch.youtube_url = raw ? `https://www.youtube.com/watch?v=${youtubeId(raw)}` : "";
     }
-    const { error } = await supabaseAdmin.from("clinics").update(patch as never).eq("id", data.clinicId);
+    const { error } = await supabaseAdmin
+      .from("clinics")
+      .update(patch as never)
+      .eq("id", data.clinicId);
     if (error) {
       console.error("[svrUpdateClinicProfile]", error.message);
       throw new Error("UPDATE_FAILED");
@@ -192,30 +205,34 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
 /** Doctor/secretary: upload avatar, cover, or a gallery post (base64 payload). */
 export const svrUploadClinicMedia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
-    clinicId: string;
-    kind: "avatar" | "cover" | "post";
-    fileName: string;
-    contentType: string;
-    base64: string;
-    caption?: string;
-  }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-    if (!["avatar", "cover", "post"].includes(data.kind)) throw new Error("Invalid kind");
-    const base64 = String(data.base64 ?? "");
-    if (!base64) throw new Error("Invalid file");
-    if (base64.length > 9_000_000) throw new Error("FILE_TOO_LARGE");
-    const contentType = String(data.contentType ?? "");
-    if (!/^(image|video)\//.test(contentType)) throw new Error("INVALID_TYPE");
-    return {
-      clinicId: data.clinicId,
-      kind: data.kind as "avatar" | "cover" | "post",
-      fileName: String(data.fileName ?? "file").slice(-60).replace(/[^a-zA-Z0-9._-]/g, "_"),
-      contentType,
-      base64,
-      caption: String(data.caption ?? "").slice(0, 300),
-    };
-  })
+  .inputValidator(
+    (data: {
+      clinicId: string;
+      kind: "avatar" | "cover" | "post";
+      fileName: string;
+      contentType: string;
+      base64: string;
+      caption?: string;
+    }) => {
+      if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+      if (!["avatar", "cover", "post"].includes(data.kind)) throw new Error("Invalid kind");
+      const base64 = String(data.base64 ?? "");
+      if (!base64) throw new Error("Invalid file");
+      if (base64.length > 9_000_000) throw new Error("FILE_TOO_LARGE");
+      const contentType = String(data.contentType ?? "");
+      if (!/^(image|video)\//.test(contentType)) throw new Error("INVALID_TYPE");
+      return {
+        clinicId: data.clinicId,
+        kind: data.kind as "avatar" | "cover" | "post",
+        fileName: String(data.fileName ?? "file")
+          .slice(-60)
+          .replace(/[^a-zA-Z0-9._-]/g, "_"),
+        contentType,
+        base64,
+        caption: String(data.caption ?? "").slice(0, 300),
+      };
+    },
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
@@ -244,10 +261,7 @@ export const svrUploadClinicMedia = createServerFn({ method: "POST" })
       }
     } else {
       const patch = data.kind === "avatar" ? { avatar_url: path } : { cover_url: path };
-      const { error } = await supabaseAdmin
-        .from("clinics")
-        .update(patch)
-        .eq("id", data.clinicId);
+      const { error } = await supabaseAdmin.from("clinics").update(patch).eq("id", data.clinicId);
       if (error) {
         console.error("[svrUploadClinicMedia] clinic update", error.message);
         throw new Error("UPLOAD_FAILED");

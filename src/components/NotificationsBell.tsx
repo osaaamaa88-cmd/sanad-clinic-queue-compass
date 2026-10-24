@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { playNotification } from "@/lib/sounds";
-import { Bell, X, CalendarPlus, MessageCircle, Image as ImageIcon, AlertTriangle, Users } from "lucide-react";
+import {
+  Bell,
+  X,
+  CalendarPlus,
+  MessageCircle,
+  Image as ImageIcon,
+  AlertTriangle,
+  Users,
+} from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   listPatientNotifications,
@@ -95,14 +103,21 @@ export function NotificationsBell({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[65] flex items-end bg-black/60 sm:items-center sm:justify-center" onClick={() => setOpen(false)}>
+        <div
+          className="fixed inset-0 z-[65] flex items-end bg-black/60 sm:items-center sm:justify-center"
+          onClick={() => setOpen(false)}
+        >
           <div
             className="max-h-[75vh] w-full overflow-y-auto rounded-t-3xl border border-border bg-card p-4 sm:max-w-md sm:rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex items-center justify-between">
               <p className="text-base font-extrabold">الإشعارات</p>
-              <button onClick={() => setOpen(false)} aria-label="إغلاق" className="grid h-8 w-8 place-items-center rounded-full bg-secondary">
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="إغلاق"
+                className="grid h-8 w-8 place-items-center rounded-full bg-secondary"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -125,16 +140,27 @@ export function NotificationsBell({
                       >
                         <span
                           className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl ${
-                            n.kind === "urgent" ? "bg-destructive/15 text-destructive" : "bg-primary-soft text-primary"
+                            n.kind === "urgent"
+                              ? "bg-destructive/15 text-destructive"
+                              : "bg-primary-soft text-primary"
                           }`}
                         >
                           <Icon className="h-4 w-4" />
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-sm font-bold">{n.title}</span>
-                          {n.body && <span className="mt-0.5 block text-xs text-muted-foreground">{n.body}</span>}
+                          {n.body && (
+                            <span className="mt-0.5 block text-xs text-muted-foreground">
+                              {n.body}
+                            </span>
+                          )}
                           <span className="mt-1 block text-[10px] text-muted-foreground">
-                            {new Date(n.createdAt).toLocaleString("ar-EG", { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" })}
+                            {new Date(n.createdAt).toLocaleString("ar-EG", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              day: "numeric",
+                              month: "short",
+                            })}
                           </span>
                         </span>
                       </button>

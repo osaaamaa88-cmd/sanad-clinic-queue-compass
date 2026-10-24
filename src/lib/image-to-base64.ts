@@ -1,5 +1,8 @@
 /** Downscale an image file to JPEG base64 (no data: prefix) for AI analysis. */
-export async function imageToBase64(file: File, max = 1600): Promise<{ data: string; mime: string; preview: string }> {
+export async function imageToBase64(
+  file: File,
+  max = 1600,
+): Promise<{ data: string; mime: string; preview: string }> {
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise<HTMLImageElement>((res, rej) => {

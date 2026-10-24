@@ -37,6 +37,7 @@ import { Route as PatientIndexRouteImport } from './routes/patient.index'
 import { Route as PatientAssistantRouteImport } from './routes/patient.assistant'
 import { Route as PatientDrugScanRouteImport } from './routes/patient.drug-scan'
 import { Route as PatientEmergencyRouteImport } from './routes/patient.emergency'
+import { Route as PatientFirstAidRouteImport } from './routes/patient.first-aid'
 import { Route as PatientHealthRouteImport } from './routes/patient.health'
 import { Route as PatientLabReaderRouteImport } from './routes/patient.lab-reader'
 import { Route as PatientLoginRouteImport } from './routes/patient.login'
@@ -186,6 +187,11 @@ const PatientEmergencyRoute = PatientEmergencyRouteImport.update({
   path: '/patient/emergency',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PatientFirstAidRoute = PatientFirstAidRouteImport.update({
+  id: '/patient/first-aid',
+  path: '/patient/first-aid',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PatientHealthRoute = PatientHealthRouteImport.update({
   id: '/patient/health',
   path: '/patient/health',
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/patient/assistant': typeof PatientAssistantRoute
   '/patient/drug-scan': typeof PatientDrugScanRoute
   '/patient/emergency': typeof PatientEmergencyRoute
+  '/patient/first-aid': typeof PatientFirstAidRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/lab-reader': typeof PatientLabReaderRoute
   '/patient/login': typeof PatientLoginRoute
@@ -291,6 +298,7 @@ export interface FileRoutesByTo {
   '/patient/assistant': typeof PatientAssistantRoute
   '/patient/drug-scan': typeof PatientDrugScanRoute
   '/patient/emergency': typeof PatientEmergencyRoute
+  '/patient/first-aid': typeof PatientFirstAidRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/lab-reader': typeof PatientLabReaderRoute
   '/patient/login': typeof PatientLoginRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   '/patient/assistant': typeof PatientAssistantRoute
   '/patient/drug-scan': typeof PatientDrugScanRoute
   '/patient/emergency': typeof PatientEmergencyRoute
+  '/patient/first-aid': typeof PatientFirstAidRoute
   '/patient/health': typeof PatientHealthRoute
   '/patient/lab-reader': typeof PatientLabReaderRoute
   '/patient/login': typeof PatientLoginRoute
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/patient/assistant'
     | '/patient/drug-scan'
     | '/patient/emergency'
+    | '/patient/first-aid'
     | '/patient/health'
     | '/patient/lab-reader'
     | '/patient/login'
@@ -408,6 +418,7 @@ export interface FileRouteTypes {
     | '/patient/assistant'
     | '/patient/drug-scan'
     | '/patient/emergency'
+    | '/patient/first-aid'
     | '/patient/health'
     | '/patient/lab-reader'
     | '/patient/login'
@@ -446,6 +457,7 @@ export interface FileRouteTypes {
     | '/patient/assistant'
     | '/patient/drug-scan'
     | '/patient/emergency'
+    | '/patient/first-aid'
     | '/patient/health'
     | '/patient/lab-reader'
     | '/patient/login'
@@ -485,6 +497,7 @@ export interface RootRouteChildren {
   PatientAssistantRoute: typeof PatientAssistantRoute
   PatientDrugScanRoute: typeof PatientDrugScanRoute
   PatientEmergencyRoute: typeof PatientEmergencyRoute
+  PatientFirstAidRoute: typeof PatientFirstAidRoute
   PatientHealthRoute: typeof PatientHealthRoute
   PatientLabReaderRoute: typeof PatientLabReaderRoute
   PatientLoginRoute: typeof PatientLoginRoute
@@ -696,6 +709,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatientEmergencyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/patient/first-aid': {
+      id: '/patient/first-aid'
+      path: '/patient/first-aid'
+      fullPath: '/patient/first-aid'
+      preLoaderRoute: typeof PatientFirstAidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/patient/health': {
       id: '/patient/health'
       path: '/patient/health'
@@ -781,6 +801,7 @@ const rootRouteChildren: RootRouteChildren = {
   PatientAssistantRoute: PatientAssistantRoute,
   PatientDrugScanRoute: PatientDrugScanRoute,
   PatientEmergencyRoute: PatientEmergencyRoute,
+  PatientFirstAidRoute: PatientFirstAidRoute,
   PatientHealthRoute: PatientHealthRoute,
   PatientLabReaderRoute: PatientLabReaderRoute,
   PatientLoginRoute: PatientLoginRoute,

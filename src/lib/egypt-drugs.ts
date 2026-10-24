@@ -484,26 +484,44 @@ Septanest 4%|Articaine + Epinephrine|حقن|سبتانست
 Ophthalmic Fucithalmic|Fusidic acid|قطرة عين|فيوسيثالميك`;
 
 const map = new Map<string, Drug>();
-for (const l of raw.split("\n")) { const [n, a, f] = l.split("|"); map.set(n.toLowerCase(), { n, a, f }); }
+for (const l of raw.split("\n")) {
+  const [n, a, f] = l.split("|");
+  map.set(n.toLowerCase(), { n, a, f });
+}
 for (const l of extra.split("\n")) {
   const [n, a, f, ar] = l.split("|");
-  const k = n.toLowerCase(), cur = map.get(k);
-  if (cur) cur.ar = ar; else map.set(k, { n, a, f, ar });
+  const k = n.toLowerCase(),
+    cur = map.get(k);
+  if (cur) cur.ar = ar;
+  else map.set(k, { n, a, f, ar });
 }
 // Attach Arabic names to strength variants of the same brand (e.g. "Augmentin 625mg").
 const brandAr = new Map<string, string>();
-for (const d of map.values()) if (d.ar) brandAr.set(d.n.split(" ")[0].toLowerCase(), d.ar.split(" ")[0]);
+for (const d of map.values())
+  if (d.ar) brandAr.set(d.n.split(" ")[0].toLowerCase(), d.ar.split(" ")[0]);
 for (const d of map.values()) if (!d.ar) d.ar = brandAr.get(d.n.split(" ")[0].toLowerCase());
 
 export const DRUGS: Drug[] = [...map.values()];
 
-const norm = (x: string) => x.toLowerCase().replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/[ًٌٍَُِّْ]/g, "");
-const INDEX = DRUGS.map((d) => ({ d, n: d.n.toLowerCase(), a: d.a.toLowerCase(), ar: norm(d.ar ?? "") }));
+const norm = (x: string) =>
+  x
+    .toLowerCase()
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .replace(/[ًٌٍَُِّْ]/g, "");
+const INDEX = DRUGS.map((d) => ({
+  d,
+  n: d.n.toLowerCase(),
+  a: d.a.toLowerCase(),
+  ar: norm(d.ar ?? ""),
+}));
 
 export function searchDrugs(q: string, limit = 10): Drug[] {
   const s = norm(q.trim());
   if (s.length < 2) return [];
-  const starts: Drug[] = [], has: Drug[] = [];
+  const starts: Drug[] = [],
+    has: Drug[] = [];
   for (const x of INDEX) {
     if (x.n.startsWith(s) || x.ar.startsWith(s)) starts.push(x.d);
     else if (x.n.includes(s) || x.a.includes(s) || x.ar.includes(s)) has.push(x.d);
@@ -540,7 +558,11 @@ export const DOSE_PRESETS = [
 
 const FAV_KEY = "sanad-rx-favorites";
 export function getFavorites(): string[] {
-  try { return JSON.parse(localStorage.getItem(FAV_KEY) || "[]"); } catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
+  } catch {
+    return [];
+  }
 }
 export function addFavorite(name: string) {
   const f = [name, ...getFavorites().filter((x) => x !== name)].slice(0, 30);

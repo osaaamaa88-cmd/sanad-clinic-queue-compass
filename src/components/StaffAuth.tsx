@@ -5,15 +5,18 @@ import { logAudit } from "@/lib/audit.functions";
 
 export function authErrorMessage(raw?: string) {
   const msg = (raw || "").toLowerCase();
-  if (msg.includes("check_email")) return "لو البريد ده جديد، بعتنالك رسالة تفعيل — افتح بريدك واضغط الرابط وبعدين سجّل دخولك.";
+  if (msg.includes("check_email"))
+    return "لو البريد ده جديد، بعتنالك رسالة تفعيل — افتح بريدك واضغط الرابط وبعدين سجّل دخولك.";
   if (msg.includes("invalid login")) return "البريد أو كلمة السر غير صحيحة.";
   if (msg.includes("email not confirmed")) return "الحساب غير مفعّل بعد، تواصل مع إدارة سَنَد.";
-  if (msg.includes("email_taken") || msg.includes("already")) return "البريد مستخدم بالفعل، جرّب تسجيل الدخول.";
+  if (msg.includes("email_taken") || msg.includes("already"))
+    return "البريد مستخدم بالفعل، جرّب تسجيل الدخول.";
   if (msg.includes("weak_password") || msg.includes("pwned") || msg.includes("weak"))
     return "كلمة السر ضعيفة أو منتشرة — اختار كلمة أقوى (٨ حروف وأرقام ورموز مختلفة).";
   if (msg.includes("invalid_email")) return "البريد الإلكتروني غير صحيح.";
   if (msg.includes("rate") || msg.includes("429")) return "محاولات كثيرة، استنى شوية وحاول تاني.";
-  if (msg.includes("failed to fetch") || msg.includes("network")) return "تعذر الاتصال بالشبكة، حاول مرة أخرى.";
+  if (msg.includes("failed to fetch") || msg.includes("network"))
+    return "تعذر الاتصال بالشبكة، حاول مرة أخرى.";
   return "حدث خطأ غير متوقع، حاول مرة أخرى.";
 }
 
@@ -55,7 +58,6 @@ export function StaffAuth({
     setInfo("لو البريد مسجل عندنا، هيوصلك رابط لتغيير كلمة السر خلال دقايق.");
   };
 
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -77,7 +79,10 @@ export function StaffAuth({
   };
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+    <form
+      onSubmit={submit}
+      className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-soft"
+    >
       <div>
         <p className="text-base font-extrabold">{title}</p>
         {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
@@ -128,7 +133,9 @@ export function StaffAuth({
         نسيت كلمة السر؟
       </button>
       {info && (
-        <p className="rounded-xl bg-success/10 px-3 py-2 text-center text-[12px] font-bold text-success">{info}</p>
+        <p className="rounded-xl bg-success/10 px-3 py-2 text-center text-[12px] font-bold text-success">
+          {info}
+        </p>
       )}
       {footer}
     </form>

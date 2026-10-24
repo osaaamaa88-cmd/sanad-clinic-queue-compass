@@ -98,7 +98,9 @@ export function getBestFemaleArabicVoice(): SpeechSynthesisVoice | null {
     (v) => v.lang.toLowerCase().startsWith("ar") && !MALE_VOICE_PATTERN.test(v.name),
   );
   // Prefer modern natural/neural voices, Egyptian first.
-  const natural = arabic.filter((v) => /natural|neural|online|google|premium|enhanced/i.test(v.name));
+  const natural = arabic.filter((v) =>
+    /natural|neural|online|google|premium|enhanced/i.test(v.name),
+  );
   const egNatural = natural.find((v) => v.lang.toLowerCase() === "ar-eg");
   if (egNatural) return egNatural;
   if (natural[0]) return natural[0];

@@ -14,23 +14,50 @@ async function buildSnapshot() {
     const { count } = await q;
     return count ?? 0;
   };
-  const [clinicsRes, bookingsToday, bookingsWeek, bookingsAll, patients, hospitals, stories, reviews, errorsOpen, deletions, settings, recentErrors, recentBookings, users] =
-    await Promise.all([
-      sb.from("clinics").select("doctor, specialty_id, area, is_verified, is_disabled, clinic_status, rating, reviews, price"),
-      count("bookings", (q) => q.gte("created_at", since)),
-      count("bookings", (q) => q.gte("created_at", week)),
-      count("bookings"),
-      count("patients"),
-      count("governmental_hospitals"),
-      count("clinic_stories", (q) => q.gt("expires_at", new Date().toISOString())),
-      count("clinic_reviews"),
-      count("app_error_logs", (q) => q.eq("resolved", false)),
-      count("deletion_requests", (q) => q.eq("status", "pending")),
-      sb.from("app_settings").select("maintenance, broadcast").limit(1).maybeSingle(),
-      sb.from("app_error_logs").select("created_at, screen, message").eq("resolved", false).order("created_at", { ascending: false }).limit(8),
-      sb.from("bookings").select("created_at, status, visit_type, clinic_id").order("created_at", { ascending: false }).limit(15),
-      sb.auth.admin.listUsers({ page: 1, perPage: 200 }),
-    ]);
+  const [
+    clinicsRes,
+    bookingsToday,
+    bookingsWeek,
+    bookingsAll,
+    patients,
+    hospitals,
+    stories,
+    reviews,
+    errorsOpen,
+    deletions,
+    settings,
+    recentErrors,
+    recentBookings,
+    users,
+  ] = await Promise.all([
+    sb
+      .from("clinics")
+      .select(
+        "doctor, specialty_id, area, is_verified, is_disabled, clinic_status, rating, reviews, price",
+      ),
+    count("bookings", (q) => q.gte("created_at", since)),
+    count("bookings", (q) => q.gte("created_at", week)),
+    count("bookings"),
+    count("patients"),
+    count("governmental_hospitals"),
+    count("clinic_stories", (q) => q.gt("expires_at", new Date().toISOString())),
+    count("clinic_reviews"),
+    count("app_error_logs", (q) => q.eq("resolved", false)),
+    count("deletion_requests", (q) => q.eq("status", "pending")),
+    sb.from("app_settings").select("maintenance, broadcast").limit(1).maybeSingle(),
+    sb
+      .from("app_error_logs")
+      .select("created_at, screen, message")
+      .eq("resolved", false)
+      .order("created_at", { ascending: false })
+      .limit(8),
+    sb
+      .from("bookings")
+      .select("created_at, status, visit_type, clinic_id")
+      .order("created_at", { ascending: false })
+      .limit(15),
+    sb.auth.admin.listUsers({ page: 1, perPage: 200 }),
+  ]);
   const clinics = clinicsRes.data ?? [];
   return {
     now: new Date().toISOString(),
@@ -48,7 +75,10 @@ async function buildSnapshot() {
     active_stories: stories,
     reviews_total: reviews,
     open_errors: errorsOpen,
-    recent_errors: (recentErrors.data ?? []).map((e) => ({ ...e, message: String(e.message).slice(0, 200) })),
+    recent_errors: (recentErrors.data ?? []).map((e) => ({
+      ...e,
+      message: String(e.message).slice(0, 200),
+    })),
     pending_deletion_requests: deletions,
     settings: settings.data,
   };
@@ -81,8 +111,15 @@ export const ownerAiChat = createServerFn({ method: "POST" })
         method: "POST",
         headers: { "content-type": "application/json", "x-goog-api-key": key },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: `${SYSTEM}\n\nلقطة البيانات الحالية (JSON):\n${JSON.stringify(snapshot)}` }] },
-          contents: data.messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.text }] })),
+          systemInstruction: {
+            parts: [
+              { text: `${SYSTEM}\n\nلقطة البيانات الحالية (JSON):\n${JSON.stringify(snapshot)}` },
+            ],
+          },
+          contents: data.messages.map((m) => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.text }],
+          })),
           generationConfig: { thinkingConfig: { thinkingLevel: "low" } },
         }),
       },
@@ -90,8 +127,13 @@ export const ownerAiChat = createServerFn({ method: "POST" })
     const json: any = await res.json().catch(() => ({}));
     if (!res.ok) {
       if (res.status === 429) throw new Error("تم تجاوز الحد المجاني مؤقتاً، جرّب بعد دقيقة.");
-      throw new Error(json?.error?.message ? `خطأ من Gemini: ${json.error.message}` : "تعذر الاتصال بالمساعد");
+      throw new Error(
+        json?.error?.message ? `خطأ من Gemini: ${json.error.message}` : "تعذر الاتصال بالمساعد",
+      );
     }
-    const text = (json?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? "").join("").trim();
+    const text = (json?.candidates?.[0]?.content?.parts ?? [])
+      .map((p: any) => p.text ?? "")
+      .join("")
+      .trim();
     return { text: text || "لم أستطع تكوين رد، جرّب صياغة أخرى." };
   });

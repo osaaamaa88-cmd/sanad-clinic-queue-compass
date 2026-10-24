@@ -1,7 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 const KEY = "sanad_ai_consent_v1";
@@ -12,26 +18,44 @@ export function useAiConsent() {
   const resolver = useRef<(v: boolean) => void>(undefined);
 
   const ask = useCallback((): Promise<boolean> => {
-    try { if (localStorage.getItem(KEY) === "yes") return Promise.resolve(true); } catch { /* ignore */ }
+    try {
+      if (localStorage.getItem(KEY) === "yes") return Promise.resolve(true);
+    } catch {
+      /* ignore */
+    }
     setOpen(true);
-    return new Promise((r) => { resolver.current = r; });
+    return new Promise((r) => {
+      resolver.current = r;
+    });
   }, []);
 
   const finish = (ok: boolean) => {
-    if (ok) { try { localStorage.setItem(KEY, "yes"); } catch { /* ignore */ } }
+    if (ok) {
+      try {
+        localStorage.setItem(KEY, "yes");
+      } catch {
+        /* ignore */
+      }
+    }
     setOpen(false);
     resolver.current?.(ok);
     resolver.current = undefined;
   };
 
   const dialog = (
-    <AlertDialog open={open} onOpenChange={(o) => { if (!o) finish(false); }}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) finish(false);
+      }}
+    >
       <AlertDialogContent dir="rtl">
         <AlertDialogHeader>
           <AlertDialogTitle>قبل أول فحص بالذكاء الاصطناعي</AlertDialogTitle>
           <AlertDialogDescription className="text-right leading-7">
             الصورة أو النص اللي هتبعته هيتبعت لخدمة Google Gemini عشان يتحلل ويطلعلك النتيجة.
-            مبنبعتش اسمك ولا رقمك معاها. ماتصوّرش بيانات شخصية مش محتاجها، والنتيجة استرشادية ومش بديل عن الطبيب.
+            مبنبعتش اسمك ولا رقمك معاها. ماتصوّرش بيانات شخصية مش محتاجها، والنتيجة استرشادية ومش
+            بديل عن الطبيب.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2">
@@ -47,6 +71,7 @@ export function useAiConsent() {
 
 export function aiErrorMessage(e: unknown): string {
   const m = (e as Error)?.message || "";
-  if (/unauthori|auth|jwt|401/i.test(m)) return "سجّل دخولك الأول عشان تستخدم الفحص بالذكاء الاصطناعي.";
+  if (/unauthori|auth|jwt|401/i.test(m))
+    return "سجّل دخولك الأول عشان تستخدم الفحص بالذكاء الاصطناعي.";
   return m.replace(/^RATE_LIMITED:\s*/, "") || "حصل خطأ";
 }

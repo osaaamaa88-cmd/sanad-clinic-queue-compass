@@ -7,7 +7,11 @@ const EVENTS: AuditEvent[] = ["login", "medical_query", "profile_access", "appoi
 export async function writeAudit(event: AuditEvent, userId: string | null, details = "") {
   try {
     const { getRequestHeader } = await import("@tanstack/react-start/server");
-    const ip = (getRequestHeader("cf-connecting-ip") || getRequestHeader("x-forwarded-for")?.split(",")[0] || "").trim();
+    const ip = (
+      getRequestHeader("cf-connecting-ip") ||
+      getRequestHeader("x-forwarded-for")?.split(",")[0] ||
+      ""
+    ).trim();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("audit_logs" as never).insert({
       event,
@@ -24,7 +28,12 @@ export async function writeAudit(event: AuditEvent, userId: string | null, detai
 export const logAudit = createServerFn({ method: "POST" })
   .inputValidator((d: { event: AuditEvent; details?: string }) => {
     if (!EVENTS.includes(d?.event)) throw new Error("bad event");
-    return { event: d.event, details: String(d.details ?? "").replace(/<[^>]*>/g, "").slice(0, 200) };
+    return {
+      event: d.event,
+      details: String(d.details ?? "")
+        .replace(/<[^>]*>/g, "")
+        .slice(0, 200),
+    };
   })
   .handler(async ({ data }) => {
     const { checkRateLimit, clientIp } = await import("./rate-limit.server");

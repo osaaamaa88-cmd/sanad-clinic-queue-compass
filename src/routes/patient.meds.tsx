@@ -2,11 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { startAlarm } from "@/lib/sounds";
 import { syncNativeMedReminders } from "@/lib/native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pill, Plus, Trash2, Bell, BellOff, Clock } from "lucide-react";
+import { Pill, Plus, Trash2, Bell, BellOff, Clock, Check, ScanLine } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/patient/meds")({
   staticData: { sitemap: true },
+  validateSearch: (search: Record<string, unknown>): { rx?: string } => ({
+    rx: typeof search.rx === "string" ? search.rx : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "سَنَد — تذكير مواعيد الأدوية" },
@@ -24,6 +28,33 @@ type Med = {
   notes?: string;
   createdAt: string;
 };
+
+// Adherence log: "YYYY-MM-DD|HH:MM|medId" -> true. Kept small (last 30 days).
+const TAKEN_KEY = "sanad_meds_taken_v1";
+
+function loadTaken(): Record<string, boolean> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = JSON.parse(localStorage.getItem(TAKEN_KEY) || "{}") as Record<string, boolean>;
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    return Object.fromEntries(
+      Object.entries(raw).filter(([key]) => {
+        const datePart = key.split("|")[0];
+        const ts = datePart ? new Date(datePart).getTime() : 0;
+        return ts >= cutoff;
+      }),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function takenKey(medId: string, time: string, now = new Date()): string {
+  const day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+    now.getDate(),
+  ).padStart(2, "0")}`;
+  return `${day}|${time}|${medId}`;
+}
 
 const KEY = "sanad_meds_v1";
 const LEGACY_KEY = "sandi_meds_v1";
@@ -50,8 +81,10 @@ function Meds() {
   const [notes, setNotes] = useState("");
   const [notifPerm, setNotifPerm] = useState<NotificationPermission | "unsupported">("default");
   const firedRef = useRef<Set<string>>(new Set());
+  const [taken, setTaken] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    setTaken(loadTaken());
     setMeds(load());
     if (typeof window !== "undefined" && "Notification" in window) {
       setNotifPerm(Notification.permission);
@@ -59,6 +92,59 @@ function Meds() {
       setNotifPerm("unsupported");
     }
   }, []);
+
+  // استقبال روشتة من QR الطبيب: ?rx=<encoded>
+  const rxParam = Route.useSearch()?.rx;
+  const rxImportedRef = useRef(false);
+  useEffect(() => {
+    if (!rxParam || rxImportedRef.current) return;
+    rxImportedRef.current = true;
+    try {
+      const parsed = JSON.parse(decodeURIComponent(rxParam)) as {
+        t?: string;
+        rx?: {
+          patient?: string;
+          items?: { name?: string; dose?: string }[];
+          doctor?: string;
+        };
+      };
+      const rx = parsed?.rx;
+      if (parsed?.t !== "sanad-rx" || !Array.isArray(rx?.items)) throw new Error("bad payload");
+      const incoming: Med[] = rx.items
+        .filter((i) => typeof i?.name === "string" && i.name.trim())
+        .slice(0, 10)
+        .map((i) => ({
+          id: crypto.randomUUID(),
+          name: String(i.name).trim().slice(0, 80),
+          dose: String(i.dose ?? "")
+            .trim()
+            .slice(0, 60),
+          times: ["08:00"],
+          notes: rx.doctor ? `روشتة ${rx.doctor}` : "من روشتة إلكترونية",
+          createdAt: new Date().toISOString(),
+        }));
+      if (!incoming.length) throw new Error("empty");
+      const next = [...incoming, ...load()];
+      setMeds(next);
+      save(next);
+      toast.success(
+        `اتضافت ${incoming.length} دواء من روشتة ${rx.doctor ?? "الطبيب"} — اضبط المواعيد المناسبة`,
+      );
+    } catch {
+      toast.error("كود الروشتة مش صالح — اطلب من الطبيب كود جديد");
+    }
+  }, [rxParam]);
+
+  function markTaken(medId: string, time: string) {
+    const key = takenKey(medId, time);
+    const next = { ...taken, [key]: true };
+    setTaken(next);
+    try {
+      localStorage.setItem(TAKEN_KEY, JSON.stringify(next));
+    } catch {
+      /* storage may be unavailable */
+    }
+  }
 
   useEffect(() => {
     void syncNativeMedReminders(meds);
@@ -80,7 +166,11 @@ function Meds() {
             const title = `تذكير دواء: ${m.name}`;
             const body = `الجرعة: ${m.dose || "-"}`;
             startAlarm();
-            if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            if (
+              typeof window !== "undefined" &&
+              "Notification" in window &&
+              Notification.permission === "granted"
+            ) {
               try {
                 new Notification(title, { body });
               } catch {
@@ -136,7 +226,11 @@ function Meds() {
     if (meds.length === 0) return null;
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
-    let best: { med: Med; t: string; diff: number } | null = null as { med: Med; t: string; diff: number } | null;
+    let best: { med: Med; t: string; diff: number } | null = null as {
+      med: Med;
+      t: string;
+      diff: number;
+    } | null;
     meds.forEach((m) =>
       m.times.forEach((t) => {
         const [h, mi] = t.split(":").map(Number);
@@ -197,6 +291,14 @@ function Meds() {
         )}
       </div>
 
+      {/* استقبال روشتة QR — يظهر معلومة للمريض */}
+      <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-3">
+        <ScanLine className="h-5 w-5 shrink-0 text-primary" />
+        <p className="text-xs text-muted-foreground">
+          عندك رمز QR من طبيبك؟ امسحه بكاميرا الهاتف وافتح الرابط — الأدوية هتتضاف هنا تلقائياً.
+        </p>
+      </div>
+
       {/* Next dose */}
       {nextDose && (
         <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
@@ -214,7 +316,10 @@ function Meds() {
       )}
 
       {/* Add form */}
-      <form onSubmit={addMed} className="mt-5 rounded-2xl border border-border bg-card p-4 shadow-soft">
+      <form
+        onSubmit={addMed}
+        className="mt-5 rounded-2xl border border-border bg-card p-4 shadow-soft"
+      >
         <h2 className="mb-3 flex items-center gap-2 text-sm font-bold">
           <Plus className="h-4 w-4 text-primary" /> إضافة دواء جديد
         </h2>
@@ -313,14 +418,31 @@ function Meds() {
                     <p className="truncate font-bold">{m.name}</p>
                     {m.dose && <p className="text-xs text-muted-foreground">{m.dose}</p>}
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {m.times.map((t) => (
-                        <span
-                          key={t}
-                          className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-bold"
-                        >
-                          {t}
-                        </span>
-                      ))}
+                      {m.times.map((t) => {
+                        const key = takenKey(m.id, t);
+                        const did = !!taken[key];
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => !did && markTaken(m.id, t)}
+                            aria-pressed={did}
+                            aria-label={
+                              did
+                                ? `تم أخذ جرعة ${m.name} الساعة ${t}`
+                                : `سجّل أخذ جرعة ${m.name} الساعة ${t}`
+                            }
+                            className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
+                              did
+                                ? "bg-success/20 text-success"
+                                : "bg-secondary hover:bg-secondary/70"
+                            }`}
+                          >
+                            {did && <Check className="h-3 w-3" />}
+                            {t}
+                          </button>
+                        );
+                      })}
                     </div>
                     {m.notes && <p className="mt-1 text-xs text-muted-foreground">{m.notes}</p>}
                   </div>

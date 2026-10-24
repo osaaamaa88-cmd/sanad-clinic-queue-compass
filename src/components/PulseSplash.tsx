@@ -2,13 +2,22 @@ import sanadLogo from "@/assets/sanad-logo.png";
 import { useEffect, useState } from "react";
 import { playHeartbeat } from "@/lib/sounds";
 
-export function PulseSplash({ onDone, duration = 2000 }: { onDone: () => void; duration?: number }) {
+export function PulseSplash({
+  onDone,
+  duration = 2000,
+}: {
+  onDone: () => void;
+  duration?: number;
+}) {
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
     playHeartbeat();
     const a = setTimeout(() => setLeaving(true), duration - 300);
     const b = setTimeout(onDone, duration);
-    return () => { clearTimeout(a); clearTimeout(b); };
+    return () => {
+      clearTimeout(a);
+      clearTimeout(b);
+    };
   }, [duration, onDone]);
   return (
     <div
@@ -23,7 +32,14 @@ export function PulseSplash({ onDone, duration = 2000 }: { onDone: () => void; d
         </div>
       </div>
       <svg viewBox="0 0 200 40" className="mt-6 h-8 w-48 text-primary" fill="none">
-        <path className="sanad-ekg" d="M0 20 H60 L70 8 L80 32 L90 4 L100 36 L110 20 H200" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          className="sanad-ekg"
+          d="M0 20 H60 L70 8 L80 32 L90 4 L100 36 L110 20 H200"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
       <h1 className="mt-3 text-3xl font-extrabold">سَنَد</h1>
       <p className="mt-1 text-sm text-muted-foreground">سندك الطبي في كل وقت</p>

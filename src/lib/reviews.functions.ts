@@ -31,14 +31,24 @@ export const svrListClinicReviews = createServerFn({ method: "POST" })
  * by the clinic. The booking code is the proof of visit.
  */
 export const svrSubmitVerifiedReview = createServerFn({ method: "POST" })
-  .inputValidator((data: { clinicId: string; bookingCode: string; rating: number; comment?: string }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-    const code = String(data.bookingCode ?? "").trim().toUpperCase().slice(0, 30);
-    if (!code) throw new Error("NO_CODE");
-    const rating = Math.round(Number(data.rating));
-    if (!Number.isFinite(rating) || rating < 1 || rating > 5) throw new Error("INVALID_RATING");
-    return { clinicId: data.clinicId, bookingCode: code, rating, comment: String(data.comment ?? "").slice(0, 400) };
-  })
+  .inputValidator(
+    (data: { clinicId: string; bookingCode: string; rating: number; comment?: string }) => {
+      if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+      const code = String(data.bookingCode ?? "")
+        .trim()
+        .toUpperCase()
+        .slice(0, 30);
+      if (!code) throw new Error("NO_CODE");
+      const rating = Math.round(Number(data.rating));
+      if (!Number.isFinite(rating) || rating < 1 || rating > 5) throw new Error("INVALID_RATING");
+      return {
+        clinicId: data.clinicId,
+        bookingCode: code,
+        rating,
+        comment: String(data.comment ?? "").slice(0, 400),
+      };
+    },
+  )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

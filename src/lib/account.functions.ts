@@ -81,7 +81,8 @@ export const adminListDeletionRequests = createServerFn({ method: "GET" }).handl
 
 export const adminResolveDeletionRequest = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => {
-    if (!data || typeof data.id !== "string" || data.id.length > 60) throw new Error("Invalid input");
+    if (!data || typeof data.id !== "string" || data.id.length > 60)
+      throw new Error("Invalid input");
     return { id: data.id };
   })
   .handler(async ({ data }) => {

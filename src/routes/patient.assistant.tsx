@@ -13,6 +13,7 @@ import {
   Navigation,
   Phone,
   Pill,
+  Camera as CameraIcon,
   Send,
   Siren,
   Sparkles,
@@ -38,7 +39,11 @@ import { specialtyIcons } from "@/lib/specialty-icons";
 import { getLocalNemoReply, runLocalTriage, type TriageResult } from "@/lib/triage-local";
 import { voiceAssist } from "@/lib/voice-assist.functions";
 import { Button } from "@/components/ui/button";
-import { finalNemoTranscript, isNemoSessionComplete, shouldResumeNemo } from "@/lib/nemo-conversation";
+import {
+  finalNemoTranscript,
+  isNemoSessionComplete,
+  shouldResumeNemo,
+} from "@/lib/nemo-conversation";
 import {
   listHospitals,
   HOSPITAL_TYPES,
@@ -306,7 +311,8 @@ function Assistant() {
   }, []);
 
   useEffect(() => {
-    if (!shouldResumeNemo({ enabled: handsFree, listening, speaking, loading, complete: happy })) return;
+    if (!shouldResumeNemo({ enabled: handsFree, listening, speaking, loading, complete: happy }))
+      return;
     const timer = window.setTimeout(() => {
       if (mountedRef.current && handsFreeRef.current && !document.hidden) startListening();
     }, 1000);
@@ -393,7 +399,11 @@ function Assistant() {
     recognition.onend = null;
     recognition.onresult = null;
     recognition.onerror = null;
-    try { recognition.stop(); } catch { /* Already stopped. */ }
+    try {
+      recognition.stop();
+    } catch {
+      /* Already stopped. */
+    }
   }
 
   function disableHandsFree() {
@@ -689,7 +699,10 @@ function Assistant() {
             وضع كبار السن {senior ? "— مُفعّل" : ""}
           </button>
           {senior && (
-            <p className="mx-auto mt-2 max-w-sm text-xs font-semibold text-amber-800" aria-live="polite">
+            <p
+              className="mx-auto mt-2 max-w-sm text-xs font-semibold text-amber-800"
+              aria-live="polite"
+            >
               نيمو هيقرأ الردود بصوت عالي تلقائياً، والأزرار أكبر وأهدأ في السرعة.
             </p>
           )}
@@ -841,10 +854,21 @@ function Assistant() {
               placeholder={listening ? "نيمو بيسمعك… اتكلم براحتك" : "اكتب رسالتك لنيمو…"}
               className={`min-w-0 flex-1 rounded-xl border bg-white px-3 text-slate-800 outline-none placeholder:text-slate-400 focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100 ${
                 senior ? "py-4 text-base" : "py-3 text-sm"
-              } ${
-                listening ? "border-rose-400" : "border-transparent"
-              }`}
+              } ${listening ? "border-rose-400" : "border-transparent"}`}
             />
+            <Button
+              type="button"
+              onClick={() => navigate({ to: "/patient/drug-scan" })}
+              disabled={happy}
+              aria-label="صوّر روشتة أو دواء لنيمو"
+              title="صوّر روشتة أو دواء لنيمو"
+              variant="secondary"
+              className={`shrink-0 place-items-center rounded-lg p-0 ${
+                senior ? "grid h-14 w-14" : "grid h-11 w-11"
+              }`}
+            >
+              <CameraIcon className="h-5 w-5" />
+            </Button>
             <Button
               type="button"
               onClick={toggleListening}
