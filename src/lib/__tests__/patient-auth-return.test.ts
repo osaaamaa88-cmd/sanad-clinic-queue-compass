@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { patientOAuthCallback, safePatientReturnPath } from "../patient-auth-return";
+import { patientOAuthCallback, safePatientReturnPath } from "../patient-auth-return.ts";
 
 describe("Google patient sign-in return", () => {
   it("returns clinic patients to the clinic that initiated sign-in", () => {

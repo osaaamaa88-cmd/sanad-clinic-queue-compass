@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { finalNemoTranscript, isNemoSessionComplete, shouldResumeNemo } from "../nemo-conversation";
+import {
+  finalNemoTranscript,
+  isNemoSessionComplete,
+  shouldResumeNemo,
+} from "../nemo-conversation.ts";
 
 it("Nemo resumes after his spoken reply without another microphone tap", () => {
   const state = {

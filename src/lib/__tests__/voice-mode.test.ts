@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { isVoiceModeOn, setVoiceMode, VOICE_KEY } from "../voice";
+import { isVoiceModeOn, setVoiceMode, VOICE_KEY } from "../voice.ts";
 
 it("voice settings persist enable and disable and notify the mounted assistant", () => {
   const values = new Map<string, string>([["voice_disclaimer_seen", "true"]]);

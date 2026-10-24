@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { directionsPath } from "@/lib/directions";
 import { ClientOnly } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { clinicsQuery, hospitalsQuery } from "@/lib/directory-queries";
 import {
@@ -104,7 +104,7 @@ function Search() {
     select: (rows: Hospital[]) => rows,
   });
   const [kind, setKind] = useState<"all" | "clinic" | "hospital">("all");
-  const useGps = (p: { lat: number; lng: number }) => {
+  const applyGpsPosition = useCallback((p: { lat: number; lng: number }) => {
     setPos(p);
     const n = nearestArea(p.lat, p.lng);
     savePatientLocation({
@@ -115,7 +115,7 @@ function Search() {
       gps: true,
     });
     setSort("nearest");
-  };
+  }, []);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
   const [openNow, setOpenNow] = useState(false);
@@ -128,11 +128,11 @@ function Search() {
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (p) => useGps({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      (p) => applyGpsPosition({ lat: p.coords.latitude, lng: p.coords.longitude }),
       () => {},
       { timeout: 10000, enableHighAccuracy: true, maximumAge: 60000 },
     );
-  }, []);
+  }, [applyGpsPosition]);
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     const hosp = hospitals.map((h) => hospitalToClinic(h, pos));
@@ -323,7 +323,7 @@ function Search() {
                 center={pos}
                 selectedId={selected?.id}
                 onSelect={(c) => setSelected(c)}
-                onLocate={useGps}
+                onLocate={applyGpsPosition}
               />
             </Suspense>
           </ClientOnly>

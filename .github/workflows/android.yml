@@ -39,6 +39,12 @@ jobs:
         run: npm install --legacy-peer-deps
 
       # The app loads the live site (server.url), so the bundled web folder is only a fallback shell.
+      - name: Run unit tests
+        run: npm test
+
+      - name: Check TypeScript
+        run: npx tsc --noEmit
+
       - name: Prepare web shell
         run: |
           mkdir -p dist/client

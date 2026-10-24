@@ -332,7 +332,7 @@ export async function getVerifiedClinics(): Promise<Clinic[]> {
     .order("submitted_at", { ascending: false })
     .limit(300);
   if (error) return [];
-  if (data.length === 0) return developmentDemoClinics;
+  if (import.meta.env.DEV && data.length === 0) return developmentDemoClinics;
   return (data as Row[]).map(rowToClinic);
 }
 
@@ -354,7 +354,9 @@ export async function getClinicsPage(
 }
 
 export async function getVerifiedClinic(id: string): Promise<Clinic | undefined> {
-  const demoClinic = developmentDemoClinics.find((clinic) => clinic.id === id);
+  const demoClinic = import.meta.env.DEV
+    ? developmentDemoClinics.find((clinic) => clinic.id === id)
+    : undefined;
   if (demoClinic) return demoClinic;
 
   const { data, error } = await supabase
@@ -369,7 +371,9 @@ export async function getVerifiedClinic(id: string): Promise<Clinic | undefined>
 }
 
 export async function getClinicById(id: string): Promise<Clinic | undefined> {
-  const demoClinic = developmentDemoClinics.find((clinic) => clinic.id === id);
+  const demoClinic = import.meta.env.DEV
+    ? developmentDemoClinics.find((clinic) => clinic.id === id)
+    : undefined;
   if (demoClinic) return demoClinic;
   const { data, error } = await supabase.from("clinics").select("*").eq("id", id).maybeSingle();
   if (error || !data) return undefined;
