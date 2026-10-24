@@ -52,11 +52,11 @@ export function AppShell({
     <div className="min-h-screen bg-background">
       <div className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-md sm:max-w-xl lg:max-w-2xl"}`}>
         <header
-          className={`sticky inset-x-0 top-0 z-50 grid transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"} min-h-16 items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 ${centeredTitle ? "grid-cols-[5.5rem_minmax(0,1fr)_5.5rem]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
+          className={`sticky inset-x-0 top-0 z-50 grid transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"} min-h-16 items-center gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4 ${centeredTitle ? "grid-cols-[2.75rem_minmax(0,1fr)_2.75rem]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
             isPrimary ? "gradient-primary text-primary-foreground" : "border-b border-border/40 bg-card/70 backdrop-blur-2xl backdrop-saturate-150"
           }`}
         >
-          {hideBack ? <span className="h-10 w-full" aria-hidden="true" /> : (
+          {hideBack ? <span className="h-10 w-10 shrink-0" aria-hidden="true" /> : (
             <Link
               to={backTo}
               className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-transform duration-200 active:scale-90 ${

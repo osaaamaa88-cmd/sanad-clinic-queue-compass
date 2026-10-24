@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type DrugAlt = { name: string; company: string; note: string };
 export type DrugScan = {
@@ -51,7 +50,7 @@ const LAB_PROMPT = `أنت طبيب باطنة مصري حنون وصادق، ب
 {"found":true,"type":"نوع التحليل","comfort":"رسالة طمأنة دافئة قصيرة (جملتين) تبدأ بكلمة حلوة زي ألف سلامة عليك، وتقدّر قلقه من غير ما تنكر النتايج","summary":"ملخص صادق ومطمئن بالعامية المصرية في 2-3 جمل","items":[{"name":"اسم المؤشر","value":"القيمة","unit":"الوحدة","range":"المعدل الطبيعي","status":"normal|high|low|unknown","explain":"شرح بسيط وحنون بالمصري، ولو مش طبيعية قول إيه اللي ممكن يساعد"}],"questions":["سؤال تسأله لطبيبك"],"urgent":false}
 لو مفيش تحليل في الصورة اجعل found=false.`;
 
-const MODELS = ["gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.8-flash"];
+const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
 async function callGemini(prompt: string, text?: string, image?: string, mime?: string) {
   const key = process.env.GEMINI_API_KEY;
@@ -62,17 +61,31 @@ async function callGemini(prompt: string, text?: string, image?: string, mime?: 
   let busy = false;
   for (const model of MODELS) {
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-        method: "POST",
-        signal: AbortSignal.timeout(40_000),
-        headers: { "content-type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { responseMimeType: "application/json" } }),
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: "POST",
+          signal: AbortSignal.timeout(40_000),
+          headers: { "content-type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts }],
+            generationConfig: { responseMimeType: "application/json" },
+          }),
+        },
+      );
       const json: any = await res.json().catch(() => ({}));
-      if (!res.ok) { if (res.status === 429) busy = true; continue; }
-      const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? "").join("");
-      try { return JSON.parse(raw.replace(/```json|```/g, "").trim()); }
-      catch { throw new Error("ماقدرناش نقرأ الصورة، جرّب صورة أوضح"); }
+      if (!res.ok) {
+        if (res.status === 429) busy = true;
+        continue;
+      }
+      const raw = (json?.candidates?.[0]?.content?.parts ?? [])
+        .map((p: any) => p.text ?? "")
+        .join("");
+      try {
+        return JSON.parse(raw.replace(/```json|```/g, "").trim());
+      } catch {
+        throw new Error("ماقدرناش نقرأ الصورة، جرّب صورة أوضح");
+      }
     } catch (e: any) {
       if (e?.message?.startsWith("ماقدرناش")) throw e;
     }
@@ -81,13 +94,20 @@ async function callGemini(prompt: string, text?: string, image?: string, mime?: 
 }
 
 /** Recompute status from the printed range so a model slip can't flip normal/high/low. */
-export function checkStatus(value: string, range: string, given: LabItem["status"]): LabItem["status"] {
+export function checkStatus(
+  value: string,
+  range: string,
+  given: LabItem["status"],
+): LabItem["status"] {
   const v = parseFloat(value.replace(/,/g, "").match(/-?\d+(\.\d+)?/)?.[0] ?? "");
   if (isNaN(v)) return given;
   const nums = (range.replace(/,/g, "").match(/\d+(\.\d+)?/g) ?? []).map(Number);
-  if (/^\s*(<|≤|up to|less|حتى|أقل)/i.test(range) && nums.length === 1) return v > nums[0] ? "high" : "normal";
-  if (/^\s*(>|≥|more|أكثر|أكبر)/i.test(range) && nums.length === 1) return v < nums[0] ? "low" : "normal";
-  if (nums.length === 2 && nums[0] < nums[1]) return v < nums[0] ? "low" : v > nums[1] ? "high" : "normal";
+  if (/^\s*(<|≤|up to|less|حتى|أقل)/i.test(range) && nums.length === 1)
+    return v > nums[0] ? "high" : "normal";
+  if (/^\s*(>|≥|more|أكثر|أكبر)/i.test(range) && nums.length === 1)
+    return v < nums[0] ? "low" : "normal";
+  if (nums.length === 2 && nums[0] < nums[1])
+    return v < nums[0] ? "low" : v > nums[1] ? "high" : "normal";
   return given;
 }
 
@@ -95,7 +115,8 @@ export function checkStatus(value: string, range: string, given: LabItem["status
 export function isCriticalLab(name: string, value: string, unit: string): boolean {
   let v = parseFloat(value.replace(/,/g, "").match(/-?\d+(\.\d+)?/)?.[0] ?? "");
   if (isNaN(v)) return false;
-  const n = name.toLowerCase(), u = unit.toLowerCase();
+  const n = name.toLowerCase(),
+    u = unit.toLowerCase();
   if (/potassium|\bk\+?\b|بوتاسيوم/.test(n)) return v < 2.8 || v > 6.0;
   if (/sodium|\bna\+?\b|صوديوم/.test(n)) return v < 125 || v > 155;
   if (/glucose|sugar|\bfbs\b|\brbs\b|سكر|جلوكوز/.test(n) && !/hba1c|a1c|تراكمي/.test(n)) {
@@ -123,47 +144,89 @@ const validate = (d: In) => {
   return { image, mime, text };
 };
 const s = (v: unknown, n = 200) => String(v ?? "").slice(0, n);
+
+/**
+ * Map any thrown error to a patient-friendly Arabic message.
+ * Arabic AI/rate-limit messages pass through untouched; everything
+ * else (network, JSON, missing key, server errors) gets a clear fallback.
+ */
+function aiFriendlyError(e: unknown): string {
+  const msg = (e as Error)?.message || String(e ?? "");
+  // Already patient-friendly Arabic messages from our own code.
+  if (/[\u0600-\u06FF]/.test(msg) && msg.length < 200) return msg;
+  if (/RATE_LIMITED|rate.?limit|429/i.test(msg))
+    return "طلبات كتير ورا بعض، استنى دقيقة وجرب تاني.";
+  if (/aborted|timeout|timed out|network|fetch|ENOTFOUND|ECONNRESET/i.test(msg))
+    return "فيه مشكلة في الاتصال بالخدمة، تأكد من النت وجرب تاني.";
+  if (/API.?key|GEMINI/i.test(msg)) return "الخدمة غير مضبوطة حالياً، جرب تاني بعدين.";
+  return "حصلت مشكلة وقت التحليل، جرب تاني بصورة أوضح أو بعد شوية.";
+}
 const alts = (a: unknown, n: number): DrugAlt[] =>
-  (Array.isArray(a) ? a : []).slice(0, n).map((x: any) => ({ name: s(x?.name, 80), company: s(x?.company, 60), note: s(x?.note, 120) }));
+  (Array.isArray(a) ? a : [])
+    .slice(0, n)
+    .map((x: any) => ({ name: s(x?.name, 80), company: s(x?.company, 60), note: s(x?.note, 120) }));
 
 export const scanDrug = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator(validate)
   .handler(async ({ data, context }): Promise<DrugScan> => {
-    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("scanDrug", context.userId);
-    const o = await callGemini(DRUG_PROMPT, data.text, data.image, data.mime);
-    return {
-      found: o.found !== false,
-      name: s(o.name, 80),
-      active: s(o.active, 120),
-      strength: s(o.strength, 60),
-      form: s(o.form, 40),
-      uses: s(o.uses, 400),
-      usualDose: s(o.usualDose, 300),
-      warnings: s(o.warnings, 400),
-      equivalents: alts(o.equivalents, 5),
-      similar: alts(o.similar, 3),
-    };
+    try {
+      await (
+        await import("@/lib/rate-limit.server")
+      ).assertAiRateLimit("scanDrug", (context as any)?.userId);
+      const o = await callGemini(DRUG_PROMPT, data.text, data.image, data.mime);
+      return {
+        found: o.found !== false,
+        name: s(o.name, 80),
+        active: s(o.active, 120),
+        strength: s(o.strength, 60),
+        form: s(o.form, 40),
+        uses: s(o.uses, 400),
+        usualDose: s(o.usualDose, 300),
+        warnings: s(o.warnings, 400),
+        equivalents: alts(o.equivalents, 5),
+        similar: alts(o.similar, 3),
+      };
+    } catch (e: any) {
+      throw new Error(aiFriendlyError(e));
+    }
   });
 
 export const readLab = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator(validate)
   .handler(async ({ data, context }): Promise<LabReport> => {
-    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("readLab", context.userId);
-    const o = await callGemini(LAB_PROMPT, data.text, data.image, data.mime);
-    const st = (v: unknown): LabItem["status"] => (["normal", "high", "low"].includes(String(v)) ? (v as any) : "unknown");
-    const items: LabItem[] = (Array.isArray(o.items) ? o.items : []).slice(0, 40).map((i: any) => {
-      const value = s(i?.value, 30), range = s(i?.range, 40);
-      return { name: s(i?.name, 60), value, unit: s(i?.unit, 20), range, status: checkStatus(value, range, st(i?.status)), explain: s(i?.explain, 250) };
-    });
-    return {
-      found: o.found !== false,
-      type: s(o.type, 80),
-      comfort: s(o.comfort, 400),
-      summary: s(o.summary, 600),
-      urgent: o.urgent === true || items.some((i) => isCriticalLab(i.name, i.value, i.unit)),
-      items,
-      questions: (Array.isArray(o.questions) ? o.questions : []).slice(0, 5).map((q: any) => s(q, 200)),
-    };
+    try {
+      await (
+        await import("@/lib/rate-limit.server")
+      ).assertAiRateLimit("readLab", (context as any)?.userId);
+      const o = await callGemini(LAB_PROMPT, data.text, data.image, data.mime);
+      const st = (v: unknown): LabItem["status"] =>
+        ["normal", "high", "low"].includes(String(v)) ? (v as any) : "unknown";
+      const items: LabItem[] = (Array.isArray(o.items) ? o.items : [])
+        .slice(0, 40)
+        .map((i: any) => {
+          const value = s(i?.value, 30),
+            range = s(i?.range, 40);
+          return {
+            name: s(i?.name, 60),
+            value,
+            unit: s(i?.unit, 20),
+            range,
+            status: checkStatus(value, range, st(i?.status)),
+            explain: s(i?.explain, 250),
+          };
+        });
+      return {
+        found: o.found !== false,
+        type: s(o.type, 80),
+        comfort: s(o.comfort, 400),
+        summary: s(o.summary, 600),
+        urgent: o.urgent === true || items.some((i) => isCriticalLab(i.name, i.value, i.unit)),
+        items,
+        questions: (Array.isArray(o.questions) ? o.questions : [])
+          .slice(0, 5)
+          .map((q: any) => s(q, 200)),
+      };
+    } catch (e: any) {
+      throw new Error(aiFriendlyError(e));
+    }
   });
