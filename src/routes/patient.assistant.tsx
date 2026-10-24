@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   HeartPulse,
   Hospital,
+  Image as ImageIcon,
   Lightbulb,
   Loader2,
   MapPin,
@@ -39,6 +40,16 @@ import { specialtyIcons } from "@/lib/specialty-icons";
 import { getLocalNemoReply, runLocalTriage, type TriageResult } from "@/lib/triage-local";
 import { voiceAssist } from "@/lib/voice-assist.functions";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useAiConsent, aiErrorMessage } from "@/components/AiConsentDialog";
+import { readLab, scanDrug } from "@/lib/medscan.functions";
+import { imageToBase64 } from "@/lib/image-to-base64";
 import {
   finalNemoTranscript,
   isNemoSessionComplete,
@@ -89,7 +100,7 @@ const examples = [
 ];
 const BREATH_CYCLE_SECONDS = 19;
 
-type ChatMessage = { id: number; role: "patient" | "nemo"; text: string };
+type ChatMessage = { id: number; role: "patient" | "nemo"; text: string; image?: string };
 
 type SpeechRecognitionLike = {
   lang: string;
@@ -205,41 +216,49 @@ function NemoFace({
   speaking,
   emergency,
   happy,
+  listening,
+  onActivate,
 }: {
   speaking: boolean;
   emergency: boolean;
   happy: boolean;
+  listening: boolean;
+  onActivate: () => void;
 }) {
   return (
-    <div
-      className={`nemo-breathe relative mx-auto grid h-36 w-44 place-items-center rounded-[46%_46%_43%_43%] border border-cyan-100 bg-gradient-to-b from-white via-white to-cyan-50 shadow-[0_24px_55px_-24px_rgba(14,116,144,0.42)] transition-shadow duration-700 ${
+    <button
+      type="button"
+      onClick={onActivate}
+      disabled={happy}
+      aria-pressed={listening}
+      aria-label={listening ? "إيقاف استماع نيمو" : "اضغط للتحدث مع نيمو"}
+      title={listening ? "إيقاف استماع نيمو" : "اضغط للتحدث مع نيمو"}
+      className={`nemo-breathe relative mx-auto grid h-16 w-20 place-items-center rounded-[46%_46%_43%_43%] border border-cyan-100 bg-gradient-to-b from-white via-white to-cyan-50 shadow-[0_12px_28px_-16px_rgba(14,116,144,0.42)] transition-shadow duration-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 disabled:cursor-default ${
         speaking ? "nemo-speaking-glow" : ""
       } ${emergency ? "nemo-emergency-flash shadow-[0_0_48px_-12px_rgba(251,146,60,0.5)]" : ""}`}
-      role="img"
-      aria-label={happy ? "نيمو يبتسم" : "وجه نيمو الودود"}
     >
-      <span className="absolute -top-2 left-1/2 h-5 w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-100 via-white to-teal-100" />
-      <span className="absolute left-7 top-1/2 h-5 w-4 -translate-y-1/2 rounded-full bg-cyan-100/80" />
-      <span className="absolute right-7 top-1/2 h-5 w-4 -translate-y-1/2 rounded-full bg-cyan-100/80" />
-      <span className="flex -translate-y-1 items-center gap-12">
+      <span className="absolute -top-1 left-1/2 h-3 w-7 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-100 via-white to-teal-100" />
+      <span className="absolute left-3 top-1/2 h-3 w-2 -translate-y-1/2 rounded-full bg-cyan-100/80" />
+      <span className="absolute right-3 top-1/2 h-3 w-2 -translate-y-1/2 rounded-full bg-cyan-100/80" />
+      <span className="flex -translate-y-1 items-center gap-6">
         <span
-          className={`nemo-eye h-[18px] w-[13px] rounded-full bg-slate-800 ${happy ? "nemo-eye-happy" : ""}`}
+          className={`nemo-eye h-3 w-2 rounded-full bg-slate-800 ${happy ? "nemo-eye-happy" : ""}`}
         />
         <span
-          className={`nemo-eye h-[18px] w-[13px] rounded-full bg-slate-800 ${happy ? "nemo-eye-happy" : ""}`}
+          className={`nemo-eye h-3 w-2 rounded-full bg-slate-800 ${happy ? "nemo-eye-happy" : ""}`}
         />
       </span>
       <span
-        className={`absolute top-[58%] h-3 w-7 rounded-b-full border-b-2 border-cyan-600 transition-transform ${happy ? "scale-125" : ""}`}
+        className={`absolute top-[58%] h-2 w-5 rounded-b-full border-b-2 border-cyan-600 transition-transform ${happy ? "scale-125" : ""}`}
       />
       {speaking && (
-        <span className="absolute -bottom-4 flex items-center gap-1" aria-hidden="true">
-          <span className="h-1.5 w-1.5 animate-ping rounded-full bg-cyan-400" />
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-300" />
-          <span className="h-1.5 w-1.5 animate-ping rounded-full bg-teal-300 [animation-delay:250ms]" />
+        <span className="absolute -bottom-2 flex items-center gap-1" aria-hidden="true">
+          <span className="h-1 w-1 animate-ping rounded-full bg-cyan-400" />
+          <span className="h-1 w-1 animate-pulse rounded-full bg-sky-300" />
+          <span className="h-1 w-1 animate-ping rounded-full bg-teal-300 [animation-delay:250ms]" />
         </span>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -249,6 +268,9 @@ function Assistant() {
   const [need, setNeed] = useState("");
   const [loc, setLoc] = useState<PatientLocation>(defaultLocation);
   const [picker, setPicker] = useState(false);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
+  const [imageUrgent, setImageUrgent] = useState(false);
+  const consent = useAiConsent();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TriageResult | null>(null);
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -264,8 +286,10 @@ function Assistant() {
   const [breathing, setBreathing] = useState(false);
   const [breathElapsed, setBreathElapsed] = useState(0);
   const recogRef = useRef<SpeechRecognitionLike | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const stopSpeechRef = useRef<(() => void) | null>(null);
-  const chatContainerRef = useRef<HTMLElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const messageIdRef = useRef(1);
   const navigationTimerRef = useRef<number | null>(null);
   const providerWarningShownRef = useRef(false);
@@ -321,7 +345,8 @@ function Assistant() {
 
   useEffect(() => {
     const container = chatContainerRef.current;
-    container?.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    const messages = container?.querySelectorAll(".nemo-chat-message");
+    messages?.item(messages.length - 1)?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [chatMessages]);
 
   useEffect(() => {
@@ -389,6 +414,102 @@ function Assistant() {
         setSpeakingMessageId(null);
         stopSpeechRef.current = null;
       });
+    }
+  }
+
+  function addPatientImageMessage(image: string) {
+    messageIdRef.current += 1;
+    setChatMessages((messages) => [
+      ...messages,
+      { id: messageIdRef.current, role: "patient", text: "حلّل نيمو الصورة دي", image },
+    ]);
+  }
+
+  async function analyzeMedicalImage(file?: File) {
+    if (!file || loading) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("اختار صورة بصيغة مناسبة");
+      return;
+    }
+    if (!(await consent.ask())) return;
+
+    stopRecognition();
+    setListening(false);
+    stopSpeechRef.current?.();
+    stopSpeechRef.current = null;
+    setSpeaking(false);
+    setSpeakingMessageId(null);
+    const requestId = ++requestRef.current;
+    setLoading(true);
+    setAnalyzingImage(true);
+    setImageUrgent(false);
+    setResult(null);
+    setPainLevel(null);
+    setNeed("");
+
+    try {
+      const { data, mime, preview } = await imageToBase64(file, 1600);
+      if (!mountedRef.current || requestRef.current !== requestId) return;
+      addPatientImageMessage(preview);
+      const report = await readLab({ data: { image: data, mime } });
+      if (!mountedRef.current || requestRef.current !== requestId) return;
+
+      if (report.found) {
+        setImageUrgent(report.urgent);
+        const flagged = report.items
+          .filter((item) => item.status === "high" || item.status === "low")
+          .slice(0, 4)
+          .map(
+            (item) =>
+              `${item.name}: ${item.value}${item.unit ? ` ${item.unit}` : ""} (${item.status === "high" ? "أعلى من" : "أقل من"} الطبيعي)`,
+          );
+        const reply = [
+          report.comfort,
+          report.summary,
+          flagged.length ? `خلي بالك من القيم دي: ${flagged.join("، ")}.` : "",
+          report.urgent
+            ? "النتيجة دي محتاجة مراجعة طبية عاجلة اليوم. لو عندك أعراض شديدة، توجّه للطوارئ أو اتصل بالإسعاف 123."
+            : report.questions[0]
+              ? `اسأل طبيبك: ${report.questions[0]}`
+              : "الشرح استرشادي، والطبيب هو اللي يربط النتيجة بحالتك.",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        addChatMessage("nemo", reply);
+        return;
+      }
+
+      const drug = await scanDrug({ data: { image: data, mime } });
+      if (!mountedRef.current || requestRef.current !== requestId) return;
+      if (!drug.found) {
+        addChatMessage(
+          "nemo",
+          "مش قادر أتعرف على تحليل أو دواء واضح في الصورة. جرّب صورة أوضح وبإضاءة كويسة، أو اكتبلي إيه اللي تحب تعرفه عنها.",
+        );
+        return;
+      }
+      const reply = [
+        `الصورة باين فيها ${drug.name}${drug.strength ? ` بتركيز ${drug.strength}` : ""}${drug.form ? `، ${drug.form}` : ""}.`,
+        drug.active ? `المادة الفعالة: ${drug.active}.` : "",
+        drug.uses ? drug.uses : "",
+        drug.warnings ? `ملاحظة مهمة: ${drug.warnings}.` : "",
+        "ده شرح للصورة فقط، ماتبدأش الدواء أو تغيّر جرعته من غير مراجعة الطبيب أو الصيدلي.",
+      ]
+        .filter(Boolean)
+        .join(" ");
+      addChatMessage("nemo", reply);
+    } catch (imageError: unknown) {
+      if (!mountedRef.current || requestRef.current !== requestId) return;
+      console.error("[Nemo] Medical image analysis failed", imageError);
+      addChatMessage(
+        "nemo",
+        `ماقدرتش أحلل الصورة دلوقتي. ${aiErrorMessage(imageError)} جرّب تاني بصورة أوضح.`,
+      );
+    } finally {
+      if (mountedRef.current && requestRef.current === requestId) {
+        setLoading(false);
+        setAnalyzingImage(false);
+      }
     }
   }
 
@@ -502,6 +623,7 @@ function Assistant() {
     setSpeaking(false);
     setSpeakingMessageId(null);
     setLoading(true);
+    setImageUrgent(false);
     setNeed("");
     setBreathing(false);
     setPainLevel(null);
@@ -628,7 +750,8 @@ function Assistant() {
       })()
     : [];
 
-  const urgent = (painLevel !== null && painLevel >= 8) || result?.urgency === "emergency";
+  const urgent =
+    imageUrgent || (painLevel !== null && painLevel >= 8) || result?.urgency === "emergency";
   const lastPatientMessage =
     [...chatMessages].reverse().find((message) => message.role === "patient")?.text ?? "";
   const hasPatientMessages = chatMessages.some((message) => message.role === "patient");
@@ -667,21 +790,62 @@ function Assistant() {
       subtitle="أنا هنا أسمعك وأساعدك بهدوء"
       backTo="/patient"
       tone="light"
+      fullHeight
     >
-      <div className="mx-auto flex max-w-xl flex-col gap-3 pb-28 text-slate-800">
-        <section className="order-1 overflow-hidden rounded-[2rem] border border-cyan-100 bg-gradient-to-b from-sky-50 via-white to-white px-4 pb-4 pt-4 text-center shadow-[0_18px_55px_-35px_rgba(14,116,144,0.5)]">
-          <div className="relative mx-auto mb-5 w-fit">
+      <div
+        ref={chatContainerRef}
+        className="ios-scroll mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col gap-3 overflow-y-auto pb-28 text-slate-800"
+      >
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.currentTarget.files?.[0];
+            event.currentTarget.value = "";
+            void analyzeMedicalImage(file);
+          }}
+        />
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.currentTarget.files?.[0];
+            event.currentTarget.value = "";
+            void analyzeMedicalImage(file);
+          }}
+        />
+        <section className="order-1 flex shrink-0 items-center gap-3 overflow-hidden rounded-3xl border border-border/40 bg-card/75 bg-gradient-to-l from-sky-50/90 via-white/85 to-white/80 px-3 py-2 shadow-[0_12px_35px_-24px_rgba(14,116,144,0.5)] backdrop-blur-xl">
+          <div className="relative shrink-0">
             <span
-              className={`absolute -inset-5 rounded-full bg-cyan-200/40 blur-2xl ${speaking ? "opacity-100" : "opacity-30"} transition-opacity duration-700`}
+              className={`absolute -inset-2 rounded-full bg-cyan-200/50 blur-lg ${speaking || listening ? "opacity-100" : "opacity-30"} transition-opacity duration-700`}
             />
-            <NemoFace speaking={speaking || listening} emergency={urgent} happy={happy} />
+            <NemoFace
+              speaking={speaking || listening}
+              listening={handsFree}
+              emergency={urgent}
+              happy={happy}
+              onActivate={toggleListening}
+            />
           </div>
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-xl" aria-hidden="true">
-              🫧
-            </span>
-            <h2 className="text-xl font-extrabold text-slate-800">نيمو، رفيقك الصحي</h2>
-            <Sparkles className="h-4 w-4 text-cyan-600" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <h2 className="truncate text-base font-extrabold text-slate-800">
+                نيمو، رفيقك الصحي
+              </h2>
+              <Sparkles className="h-4 w-4 shrink-0 text-cyan-600" aria-hidden="true" />
+            </div>
+            <p className="mt-1 truncate text-xs leading-5 text-slate-600" aria-live="polite">
+              {listening
+                ? "نيمو بيسمعك… اتكلم براحتك"
+                : speaking
+                  ? "نيمو بيتكلم معاك بهدوء"
+                  : "اضغط على نيمو للتحدث"}
+            </p>
           </div>
           <button
             type="button"
@@ -689,42 +853,29 @@ function Assistant() {
             role="switch"
             aria-checked={senior}
             aria-label="وضع كبار السن — ردود صوتية تلقائية وأزرار أكبر"
-            className={`mx-auto mt-3 flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-extrabold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
+            title="وضع كبار السن — ردود صوتية تلقائية وأزرار أكبر"
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border text-lg transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-700 ${
               senior
                 ? "border-amber-300 bg-amber-100 text-amber-900"
                 : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
             <span aria-hidden="true">👵</span>
-            وضع كبار السن {senior ? "— مُفعّل" : ""}
           </button>
-          {senior && (
-            <p
-              className="mx-auto mt-2 max-w-sm text-xs font-semibold text-amber-800"
-              aria-live="polite"
-            >
-              نيمو هيقرأ الردود بصوت عالي تلقائياً، والأزرار أكبر وأهدأ في السرعة.
-            </p>
-          )}
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-7 text-slate-600">
-            {listening
-              ? "نيمو بيسمعك… اتكلم براحتك"
-              : speaking
-                ? "نيمو بيتكلم معاك بهدوء"
-                : "أنا هنا أسمعك وأساعدك"}
-          </p>
+          <span className="sr-only" aria-live="polite">
+            {senior ? "وضع كبار السن مُفعّل" : "وضع كبار السن متوقف"}
+          </span>
         </section>
 
         <section
           aria-label="محادثتك مع نيمو"
           aria-live="polite"
-          ref={chatContainerRef}
-          className="order-2 max-h-64 space-y-3 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
+          className="order-2 flex-auto space-y-3 rounded-3xl border border-border/40 bg-card/75 p-4 shadow-sm backdrop-blur-xl"
         >
           {chatMessages.map((message) => (
             <div
               key={message.id}
-              className={`nemo-chat-message flex items-end gap-2 ${message.role === "patient" ? "justify-start" : "justify-end"}`}
+              className={`nemo-chat-message scroll-mb-36 flex items-end gap-2 ${message.role === "patient" ? "justify-start" : "justify-end"}`}
             >
               <div
                 className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 leading-6 ${
@@ -735,6 +886,13 @@ function Assistant() {
                     : "rounded-tl-md border border-cyan-100 bg-cyan-50 text-cyan-950"
                 }`}
               >
+                {message.image && (
+                  <img
+                    src={message.image}
+                    alt="صورة أرسلها المريض لنيمو لتحليلها"
+                    className="mb-2 max-h-48 max-w-full rounded-xl object-contain"
+                  />
+                )}
                 {message.role === "nemo" && (
                   <span className="mb-1 block text-[10px] font-extrabold text-cyan-800">
                     نيمو 🫧
@@ -769,7 +927,8 @@ function Assistant() {
           {loading && (
             <div className="flex justify-end">
               <p className="flex items-center gap-2 rounded-2xl rounded-tl-md bg-cyan-50 px-3 py-2 text-xs text-cyan-900">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> نيمو بيدوّر على التخصص المناسب
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                {analyzingImage ? "نيمو بيحلل الصورة…" : "نيمو بيدوّر على التخصص المناسب"}
               </p>
             </div>
           )}
@@ -843,7 +1002,7 @@ function Assistant() {
             event.preventDefault();
             void submit(need);
           }}
-          className="order-3 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
+          className="fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[70] order-3 mx-auto w-auto max-w-xl rounded-2xl border border-border/40 bg-card/75 p-2 shadow-lg backdrop-blur-xl md:bottom-[calc(6rem+env(safe-area-inset-bottom))]"
         >
           <div className="flex items-center gap-2">
             <input
@@ -858,16 +1017,29 @@ function Assistant() {
             />
             <Button
               type="button"
-              onClick={() => navigate({ to: "/patient/drug-scan" })}
-              disabled={happy}
-              aria-label="صوّر روشتة أو دواء لنيمو"
-              title="صوّر روشتة أو دواء لنيمو"
+              onClick={() => cameraInputRef.current?.click()}
+              disabled={happy || loading}
+              aria-label="التقط صورة بالكاميرا لتحليلها مع نيمو"
+              title="التقط صورة بالكاميرا لتحليلها مع نيمو"
               variant="secondary"
               className={`shrink-0 place-items-center rounded-lg p-0 ${
                 senior ? "grid h-14 w-14" : "grid h-11 w-11"
               }`}
             >
               <CameraIcon className="h-5 w-5" />
+            </Button>
+            <Button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              disabled={happy || loading}
+              aria-label="اختار صورة من المعرض لتحليلها مع نيمو"
+              title="اختار صورة من المعرض لتحليلها مع نيمو"
+              variant="secondary"
+              className={`shrink-0 place-items-center rounded-lg p-0 ${
+                senior ? "grid h-14 w-14" : "grid h-11 w-11"
+              }`}
+            >
+              <ImageIcon className="h-5 w-5" />
             </Button>
             <Button
               type="button"
@@ -1336,6 +1508,7 @@ function Assistant() {
           </>
         )}
       </div>
+      {consent.dialog}
       {picker && (
         <LocationPickerModal
           current={loc}

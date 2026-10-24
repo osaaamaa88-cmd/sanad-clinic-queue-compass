@@ -15,6 +15,7 @@ export function AppShell({
   wide = false,
   hideBack = false,
   centeredTitle = false,
+  fullHeight = false,
 }: {
   title: string;
   subtitle?: string;
@@ -26,6 +27,7 @@ export function AppShell({
   wide?: boolean;
   hideBack?: boolean;
   centeredTitle?: boolean;
+  fullHeight?: boolean;
 }) {
   const isPrimary = tone === "primary";
   const [hidden, setHidden] = useState(false);
@@ -57,12 +59,12 @@ export function AppShell({
       pathname.startsWith("/community") ||
       pathname.startsWith("/messages"));
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${fullHeight ? "h-dvh overflow-hidden" : ""}`}>
       <div
-        className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-xl md:max-w-2xl lg:max-w-3xl"}`}
+        className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-xl md:max-w-2xl lg:max-w-3xl"} ${fullHeight ? "flex h-full flex-col" : ""}`}
       >
         <header
-          className={`sticky inset-x-0 top-0 z-50 grid w-full transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"} min-h-16 items-center gap-2 px-4 py-3 pb-[max(0.25rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 sm:py-4 ${centeredTitle ? "grid-cols-[2.75rem_minmax(0,1fr)_2.75rem]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
+          className={`sticky inset-x-0 top-0 z-50 grid w-full transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"} min-h-16 items-center gap-2 px-4 py-3 pb-[max(0.25rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 sm:py-4 ${fullHeight ? "shrink-0" : ""} ${centeredTitle ? "grid-cols-[2.75rem_minmax(0,1fr)_2.75rem]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
             isPrimary
               ? "gradient-primary text-primary-foreground"
               : "border-b border-border/40 bg-card/70 backdrop-blur-2xl backdrop-saturate-150"
@@ -94,7 +96,7 @@ export function AppShell({
           <div className="flex shrink-0 items-center justify-end gap-2">{right}</div>
         </header>
         <main
-          className={`px-4 py-4 ${showPatientNav || showDoctorNav ? "pb-28" : "pb-24"} sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}
+          className={`px-4 py-4 ${fullHeight ? "flex min-h-0 flex-1 flex-col overflow-hidden pb-4" : `${showPatientNav || showDoctorNav ? "pb-28" : "pb-24"}`} sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}
         >
           {children}
         </main>

@@ -46,7 +46,7 @@ export function PatientBottomNav() {
     <nav
       aria-label="التنقل الرئيسي للمريض"
       data-bottom-nav
-      className="fixed inset-x-0 bottom-0 z-[80] border-t border-border/40 bg-card/90 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-soft backdrop-blur-2xl backdrop-saturate-150 md:inset-x-auto md:bottom-4 md:left-1/2 md:w-full md:max-w-lg md:-translate-x-1/2 md:rounded-2xl md:border md:shadow-lg"
+      className="fixed inset-x-0 bottom-0 z-[80] border-t border-border/40 bg-card/75 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-soft backdrop-blur-2xl backdrop-saturate-150 md:inset-x-auto md:bottom-4 md:left-1/2 md:w-full md:max-w-lg md:-translate-x-1/2 md:rounded-2xl md:border md:shadow-lg"
     >
       <div className="mx-auto grid h-16 max-w-xl grid-cols-5 px-1">
         {items.map((item) => {
