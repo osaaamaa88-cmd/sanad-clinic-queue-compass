@@ -169,7 +169,7 @@ function Search() {
         className="mb-3 flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 px-3 py-3"
       >
         <SearchIcon className="h-5 w-5 text-primary" />
-        <span className="flex-1 text-sm font-bold">ابحث عن طبيب باسمه</span>
+        <span className="flex-1 text-sm font-bold">بحث دقيق عن طبيب</span>
         <ChevronLeft className="h-4 w-4 text-primary" />
       </Link>
       {/* Search input */}
@@ -209,7 +209,7 @@ function Search() {
             [
               { id: "nearest", label: "الأقرب" },
               { id: "price", label: "الأقل سعراً" },
-              { id: "reviews", label: "الأكثر تقييماً" },
+              { id: "reviews", label: "تقييمات أكثر" },
               { id: "rating", label: "الأعلى تقييماً" },
             ] as { id: typeof sort; label: string }[]
           ).map((o) => (
@@ -232,7 +232,7 @@ function Search() {
       <div className="mt-3 -mx-5 overflow-x-auto px-5 pb-1">
         <div className="flex gap-2">
           {[
-            { id: null as string | null, name: "الكل", Icon: LayoutGrid },
+            { id: null as string | null, name: "كل التخصصات", Icon: LayoutGrid },
             ...specialties.map((s) => ({
               id: s.id as string | null,
               name: s.name,
@@ -267,7 +267,7 @@ function Search() {
       <div className="mt-3 grid grid-cols-3 gap-2">
         {(
           [
-            ["all", "الكل"],
+            ["all", "كل المنشآت"],
             ["hospital", "مستشفيات حكومية"],
             ["clinic", "عيادات"],
           ] as const
