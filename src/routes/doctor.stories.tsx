@@ -213,7 +213,7 @@ function DoctorStories() {
           {data && active.length === 0 && <p className="text-sm text-muted-foreground">لا توجد قصص نشطة الآن.</p>}
           <div className="grid grid-cols-3 gap-2">
             {active.map((s, i) => (
-              <div key={s.id} className="overflow-hidden rounded-xl border border-border bg-card">
+              <div key={s.id} className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-soft">
                 <button type="button" onClick={() => setViewing({ items: active, i })} className="block aspect-[9/16] w-full bg-black">
                   {s.url ? (s.mediaType === "video" ? <video src={s.url} className="h-full w-full object-cover" muted /> : <img src={s.url} alt={s.caption || "قصة"} className="h-full w-full object-cover" />) : <span className={`flex h-full items-center justify-center p-2 text-center text-xs text-white ${parseCardStyle(s.tag) ? `card-bg-${parseCardStyle(s.tag)!.bg} font-card-${parseCardStyle(s.tag)!.font}` : ""}`}>{s.caption}</span>}
                 </button>

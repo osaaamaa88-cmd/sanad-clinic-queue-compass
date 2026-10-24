@@ -540,7 +540,7 @@ function DoctorSettings() {
       </p>
       <div className="mt-3 space-y-2">
         {secretaries.map((s) => (
-          <div key={s.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+          <div key={s.id} className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card shadow-soft p-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-soft font-bold text-primary">
               {(s.full_name || "س").charAt(0)}
             </div>
