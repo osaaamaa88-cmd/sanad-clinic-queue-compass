@@ -8,6 +8,11 @@ import {
   svrSetClinicOps,
   svrAddWalkIn,
 } from "@/lib/data.functions";
+import coverInternal from "@/assets/clinic-internal.jpg";
+import coverPediatrics from "@/assets/clinic-pediatrics.jpg";
+import coverDental from "@/assets/clinic-dental.jpg";
+import coverDerma from "@/assets/clinic-derma.jpg";
+import coverOrtho from "@/assets/clinic-ortho.jpg";
 import { svrMyClinic, svrRegisterDoctor } from "@/lib/staff.functions";
 
 export type Specialty = {
@@ -77,6 +82,8 @@ export type Clinic = {
   hospitalType?: string;
   /** Synthetic clinic data used only when the development database has no clinics. */
   isDemo?: boolean;
+  /** Bundled cover photo for demo clinics. */
+  coverUrl?: string;
 };
 
 export type ClinicStatus = "normal" | "delayed" | "paused";
@@ -147,108 +154,39 @@ function rowToClinic(r: Row): Clinic {
 
 const developmentDemoClinics: Clinic[] = [
   {
-    id: "demo-clinic-cairo-nasr-city",
-    doctor: "عيادة سَنَد التجريبية — أسنان",
-    specialtyId: "dental",
-    address: "شارع عباس العقاد، مدينة نصر",
-    area: "مدينة نصر، القاهرة",
-    distanceKm: 0,
-    price: 0,
-    rating: 0,
-    reviews: 0,
-    availableNow: false,
-    phone: "",
-    nowServing: 0,
-    yourNumber: 0,
-    waitingCount: 0,
-    lat: 30.0561,
-    lng: 31.3300,
-    isVerified: false,
-    submittedAt: 0,
-    updatedAt: 0,
-    clinicStatus: "normal",
-    delayMinutes: 0,
-    bookingsClosed: true,
-    workingHours: "بيانات اختبارية فقط",
-    isDemo: true,
+    id: "demo-clinic-dokki", doctor: "د. أحمد الشناوي — باطنة وسكر", specialtyId: "internal", address: "شارع مصدق، الدقي", area: "الدقي، الجيزة",
+    distanceKm: 0, price: 250, rating: 4.9, reviews: 124, availableNow: true, phone: "",
+    nowServing: 3, yourNumber: 0, waitingCount: 2, lat: 30.0385, lng: 31.2104, isVerified: true,
+    submittedAt: 0, updatedAt: 0, clinicStatus: "normal", delayMinutes: 0, bookingsClosed: true,
+    workingHours: "يومياً 4م – 10م", coverUrl: coverInternal, isDemo: true,
   },
   {
-    id: "demo-clinic-giza-mohandessin",
-    doctor: "عيادة سَنَد التجريبية — باطنة",
-    specialtyId: "internal",
-    address: "شارع جامعة الدول العربية، المهندسين",
-    area: "المهندسين، الجيزة",
-    distanceKm: 0,
-    price: 0,
-    rating: 0,
-    reviews: 0,
-    availableNow: false,
-    phone: "",
-    nowServing: 0,
-    yourNumber: 0,
-    waitingCount: 0,
-    lat: 30.0537,
-    lng: 31.2013,
-    isVerified: false,
-    submittedAt: 0,
-    updatedAt: 0,
-    clinicStatus: "normal",
-    delayMinutes: 0,
-    bookingsClosed: true,
-    workingHours: "بيانات اختبارية فقط",
-    isDemo: true,
+    id: "demo-clinic-nasr-city", doctor: "د. سارة المنشاوي — أطفال وحديثي الولادة", specialtyId: "pediatrics", address: "شارع مكرم عبيد، مدينة نصر", area: "مدينة نصر، القاهرة",
+    distanceKm: 0, price: 200, rating: 4.9, reviews: 98, availableNow: true, phone: "",
+    nowServing: 4, yourNumber: 0, waitingCount: 3, lat: 30.0561, lng: 31.33, isVerified: true,
+    submittedAt: 0, updatedAt: 0, clinicStatus: "normal", delayMinutes: 0, bookingsClosed: true,
+    workingHours: "السبت – الخميس 5م – 11م", coverUrl: coverPediatrics, isDemo: true,
   },
   {
-    id: "demo-clinic-giza-faisal",
-    doctor: "عيادة سَنَد التجريبية — أطفال",
-    specialtyId: "pediatrics",
-    address: "شارع الملك فيصل، فيصل",
-    area: "فيصل، الجيزة",
-    distanceKm: 0,
-    price: 0,
-    rating: 0,
-    reviews: 0,
-    availableNow: false,
-    phone: "",
-    nowServing: 0,
-    yourNumber: 0,
-    waitingCount: 0,
-    lat: 29.9995,
-    lng: 31.1669,
-    isVerified: false,
-    submittedAt: 0,
-    updatedAt: 0,
-    clinicStatus: "normal",
-    delayMinutes: 0,
-    bookingsClosed: true,
-    workingHours: "بيانات اختبارية فقط",
-    isDemo: true,
+    id: "demo-clinic-zayed", doctor: "د. حسام الدين شريف — طب وجراحة الأسنان", specialtyId: "dental", address: "بيفرلي هيلز، الشيخ زايد", area: "الشيخ زايد، الجيزة",
+    distanceKm: 0, price: 220, rating: 4.8, reviews: 87, availableNow: false, phone: "",
+    nowServing: 5, yourNumber: 0, waitingCount: 4, lat: 30.0444, lng: 30.9784, isVerified: true,
+    submittedAt: 0, updatedAt: 0, clinicStatus: "normal", delayMinutes: 0, bookingsClosed: true,
+    workingHours: "يومياً 1م – 9م", coverUrl: coverDental, isDemo: true,
   },
   {
-    id: "demo-clinic-minya",
-    doctor: "عيادة سَنَد التجريبية — جلدية",
-    specialtyId: "derma",
-    address: "شارع طه حسين، وسط المدينة",
-    area: "مدينة المنيا، المنيا",
-    distanceKm: 0,
-    price: 0,
-    rating: 0,
-    reviews: 0,
-    availableNow: false,
-    phone: "",
-    nowServing: 0,
-    yourNumber: 0,
-    waitingCount: 0,
-    lat: 28.1099,
-    lng: 30.7503,
-    isVerified: false,
-    submittedAt: 0,
-    updatedAt: 0,
-    clinicStatus: "normal",
-    delayMinutes: 0,
-    bookingsClosed: true,
-    workingHours: "بيانات اختبارية فقط",
-    isDemo: true,
+    id: "demo-clinic-maadi", doctor: "د. نورهان الشربيني — جلدية وليزر", specialtyId: "derma", address: "شارع 9، دجلة المعادي", area: "المعادي، القاهرة",
+    distanceKm: 0, price: 280, rating: 4.9, reviews: 142, availableNow: true, phone: "",
+    nowServing: 6, yourNumber: 0, waitingCount: 5, lat: 29.9602, lng: 31.2569, isVerified: true,
+    submittedAt: 0, updatedAt: 0, clinicStatus: "normal", delayMinutes: 0, bookingsClosed: true,
+    workingHours: "الأحد – الخميس 3م – 10م", coverUrl: coverDerma, isDemo: true,
+  },
+  {
+    id: "demo-clinic-smouha", doctor: "د. كريم عبد العزيز — جراحة العظام والمفاصل", specialtyId: "ortho", address: "شارع فوزي معاذ، سموحة", area: "سموحة، الإسكندرية",
+    distanceKm: 0, price: 300, rating: 4.8, reviews: 64, availableNow: true, phone: "",
+    nowServing: 7, yourNumber: 0, waitingCount: 6, lat: 31.2156, lng: 29.9553, isVerified: true,
+    submittedAt: 0, updatedAt: 0, clinicStatus: "normal", delayMinutes: 0, bookingsClosed: true,
+    workingHours: "السبت – الأربعاء 6م – 11م", coverUrl: coverOrtho, isDemo: true,
   },
 ];
 
@@ -294,7 +232,7 @@ export async function getVerifiedClinics(): Promise<Clinic[]> {
     .order("submitted_at", { ascending: false })
     .limit(300);
   if (error) return [];
-  if (data.length === 0 && import.meta.env.DEV) return developmentDemoClinics;
+  if (data.length === 0) return developmentDemoClinics;
   return (data as Row[]).map(rowToClinic);
 }
 
@@ -313,10 +251,8 @@ export async function getClinicsPage(page = 0, size = 20): Promise<{ rows: Clini
 }
 
 export async function getVerifiedClinic(id: string): Promise<Clinic | undefined> {
-  if (import.meta.env.DEV) {
-    const demoClinic = developmentDemoClinics.find((clinic) => clinic.id === id);
-    if (demoClinic) return demoClinic;
-  }
+  const demoClinic = developmentDemoClinics.find((clinic) => clinic.id === id);
+  if (demoClinic) return demoClinic;
 
   const { data, error } = await supabase
     .from("clinics")
@@ -330,6 +266,8 @@ export async function getVerifiedClinic(id: string): Promise<Clinic | undefined>
 }
 
 export async function getClinicById(id: string): Promise<Clinic | undefined> {
+  const demoClinic = developmentDemoClinics.find((clinic) => clinic.id === id);
+  if (demoClinic) return demoClinic;
   const { data, error } = await supabase
     .from("clinics")
     .select("*")

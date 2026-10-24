@@ -93,7 +93,7 @@ function PatientHome() {
       hideBack
       centeredTitle
     >
-      <button type="button" onClick={() => setLocOpen(true)} className="flex w-full items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-right shadow-soft transition hover:border-primary/50">
+      <button type="button" onClick={() => setLocOpen(true)} className="flex w-full items-center gap-2 rounded-full border border-border/50 bg-card/80 px-3 py-2 backdrop-blur-xl active:scale-[0.98] text-right shadow-soft transition hover:border-primary/50">
         <MapPin className="h-4 w-4 shrink-0 text-primary" />
         <span className="min-w-0 flex-1 truncate text-sm font-bold">{location.name}، {location.city}</span>
         <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-[11px] font-bold text-primary">تغيير ▾</span>
@@ -101,7 +101,7 @@ function PatientHome() {
       <Link to="/patient/assistant" className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-3 text-right transition hover:border-primary"><span className="text-2xl">🤖</span><span className="flex-1"><span className="block text-sm font-bold">مش عارف تروح لأنهي دكتور؟</span><span className="block text-xs text-muted-foreground">اكتب اللي بتحس بيه والمساعد الذكي يرشّح لك</span></span><span className="text-xs font-bold text-primary">جرّب ←</span></Link>
       {locOpen && <LocationPickerModal current={location} onClose={() => setLocOpen(false)} onSelect={(l) => { savePatientLocation(l); setLocation(l); setLocOpen(false); }} />}
 
-      <Link to="/patient/search" className="mt-4 flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 transition hover:border-primary/50">
+      <Link to="/patient/search" className="mt-4 flex items-center gap-3 rounded-2xl border border-border/50 bg-card/80 px-4 py-3.5 shadow-soft backdrop-blur-xl active:scale-[0.98] transition hover:border-primary/50">
         <Search className="h-5 w-5 shrink-0 text-primary" />
         <span className="min-w-0 flex-1 text-sm text-muted-foreground">دور على طبيب، تخصص أو عيادة…</span>
         <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -121,7 +121,7 @@ function PatientHome() {
                 key={clinic.id}
                 type="button"
                 onClick={() => clinicStories.length ? setViewer({ clinic, items: clinicStories }) : undefined}
-                className="group w-[78px] shrink-0 snap-start text-center"
+                className="group w-[78px] shrink-0 snap-start text-center transition active:scale-95"
                 aria-label={`مشاهدة تحديثات ${clinic.doctor}`}
               >
                 <span className={`mx-auto block h-[68px] w-[68px] rounded-full p-[3px] ${clinicStories.length ? "gradient-story" : "bg-border"}`}>
@@ -257,10 +257,10 @@ function AllSpecialtiesSheet({ counts, selected, onSelect, onClose }: { counts: 
 function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfileExtras }) {
   const specialty = specialties.find((item) => item.id === clinic.specialtyId);
   const rating = profile?.reviewsCount ? profile.ratingAvg : clinic.rating;
-  return <article className="overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft">
+  return <article className="overflow-hidden rounded-3xl border border-border/60 bg-card shadow-soft transition duration-200 active:scale-[0.98] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft">
     <Link to="/patient/clinic/$id" params={{ id: clinic.id }} className="block">
       <div className="relative aspect-[16/7] bg-primary-soft">
-        {profile?.coverUrl ? <img src={profile.coverUrl} alt={`عيادة ${clinic.doctor}`} className="h-full w-full object-cover" /> : <ClinicPlaceholder cover />}
+        {(profile?.coverUrl || clinic.coverUrl) ? <img src={profile?.coverUrl || clinic.coverUrl} loading="lazy" alt={`عيادة ${clinic.doctor}`} className="h-full w-full object-cover" /> : <ClinicPlaceholder cover />}
         {clinic.availableNow && <span className="absolute right-3 top-3 rounded-full bg-success px-2.5 py-1 text-[10px] font-extrabold text-success-foreground">متاح الآن</span>}
         {clinic.isDemo && <span className="absolute left-3 top-3 rounded-full border border-warning/40 bg-card/95 px-2.5 py-1 text-[10px] font-extrabold text-warning">بيانات تجريبية</span>}
       </div>
