@@ -47,7 +47,7 @@ async function requestAssistantReply(
         ...history,
         {
           role: "user",
-          content: `Ø£Ù‚Ø±Ø¨ Ù…Ø³ØªØ´ÙÙ‰: ${hospital}\nكلام المستخدم: ${text}`,
+          content: `أقرب مستشفى: ${hospital}\nكلام المستخدم: ${text}`,
         },
       ],
     }),
@@ -110,7 +110,7 @@ export const voiceAssist = createServerFn({ method: "POST" })
     if (!(await checkRateLimit(`ai:voiceAssist:ip:${ip.trim().slice(0, 64)}`, 10, 60))) {
       return {
         reply:
-          "طلبات كتير ورا بعض، استنى دقيقة وجرب تاني. Ù„Ùˆ Ø§Ù„Ø­Ø§Ù„Ø© Ø·Ø§Ø±Ø¦Ø© Ø§ØªØµÙ„ Ø¨Ø§Ù„Ø¥Ø³Ø¹Ø§Ù 123.",
+          "طلبات كتير ورا بعض، استنى دقيقة وجرب تاني. لو الحالة طارئة اتصل بالإسعاف 123.",
         hospital: null,
         ai: false,
       };
