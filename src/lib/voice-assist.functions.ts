@@ -47,7 +47,7 @@ async function requestAssistantReply(
         ...history,
         {
           role: "user",
-          content: `Ø£Ù‚Ø±Ø¨ Ù…Ø³ØªØ´ÙÙ‰: ${hospital}\nÙƒÙ„Ø§Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…: ${text}`,
+          content: `Ø£Ù‚Ø±Ø¨ Ù…Ø³ØªØ´ÙÙ‰: ${hospital}\nكلام المستخدم: ${text}`,
         },
       ],
     }),
@@ -110,7 +110,7 @@ export const voiceAssist = createServerFn({ method: "POST" })
     if (!(await checkRateLimit(`ai:voiceAssist:ip:${ip.trim().slice(0, 64)}`, 10, 60))) {
       return {
         reply:
-          "Ø·Ù„Ø¨Ø§Øª ÙƒØªÙŠØ± ÙˆØ±Ø§ Ø¨Ø¹Ø¶ØŒ Ø§Ø³ØªÙ†Ù‰ Ø¯Ù‚ÙŠÙ‚Ø© ÙˆØ¬Ø±Ø¨ ØªØ§Ù†ÙŠ. Ù„Ùˆ Ø§Ù„Ø­Ø§Ù„Ø© Ø·Ø§Ø±Ø¦Ø© Ø§ØªØµÙ„ Ø¨Ø§Ù„Ø¥Ø³Ø¹Ø§Ù 123.",
+          "طلبات كتير ورا بعض، استنى دقيقة وجرب تاني. Ù„Ùˆ Ø§Ù„Ø­Ø§Ù„Ø© Ø·Ø§Ø±Ø¦Ø© Ø§ØªØµÙ„ Ø¨Ø§Ù„Ø¥Ø³Ø¹Ø§Ù 123.",
         hospital: null,
         ai: false,
       };
@@ -131,7 +131,7 @@ export const voiceAssist = createServerFn({ method: "POST" })
       ? {
           name: h.name,
           phone: h.phone || h.emergency_phone || "123",
-          address: [h.address, h.district, h.governorate].filter(Boolean).join("ØŒ "),
+          address: [h.address, h.district, h.governorate].filter(Boolean).join("، "),
           km: Math.round(h.km * 10) / 10,
           approx: !h.location_verified,
           lat: h.lat,
@@ -143,13 +143,19 @@ export const voiceAssist = createServerFn({ method: "POST" })
 
     const { writeAudit } = await import("@/lib/audit.functions");
     await writeAudit("medical_query", null, "voice");
-    const hospitalContext = hospital ? `${hospital.name} (${hospital.km} ÙƒÙ…)` : "ØºÙŠØ± Ù…ØªØ§Ø­";
+    const hospitalContext = hospital ? `${hospital.name} (${hospital.km} كم)` : "غير متاح";
     const providers = [
       {
         name: "Groq Allam",
         key: process.env.GROQ_API_KEY,
         endpoint: "https://api.groq.com/openai/v1/chat/completions",
         model: "allam-2-7b",
+      },
+      {
+        name: "Gemini Flash",
+        key: process.env.GEMINI_API_KEY,
+        endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        model: "gemini-flash-latest",
       },
       {
         name: "Groq GPT OSS",
