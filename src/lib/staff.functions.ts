@@ -10,6 +10,8 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
       doctor: string;
       specialtyId: string;
       phone: string;
+      medicalLicense: string;
+      syndicateNo: string;
       redirectTo?: string;
     }) => {
       const email = String(data?.email ?? "")
@@ -23,6 +25,12 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
         throw new Error("INVALID_EMAIL");
       if (password.length < 8 || password.length > 128) throw new Error("WEAK_PASSWORD");
       if (!doctor) throw new Error("INVALID_NAME");
+      // Professional verification (anti-impersonation): license + syndicate numbers are mandatory.
+      const medicalLicense = String(data?.medicalLicense ?? "").replace(/\D/g, "");
+      const syndicateNo = String(data?.syndicateNo ?? "").replace(/\D/g, "");
+      if (medicalLicense.length < 4 || medicalLicense.length > 15)
+        throw new Error("INVALID_LICENSE");
+      if (syndicateNo.length < 3 || syndicateNo.length > 15) throw new Error("INVALID_SYNDICATE");
       const redirectTo =
         typeof data?.redirectTo === "string" && /^https:\/\/[^\s]+$/.test(data.redirectTo)
           ? data.redirectTo.slice(0, 300)
@@ -35,6 +43,8 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
         phone: String(data?.phone ?? "")
           .trim()
           .slice(0, 40),
+        medicalLicense,
+        syndicateNo,
         redirectTo,
       };
     },
@@ -60,7 +70,10 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
       email: data.email,
       password: data.password,
       options: {
-        data: { full_name: data.doctor, role: "doctor" },
+        data: {
+          full_name: data.doctor,
+          role: "doctor",
+        },
         emailRedirectTo: data.redirectTo,
       },
     });
@@ -87,6 +100,20 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
       .select("id")
       .eq("owner_id", user.id)
       .maybeSingle();
+    try {
+      const { patchUserAppMetadata } = await import("@/lib/auth-admin.server");
+      await patchUserAppMetadata(supabaseAdmin, user.id, {
+        medical_license: data.medicalLicense,
+        syndicate_no: data.syndicateNo,
+        verification_status: "pending_verification",
+      });
+    } catch (error) {
+      console.error(
+        "[svrRegisterDoctor] KYC metadata update failed",
+        error instanceof Error ? error.message : error,
+      );
+      throw new Error("SIGNUP_FAILED");
+    }
     if (!existing) {
       await supabaseAdmin.from("clinics").insert({
         doctor: data.doctor,

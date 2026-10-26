@@ -1,10 +1,17 @@
 import { toast } from "sonner";
 import { svrCreateUploadTicket, svrFinalizeUpload } from "@/lib/media.functions";
+import { KYC_DOCUMENT_LIMIT, isKycDocumentType } from "@/lib/kyc-document";
 
-export type UploadKind = "avatar" | "cover" | "post" | "story";
+export type UploadKind = "avatar" | "cover" | "post" | "story" | "kyc";
 const MB = 1024 * 1024;
-export const LIMITS = { avatar: 5 * MB, media: 50 * MB };
-const MAX_DIM: Record<UploadKind, number> = { avatar: 512, cover: 1600, post: 1440, story: 1440 };
+export const LIMITS = { avatar: 5 * MB, media: 50 * MB, kyc: KYC_DOCUMENT_LIMIT };
+const MAX_DIM: Record<UploadKind, number> = {
+  avatar: 512,
+  cover: 1600,
+  post: 1440,
+  story: 1440,
+  kyc: 1440,
+};
 
 /** Resize + re-encode images in the browser (WebP when supported, JPEG fallback). GIFs are kept as-is. */
 export async function compressImage(file: File, maxDim: number, quality = 0.8): Promise<File> {
@@ -63,7 +70,13 @@ export async function uploadMedia(input: {
   const { kind } = input;
   const isImage = input.file.type.startsWith("image/");
   const isVideo = input.file.type.startsWith("video/");
-  if (!isImage && !isVideo) {
+  const isKycDocument = kind === "kyc" && isKycDocumentType(input.file.type);
+  if (kind === "kyc") {
+    if (!isKycDocument) {
+      toast.error("نوع الملف غير مدعوم", { description: "ارفع صورة أو ملف PDF فقط." });
+      return { ok: false, error: "INVALID_TYPE" };
+    }
+  } else if (!isImage && !isVideo) {
     toast.error("نوع الملف غير مدعوم", { description: "ارفع صورة أو فيديو فقط." });
     return { ok: false, error: "INVALID_TYPE" };
   }
@@ -72,7 +85,7 @@ export async function uploadMedia(input: {
     return { ok: false, error: "INVALID_TYPE" };
   }
   const file = isImage ? await compressImage(input.file, MAX_DIM[kind]) : input.file;
-  const max = kind === "avatar" ? LIMITS.avatar : LIMITS.media;
+  const max = kind === "avatar" ? LIMITS.avatar : kind === "kyc" ? LIMITS.kyc : LIMITS.media;
   if (file.size > max) {
     toast.error("الملف أكبر من المسموح", {
       description: `حجم الملف ${fmt(file.size)} والحد الأقصى ${fmt(max)}.${isVideo ? " قصّر الفيديو أو استخدم رابط YouTube." : ""}`,

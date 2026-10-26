@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   X,
@@ -17,6 +17,10 @@ import {
   Pencil,
   BarChart3,
   Trophy,
+  Clock,
+  ShieldX,
+  ExternalLink,
+  FileText,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { UsersTab, LiveBookingsTab, MediaTab, SystemTab } from "@/components/admin/GodModePanel";
@@ -37,6 +41,10 @@ import {
   adminEditClinic,
   adminListBookings,
   adminAnalytics,
+  adminListDoctorKyc,
+  adminApproveDoctorKyc,
+  adminRejectDoctorKyc,
+  type DoctorKycRow,
 } from "@/lib/admin.functions";
 import { checkAdminUnlocked, unlockAdmin } from "@/lib/admin-gate.functions";
 import { saveAdminToken } from "@/lib/admin-token";
@@ -175,6 +183,7 @@ function Admin() {
   const [tab, setTab] = useState<
     | "analytics"
     | "pending"
+    | "kyc"
     | "verified"
     | "bookings"
     | "users"
@@ -363,6 +372,7 @@ function Admin() {
           [
             ["analytics", "التحليلات"],
             ["pending", `التوثيق (${pending.length})`],
+            ["kyc", "توثيق الأطباء والعيادات"],
             ["verified", `العيادات (${verified.length})`],
             ["bookings", "تقارير الحجز"],
             ["users", "الحسابات"],
@@ -398,6 +408,7 @@ function Admin() {
       {tab === "security" && <SecurityTab />}
       {tab === "deletions" && <DeletionRequestsTab />}
       {tab === "ai" && <OwnerAiTab />}
+      {tab === "kyc" && <DoctorKycTab />}
 
       {tab === "pending" && (
         <div className="mt-4 space-y-3">
@@ -957,6 +968,248 @@ function KPI({
       </div>
       <p className="mt-3 text-2xl font-black">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+// ===================== Doctor KYC Tab (Verification & Licensing) =====================
+
+const SYNDICATE_LOOKUP_URL = "https://www.emsa.org.eg/doctor-search/";
+
+function KycStatusBadge({ status }: { status: DoctorKycRow["verificationStatus"] }) {
+  if (status === "verified")
+    return (
+      <span className="flex items-center gap-1 rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-bold text-success">
+        <ShieldCheck className="h-3.5 w-3.5" /> معتمد وموثق نقابياً
+      </span>
+    );
+  if (status === "rejected" || status === "action_required")
+    return (
+      <span className="flex items-center gap-1 rounded-full bg-destructive/15 px-2.5 py-1 text-[11px] font-bold text-destructive">
+        <ShieldX className="h-3.5 w-3.5" />
+        {status === "rejected" ? "مرفوض / بيانات غير مطابقة" : "مطلوب تدقيق إضافي"}
+      </span>
+    );
+  return (
+    <span className="flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-bold text-warning">
+      <Clock className="h-3.5 w-3.5" /> قيد المراجعة والتدقيق
+    </span>
+  );
+}
+
+function DoctorKycTab() {
+  const list = useServerFn(adminListDoctorKyc);
+  const approveFn = useServerFn(adminApproveDoctorKyc);
+  const rejectFn = useServerFn(adminRejectDoctorKyc);
+  const [rows, setRows] = useState<DoctorKycRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [rejecting, setRejecting] = useState<{ clinicId: string; doctor: string } | null>(null);
+  const [reason, setReason] = useState("");
+  const [actionRequired, setActionRequired] = useState(true);
+  const [error, setError] = useState("");
+
+  const refresh = useCallback(async () => {
+    try {
+      const { rows } = await list();
+      setRows(rows as DoctorKycRow[]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر تحميل بيانات التوثيق");
+    } finally {
+      setLoading(false);
+    }
+  }, [list]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const approve = async (clinicId: string) => {
+    setBusyId(clinicId);
+    setError("");
+    try {
+      await approveFn({ data: { clinicId } });
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر الاعتماد");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const submitReject = async () => {
+    if (!rejecting) return;
+    setBusyId(rejecting.clinicId);
+    setError("");
+    try {
+      await rejectFn({
+        data: { clinicId: rejecting.clinicId, reason, actionRequired },
+      });
+      setRejecting(null);
+      setReason("");
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر حفظ القرار");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const pendingCount = rows.filter((r) => r.verificationStatus === "pending_verification").length;
+
+  return (
+    <div className="mt-4 space-y-3">
+      <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          <p className="text-sm font-black">توثيق الأطباء والعيادات</p>
+        </div>
+        {pendingCount > 0 && (
+          <span className="flex items-center gap-1 rounded-full bg-warning/20 px-2.5 py-1 text-[11px] font-black text-warning">
+            <Clock className="h-3.5 w-3.5" /> {pendingCount} قيد التدقيق
+          </span>
+        )}
+      </div>
+
+      {error && (
+        <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive">
+          {error}
+        </p>
+      )}
+
+      {loading ? (
+        <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          جاري تحميل بيانات التوثيق...
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          ما فيش أطباء مسجلين بعد.
+        </div>
+      ) : (
+        rows.map((r) => (
+          <div key={r.clinicId} className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="truncate font-bold">{r.doctor}</p>
+                  <KycStatusBadge status={r.verificationStatus} />
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {getSpecialty(r.specialtyId)?.name ?? r.specialtyId} — {r.area || "بدون منطقة"}
+                </p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  📞 {r.phone || "—"} {r.email && `• ✉️ ${r.email}`}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-secondary/60 p-3 text-[11px]">
+              <div>
+                <p className="font-bold text-muted-foreground">ترخيص مزاولة المهنة</p>
+                <p className="font-black" dir="ltr">
+                  {r.medicalLicense || "غير مقدَّم"}
+                </p>
+              </div>
+              <div>
+                <p className="font-bold text-muted-foreground">القيد بنقابة الأطباء</p>
+                <p className="font-black" dir="ltr">
+                  {r.syndicateNo || "غير مقدَّم"}
+                </p>
+              </div>
+              <div>
+                <p className="font-bold text-muted-foreground">تاريخ التسجيل</p>
+                <p>{new Date(r.submittedAt).toLocaleDateString("ar-EG")}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {r.licenseDocUrl && (
+                  <a
+                    href={r.licenseDocUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 font-bold text-primary underline"
+                  >
+                    <FileText className="h-3.5 w-3.5" /> عرض الكارنيه
+                  </a>
+                )}
+                {r.syndicateNo && (
+                  <a
+                    href={`${SYNDICATE_LOOKUP_URL}?q=${encodeURIComponent(r.syndicateNo)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 font-bold text-primary underline"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" /> استعلام النقابة
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => approve(r.clinicId)}
+                disabled={busyId === r.clinicId || r.verificationStatus === "verified"}
+                className="flex items-center justify-center gap-1 rounded-xl bg-success py-2.5 text-sm font-bold text-success-foreground disabled:opacity-50"
+              >
+                <ShieldCheck className="h-4 w-4" /> اعتماد وتوثيق رسمي
+              </button>
+              <button
+                onClick={() => setRejecting({ clinicId: r.clinicId, doctor: r.doctor })}
+                disabled={busyId === r.clinicId}
+                className="flex items-center justify-center gap-1 rounded-xl border border-border py-2.5 text-sm font-bold text-destructive"
+              >
+                <X className="h-4 w-4" /> طلب تدقيق / رفض
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+
+      {rejecting && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-3"
+          onClick={() => setRejecting(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-card p-5 shadow-soft"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-base font-black">سبب التدقيق / الرفض — {rejecting.doctor}</p>
+              <button
+                type="button"
+                onClick={() => setRejecting(null)}
+                className="rounded-full bg-secondary p-1.5"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              maxLength={300}
+              placeholder="مثال: رقم الترخيص غير مطابق للاسم في النقابة"
+              className="w-full rounded-xl border border-border bg-secondary px-3 py-2.5 text-sm outline-none focus:border-primary"
+            />
+            <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs font-bold">
+              <input
+                type="checkbox"
+                checked={actionRequired}
+                onChange={(e) => setActionRequired(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              طلب تدقيق إضافي (بدل الرفض النهائي)
+            </label>
+            <button
+              onClick={submitReject}
+              disabled={!reason.trim() || busyId === rejecting.clinicId}
+              className="mt-4 w-full rounded-xl bg-destructive py-3 text-sm font-black text-destructive-foreground disabled:opacity-60"
+            >
+              {busyId === rejecting.clinicId ? "جاري الحفظ..." : "حفظ القرار وإشعار الطبيب"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

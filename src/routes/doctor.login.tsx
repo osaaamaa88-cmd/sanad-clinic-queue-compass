@@ -44,6 +44,8 @@ function DoctorEntry() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
+  const [medicalLicense, setMedicalLicense] = useState("");
+  const [syndicateNo, setSyndicateNo] = useState("");
   const [signupError, setSignupError] = useState("");
   const [creating, setCreating] = useState(false);
   const [gBusy, setGBusy] = useState(false);
@@ -111,6 +113,12 @@ function DoctorEntry() {
     if (!phone.trim()) return setSignupError("من فضلك اكتب رقم الموبايل / الواتساب");
     if (!email.trim()) return setSignupError("من فضلك اكتب البريد الإلكتروني");
     if (pass.length < 8) return setSignupError("كلمة السر لازم تكون ٨ حروف أو أرقام على الأقل");
+    const licenseDigits = medicalLicense.replace(/\D/g, "");
+    const syndicateDigits = syndicateNo.replace(/\D/g, "");
+    if (licenseDigits.length < 4)
+      return setSignupError("من فضلك اكتب رقم ترخيص مزاولة المهنة (٤ أرقام على الأقل)");
+    if (syndicateDigits.length < 3)
+      return setSignupError("من فضلك اكتب رقم القيد بنقابة الأطباء (٣ أرقام على الأقل)");
     setCreating(true);
     const res = await registerDoctorAccount({
       email: email.trim(),
@@ -118,6 +126,8 @@ function DoctorEntry() {
       doctor: name.trim(),
       specialtyId: spec,
       phone: phone.trim().replace(/^0/, "20"),
+      medicalLicense: licenseDigits,
+      syndicateNo: syndicateDigits,
     });
     setCreating(false);
     if (!res.ok) return setSignupError(authErrorMessage(res.code));
@@ -309,6 +319,40 @@ function DoctorEntry() {
                   placeholder="٦ حروف أو أرقام على الأقل"
                   className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground">
+                    رقم ترخيص مزاولة المهنة *
+                  </label>
+                  <input
+                    value={medicalLicense}
+                    onChange={(e) => setMedicalLicense(e.target.value.replace(/\D/g, ""))}
+                    inputMode="numeric"
+                    dir="ltr"
+                    placeholder="أرقام فقط"
+                    className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground">
+                    رقم القيد بنقابة الأطباء *
+                  </label>
+                  <input
+                    value={syndicateNo}
+                    onChange={(e) => setSyndicateNo(e.target.value.replace(/\D/g, ""))}
+                    inputMode="numeric"
+                    dir="ltr"
+                    placeholder="أرقام فقط"
+                    className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="rounded-xl bg-secondary p-3">
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  بعد تفعيل الحساب، ارفع مستند الترخيص من إعدادات العيادة ليتمكن فريق التوثيق من
+                  مراجعته بأمان.
+                </p>
               </div>
               {signupError && (
                 <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive">

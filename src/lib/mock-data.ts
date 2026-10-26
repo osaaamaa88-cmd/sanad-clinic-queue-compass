@@ -68,6 +68,8 @@ export type Clinic = {
   lat: number;
   lng: number;
   isVerified: boolean;
+  /** Professional-verification lifecycle: "pending_verification" until admin grants the badge. */
+  verificationStatus?: "pending_verification" | "verified" | "rejected";
   submittedAt: number;
   updatedAt: number;
   clinicStatus: ClinicStatus;
@@ -142,6 +144,10 @@ function rowToClinic(r: Row): Clinic {
     lat: Number(r.lat) || 0,
     lng: Number(r.lng) || 0,
     isVerified: r.is_verified,
+    verificationStatus: r.is_verified
+      ? "verified"
+      : (((r as { verification_status?: string }).verification_status as
+          "pending_verification" | "rejected" | undefined) ?? "pending_verification"),
     submittedAt: new Date(r.submitted_at).getTime(),
     updatedAt: r.updated_at ? new Date(r.updated_at).getTime() : new Date(r.submitted_at).getTime(),
     clinicStatus: (r.clinic_status as ClinicStatus) || "normal",
@@ -471,6 +477,8 @@ export async function registerDoctorAccount(input: {
   doctor: string;
   specialtyId: string;
   phone: string;
+  medicalLicense: string;
+  syndicateNo: string;
 }): Promise<{ ok: true } | { ok: false; code: string }> {
   try {
     await svrRegisterDoctor({

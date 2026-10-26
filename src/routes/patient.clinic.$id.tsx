@@ -34,6 +34,7 @@ import {
   Grid3x3,
   Clapperboard,
   Info,
+  CheckCircle2,
 } from "lucide-react";
 import { MessagesSquare, MoreVertical } from "lucide-react";
 import { openConversation } from "@/lib/chat";
@@ -90,6 +91,9 @@ import {
   type ClinicProfileExtras,
   type QueueStats,
 } from "@/lib/clinic-profile";
+
+/** Feature flag: review form stays disabled until verified booking codes reach patients. */
+const REVIEW_FORM_ENABLED = false;
 
 export const Route = createFileRoute("/patient/clinic/$id")({
   staticData: { sitemap: false },
@@ -933,6 +937,12 @@ function ClinicDetail() {
                 {clinic.price ? `${clinic.price} جنيه` : "غير محدد"}
               </span>
             </div>
+            {clinic.price ? (
+              <div className="mt-2 flex items-start gap-2 rounded-xl bg-success/10 p-3 text-[11px] font-bold leading-relaxed text-success">
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>سعر صافٍ وشفاف — لا توجد أي رسوم إدارية أو مصاريف خفية من سَنَد.</span>
+              </div>
+            ) : null}
             <div className="mt-2 flex items-center gap-2 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
               <Phone className="h-4 w-4 text-primary" /> {clinic.phone || "—"}
             </div>
@@ -1072,8 +1082,8 @@ function ClinicDetail() {
                 التقييم بكود الحجز قريباً ⏳
               </p>
             )}
-            {/* Verified review form (coming soon) */}
-            {false && !isOwner && (
+            {/* Verified review form — shipped behind a flag until codes reach patients. */}
+            {REVIEW_FORM_ENABLED && !isOwner && (
               <div className="mt-3 rounded-xl border border-dashed border-border p-3">
                 <p className="text-xs font-extrabold">قيّم الطبيب بعد الكشف</p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">

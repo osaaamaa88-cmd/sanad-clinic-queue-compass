@@ -1,7 +1,7 @@
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   MapPin,
   Save,
@@ -14,12 +14,14 @@ import {
   LogOut,
   BookOpen,
   Loader2,
+  FileText,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { svrAddSecretary, svrCreateMyClinic, svrListSecretaries } from "@/lib/staff.functions";
 import { resetDoctorModeCache } from "@/lib/use-doctor-mode";
+import { uploadMedia } from "@/lib/media-upload";
 import {
   specialties,
   upsertClinic,
@@ -58,6 +60,9 @@ function DoctorSettings() {
 
   const [clinicId, setClinicId] = useState<string | undefined>(undefined);
   const [isVerified, setIsVerified] = useState(false);
+  const [kycFile, setKycFile] = useState<File | null>(null);
+  const [uploadingKyc, setUploadingKyc] = useState(false);
+  const kycFileInput = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
   const [spec, setSpec] = useState(specialties[0].id);
   const [street, setStreet] = useState("");
@@ -73,6 +78,8 @@ function DoctorSettings() {
   // signup fields
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
+  const [medicalLicense, setMedicalLicense] = useState("");
+  const [syndicateNo, setSyndicateNo] = useState("");
   const [signupError, setSignupError] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -172,6 +179,12 @@ function DoctorSettings() {
     if (!phone.trim()) return setSignupError("من فضلك اكتب رقم الموبايل / الواتساب");
     if (!email.trim()) return setSignupError("من فضلك اكتب البريد الإلكتروني");
     if (pass.length < 8) return setSignupError("كلمة السر لازم تكون ٨ حروف أو أرقام على الأقل");
+    const licenseDigits = medicalLicense.replace(/\D/g, "");
+    const syndicateDigits = syndicateNo.replace(/\D/g, "");
+    if (licenseDigits.length < 4)
+      return setSignupError("من فضلك اكتب رقم ترخيص مزاولة المهنة (٤ أرقام على الأقل)");
+    if (syndicateDigits.length < 3)
+      return setSignupError("من فضلك اكتب رقم القيد بنقابة الأطباء (٣ أرقام على الأقل)");
     setCreating(true);
     const res = await registerDoctorAccount({
       email: email.trim(),
@@ -179,6 +192,8 @@ function DoctorSettings() {
       doctor: name.trim(),
       specialtyId: spec,
       phone: phone.trim().replace(/^0/, "20"),
+      medicalLicense: licenseDigits,
+      syndicateNo: syndicateDigits,
     });
     setCreating(false);
     if (!res.ok) return setSignupError(authErrorMessage(res.code));
@@ -205,6 +220,20 @@ function DoctorSettings() {
       setSecError(authErrorMessage((e as Error)?.message));
     }
     setSecBusy(false);
+  };
+
+  const uploadKycDocument = async () => {
+    if (!clinicId || !kycFile) return;
+    setUploadingKyc(true);
+    try {
+      const result = await uploadMedia({ clinicId, kind: "kyc", file: kycFile });
+      if (result.ok) {
+        setKycFile(null);
+        if (kycFileInput.current) kycFileInput.current.value = "";
+      }
+    } finally {
+      setUploadingKyc(false);
+    }
   };
 
   const signOut = async () => {
@@ -330,6 +359,40 @@ function DoctorSettings() {
                     className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground">
+                      رقم ترخيص مزاولة المهنة *
+                    </label>
+                    <input
+                      value={medicalLicense}
+                      onChange={(e) => setMedicalLicense(e.target.value.replace(/\D/g, ""))}
+                      inputMode="numeric"
+                      dir="ltr"
+                      placeholder="أرقام فقط"
+                      className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground">
+                      رقم القيد بنقابة الأطباء *
+                    </label>
+                    <input
+                      value={syndicateNo}
+                      onChange={(e) => setSyndicateNo(e.target.value.replace(/\D/g, ""))}
+                      inputMode="numeric"
+                      dir="ltr"
+                      placeholder="أرقام فقط"
+                      className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+                <div className="rounded-xl bg-secondary p-3">
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    بعد تفعيل الحساب، ارفع مستند الترخيص من إعدادات العيادة ليتمكن فريق التوثيق من
+                    مراجعته بأمان.
+                  </p>
+                </div>
                 {signupError && (
                   <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive">
                     {signupError}
@@ -411,10 +474,11 @@ function DoctorSettings() {
               <Clock className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-extrabold text-foreground">حسابك قيد المراجعة والتوثيق</p>
+              <p className="text-sm font-extrabold text-foreground">حسابك قيد التدقيق المهني</p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                حسابك قيد المراجعة والتوثيق من قبل إدارة التطبيق، وسيتم تفعيله فور التأكد من
-                البيانات. لحد ما يتم التوثيق، عيادتك مش هتظهر للمرضى في البحث أو الخريطة.
+                حسابك قيد التدقيق المهني: تم استلام بيانات ترخيص مزاولة المهنة وجاري التحقق من السجل
+                النقابي لمنحك شارة التوثيق. لحد ما يتم التوثيق، عيادتك مش هتظهر للمرضى في البحث أو
+                الخريطة.
               </p>
             </div>
           </div>
@@ -434,6 +498,41 @@ function DoctorSettings() {
             </div>
           </div>
         </div>
+      )}
+      {clinicId && role === "doctor" && (
+        <section className="mb-4 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-extrabold">مستند التوثيق المهني</h2>
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            ارفع صورة واضحة أو ملف PDF للترخيص. يُحفظ المستند في مساحة خاصة ولا يطّلع عليه إلا فريق
+            التوثيق عبر رابط مؤقت.
+          </p>
+          <input
+            ref={kycFileInput}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,application/pdf"
+            onChange={(event) => setKycFile(event.target.files?.[0] ?? null)}
+            className="mt-3 w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-xs file:font-bold"
+          />
+          {kycFile && (
+            <p className="mt-2 truncate text-[11px] text-muted-foreground">{kycFile.name}</p>
+          )}
+          <button
+            type="button"
+            onClick={uploadKycDocument}
+            disabled={!kycFile || uploadingKyc}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl gradient-primary py-3 text-sm font-extrabold text-white disabled:opacity-60"
+          >
+            {uploadingKyc ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            {uploadingKyc ? "جاري رفع المستند..." : "رفع مستند التوثيق"}
+          </button>
+        </section>
       )}
 
       {/* Availability */}

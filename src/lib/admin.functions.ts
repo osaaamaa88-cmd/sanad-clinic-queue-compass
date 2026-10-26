@@ -63,6 +63,203 @@ export const adminSetVerified = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+// ---- Doctor KYC (Verification & Licensing) ----
+
+export type DoctorKycRow = {
+  clinicId: string;
+  doctor: string;
+  specialtyId: string;
+  area: string;
+  phone: string;
+  submittedAt: string;
+  isVerified: boolean;
+  verificationStatus: "pending_verification" | "verified" | "rejected" | "action_required";
+  medicalLicense: string;
+  syndicateNo: string;
+  licenseDocPath: string;
+  licenseDocUrl: string;
+  email: string;
+};
+
+/**
+ * Admin-only: list every clinic with the KYC data the doctor submitted at signup
+ * (license + syndicate numbers live in server-managed auth app_metadata).
+ */
+export const adminListDoctorKyc = createServerFn({ method: "GET" }).handler(async () => {
+  await assertAdmin();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: clinics, error } = await supabaseAdmin
+    .from("clinics")
+    .select("id,doctor,specialty_id,area,phone,submitted_at,is_verified,owner_id")
+    .order("submitted_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  // Fetch server-managed KYC metadata for owners (user-editable metadata is not authoritative).
+  const ownerIds = [
+    ...new Set(
+      (clinics ?? [])
+        .map((c) => (c as { owner_id?: string | null }).owner_id)
+        .filter((v): v is string => Boolean(v)),
+    ),
+  ];
+  const meta = new Map<
+    string,
+    {
+      medicalLicense: string;
+      syndicateNo: string;
+      status: string;
+      licenseDocPath: string;
+      email: string;
+    }
+  >();
+  for (const uid of ownerIds) {
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(uid);
+    if (userError) throw new Error(userError.message);
+    const appMeta = (userData.user?.app_metadata ?? {}) as Record<string, unknown>;
+    const legacyMeta = (userData.user?.user_metadata ?? {}) as Record<string, unknown>;
+    meta.set(uid, {
+      medicalLicense: String(appMeta.medical_license ?? legacyMeta.medical_license ?? ""),
+      syndicateNo: String(appMeta.syndicate_no ?? legacyMeta.syndicate_no ?? ""),
+      licenseDocPath: String(appMeta.license_doc_path ?? ""),
+      email: String(userData.user?.email ?? ""),
+      status: String(appMeta.verification_status ?? ""),
+    });
+  }
+  const rows: DoctorKycRow[] = (clinics ?? []).map((c) => {
+    const r = c as unknown as {
+      id: string;
+      doctor: string;
+      specialty_id: string;
+      area: string;
+      phone: string;
+      submitted_at: string;
+      is_verified: boolean;
+      owner_id: string | null;
+    };
+    const k = meta.get(r.owner_id ?? "");
+    const storedStatus = String(k?.status ?? "") as DoctorKycRow["verificationStatus"];
+    const status = r.is_verified
+      ? "verified"
+      : storedStatus === "rejected" || storedStatus === "action_required"
+        ? storedStatus
+        : "pending_verification";
+    const licenseDocPath =
+      k?.licenseDocPath.startsWith(`${r.id}/kyc/`) === true ? k.licenseDocPath : "";
+    return {
+      clinicId: r.id,
+      doctor: r.doctor,
+      specialtyId: r.specialty_id,
+      area: r.area,
+      phone: r.phone,
+      submittedAt: r.submitted_at,
+      isVerified: r.is_verified,
+      verificationStatus: status,
+      medicalLicense: k?.medicalLicense ?? "",
+      syndicateNo: k?.syndicateNo ?? "",
+      licenseDocPath,
+      licenseDocUrl: "",
+      email: k?.email ?? "",
+    };
+  });
+  const documentPaths = [...new Set(rows.map((row) => row.licenseDocPath).filter(Boolean))];
+  const documentUrls = new Map<string, string>();
+  if (documentPaths.length) {
+    const { data: signedDocuments, error: signError } = await supabaseAdmin.storage
+      .from("clinic-kyc")
+      .createSignedUrls(documentPaths, 60 * 60);
+    if (signError) throw new Error(signError.message);
+    for (const document of signedDocuments ?? []) {
+      if (document.path && document.signedUrl) documentUrls.set(document.path, document.signedUrl);
+    }
+  }
+  return {
+    rows: rows.map((row) => ({
+      ...row,
+      licenseDocUrl: documentUrls.get(row.licenseDocPath) ?? "",
+    })),
+  };
+});
+
+/**
+ * Admin-only: approve a doctor — grants is_verified (golden badge) + sets
+ * verification_status to "verified", and notifies the clinic.
+ */
+export const adminApproveDoctorKyc = createServerFn({ method: "POST" })
+  .inputValidator((data: { clinicId: string }) => {
+    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+    return { clinicId: data.clinicId };
+  })
+  .handler(async ({ data }) => {
+    await assertAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: clinic } = await supabaseAdmin
+      .from("clinics")
+      .select("owner_id")
+      .eq("id", data.clinicId)
+      .maybeSingle();
+    const ownerId = (clinic as { owner_id?: string | null } | null)?.owner_id;
+    if (!ownerId) throw new Error("CLINIC_NOT_FOUND");
+    const { error } = await supabaseAdmin
+      .from("clinics")
+      .update({ is_verified: true })
+      .eq("id", data.clinicId);
+    if (error) throw new Error(error.message);
+    const { patchUserAppMetadata } = await import("@/lib/auth-admin.server");
+    await patchUserAppMetadata(supabaseAdmin, ownerId, { verification_status: "verified" });
+    const { error: notificationError } = await supabaseAdmin.from("notifications").insert({
+      audience: "clinic",
+      clinic_id: data.clinicId,
+      title: "تم توثيق عيادتك ✅",
+      body: "تهانينا! تم التحقق من ترخيصك بنجاح وتفعيل الشارة الرسمية لعيادتك.",
+      url: "/doctor-settings",
+      kind: "kyc",
+    });
+    if (notificationError) throw new Error(notificationError.message);
+    return { ok: true as const };
+  });
+
+/**
+ * Admin-only: reject / request extra review with a short reason. Sets
+ * verification_status to "rejected" or "action_required" and notifies the clinic.
+ */
+export const adminRejectDoctorKyc = createServerFn({ method: "POST" })
+  .inputValidator((data: { clinicId: string; reason: string; actionRequired: boolean }) => {
+    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+    const reason = String(data.reason ?? "")
+      .trim()
+      .slice(0, 300);
+    if (!reason) throw new Error("INVALID_REASON");
+    return { clinicId: data.clinicId, reason, actionRequired: Boolean(data.actionRequired) };
+  })
+  .handler(async ({ data }) => {
+    await assertAdmin();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const status = data.actionRequired ? "action_required" : "rejected";
+    const { data: clinic } = await supabaseAdmin
+      .from("clinics")
+      .select("owner_id")
+      .eq("id", data.clinicId)
+      .maybeSingle();
+    const ownerId = (clinic as { owner_id?: string | null } | null)?.owner_id;
+    if (!ownerId) throw new Error("CLINIC_NOT_FOUND");
+    const { error } = await supabaseAdmin
+      .from("clinics")
+      .update({ is_verified: false })
+      .eq("id", data.clinicId);
+    if (error) throw new Error(error.message);
+    const { patchUserAppMetadata } = await import("@/lib/auth-admin.server");
+    await patchUserAppMetadata(supabaseAdmin, ownerId, { verification_status: status });
+    const { error: notificationError } = await supabaseAdmin.from("notifications").insert({
+      audience: "clinic",
+      clinic_id: data.clinicId,
+      title: data.actionRequired ? "مطلوب تدقيق إضافي في بيانات التوثيق" : "لم يتم اعتماد التوثيق",
+      body: `سبب التدقيق: ${data.reason}. من فضلك راجع بيانات ترخيص مزاولة المهنة ورقم القيد النقابي ثم أعد التقديم.`,
+      url: "/doctor-settings",
+      kind: "kyc",
+    });
+    if (notificationError) throw new Error(notificationError.message);
+    return { ok: true as const };
+  });
+
 export const adminStats = createServerFn({ method: "GET" }).handler(async () => {
   await assertAdmin();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

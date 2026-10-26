@@ -374,6 +374,51 @@ function HealthTracker() {
     }
   }
 
+  /** تصدير السجل الصحي كاملاً: كل القراءات + بطاقة الطوارئ — ملك المريض بالكامل. */
+  function exportHealthRecord() {
+    try {
+      const record = {
+        app: "سَنَد | SANAD",
+        type: "sanad-health-record",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        medicalId: {
+          bloodType: medicalId.bloodType,
+          allergies: medicalId.allergies,
+          conditions: medicalId.conditions,
+          emergencyPhone: medicalId.emergencyPhone,
+        },
+        readings: readings.map((r) =>
+          r.kind === "bp"
+            ? { kind: "bp", systolic: r.sys, diastolic: r.dia, label: r.label, at: r.at }
+            : {
+                kind: "sugar",
+                value: r.value,
+                state: r.state,
+                label: r.label,
+                at: r.at,
+              },
+        ),
+      };
+      const blob = new Blob([JSON.stringify(record, null, 2)], {
+        type: "application/json;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "sanad-health-record.json";
+      anchor.rel = "noopener";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast.success("تم تصدير السجل الصحي كاملاً");
+    } catch (error) {
+      console.error("[Health Record] Export failed", error);
+      toast.error("تعذر تصدير السجل. حاول مرة أخرى.");
+    }
+  }
+
   return (
     <AppShell
       title="حاسبة ومؤشرات الصحة"
@@ -624,6 +669,21 @@ function HealthTracker() {
         )}
         <p className="mt-2 text-center text-[11px] text-muted-foreground">
           تُستخدم البيانات لإنشاء الصورة على جهازك ولا تُحفظ من هذه الصفحة.
+        </p>
+      </section>
+
+      {/* Data ownership: full health-record export + ownership notice */}
+      <section className="mt-5 rounded-2xl border border-primary/20 bg-card p-4 shadow-soft">
+        <button
+          type="button"
+          onClick={exportHealthRecord}
+          className="flex w-full items-center justify-center gap-2 rounded-xl gradient-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-soft"
+        >
+          <Download className="h-4 w-4" /> تصدير السجل الصحي كاملاً (JSON / نصي)
+        </button>
+        <p className="mt-3 rounded-xl bg-success/10 px-3 py-2 text-center text-[11px] font-bold leading-relaxed text-success">
+          بياناتك الصحية ملك لك بالكامل ومحفوظة محلياً — لك حرية تصديرها أو حذفها في أي وقت بنقرة
+          واحدة.
         </p>
       </section>
 
