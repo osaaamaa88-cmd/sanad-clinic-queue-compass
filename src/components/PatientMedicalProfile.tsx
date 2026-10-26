@@ -105,34 +105,27 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent }: Patient
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> هولوجرام نشط 3D</span>
           </div>
 
-          <div className="relative flex flex-col items-center justify-center my-auto z-10 py-4 w-full h-[350px]">
-  
-  {/* نقطة التأشير (Callout) */}
-  {selectedArea === 'throat' && (
-    <div className="absolute top-[20%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-      <div className="w-8 h-8 rounded-full border-2 border-amber-400 animate-ping absolute -inset-2"></div>
-      <div className="w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_15px_#f59e0b]"></div>
-      <div className="absolute top-2 left-6 w-20 h-[1px] bg-amber-400">
-        <div className="absolute -top-3 left-20 bg-slate-900/90 border border-amber-500 text-amber-300 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
-          تنبيه: التهاب حنجري
-        </div>
-      </div>
-    </div>
-  )}
+          <div className="relative flex flex-col items-center justify-center my-auto z-10 w-full h-[400px]">
+            
+            {/* بؤرة التأشير الذكية مضبوطة على منطقة الحنجرة في الصورة */}
+            {selectedArea === 'throat' && (
+              <div className="absolute top-[20%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                <div className="w-8 h-8 rounded-full border-2 border-amber-400 animate-ping absolute -inset-2"></div>
+                <div className="w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_15px_#f59e0b]"></div>
+                <div className="absolute top-2 left-6 w-20 h-[1px] bg-amber-400">
+                  <div className="absolute -top-3 left-20 bg-slate-900/90 border border-amber-500 text-amber-300 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
+                    تنبيه: التهاب حنجري
+                  </div>
+                </div>
+              </div>
+            )}
 
-  {/* ضع مسار الصورة المفرغة هنا بدل /hologram-body.png */}
-  <img 
-    src="/hologram-body.png" 
-    alt="Medical Hologram Body"
-    className="h-full w-auto object-contain drop-shadow-[0_0_20px_rgba(0,229,255,0.7)] opacity-90 mix-blend-screen"
-  />
-
-</div>
-
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-64 h-16 flex items-center justify-center pointer-events-none z-0">
-            <div className="absolute w-64 h-12 rounded-[100%] border border-cyan-400/60 shadow-[0_0_25px_rgba(0,229,255,0.7)] animate-pulse"></div>
-            <div className="absolute w-48 h-8 rounded-[100%] border border-sky-400/90 shadow-[0_0_15px_rgba(56,189,248,0.9)]"></div>
-            <div className="absolute w-32 h-4 rounded-[100%] bg-cyan-400/20 blur-md"></div>
+            {/* الصورة بخاصية mix-blend-screen لإخفاء الخلفية السوداء */}
+            <img 
+              src="/hologram-body.jpg" 
+              alt="Medical Hologram Body"
+              className="w-full h-full object-contain mix-blend-screen drop-shadow-[0_0_15px_rgba(0,229,255,0.4)]"
+            />
           </div>
 
           <div className="w-full grid grid-cols-2 gap-2 z-10 mt-4">
