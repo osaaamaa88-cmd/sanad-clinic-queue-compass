@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Activity, Download, Droplet, Heart, Save, Siren, Trash2, QrCode } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { PatientMedicalProfile } from "@/components/PatientMedicalProfile";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/patient/health")({
@@ -431,319 +432,343 @@ function HealthTracker() {
         </div>
       }
     >
-      {/* Blood pressure card */}
-      <section className="-mt-8 rounded-2xl border border-border bg-card p-4 shadow-soft">
-        <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-destructive/15 text-destructive">
-            <Heart className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold">قياس ضغط الدم</h2>
-            <p className="text-xs text-muted-foreground">أدخل قراءة الانقباضي والانبساطي</p>
-          </div>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold">الانقباضي (Systolic)</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={sys}
-              onChange={(e) => setSys(e.target.value)}
-              placeholder="120"
-              className="w-full rounded-xl border border-border bg-background px-3 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold">الانبساطي (Diastolic)</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={dia}
-              onChange={(e) => setDia(e.target.value)}
-              placeholder="80"
-              className="w-full rounded-xl border border-border bg-background px-3 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </label>
-        </div>
+      <PatientMedicalProfile
+        vitalsContent={
+          <>
+            {/* Blood pressure card */}
+            <section className="-mt-8 rounded-2xl border border-border bg-card p-4 shadow-soft">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-destructive/15 text-destructive">
+                  <Heart className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold">قياس ضغط الدم</h2>
+                  <p className="text-xs text-muted-foreground">أدخل قراءة الانقباضي والانبساطي</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold">الانقباضي (Systolic)</span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    value={sys}
+                    onChange={(e) => setSys(e.target.value)}
+                    placeholder="120"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold">الانبساطي (Diastolic)</span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    value={dia}
+                    onChange={(e) => setDia(e.target.value)}
+                    placeholder="80"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </label>
+              </div>
 
-        {bp && (
-          <div className={`mt-4 rounded-2xl border p-4 ${toneClasses[bp.tone]}`}>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-extrabold">{bp.label}</p>
-              <span className="text-xs font-bold opacity-90">
-                {sysN}/{diaN}
-              </span>
-            </div>
-            <p className="mt-1 text-xs opacity-90">{bp.advice}</p>
-            {bp.tone === "crisis" && (
-              <Link
-                to="/patient/emergency"
-                className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-destructive-foreground/10 px-3 py-2 text-xs font-extrabold"
-              >
-                <Siren className="h-4 w-4" /> اذهب لأقرب طوارئ الآن
-              </Link>
-            )}
-            <button
-              onClick={saveBP}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground"
-            >
-              <Save className="h-4 w-4" /> حفظ القراءة في ملفي الطبي
-            </button>
-          </div>
-        )}
-
-        <details className="mt-3 rounded-xl bg-secondary/40 p-3 text-xs">
-          <summary className="cursor-pointer font-bold">المعايير (AHA/ADA)</summary>
-          <ul className="mt-2 space-y-1 text-muted-foreground">
-            <li>طبيعي: أقل من 120/80</li>
-            <li>مرتفع بسيط: 120–129 والانبساطي أقل من 80</li>
-            <li>مرحلة أولى: 130–139 أو 80–89</li>
-            <li>مرحلة ثانية: 140+ أو 90+</li>
-            <li>أزمة ضغط: أعلى من 180/120</li>
-          </ul>
-        </details>
-      </section>
-
-      {/* Blood sugar card */}
-      <section className="mt-5 rounded-2xl border border-border bg-card p-4 shadow-soft">
-        <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary-soft text-primary">
-            <Droplet className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold">قياس السكر في الدم</h2>
-            <p className="text-xs text-muted-foreground">القيمة بالـ mg/dL</p>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {(
-            [
-              { id: "fasting", label: "صائم" },
-              { id: "postmeal", label: "بعد الأكل بساعتين" },
-              { id: "random", label: "عشوائي" },
-            ] as { id: SugarState; label: string }[]
-          ).map((o) => (
-            <button
-              key={o.id}
-              onClick={() => setSugarState(o.id)}
-              className={`rounded-xl border px-2 py-2 text-xs font-bold transition ${
-                sugarState === o.id
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-foreground"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-
-        <label className="mt-3 block">
-          <span className="mb-1 block text-xs font-semibold">القيمة (mg/dL)</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            value={sugar}
-            onChange={(e) => setSugar(e.target.value)}
-            placeholder="مثال: 95"
-            className="w-full rounded-xl border border-border bg-background px-3 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </label>
-
-        {sug && (
-          <div className={`mt-4 rounded-2xl border p-4 ${toneClasses[sug.tone]}`}>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-extrabold">{sug.label}</p>
-              <span className="text-xs font-bold opacity-90">{sugarN} mg/dL</span>
-            </div>
-            <p className="mt-1 text-xs opacity-90">{sug.advice}</p>
-            <button
-              onClick={saveSugar}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground"
-            >
-              <Save className="h-4 w-4" /> حفظ القراءة في ملفي الطبي
-            </button>
-          </div>
-        )}
-
-        <details className="mt-3 rounded-xl bg-secondary/40 p-3 text-xs">
-          <summary className="cursor-pointer font-bold">المعايير (ADA)</summary>
-          <ul className="mt-2 space-y-1 text-muted-foreground">
-            <li>صائم: طبيعي أقل من 100 — ما قبل السكري 100–125 — سكري 126+</li>
-            <li>بعد الأكل بساعتين: طبيعي أقل من 140 — ما قبل السكري 140–199 — سكري 200+</li>
-            <li>عشوائي: مرتفع من 140، ومرتفع جداً من 200</li>
-          </ul>
-        </details>
-      </section>
-
-      <section className="mt-5 rounded-2xl border border-primary/20 bg-card p-4 shadow-soft">
-        <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-destructive/15 text-destructive">
-            <Siren className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold">كارت طوارئ شاشة القفل (Medical ID)</h2>
-            <p className="text-xs text-muted-foreground">جهّز معلومات تساعد المسعفين وقت الطوارئ</p>
-          </div>
-        </div>
-
-        <div className="mt-4 space-y-3">
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold">فصيلة الدم</span>
-            <select
-              value={medicalId.bloodType}
-              onChange={(event) => setMedicalId({ ...medicalId, bloodType: event.target.value })}
-              className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="">اختر فصيلة الدم (اختياري)</option>
-              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold">الحساسية الدوائية</span>
-            <textarea
-              value={medicalId.allergies}
-              onChange={(event) => setMedicalId({ ...medicalId, allergies: event.target.value })}
-              maxLength={160}
-              placeholder="مثال: حساسية من البنسلين"
-              className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold">الأمراض المزمنة</span>
-            <textarea
-              value={medicalId.conditions}
-              onChange={(event) => setMedicalId({ ...medicalId, conditions: event.target.value })}
-              maxLength={160}
-              placeholder="مثال: السكري، الربو"
-              className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold">رقم هاتف الطوارئ</span>
-            <input
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              value={medicalId.emergencyPhone}
-              onChange={(event) =>
-                setMedicalId({ ...medicalId, emergencyPhone: event.target.value })
-              }
-              maxLength={30}
-              placeholder="رقم شخص يمكن التواصل معه"
-              className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </label>
-        </div>
-
-        <button
-          type="button"
-          onClick={downloadMedicalId}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground"
-        >
-          <Download className="h-4 w-4" /> إنشاء وتنزيل بطاقة الطوارئ
-        </button>
-        {qrDataUrl && (
-          <div className="mt-4 rounded-2xl border border-primary/20 bg-secondary/40 p-4 text-center">
-            <p className="flex items-center justify-center gap-2 text-sm font-extrabold">
-              <QrCode className="h-4 w-4 text-primary" /> كود QR للطوارئ
-            </p>
-            <img
-              src={qrDataUrl}
-              alt="كود QR لكارت الطوارئ الطبي"
-              className="mx-auto mt-3 h-40 w-40 rounded-xl bg-white p-2"
-            />
-            <p className="mt-2 text-xs text-muted-foreground">
-              اطبع الكود أو حطه في جيب محفظتك — أي حد يقدر يمسحه ويقرأ بيانات الطوارئ حتى لو الهاتف
-              مقفول.
-            </p>
-          </div>
-        )}
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">
-          تُستخدم البيانات لإنشاء الصورة على جهازك ولا تُحفظ من هذه الصفحة.
-        </p>
-      </section>
-
-      {/* Data ownership: full health-record export + ownership notice */}
-      <section className="mt-5 rounded-2xl border border-primary/20 bg-card p-4 shadow-soft">
-        <button
-          type="button"
-          onClick={exportHealthRecord}
-          className="flex w-full items-center justify-center gap-2 rounded-xl gradient-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-soft"
-        >
-          <Download className="h-4 w-4" /> تصدير السجل الصحي كاملاً (JSON / نصي)
-        </button>
-        <p className="mt-3 rounded-xl bg-success/10 px-3 py-2 text-center text-[11px] font-bold leading-relaxed text-success">
-          بياناتك الصحية ملك لك بالكامل ومحفوظة محلياً — لك حرية تصديرها أو حذفها في أي وقت بنقرة
-          واحدة.
-        </p>
-      </section>
-
-      {/* Saved log */}
-      <section className="mt-5">
-        <h3 className="mb-2 text-sm font-bold">ملفي الطبي — آخر القراءات</h3>
-        {readings.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
-            لسه ما فيش قراءات محفوظة.
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {readings.map((r, i) => (
-              <li
-                key={i}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 text-xs"
-              >
-                <div
-                  className={`grid h-8 w-8 place-items-center rounded-lg ${
-                    r.kind === "bp"
-                      ? "bg-destructive/15 text-destructive"
-                      : "bg-primary-soft text-primary"
-                  }`}
-                >
-                  {r.kind === "bp" ? (
-                    <Heart className="h-4 w-4" />
-                  ) : (
-                    <Droplet className="h-4 w-4" />
+              {bp && (
+                <div className={`mt-4 rounded-2xl border p-4 ${toneClasses[bp.tone]}`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-extrabold">{bp.label}</p>
+                    <span className="text-xs font-bold opacity-90">
+                      {sysN}/{diaN}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs opacity-90">{bp.advice}</p>
+                  {bp.tone === "crisis" && (
+                    <Link
+                      to="/patient/emergency"
+                      className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-destructive-foreground/10 px-3 py-2 text-xs font-extrabold"
+                    >
+                      <Siren className="h-4 w-4" /> اذهب لأقرب طوارئ الآن
+                    </Link>
                   )}
+                  <button
+                    onClick={saveBP}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground"
+                  >
+                    <Save className="h-4 w-4" /> حفظ القراءة في ملفي الطبي
+                  </button>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold">
-                    {r.kind === "bp"
-                      ? `ضغط ${r.sys}/${r.dia} — ${r.label}`
-                      : `سكر ${r.value} mg/dL (${
-                          r.state === "fasting"
-                            ? "صائم"
-                            : r.state === "postmeal"
-                              ? "بعد الأكل"
-                              : "عشوائي"
-                        }) — ${r.label}`}
-                  </p>
-                  <p className="text-muted-foreground">{new Date(r.at).toLocaleString("ar-EG")}</p>
-                </div>
-                <button
-                  onClick={() => removeAt(i)}
-                  aria-label="حذف"
-                  className="grid h-8 w-8 place-items-center rounded-lg bg-secondary text-muted-foreground"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+              )}
 
-      <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-[11px] text-muted-foreground">
-        النتائج استرشادية بناءً على المعايير الطبية المعتمدة ولا تغني عن الاستشارة الطبية.
-      </p>
+              <details className="mt-3 rounded-xl bg-secondary/40 p-3 text-xs">
+                <summary className="cursor-pointer font-bold">المعايير (AHA/ADA)</summary>
+                <ul className="mt-2 space-y-1 text-muted-foreground">
+                  <li>طبيعي: أقل من 120/80</li>
+                  <li>مرتفع بسيط: 120–129 والانبساطي أقل من 80</li>
+                  <li>مرحلة أولى: 130–139 أو 80–89</li>
+                  <li>مرحلة ثانية: 140+ أو 90+</li>
+                  <li>أزمة ضغط: أعلى من 180/120</li>
+                </ul>
+              </details>
+            </section>
+
+            {/* Blood sugar card */}
+            <section className="mt-5 rounded-2xl border border-border bg-card p-4 shadow-soft">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary-soft text-primary">
+                  <Droplet className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold">قياس السكر في الدم</h2>
+                  <p className="text-xs text-muted-foreground">القيمة بالـ mg/dL</p>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {(
+                  [
+                    { id: "fasting", label: "صائم" },
+                    { id: "postmeal", label: "بعد الأكل بساعتين" },
+                    { id: "random", label: "عشوائي" },
+                  ] as { id: SugarState; label: string }[]
+                ).map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => setSugarState(o.id)}
+                    className={`rounded-xl border px-2 py-2 text-xs font-bold transition ${
+                      sugarState === o.id
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background text-foreground"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+
+              <label className="mt-3 block">
+                <span className="mb-1 block text-xs font-semibold">القيمة (mg/dL)</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={sugar}
+                  onChange={(e) => setSugar(e.target.value)}
+                  placeholder="مثال: 95"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </label>
+
+              {sug && (
+                <div className={`mt-4 rounded-2xl border p-4 ${toneClasses[sug.tone]}`}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-extrabold">{sug.label}</p>
+                    <span className="text-xs font-bold opacity-90">{sugarN} mg/dL</span>
+                  </div>
+                  <p className="mt-1 text-xs opacity-90">{sug.advice}</p>
+                  <button
+                    onClick={saveSugar}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground"
+                  >
+                    <Save className="h-4 w-4" /> حفظ القراءة في ملفي الطبي
+                  </button>
+                </div>
+              )}
+
+              <details className="mt-3 rounded-xl bg-secondary/40 p-3 text-xs">
+                <summary className="cursor-pointer font-bold">المعايير (ADA)</summary>
+                <ul className="mt-2 space-y-1 text-muted-foreground">
+                  <li>صائم: طبيعي أقل من 100 — ما قبل السكري 100–125 — سكري 126+</li>
+                  <li>بعد الأكل بساعتين: طبيعي أقل من 140 — ما قبل السكري 140–199 — سكري 200+</li>
+                  <li>عشوائي: مرتفع من 140، ومرتفع جداً من 200</li>
+                </ul>
+              </details>
+            </section>
+          </>
+        }
+        recordsContent={
+          <>
+            <section className="mt-5 rounded-2xl border border-primary/20 bg-card p-4 shadow-soft">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-destructive/15 text-destructive">
+                  <Siren className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold">كارت طوارئ شاشة القفل (Medical ID)</h2>
+                  <p className="text-xs text-muted-foreground">
+                    جهّز معلومات تساعد المسعفين وقت الطوارئ
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold">فصيلة الدم</span>
+                  <select
+                    value={medicalId.bloodType}
+                    onChange={(event) =>
+                      setMedicalId({ ...medicalId, bloodType: event.target.value })
+                    }
+                    className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">اختر فصيلة الدم (اختياري)</option>
+                    {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold">الحساسية الدوائية</span>
+                  <textarea
+                    value={medicalId.allergies}
+                    onChange={(event) =>
+                      setMedicalId({ ...medicalId, allergies: event.target.value })
+                    }
+                    maxLength={160}
+                    placeholder="مثال: حساسية من البنسلين"
+                    className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold">الأمراض المزمنة</span>
+                  <textarea
+                    value={medicalId.conditions}
+                    onChange={(event) =>
+                      setMedicalId({ ...medicalId, conditions: event.target.value })
+                    }
+                    maxLength={160}
+                    placeholder="مثال: السكري، الربو"
+                    className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold">رقم هاتف الطوارئ</span>
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={medicalId.emergencyPhone}
+                    onChange={(event) =>
+                      setMedicalId({ ...medicalId, emergencyPhone: event.target.value })
+                    }
+                    maxLength={30}
+                    placeholder="رقم شخص يمكن التواصل معه"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </label>
+              </div>
+
+              <button
+                type="button"
+                onClick={downloadMedicalId}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground"
+              >
+                <Download className="h-4 w-4" /> إنشاء وتنزيل بطاقة الطوارئ
+              </button>
+              {qrDataUrl && (
+                <div className="mt-4 rounded-2xl border border-primary/20 bg-secondary/40 p-4 text-center">
+                  <p className="flex items-center justify-center gap-2 text-sm font-extrabold">
+                    <QrCode className="h-4 w-4 text-primary" /> كود QR للطوارئ
+                  </p>
+                  <img
+                    src={qrDataUrl}
+                    alt="كود QR لكارت الطوارئ الطبي"
+                    className="mx-auto mt-3 h-40 w-40 rounded-xl bg-white p-2"
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    اطبع الكود أو حطه في جيب محفظتك — أي حد يقدر يمسحه ويقرأ بيانات الطوارئ حتى لو
+                    الهاتف مقفول.
+                  </p>
+                </div>
+              )}
+              <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                تُستخدم البيانات لإنشاء الصورة على جهازك ولا تُحفظ من هذه الصفحة.
+              </p>
+            </section>
+
+            {/* Data ownership: full health-record export + ownership notice */}
+            <section className="mt-5 rounded-2xl border border-primary/20 bg-card p-4 shadow-soft">
+              <button
+                type="button"
+                onClick={exportHealthRecord}
+                className="flex w-full items-center justify-center gap-2 rounded-xl gradient-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-soft"
+              >
+                <Download className="h-4 w-4" /> تصدير السجل الصحي كاملاً (JSON / نصي)
+              </button>
+              <p className="mt-3 rounded-xl bg-success/10 px-3 py-2 text-center text-[11px] font-bold leading-relaxed text-success">
+                بياناتك الصحية ملك لك بالكامل ومحفوظة محلياً — لك حرية تصديرها أو حذفها في أي وقت
+                بنقرة واحدة.
+              </p>
+            </section>
+
+            {/* Saved log */}
+            <section className="mt-5">
+              <h3 className="mb-2 text-sm font-bold">ملفي الطبي — آخر القراءات</h3>
+              {readings.length === 0 ? (
+                <div className="rounded-2xl border-2 border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
+                  لسه ما فيش قراءات محفوظة.
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {readings.map((r, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 text-xs"
+                    >
+                      <div
+                        className={`grid h-8 w-8 place-items-center rounded-lg ${
+                          r.kind === "bp"
+                            ? "bg-destructive/15 text-destructive"
+                            : "bg-primary-soft text-primary"
+                        }`}
+                      >
+                        {r.kind === "bp" ? (
+                          <Heart className="h-4 w-4" />
+                        ) : (
+                          <Droplet className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-bold">
+                          {r.kind === "bp"
+                            ? `ضغط ${r.sys}/${r.dia} — ${r.label}`
+                            : `سكر ${r.value} mg/dL (${
+                                r.state === "fasting"
+                                  ? "صائم"
+                                  : r.state === "postmeal"
+                                    ? "بعد الأكل"
+                                    : "عشوائي"
+                              }) — ${r.label}`}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {new Date(r.at).toLocaleString("ar-EG")}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => removeAt(i)}
+                        aria-label="حذف"
+                        className="grid h-8 w-8 place-items-center rounded-lg bg-secondary text-muted-foreground"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-[11px] text-muted-foreground">
+              النتائج استرشادية بناءً على المعايير الطبية المعتمدة ولا تغني عن الاستشارة الطبية.
+            </p>
+          </>
+        }
+        appointmentsContent={
+          <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-[11px] text-muted-foreground">
+            لا توجد حجوزات مجدولة حالياً. يمكنك البحث عن عيادات من صفحة البحث.
+          </p>
+        }
+      />
     </AppShell>
   );
 }

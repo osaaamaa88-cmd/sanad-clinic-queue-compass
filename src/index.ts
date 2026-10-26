@@ -10,7 +10,7 @@ export { NetworkStatus } from "./components/NetworkStatus";
 export { NotificationsBell } from "./components/NotificationsBell";
 export { PatientAuthModal, PatientAuthForm } from "./components/PatientAuthModal";
 export { PatientBottomNav } from "./components/PatientBottomNav";
-export { PatientMedicalProfile } from "./components/PatientMedicalProfile";
+export { PatientMedicalProfile, type PatientMedicalProfileProps } from "./components/PatientMedicalProfile";
 export { PostViewer } from "./components/PostViewer";
 export { RxComposer } from "./components/RxComposer";
 export { SoundToggle, AlarmStopper, ThemeSetting } from "./components/SoundControls";
