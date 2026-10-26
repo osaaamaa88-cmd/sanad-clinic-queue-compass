@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 
 type Msg = { role: "user" | "assistant"; text: string };
 
+const MODELS = ["gemini-3.5-flash", "gemini-3.1-flash-lite"];
+
 async function buildSnapshot() {
   const { supabaseAdmin: sb } = await import("@/integrations/supabase/client.server");
   const today = new Date();
@@ -105,35 +107,42 @@ export const ownerAiChat = createServerFn({ method: "POST" })
     const key = process.env.GEMINI_API_KEY;
     if (!key) throw new Error("مفتاح الذكاء الاصطناعي غير مضبوط");
     const snapshot = await buildSnapshot();
-    const res = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [
-              { text: `${SYSTEM}\n\nلقطة البيانات الحالية (JSON):\n${JSON.stringify(snapshot)}` },
-            ],
-          },
-          contents: data.messages.map((m) => ({
-            role: m.role === "assistant" ? "model" : "user",
-            parts: [{ text: m.text }],
-          })),
-          generationConfig: { thinkingConfig: { thinkingLevel: "low" } },
-        }),
+    const body = JSON.stringify({
+      systemInstruction: {
+        parts: [
+          { text: `${SYSTEM}\n\nلقطة البيانات الحالية (JSON):\n${JSON.stringify(snapshot)}` },
+        ],
       },
-    );
-    const json: any = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      if (res.status === 429) throw new Error("تم تجاوز الحد المجاني مؤقتاً، جرّب بعد دقيقة.");
-      throw new Error(
-        json?.error?.message ? `خطأ من Gemini: ${json.error.message}` : "تعذر الاتصال بالمساعد",
+      contents: data.messages.map((m) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.text }],
+      })),
+    });
+    let lastErr = "تعذر الاتصال بالمساعد";
+    for (const model of MODELS) {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-goog-api-key": key },
+          body,
+        },
       );
+      const json: any = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        lastErr =
+          res.status === 429
+            ? "تم تجاوز الحد المجاني مؤقتاً، جرّب بعد دقيقة."
+            : json?.error?.message
+              ? `خطأ من Gemini: ${json.error.message}`
+              : "تعذر الاتصال بالمساعد";
+        continue;
+      }
+      const text = (json?.candidates?.[0]?.content?.parts ?? [])
+        .map((p: any) => p.text ?? "")
+        .join("")
+        .trim();
+      if (text) return { text };
     }
-    const text = (json?.candidates?.[0]?.content?.parts ?? [])
-      .map((p: any) => p.text ?? "")
-      .join("")
-      .trim();
-    return { text: text || "لم أستطع تكوين رد، جرّب صياغة أخرى." };
+    throw new Error(lastErr);
   });
