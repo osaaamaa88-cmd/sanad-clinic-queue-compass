@@ -105,30 +105,29 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent }: Patient
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> هولوجرام نشط 3D</span>
           </div>
 
-          <div className="relative flex flex-col items-center justify-center my-auto z-10 py-4 w-full">
-            {selectedArea === 'throat' && (
-              <div className="absolute top-[32%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
-                <div className="w-8 h-8 rounded-full border-2 border-amber-400 animate-ping absolute -inset-2"></div>
-                <div className="w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_15px_#f59e0b]"></div>
-                <div className="absolute top-2 left-6 w-20 h-[1px] bg-amber-400">
-                  <div className="absolute -top-3 left-20 bg-slate-900/90 border border-amber-500 text-amber-300 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
-                    تنبيه: التهاب حنجري
-                  </div>
-                </div>
-              </div>
-            )}
+          <div className="relative flex flex-col items-center justify-center my-auto z-10 py-4 w-full h-[350px]">
+  
+  {/* نقطة التأشير (Callout) */}
+  {selectedArea === 'throat' && (
+    <div className="absolute top-[20%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+      <div className="w-8 h-8 rounded-full border-2 border-amber-400 animate-ping absolute -inset-2"></div>
+      <div className="w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_15px_#f59e0b]"></div>
+      <div className="absolute top-2 left-6 w-20 h-[1px] bg-amber-400">
+        <div className="absolute -top-3 left-20 bg-slate-900/90 border border-amber-500 text-amber-300 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
+          تنبيه: التهاب حنجري
+        </div>
+      </div>
+    </div>
+  )}
 
-            <svg className="w-64 h-80 drop-shadow-[0_0_20px_rgba(0,229,255,0.5)]" viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M80 5 C 55 5, 42 20, 42 45 C 42 65, 52 80, 58 105 C 48 125, 30 160, 35 190 C 37 198, 48 198, 54 198 C 60 198, 66 180, 72 135 C 76 125, 84 125, 88 135 C 94 180, 100 198, 106 198 C 112 198, 123 198, 125 190 C 130 160, 112 125, 102 105 C 108 80, 118 65, 118 45 C 118 20, 105 5, 80 5 Z" fill="rgba(0, 229, 255, 0.05)" stroke="rgba(0, 229, 255, 0.7)" strokeWidth="1"/>
-              <ellipse cx="80" cy="25" rx="16" ry="18" stroke="#00e5ff" strokeWidth="1.2" fill="rgba(0,229,255,0.12)"/>
-              <path d="M74 20 Q 80 15 86 20 Q 86 28 74 28 Z" fill="#38bdf8" opacity="0.85"/>
-              <line x1="80" y1="43" x2="80" y2="125" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3 3"/>
-              <path d="M60 55 Q 80 50 100 55 M57 65 Q 80 60 103 65 M55 75 Q 80 70 105 75 M57 85 Q 80 80 103 85" stroke="#00e5ff" strokeWidth="1.5" fill="none"/>
-              <line x1="50" y1="50" x2="110" y2="50" stroke="#00e5ff" strokeWidth="2"/>
-              <path d="M60 120 Q 80 115 100 120" stroke="#00e5ff" strokeWidth="1.8" fill="none"/>
-              <path d="M60 120 L 45 165 L 40 195 M100 120 L 115 165 L 120 195" stroke="#00e5ff" strokeWidth="1.2" strokeDasharray="2 2"/>
-            </svg>
-          </div>
+  {/* ضع مسار الصورة المفرغة هنا بدل /hologram-body.png */}
+  <img 
+    src="/hologram-body.png" 
+    alt="Medical Hologram Body"
+    className="h-full w-auto object-contain drop-shadow-[0_0_20px_rgba(0,229,255,0.7)] opacity-90 mix-blend-screen"
+  />
+
+</div>
 
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-64 h-16 flex items-center justify-center pointer-events-none z-0">
             <div className="absolute w-64 h-12 rounded-[100%] border border-cyan-400/60 shadow-[0_0_25px_rgba(0,229,255,0.7)] animate-pulse"></div>
