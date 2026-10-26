@@ -865,6 +865,12 @@ function Assistant() {
               key={message.id}
               className={`nemo-chat-message scroll-mb-36 flex items-end gap-2 ${message.role === "patient" ? "justify-start" : "justify-end"}`}
             >
+              {message.role === "nemo" && (
+                <NemoFaceSvg
+                  className="h-9 w-11 shrink-0 drop-shadow-[0_1px_4px_rgba(34,211,238,0.25)]"
+                  aria-hidden="true"
+                />
+              )}
               <div
                 className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 leading-6 ${
                   senior ? "text-base" : "text-sm"
