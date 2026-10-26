@@ -162,7 +162,7 @@ function speakArabic(text: string, onEnd: (success: boolean) => void): () => voi
   const startTimer = window.setTimeout(() => {
     if (started || cancelled || completed) return;
     synthesis.cancel();
-    toast.error("المتصفح لم يبدأ تشغيل الصوت. تحقق من مستوى الصوت أو جرّب متصفحاً آخر.");
+    console.warn("[Nemo] Speech playback delayed or blocked by browser autoplay policy");
     finish(false);
   }, 5000);
   utterance.onstart = () => {
@@ -173,7 +173,7 @@ function speakArabic(text: string, onEnd: (success: boolean) => void): () => voi
   utterance.onerror = (event) => {
     if (cancelled || completed) return;
     console.error("[Nemo] Browser speech failed", event.error);
-    toast.error("تعذّر تشغيل الصوت في المتصفح. تحقق من إعدادات الصوت ثم حاول مجدداً.");
+    console.warn("[Nemo] Browser speech error:", event.error);
     finish(false);
   };
   synthesis.speak(utterance);
@@ -267,6 +267,7 @@ function Assistant() {
   const [handsFree, setHandsFree] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [painLevel, setPainLevel] = useState<number | null>(null);
+  const [painScaleDismissed, setPainScaleDismissed] = useState(false);
   const [happy, setHappy] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { id: 1, role: "nemo", text: GREETING_DISPLAY },
@@ -278,6 +279,7 @@ function Assistant() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const stopSpeechRef = useRef<(() => void) | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const messageIdRef = useRef(1);
   const navigationTimerRef = useRef<number | null>(null);
   const providerWarningShownRef = useRef(false);
@@ -433,6 +435,7 @@ function Assistant() {
     setImageUrgent(false);
     setResult(null);
     setPainLevel(null);
+    setPainScaleDismissed(false);
     setNeed("");
 
     try {
@@ -615,6 +618,7 @@ function Assistant() {
     setNeed("");
     setBreathing(false);
     setPainLevel(null);
+    setPainScaleDismissed(false);
     addChatMessage("patient", query);
     const localTriage = runLocalTriage(query);
     setResult(localTriage);
@@ -678,6 +682,8 @@ function Assistant() {
         "هذا الألم شديد ويحتاج رعاية فورية. اتصل بالإسعاف 123 الآن أو توجّه لأقرب مستشفى، خصوصاً مع ألم الصدر أو صعوبة التنفس.";
       addChatMessage("nemo", reply);
     }
+    setPainScaleDismissed(true);
+    window.setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
   }
 
   function finishSession() {
@@ -928,14 +934,24 @@ function Assistant() {
           )}
         </section>
 
-        {(mentionsPain || painLevel !== null) && (
+        {(mentionsPain || painLevel !== null) && !painScaleDismissed && (
           <section className="order-4 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="font-extrabold text-slate-800">مقياس شدة الألم</h3>
                 <p className="mt-1 text-xs text-slate-500">من 1 (خفيف) إلى 10 (شديد)</p>
               </div>
-              <HeartPulse className={`h-6 w-6 ${urgent ? "text-rose-600" : "text-cyan-700"}`} />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPainScaleDismissed(true)}
+                  aria-label="إغلاق مقياس الألم"
+                  className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-600 transition hover:bg-slate-100"
+                >
+                  ✕ إغلاق
+                </button>
+                <HeartPulse className={`h-6 w-6 ${urgent ? "text-rose-600" : "text-cyan-700"}`} />
+              </div>
             </div>
             <div className="mt-3 grid grid-cols-5 gap-2" dir="ltr">
               {Array.from({ length: 10 }, (_, index) => index + 1).map((level) => {
@@ -970,7 +986,19 @@ function Assistant() {
           </section>
         )}
 
+        {painLevel !== null && painScaleDismissed && (
+          <div className="order-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setPainScaleDismissed(false)}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            >
+              شدة الألم المسجلة: {painLevel}/10 • تعديل
+            </button>
+          </div>
+        )}
         {!hasPatientMessages && !loading && (
+
           <div aria-label="أمثلة سريعة" className="order-3 flex flex-wrap justify-center gap-2">
             {[
               "عندي صداع جامد من الصبح",
@@ -1501,6 +1529,8 @@ function Assistant() {
             </p>
           </>
         )}
+      <div ref={chatEndRef} />
+
       </div>
       {consent.dialog}
       {picker && (

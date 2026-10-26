@@ -84,6 +84,113 @@ type Comment = {
 };
 type ClinicLite = { id: string; doctor: string; specialty_id: string };
 
+const SAMPLE_CLINICS: Record<string, ClinicLite> = {
+  "sample-clinic-1": { id: "sample-clinic-1", doctor: "د. أحمد البدري", specialty_id: "internal" },
+  "sample-clinic-2": { id: "sample-clinic-2", doctor: "د. سارة الحمود", specialty_id: "pediatrics" },
+};
+
+const SAMPLE_COMMUNITY_POSTS: Post[] = [
+  {
+    id: "sample-post-1",
+    is_mine: false,
+    author_name: "د. أحمد البدري",
+    is_anonymous: false,
+    clinic_id: "sample-clinic-1",
+    kind: "card",
+    body: "جرثومة المعدة (H. pylori) شائعة جداً في مجتمعنا. نصائح عملية: 1) لا تتوقف عن العلاج (الثلاثي/الرباعي) قبل إكمال 14 يوم حتى مع تحسن الأعراض. 2) تجنب الوجبات الدسمة والتوابل الحارة والكافئين during العلاج. 3) إعادة الفحص (urea breath test) بعد 4 أسابيع من إكمال العلاج للتأكد من الشفاء. 4) أعراض القولون العصبي (IBS) تتشابه (انتفاخ، ألم، تغير في الإخراج) — التمييز يتم عبر فحص جرثومة المعدة وتحليل البراز. لا تهمل الأعراض، راجع الطبيب.",
+    bg_style: "ocean",
+    font_style: "alexandria",
+    image_path: "",
+    specialty_id: "internal",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+  },
+  {
+    id: "sample-post-2",
+    is_mine: false,
+    author_name: "عضو مجهول",
+    is_anonymous: true,
+    clinic_id: null,
+    kind: "text",
+    body: "ابني عمره 6 أشهر، طبيب الأطفال أوصى بفيتامين د. كم هي الجرعة اليومية الموصى بها؟ وهل أستمر بعد إدخال الأطعمة الصلبة؟",
+    bg_style: "navy",
+    font_style: "alexandria",
+    image_path: "",
+    specialty_id: "pediatrics",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+  },
+  {
+    id: "sample-post-3",
+    is_mine: false,
+    author_name: "فاطمة",
+    is_anonymous: false,
+    clinic_id: null,
+    kind: "text",
+    body: "نصيحة من تجربتي: قياس السكر وضغط الدم صباحاً (قبل الفطور) بانتظام، وتسجيل النتائج في دفتر. هذا helpedني and طبيبي على ضبط العلاج. لا تنسَ أخذ الأدوية في وقتها، وبخاصة مابعد الأكل.",
+    bg_style: "emerald",
+    font_style: "alexandria",
+    image_path: "",
+    specialty_id: "endocrinology",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+  },
+  {
+    id: "sample-post-4",
+    is_mine: false,
+    author_name: "د. سارة الحمود",
+    is_anonymous: false,
+    clinic_id: "sample-clinic-2",
+    kind: "card",
+    body: "تذكير للآباء: children under 2 سنة should receive فيتامين د 400 وحدة دولية daily. بعد 6 أشهر، مع إدخال الأطعمة الصلبة، استمر بالجرعة until 12 شهر. الأطعمة (الأسماك، صفار البيض، الحليب المدعم) تساعد but لا تغني عن المكمل. always consult your pediatrician.",
+    bg_style: "lavender",
+    font_style: "alexandria",
+    image_path: "",
+    specialty_id: "pediatrics",
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+  },
+];
+
+const SAMPLE_COMMENTS: Record<string, Comment[]> = {
+  "sample-post-1": [
+    {
+      id: "sample-comment-1",
+      post_id: "sample-post-1",
+      author_id: "sample-user-1",
+      author_name: "عضو",
+      clinic_id: null,
+      body: "شكراً دكتور، كم مدة العلاج typically؟",
+      created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+    },
+  ],
+  "sample-post-2": [
+    {
+      id: "sample-comment-2",
+      post_id: "sample-post-2",
+      author_id: "sample-doctor-2",
+      author_name: "د. سارة الحمود",
+      clinic_id: "sample-clinic-2",
+      body: "الجرعة الموصى بها 400 وحدة دولية daily until 12 month. استمر after introducing foods; foods help but supplement needed. consult pediatrician for exact dosing.",
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+    },
+  ],
+  "sample-post-3": [
+    {
+      id: "sample-comment-3",
+      post_id: "sample-post-3",
+      author_id: "sample-user-2",
+      author_name: "علي",
+      clinic_id: null,
+      body: "ممتاز، سأبدأ بتسجيل readings from tomorrow.",
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
+    },
+  ],
+};
+
+const SAMPLE_LIKES: Record<string, number> = {
+  "sample-post-1": 12,
+  "sample-post-2": 5,
+  "sample-post-3": 8,
+  "sample-post-4": 15,
+};
+
 function timeAgo(iso: string) {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (m < 1) return "الآن";
@@ -128,6 +235,15 @@ function CommunityPage() {
     if (filter) q = q.eq("specialty_id", filter);
     const { data } = await q;
     const list = (data ?? []) as Post[];
+    if (list.length === 0) {
+      setPosts(SAMPLE_COMMUNITY_POSTS);
+      setComments(SAMPLE_COMMENTS);
+      setLikes(SAMPLE_LIKES);
+      setLiked({});
+      setClinics(SAMPLE_CLINICS);
+      setLoading(false);
+      return;
+    }
     setPosts(list);
     setLoading(false);
     const ids = list.map((p) => p.id);
