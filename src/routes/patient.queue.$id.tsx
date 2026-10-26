@@ -12,7 +12,7 @@ import { getVerifiedClinic, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/queue/$id")({
   staticData: { sitemap: false },
-  head: () => ({ meta: [{ title: "سَنَد — دورك في العيادة" }] }),
+  head: () => ({ meta: [{ title: "سند — دورك في العيادة" }] }),
   component: Queue,
 });
 

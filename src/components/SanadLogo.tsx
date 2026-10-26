@@ -15,7 +15,7 @@ export function SanadLogo({ className = "", size = 36, showText = false }: Sanad
         xmlns="http://www.w3.org/2000/svg"
         className="shrink-0 drop-shadow-sm transition-transform duration-300 hover:scale-105"
         role="img"
-        aria-label="شعار سَنَد"
+        aria-label="شعار سند"
       >
         <defs>
           <linearGradient id="sanad-gradient" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
@@ -53,7 +53,7 @@ export function SanadLogo({ className = "", size = 36, showText = false }: Sanad
       </svg>
       {showText && (
         <div className="flex flex-col text-right leading-none">
-          <span className="font-bold text-lg tracking-tight text-foreground">سَنَد</span>
+          <span className="font-bold text-lg tracking-tight text-foreground">سند</span>
           <span className="text-[10px] text-muted-foreground font-medium tracking-wider">SANAD</span>
         </div>
       )}

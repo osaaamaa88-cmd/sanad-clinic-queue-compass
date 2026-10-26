@@ -17,13 +17,13 @@ export const Route = createFileRoute("/directions")({
   }),
   head: () => ({
     meta: [
-      { title: "الاتجاهات | سَنَد" },
+      { title: "الاتجاهات | سند" },
       {
         name: "description",
         content: "مسار الطريق من موقعك للمستشفى أو العيادة مع المسافة ووقت الوصول.",
       },
-      { property: "og:title", content: "الاتجاهات | سَنَد" },
-      { property: "og:description", content: "شوف طريقك للمستشفى على الخريطة داخل سَنَد." },
+      { property: "og:title", content: "الاتجاهات | سند" },
+      { property: "og:description", content: "شوف طريقك للمستشفى على الخريطة داخل سند." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

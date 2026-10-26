@@ -15,12 +15,12 @@ export const Route = createFileRoute("/nutrition")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "التغذية والسعرات — سَنَد" },
+      { title: "التغذية والسعرات — سند" },
       {
         name: "description",
-        content: "صوّر أكلك واعرف سعراته، احسب احتياجك اليومي وتابع وجباتك على سَنَد.",
+        content: "صوّر أكلك واعرف سعراته، احسب احتياجك اليومي وتابع وجباتك على سند.",
       },
-      { property: "og:title", content: "التغذية والسعرات — سَنَد" },
+      { property: "og:title", content: "التغذية والسعرات — سند" },
       {
         property: "og:description",
         content: "تحليل الأكل بالكاميرا، عداد سعرات يومي، وأنظمة غذائية جاهزة.",

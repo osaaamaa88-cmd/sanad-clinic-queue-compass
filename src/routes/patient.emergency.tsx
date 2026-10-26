@@ -40,7 +40,7 @@ export const Route = createFileRoute("/patient/emergency")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "طوارئ سَنَد — أقرب مستشفى ومركز أشعة مفتوح الآن" },
+      { title: "طوارئ سند — أقرب مستشفى ومركز أشعة مفتوح الآن" },
       {
         name: "description",
         content:
@@ -80,7 +80,7 @@ function EmergencyPage() {
 
   return (
     <AppShell
-      title="طوارئ سَنَد"
+      title="طوارئ سند"
       subtitle="أقرب مستشفى وعيادة مفتوحة الآن"
       backTo="/patient"
       tone="primary"

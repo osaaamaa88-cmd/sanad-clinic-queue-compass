@@ -9,7 +9,7 @@ export const Route = createFileRoute("/patient/first-aid")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "سَنَد — دليل الإسعافات الأولية" },
+      { title: "سند — دليل الإسعافات الأولية" },
       {
         name: "description",
         content:

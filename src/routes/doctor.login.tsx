@@ -16,13 +16,13 @@ export const Route = createFileRoute("/doctor/login")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "دخول الطبيب — سَنَد" },
+      { title: "دخول الطبيب — سند" },
       {
         name: "description",
-        content: "دخول الطبيب لبروفايل عيادته على سَنَد، أو إنشاء حساب عيادة جديد.",
+        content: "دخول الطبيب لبروفايل عيادته على سند، أو إنشاء حساب عيادة جديد.",
       },
-      { property: "og:title", content: "دخول الطبيب — سَنَد" },
-      { property: "og:description", content: "سجّل عيادتك على سَنَد وافتح بروفايلك التفاعلي." },
+      { property: "og:title", content: "دخول الطبيب — سند" },
+      { property: "og:description", content: "سجّل عيادتك على سند وافتح بروفايلك التفاعلي." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -373,7 +373,7 @@ function DoctorEntry() {
                 <Link to="/terms" className="font-bold text-primary underline">
                   إخلاء المسؤولية الطبية وشروط الاستخدام
                 </Link>
-                . سَنَد أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
+                . سند أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
               </span>
             </label>
             <button

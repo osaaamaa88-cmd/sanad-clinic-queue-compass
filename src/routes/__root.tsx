@@ -112,14 +112,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
       },
-      { title: "سَنَد — اختر دورك" },
-      { name: "description", content: "سَنَد: احجز عند أقرب طبيب واعرف دورك أول بأول." },
-      { property: "og:title", content: "سَنَد — اختر دورك" },
-      { property: "og:description", content: "سَنَد: احجز عند أقرب طبيب واعرف دورك أول بأول." },
+      { title: "سند — اختر دورك" },
+      { name: "description", content: "سند: احجز عند أقرب طبيب واعرف دورك أول بأول." },
+      { property: "og:title", content: "سند — اختر دورك" },
+      { property: "og:description", content: "سند: احجز عند أقرب طبيب واعرف دورك أول بأول." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "سَنَد — اختر دورك" },
-      { name: "twitter:description", content: "سَنَد: احجز عند أقرب طبيب واعرف دورك أول بأول." },
+      { name: "twitter:title", content: "سند — اختر دورك" },
+      { name: "twitter:description", content: "سند: احجز عند أقرب طبيب واعرف دورك أول بأول." },
     ],
     links: [
       {

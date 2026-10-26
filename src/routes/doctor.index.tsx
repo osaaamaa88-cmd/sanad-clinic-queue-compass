@@ -21,10 +21,10 @@ export const Route = createFileRoute("/doctor/")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "لوحة الطبيب — سَنَد" },
-      { name: "description", content: "لوحة الطبيب على سَنَد: بروفايل العيادة وحجوزاتها." },
-      { property: "og:title", content: "لوحة الطبيب — سَنَد" },
-      { property: "og:description", content: "ادخل لبروفايل عيادتك وإدارة مواعيدك على سَنَد." },
+      { title: "لوحة الطبيب — سند" },
+      { name: "description", content: "لوحة الطبيب على سند: بروفايل العيادة وحجوزاتها." },
+      { property: "og:title", content: "لوحة الطبيب — سند" },
+      { property: "og:description", content: "ادخل لبروفايل عيادتك وإدارة مواعيدك على سند." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

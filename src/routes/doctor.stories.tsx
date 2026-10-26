@@ -32,9 +32,9 @@ import {
 export const Route = createFileRoute("/doctor/stories")({
   head: () => ({
     meta: [
-      { title: "إدارة القصص | سَنَد SANAD" },
+      { title: "إدارة القصص | سند SANAD" },
       { name: "description", content: "انشر قصص عيادتك وتابع المشاهدات وثبّتها في الهايلايت." },
-      { property: "og:title", content: "إدارة القصص | سَنَد SANAD" },
+      { property: "og:title", content: "إدارة القصص | سند SANAD" },
       {
         property: "og:description",
         content: "انشر قصص عيادتك وتابع المشاهدات وثبّتها في الهايلايت.",

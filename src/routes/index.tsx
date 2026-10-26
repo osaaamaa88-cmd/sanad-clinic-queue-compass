@@ -73,9 +73,9 @@ export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "سَنَد — سندك الطبي في كل وقت" },
+      { title: "سند — سندك الطبي في كل وقت" },
       { name: "description", content: "دليلك الطبي للوصول المباشر لأفضل الأطباء والعيادات في مصر" },
-      { property: "og:title", content: "سَنَد — سندك الطبي في كل وقت" },
+      { property: "og:title", content: "سند — سندك الطبي في كل وقت" },
       {
         property: "og:description",
         content: "دليلك الطبي للوصول المباشر لأفضل الأطباء والعيادات في مصر",
@@ -167,14 +167,14 @@ function Landing() {
             <button
               type="button"
               onClick={handleLogoTap}
-              aria-label="سَنَد"
+              aria-label="سند"
               className="grid h-11 w-11 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft select-none"
             >
               <HeartPulse className="h-5 w-5" />
             </button>
             <div>
               <h1 className="text-xl font-extrabold leading-tight">
-                سَنَد <span className="sr-only">— دليلك للعيادات والأطباء في مصر</span>
+                سند <span className="sr-only">— دليلك للعيادات والأطباء في مصر</span>
               </h1>
               <p className="text-[11px] text-muted-foreground">سندك الطبي في كل وقت</p>
             </div>

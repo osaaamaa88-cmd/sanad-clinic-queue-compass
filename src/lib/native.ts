@@ -73,7 +73,7 @@ export async function syncNativeMedReminders(meds: NativeMed[]) {
           return {
             id: hashId(`${m.id}-${t}`),
             title: `تذكير دواء: ${m.name}`,
-            body: `الجرعة: ${m.dose || "-"} — سَنَد`,
+            body: `الجرعة: ${m.dose || "-"} — سند`,
             schedule: { on: { hour, minute }, allowWhileIdle: true },
           };
         }),

@@ -1,9 +1,9 @@
-# Rebrand the application to سَنَد | SANAD
+# Rebrand the application to سند | SANAD
 
 ## Scope
 
 - Replace the old Arabic and English brand names throughout visible screens, metadata, sharing copy, authentication messages, and documentation.
-- Update the role-selection welcome message to use SANAD and update patient headers to use سَنَد.
+- Update the role-selection welcome message to use SANAD and update patient headers to use سند.
 - Rename the package to `sanad-app` and add Capacitor app configuration with display name `SANAD` and bundle ID `com.sanad.app`.
 - Rename local patient-session storage keys to the SANAD namespace.
 - Check database-generated notification functions for old brand wording and update only if any is present.

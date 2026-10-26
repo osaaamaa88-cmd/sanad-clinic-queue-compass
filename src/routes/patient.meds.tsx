@@ -13,7 +13,7 @@ export const Route = createFileRoute("/patient/meds")({
   }),
   head: () => ({
     meta: [
-      { title: "سَنَد — تذكير مواعيد الأدوية" },
+      { title: "سند — تذكير مواعيد الأدوية" },
       { name: "description", content: "أضف أدويتك وجرعاتها ومواعيدها ليذكرك التطبيق بها." },
     ],
   }),
@@ -178,7 +178,7 @@ function Meds() {
               }
             } else {
               // Fallback in-app alert
-              console.info("[سَنَد]", title, body);
+              console.info("[سند]", title, body);
             }
           }
         });

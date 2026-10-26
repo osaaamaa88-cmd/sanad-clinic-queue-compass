@@ -19,7 +19,7 @@ export function WelcomeGate({ onGuest }: { onGuest: () => void }) {
           <div className="grid h-16 w-16 place-items-center rounded-3xl gradient-primary text-primary-foreground shadow-soft">
             <HeartPulse className="h-8 w-8" />
           </div>
-          <h1 className="mt-4 text-3xl font-extrabold">سَنَد</h1>
+          <h1 className="mt-4 text-3xl font-extrabold">سند</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             سندك الطبي في كل وقت — اختار طريقة الدخول
           </p>

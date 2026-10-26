@@ -134,7 +134,7 @@ function RxCard({ rx }: { rx: RxPayload }) {
           </p>
         )}
         <p className="pt-1 text-center text-[10px] text-[#8a8a8a]">
-          صادرة عبر <b style={{ color: gold }}>سَنَد | SANAD</b>
+          صادرة عبر <b style={{ color: gold }}>سند | SANAD</b>
         </p>
       </div>
       <div className="p-2 pt-0">
@@ -155,10 +155,10 @@ export const Route = createFileRoute("/messages/$id")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "محادثة — سَنَد" },
-      { name: "description", content: "محادثة مباشرة بين المريض والعيادة على سَنَد." },
-      { property: "og:title", content: "محادثة — سَنَد" },
-      { property: "og:description", content: "تواصل مع عيادتك داخل سَنَد." },
+      { title: "محادثة — سند" },
+      { name: "description", content: "محادثة مباشرة بين المريض والعيادة على سند." },
+      { property: "og:title", content: "محادثة — سند" },
+      { property: "og:description", content: "تواصل مع عيادتك داخل سند." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

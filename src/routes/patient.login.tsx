@@ -26,12 +26,12 @@ export const Route = createFileRoute("/patient/login")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "حسابي — سَنَد" },
-      { name: "description", content: "حساب المريض وأدوات متابعة الصحة ومواعيد الأدوية في سَنَد." },
-      { property: "og:title", content: "حسابي — سَنَد" },
+      { title: "حسابي — سند" },
+      { name: "description", content: "حساب المريض وأدوات متابعة الصحة ومواعيد الأدوية في سند." },
+      { property: "og:title", content: "حسابي — سند" },
       {
         property: "og:description",
-        content: "حساب المريض وأدوات متابعة الصحة ومواعيد الأدوية في سَنَد.",
+        content: "حساب المريض وأدوات متابعة الصحة ومواعيد الأدوية في سند.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -244,7 +244,7 @@ function PatientLogin() {
             <HeartPulse className="h-6 w-6" />
           </span>
           <div>
-            <h2 className="text-lg font-extrabold">أهلاً بك في سَنَد</h2>
+            <h2 className="text-lg font-extrabold">أهلاً بك في سند</h2>
             <p className="text-xs text-muted-foreground">
               حجوزاتك ومؤشراتك الصحية محفوظة مع حسابك على الجهاز.
             </p>

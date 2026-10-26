@@ -11,12 +11,12 @@ export const Route = createFileRoute("/hospital/$id")({
   },
   head: ({ loaderData }) => ({
     meta: [
-      { title: `${loaderData?.name ?? "مستشفى حكومي"} | سَنَد` },
+      { title: `${loaderData?.name ?? "مستشفى حكومي"} | سند` },
       {
         name: "description",
         content: `رقم وموقع ${loaderData?.name ?? "المستشفى"} في ${loaderData?.governorate ?? "مصر"} والأقسام المتاحة.`,
       },
-      { property: "og:title", content: `${loaderData?.name ?? "مستشفى حكومي"} | سَنَد` },
+      { property: "og:title", content: `${loaderData?.name ?? "مستشفى حكومي"} | سند` },
       { property: "og:description", content: "اتصل بالمستشفى أو افتح موقعه على الخريطة فورًا." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -1,6 +1,6 @@
 {
   "appId": "com.sanad.app",
-  "appName": "سَنَد",
+  "appName": "سند",
   "webDir": "dist/client",
   "server": {
     "url": "https://sanad-your-clinic-buddy.lovable.app",

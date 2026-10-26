@@ -88,7 +88,7 @@ ${rx.advice ? `<div class="box"><b>تعليمات:</b> ${esc(rx.advice)}</div>` 
 <div class="bar"></div>
 <div class="f"><div class="addr"><b>العنوان :</b>${esc(rx.clinicAddress || "—")}${rx.clinicHours ? `<div class="hrs"><b>مواعيد العمل :</b>${esc(rx.clinicHours)}</div>` : ""}</div>
 ${rx.clinicPhone ? `<div class="ph">${esc(rx.clinicPhone)}<small>للحجز والاستعلام / واتساب</small></div>` : ""}</div>
-<div class="sanad">صادرة عبر <b>سَنَد | SANAD</b> — منظومتك الطبية</div>
+<div class="sanad">صادرة عبر <b>سند | SANAD</b> — منظومتك الطبية</div>
 </div></body></html>`;
   document.getElementById("sanad-rx-print")?.remove();
   const f = document.createElement("iframe");
@@ -401,7 +401,7 @@ export function RxComposer({
             >
               <h3 className="text-lg font-extrabold">امسح الكود بالمريض</h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                المريض يمسح الكود من شاشة التطبيق في سَنَد وتنتقل الروشتة ومواعيد الأدوية تلقائياً.
+                المريض يمسح الكود من شاشة التطبيق في سند وتنتقل الروشتة ومواعيد الأدوية تلقائياً.
               </p>
               <img
                 src={qrDataUrl}

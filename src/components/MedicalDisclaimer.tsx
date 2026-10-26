@@ -12,7 +12,7 @@ export function MedicalDisclaimer({ compact = false }: { compact?: boolean }) {
         <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
         <p className="text-xs leading-relaxed text-foreground">
           {!compact &&
-            "سَنَد أداة تنظيمية ولا تقدم استشارات طبية، والمساعد يقدم توجيهاً استرشادياً فقط. "}
+            "سند أداة تنظيمية ولا تقدم استشارات طبية، والمساعد يقدم توجيهاً استرشادياً فقط. "}
           <Link to="/terms" className="font-bold text-primary underline">
             إخلاء المسؤولية الطبية وشروط الاستخدام
           </Link>

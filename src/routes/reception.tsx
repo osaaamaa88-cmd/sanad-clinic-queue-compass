@@ -55,9 +55,9 @@ export const Route = createFileRoute("/reception")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "دفتر الحجز — سَنَد" },
+      { title: "دفتر الحجز — سند" },
       { name: "description", content: "دفتر حجز العيادة: تسجيل المرضى وإدارة الدخول والانتظار." },
-      { property: "og:title", content: "دفتر الحجز — سَنَد" },
+      { property: "og:title", content: "دفتر الحجز — سند" },
       { property: "og:description", content: "إدارة حجوزات العيادة بشكل دفتر ورقي بسيط." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

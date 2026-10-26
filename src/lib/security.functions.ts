@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 const MODEL = "openai/gpt-oss-120b";
 const PROMPT =
-  "You are the AI System Diagnostic Assistant for 'سَنَد | SANAD'. Analyze the raw app error/log and respond in JSON with two Arabic fields: `summaryAr` (1 sentence describing what broke) and `solutionAr` (1 sentence recommending the fix).";
+  "You are the AI System Diagnostic Assistant for 'سند | SANAD'. Analyze the raw app error/log and respond in JSON with two Arabic fields: `summaryAr` (1 sentence describing what broke) and `solutionAr` (1 sentence recommending the fix).";
 
 type Row = {
   id: string;

@@ -8,7 +8,7 @@ export const Route = createFileRoute("/patient/health")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "سَنَد — حاسبة ومؤشرات الصحة" },
+      { title: "سند — حاسبة ومؤشرات الصحة" },
       { name: "description", content: "احسب ضغط الدم والسكر واحفظ قراءاتك في ملفك الطبي." },
     ],
   }),
@@ -196,7 +196,7 @@ function renderMedicalId(data: MedicalId): HTMLCanvasElement {
   ctx.textAlign = "right";
   ctx.fillStyle = "#a7f3d0";
   ctx.font = "bold 32px sans-serif";
-  ctx.fillText("سَنَد  |  SANAD", right, 150);
+  ctx.fillText("سند  |  SANAD", right, 150);
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 66px sans-serif";
   ctx.fillText("كارت طوارئ", right, 250);
@@ -249,7 +249,7 @@ function renderMedicalId(data: MedicalId): HTMLCanvasElement {
   ctx.fillStyle = "#d1fae5";
   ctx.font = "28px sans-serif";
   ctx.fillText("هذه المعلومات مقدمة من صاحبها وتساعد الفريق الطبي", width / 2, 1680);
-  ctx.fillText("سَنَد | SANAD — رفيقك الصحي", width / 2, 1790);
+  ctx.fillText("سند | SANAD — رفيقك الصحي", width / 2, 1790);
   return canvas;
 }
 
@@ -275,7 +275,7 @@ function HealthTracker() {
     }
     let cancelled = false;
     const payload = [
-      `سَنَد — كارت طوارئ`,
+      `سند — كارت طوارئ`,
       medicalId.bloodType && `فصيلة الدم: ${medicalId.bloodType}`,
       medicalId.allergies && `الحساسية: ${medicalId.allergies}`,
       medicalId.conditions && `الأمراض المزمنة: ${medicalId.conditions}`,
@@ -378,7 +378,7 @@ function HealthTracker() {
   function exportHealthRecord() {
     try {
       const record = {
-        app: "سَنَد | SANAD",
+        app: "سند | SANAD",
         type: "sanad-health-record",
         version: 1,
         exportedAt: new Date().toISOString(),

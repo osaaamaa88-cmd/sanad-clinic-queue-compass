@@ -78,12 +78,12 @@ export const Route = createFileRoute("/patient/search")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "سَنَد — ابحث عن عيادة قريبة" },
+      { title: "سند — ابحث عن عيادة قريبة" },
       {
         name: "description",
         content: "شوف أقرب العيادات على الخريطة وقائمة بالأسعار والتقييمات واحجز دورك.",
       },
-      { property: "og:title", content: "سَنَد — ابحث عن عيادة قريبة" },
+      { property: "og:title", content: "سند — ابحث عن عيادة قريبة" },
       {
         property: "og:description",
         content: "شوف أقرب العيادات على الخريطة واحجز دورك وتابعه لحظياً.",

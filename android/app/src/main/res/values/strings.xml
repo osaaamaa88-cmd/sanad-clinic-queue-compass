@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">سَنَد</string>
-    <string name="title_activity_main">سَنَد</string>
+    <string name="app_name">سند</string>
+    <string name="title_activity_main">سند</string>
     <string name="package_name">com.sanad.app</string>
     <string name="custom_url_scheme">com.sanad.app</string>
 </resources>

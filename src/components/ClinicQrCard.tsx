@@ -43,7 +43,7 @@ export function ClinicQrCard({ clinic, specName }: { clinic: Clinic; specName: s
         id="sanad-clinic-card"
         className="mt-3 rounded-2xl border-2 border-dashed border-primary bg-white p-4 text-center text-[#0F172A]"
       >
-        <p className="text-xs font-extrabold text-[#06B6D4]">سَنَد — سندك الطبي في كل وقت</p>
+        <p className="text-xs font-extrabold text-[#06B6D4]">سند — سندك الطبي في كل وقت</p>
         <p className="mt-2 text-lg font-black">{clinic.doctor}</p>
         <p className="text-xs">{specName}</p>
         {dataUrl ? (

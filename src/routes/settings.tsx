@@ -8,13 +8,13 @@ export const Route = createFileRoute("/settings")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "الإعدادات | سَنَد" },
+      { title: "الإعدادات | سند" },
       {
         name: "description",
-        content: "إعدادات سَنَد وتفعيل نمط المساعد الصوتي لكبار السن وفاقدي البصر.",
+        content: "إعدادات سند وتفعيل نمط المساعد الصوتي لكبار السن وفاقدي البصر.",
       },
-      { property: "og:title", content: "الإعدادات | سَنَد" },
-      { property: "og:description", content: "فعّل المساعد الصوتي في سَنَد." },
+      { property: "og:title", content: "الإعدادات | سند" },
+      { property: "og:description", content: "فعّل المساعد الصوتي في سند." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -94,7 +94,7 @@ export function SettingsPage() {
         <UserRound className="h-6 w-6 text-primary" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-extrabold">عن المطور</span>
-          <span className="block text-xs text-muted-foreground">أسامة سند — مؤسس سَنَد</span>
+          <span className="block text-xs text-muted-foreground">أسامة سند — مؤسس سند</span>
         </span>
         <ArrowLeft className="h-4 w-4 text-muted-foreground" />
       </Link>

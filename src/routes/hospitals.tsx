@@ -16,12 +16,12 @@ export const Route = createFileRoute("/hospitals")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "دليل المستشفيات الحكومية | سَنَد SANAD" },
+      { title: "دليل المستشفيات الحكومية | سند SANAD" },
       {
         name: "description",
         content: "أقرب مستشفى حكومي أو جامعي في كل محافظات مصر مع رقم الاتصال والموقع على الخريطة.",
       },
-      { property: "og:title", content: "دليل المستشفيات الحكومية | سَنَد" },
+      { property: "og:title", content: "دليل المستشفيات الحكومية | سند" },
       {
         property: "og:description",
         content: "ابحث عن أقرب مستشفى حكومي واتصل به أو افتح موقعه فورًا.",

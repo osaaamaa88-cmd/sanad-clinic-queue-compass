@@ -36,12 +36,12 @@ export const Route = createFileRoute("/patient/drug-scan")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "سَنَد — ماسح الأدوية وبدائل النواقص" },
+      { title: "سند — ماسح الأدوية وبدائل النواقص" },
       {
         name: "description",
         content: "صوّر علبة الدواء واعرف مادته الفعالة وجرعته ومثائله المصرية لو ناقص.",
       },
-      { property: "og:title", content: "سَنَد — ماسح الأدوية وبدائل النواقص" },
+      { property: "og:title", content: "سند — ماسح الأدوية وبدائل النواقص" },
       { property: "og:description", content: "اعرف بدائل الدواء الناقص في مصر بصورة واحدة." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

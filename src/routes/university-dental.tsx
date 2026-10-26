@@ -39,13 +39,13 @@ export const Route = createFileRoute("/university-dental")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "العيادات التعليمية لطب الأسنان - دراية | سَنَد" },
+      { title: "العيادات التعليمية لطب الأسنان - دراية | سند" },
       {
         name: "description",
         content:
           "احجز كشف في العيادات التعليمية بكلية طب الفم والأسنان بجامعة دراية - مبنى B6 بالمنيا الجديدة.",
       },
-      { property: "og:title", content: "العيادات التعليمية لطب الأسنان | سَنَد" },
+      { property: "og:title", content: "العيادات التعليمية لطب الأسنان | سند" },
       {
         property: "og:description",
         content: "كشف وعلاج بأيدي أطباء المستقبل تحت إشراف أساتذة الكلية - مبنى B6.",

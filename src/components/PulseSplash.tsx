@@ -22,7 +22,7 @@ export function PulseSplash({
   return (
     <div
       className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background transition-opacity duration-300 ${leaving ? "opacity-0" : "opacity-100"}`}
-      aria-label="سَنَد"
+      aria-label="سند"
     >
       <div className="relative grid h-28 w-28 place-items-center">
         <span className="sanad-ring absolute inset-0 rounded-full bg-primary/25" />
@@ -41,7 +41,7 @@ export function PulseSplash({
           strokeLinejoin="round"
         />
       </svg>
-      <h1 className="mt-3 text-3xl font-extrabold">سَنَد</h1>
+      <h1 className="mt-3 text-3xl font-extrabold">سند</h1>
       <p className="mt-1 text-sm text-muted-foreground">سندك الطبي في كل وقت</p>
     </div>
   );

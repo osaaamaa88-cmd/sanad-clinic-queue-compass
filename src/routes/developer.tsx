@@ -7,13 +7,13 @@ export const Route = createFileRoute("/developer")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "عن المطور — أسامة سند | سَنَد SANAD" },
+      { title: "عن المطور — أسامة سند | سند SANAD" },
       {
         name: "description",
         content:
-          "تعرّف على مؤسس سَنَد: أسامة محمد عبد المجيد سند، Founder & CEO وطالب طب أسنان مهتم بالتقنية الصحية.",
+          "تعرّف على مؤسس سند: أسامة محمد عبد المجيد سند، Founder & CEO وطالب طب أسنان مهتم بالتقنية الصحية.",
       },
-      { property: "og:title", content: "عن المطور — أسامة سند | سَنَد SANAD" },
+      { property: "og:title", content: "عن المطور — أسامة سند | سند SANAD" },
       {
         property: "og:description",
         content:
@@ -55,7 +55,7 @@ function DeveloperPage() {
           </div>
 
           <p className="mt-5 text-sm leading-7 text-muted-foreground">
-            مؤسس سَنَد، طالب طب أسنان شغوف بالبرمجة والتقنية، يبني أدوات رقمية بسيطة تسهّل الوصول
+            مؤسس سند، طالب طب أسنان شغوف بالبرمجة والتقنية، يبني أدوات رقمية بسيطة تسهّل الوصول
             للرعاية الصحية في مصر.
           </p>
 
@@ -75,7 +75,7 @@ function DeveloperPage() {
           className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-md hover:opacity-90"
         >
           <ArrowLeft className="h-5 w-5" />
-          العودة إلى رئيسية سَنَد
+          العودة إلى رئيسية سند
         </Link>
       </main>
 

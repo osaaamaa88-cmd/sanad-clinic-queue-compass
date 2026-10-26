@@ -35,13 +35,13 @@ export const Route = createFileRoute("/doctor-settings")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "إعدادات العيادة — سَنَد" },
+      { title: "إعدادات العيادة — سند" },
       {
         name: "description",
         content: "دخول الطبيب لإدارة بروفايل عيادته وحساب السكرتير ومتابعة التوثيق.",
       },
-      { property: "og:title", content: "إعدادات العيادة — سَنَد" },
-      { property: "og:description", content: "سجّل عيادتك على سَنَد وأدر بياناتك وحساب السكرتير." },
+      { property: "og:title", content: "إعدادات العيادة — سند" },
+      { property: "og:description", content: "سجّل عيادتك على سند وأدر بياناتك وحساب السكرتير." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -412,7 +412,7 @@ function DoctorSettings() {
                 <Link to="/terms" className="font-bold text-primary underline">
                   شروط الاستخدام وإخلاء المسؤولية
                 </Link>
-                . سَنَد أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
+                . سند أداة تنظيم مواعيد فقط ولا تقدم استشارات طبية.
               </p>
             </>
           )}
@@ -742,7 +742,7 @@ function DoctorSettings() {
 
       {justSubmitted && !isVerified && (
         <div className="mt-4 rounded-2xl border border-primary bg-primary-soft p-4 text-sm text-primary">
-          تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سَنَد.
+          تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سند.
         </div>
       )}
       <p className="mt-6 text-center text-[11px] text-muted-foreground" dir="ltr">

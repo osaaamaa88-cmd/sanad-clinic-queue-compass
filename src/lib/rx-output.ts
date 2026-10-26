@@ -9,7 +9,7 @@ export function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
     lines.push({ t, size, bold, color, dir });
   push(rx.doctor, 30, true, "#0e7490");
   if (rx.specialty) push(rx.specialty, 20);
-  push(`سَنَد | SANAD — ${rx.date}`, 18, false, "#475569");
+  push(`سند | SANAD — ${rx.date}`, 18, false, "#475569");
   push("—", 10);
   push(`المريض: ${rx.patient}${rx.age ? ` — السن: ${rx.age}` : ""}`, 22, true);
   if (rx.diagnosis) push(`التشخيص: ${rx.diagnosis}`, 20);
@@ -221,7 +221,7 @@ export function renderRxFancy(rx: RxPayload): HTMLCanvasElement {
   if (rx.clinicHours) text(`مواعيد العمل: ${rx.clinicHours}`, 23);
   if (rx.clinicPhone) text(`${rx.clinicPhone}  :للحجز والاستعلام`, 26, { b: true, c: GOLD });
   gap(6);
-  text("صادرة عبر سَنَد | SANAD — منظومتك الطبية", 19, { c: "#8a8a8a" });
+  text("صادرة عبر سند | SANAD — منظومتك الطبية", 19, { c: "#8a8a8a" });
   gap(20);
   const H = Math.ceil(ops.reduce((a, o) => a + o.h, 0));
   const c = document.createElement("canvas");
@@ -256,7 +256,7 @@ export async function downloadRx(rx: RxPayload): Promise<"shared" | "downloaded"
   const nav = navigator as any;
   if (nav.canShare?.({ files: [file] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
     try {
-      await nav.share({ files: [file], title: "روشتة سَنَد" });
+      await nav.share({ files: [file], title: "روشتة سند" });
       return "shared";
     } catch (e) {
       if ((e as Error).name === "AbortError") return "shared";

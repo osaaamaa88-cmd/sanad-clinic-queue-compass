@@ -11,12 +11,12 @@ export const Route = createFileRoute("/patient/lab-reader")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "سَنَد — قارئ التحاليل الطبية" },
+      { title: "سند — قارئ التحاليل الطبية" },
       {
         name: "description",
         content: "صوّر ورقة التحليل واعرف معنى كل نتيجة بشرح مصري بسيط ومطمئن.",
       },
-      { property: "og:title", content: "سَنَد — قارئ التحاليل الطبية" },
+      { property: "og:title", content: "سند — قارئ التحاليل الطبية" },
       { property: "og:description", content: "افهم نتيجة تحليلك قبل ما تروح للدكتور." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

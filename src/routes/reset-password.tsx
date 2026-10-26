@@ -8,10 +8,10 @@ export const Route = createFileRoute("/reset-password")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "تعيين كلمة سر جديدة | سَنَد" },
-      { name: "description", content: "تعيين كلمة سر جديدة لحسابات أطباء وطاقم سَنَد." },
-      { property: "og:title", content: "تعيين كلمة سر جديدة | سَنَد" },
-      { property: "og:description", content: "استعادة حساب الطبيب في سَنَد بأمان." },
+      { title: "تعيين كلمة سر جديدة | سند" },
+      { name: "description", content: "تعيين كلمة سر جديدة لحسابات أطباء وطاقم سند." },
+      { property: "og:title", content: "تعيين كلمة سر جديدة | سند" },
+      { property: "og:description", content: "استعادة حساب الطبيب في سند بأمان." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },

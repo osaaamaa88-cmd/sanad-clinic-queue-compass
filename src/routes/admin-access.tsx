@@ -51,7 +51,7 @@ import { saveAdminToken } from "@/lib/admin-token";
 
 export const Route = createFileRoute("/admin-access")({
   staticData: { sitemap: false },
-  head: () => ({ meta: [{ title: "سَنَد — لوحة الأدمن" }] }),
+  head: () => ({ meta: [{ title: "سند — لوحة الأدمن" }] }),
   component: Admin,
 });
 
@@ -103,7 +103,7 @@ function AdminGate({ onUnlock }: { onUnlock: () => void }) {
   };
 
   return (
-    <AppShell title="دخول المالك" subtitle="سَنَد — منطقة محمية" backTo="/" tone="primary">
+    <AppShell title="دخول المالك" subtitle="سند — منطقة محمية" backTo="/" tone="primary">
       <div className="-mt-6 rounded-2xl bg-card p-6 shadow-soft">
         <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary-soft text-primary">
           <Lock className="h-6 w-6" />
@@ -348,7 +348,7 @@ function Admin() {
   };
 
   return (
-    <AppShell title="لوحة تحكم الأدمن" subtitle="سَنَد — الإدارة" backTo="/" tone="primary">
+    <AppShell title="لوحة تحكم الأدمن" subtitle="سند — الإدارة" backTo="/" tone="primary">
       {/* KPI */}
       <div className="-mt-6 grid grid-cols-2 gap-3">
         <KPI

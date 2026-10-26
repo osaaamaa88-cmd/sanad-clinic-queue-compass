@@ -99,11 +99,11 @@ export const Route = createFileRoute("/patient/clinic/$id")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "تفاصيل العيادة — سَنَد" },
+      { title: "تفاصيل العيادة — سند" },
       {
         name: "description",
         content:
-          "صفحة العيادة على سَنَد: بيانات الطبيب، التخصص، العنوان، مواعيد العمل، الصور والتقييمات وطرق التواصل.",
+          "صفحة العيادة على سند: بيانات الطبيب، التخصص، العنوان، مواعيد العمل، الصور والتقييمات وطرق التواصل.",
       },
     ],
   }),
@@ -228,8 +228,8 @@ function ClinicDetail() {
   const shareProfile = async () => {
     if (!clinic) return;
     const res = await shareLink({
-      title: `${clinic.doctor} — سَنَد`,
-      text: `احجز مع ${clinic.doctor} على سَنَد`,
+      title: `${clinic.doctor} — سند`,
+      text: `احجز مع ${clinic.doctor} على سند`,
       url: clinicShareUrl(clinic.id),
     });
     if (res === "copied") {
@@ -337,7 +337,7 @@ function ClinicDetail() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-foreground">الدفع نقداً في العيادة</p>
-              <p className="text-xs text-muted-foreground">مفيش أي رسوم على الحجز عبر سَنَد</p>
+              <p className="text-xs text-muted-foreground">مفيش أي رسوم على الحجز عبر سند</p>
             </div>
           </div>
           <div className="mt-5 space-y-2 rounded-2xl bg-secondary p-4 text-right">
@@ -921,7 +921,7 @@ function ClinicDetail() {
           <div className="rounded-3xl border border-dashed border-border bg-card/60 p-5 text-center">
             <p className="text-sm font-extrabold text-foreground">الدور المباشر والحجز أونلاين</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              قريباً — هتقدر تحجز وتتابع دورك لحظياً من سَنَد.
+              قريباً — هتقدر تحجز وتتابع دورك لحظياً من سند.
             </p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
@@ -929,7 +929,7 @@ function ClinicDetail() {
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               {extras?.bio
                 ? extras.bio
-                : `${clinic.doctor} — أخصائي ${spec?.name}. الحجز عن طريق سَنَد، والدفع نقداً في العيادة.`}
+                : `${clinic.doctor} — أخصائي ${spec?.name}. الحجز عن طريق سند، والدفع نقداً في العيادة.`}
             </p>
             <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary p-3">
               <span className="text-xs text-muted-foreground">سعر الكشف</span>
@@ -940,7 +940,7 @@ function ClinicDetail() {
             {clinic.price ? (
               <div className="mt-2 flex items-start gap-2 rounded-xl bg-success/10 p-3 text-[11px] font-bold leading-relaxed text-success">
                 <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                <span>سعر صافٍ وشفاف — لا توجد أي رسوم إدارية أو مصاريف خفية من سَنَد.</span>
+                <span>سعر صافٍ وشفاف — لا توجد أي رسوم إدارية أو مصاريف خفية من سند.</span>
               </div>
             ) : null}
             <div className="mt-2 flex items-center gap-2 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">

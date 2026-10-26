@@ -67,12 +67,12 @@ export const Route = createFileRoute("/patient/assistant")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "سَنَد — نيمو رفيق الرعاية الصحية" },
+      { title: "سند — نيمو رفيق الرعاية الصحية" },
       {
         name: "description",
         content: "تحدث مع نيمو، رفيقك الصحي، واكتشف التخصص والعيادة المناسبة.",
       },
-      { property: "og:title", content: "سَنَد — نيمو رفيق الرعاية الصحية" },
+      { property: "og:title", content: "سند — نيمو رفيق الرعاية الصحية" },
       {
         property: "og:description",
         content: "رفيق صحي ودود يساعدك على فهم الأعراض والعثور على الرعاية المناسبة.",

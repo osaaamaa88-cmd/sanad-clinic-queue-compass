@@ -31,13 +31,13 @@ export const Route = createFileRoute("/community")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "مجتمع سَنَد — اسأل واستشر أطباء مصر" },
+      { title: "مجتمع سند — اسأل واستشر أطباء مصر" },
       {
         name: "description",
         content:
-          "مجتمع سَنَد الطبي: انشر سؤالك أو صورة تحليلك، وتلقَّ ردود أطباء معتمدين وتجارب المرضى.",
+          "مجتمع سند الطبي: انشر سؤالك أو صورة تحليلك، وتلقَّ ردود أطباء معتمدين وتجارب المرضى.",
       },
-      { property: "og:title", content: "مجتمع سَنَد — اسأل واستشر أطباء مصر" },
+      { property: "og:title", content: "مجتمع سند — اسأل واستشر أطباء مصر" },
       {
         property: "og:description",
         content: "انشر استشارتك بنص أو صورة أو بطاقة ملونة، وتفاعل مع أطباء معتمدين.",
@@ -114,7 +114,7 @@ function CommunityPage() {
       setUserId(u?.id ?? null);
       const md = (u?.user_metadata ?? {}) as Record<string, string>;
       setUserName(
-        md.full_name || md.name || (u?.email ? u.email.split("@")[0] : "") || "عضو سَنَد",
+        md.full_name || md.name || (u?.email ? u.email.split("@")[0] : "") || "عضو سند",
       );
     });
   }, [authOpen]);
@@ -253,7 +253,7 @@ function CommunityPage() {
 
   return (
     <AppShell
-      title="مجتمع سَنَد"
+      title="مجتمع سند"
       subtitle="اسأل • شارك • اطمّن"
       backTo={doctorClinicId ? "/doctor" : "/patient"}
       right={
@@ -395,7 +395,7 @@ function CommunityPage() {
       )}
       {authOpen && (
         <PatientAuthModal
-          title="سجّل دخولك للتفاعل في مجتمع سَنَد"
+          title="سجّل دخولك للتفاعل في مجتمع سند"
           onClose={() => setAuthOpen(false)}
           onDone={() => setAuthOpen(false)}
         />
@@ -657,7 +657,7 @@ function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
             <span className={`absolute inset-0 card-bg-${t.bg}`} />
             <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3 text-center">
               <span className="rounded-full bg-black/25 px-2 py-0.5 text-[9px] font-extrabold text-white">
-                نصيحة سَنَد
+                نصيحة سند
               </span>
               <span className="text-[11px] font-bold leading-relaxed text-white">{t.text}</span>
             </span>

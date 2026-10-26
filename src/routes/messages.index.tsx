@@ -9,10 +9,10 @@ export const Route = createFileRoute("/messages/")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
-      { title: "الرسائل — سَنَد" },
-      { name: "description", content: "محادثاتك مع العيادات والمرضى على سَنَد." },
-      { property: "og:title", content: "الرسائل — سَنَد" },
-      { property: "og:description", content: "راسل عيادتك مباشرة داخل سَنَد." },
+      { title: "الرسائل — سند" },
+      { name: "description", content: "محادثاتك مع العيادات والمرضى على سند." },
+      { property: "og:title", content: "الرسائل — سند" },
+      { property: "og:description", content: "راسل عيادتك مباشرة داخل سند." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
