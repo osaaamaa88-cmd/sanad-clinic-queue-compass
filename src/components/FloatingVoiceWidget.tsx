@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useFloatingVoiceAssistant } from "@/hooks/use-floating-voice-assistant";
+import { NemoFaceSvg } from "@/components/NemoFaceSvg";
 
 const POSITION_KEY = "sanad-nemo-widget-position";
 const BUTTON_SIZE = 56;

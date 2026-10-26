@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { applyBaymaxVoice, cleanForSpeech, isSeniorModeOn, setSeniorMode } from "@/lib/voice";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
+import { NemoFaceSvg } from "@/components/NemoFaceSvg";
 import {
   getPatientLocation,
   savePatientLocation,
