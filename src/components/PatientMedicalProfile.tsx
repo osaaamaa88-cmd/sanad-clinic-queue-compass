@@ -37,7 +37,7 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent }: Patient
         }
       }
     } catch {
-      // استخدام القيم الافتراضية
+      // افتراضي
     }
   }, []);
 
@@ -94,7 +94,7 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent }: Patient
             <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl text-sm text-slate-300 shadow-lg">
               {activeTab === 'records' && (recordsContent || 'جميع السجلات والفحوصات مؤرشفة بدقة.')}
               {activeTab === 'appointments' && 'موعدك القادم مع استشاري العيادة غداً الساعة 04:00 مساءً.'}
-              {activeTab === 'nemo' && 'أهلاً بك يا أسامة! أنا نيمو، مؤشراتك مستقرة وجاهز تماماً لمساعدتك في أي استفسار طبي.'}
+              {activeTab === 'nemo' && 'أهلاً بك يا أسامة! أنا نيمو، مؤشراتك مستقرة وجاهز تماماً لمساعدتك.'}
             </div>
           )}
         </div>
@@ -105,35 +105,35 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent }: Patient
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> هولوجرام نشط 3D</span>
           </div>
 
-          <div className="relative flex flex-col items-center justify-center my-auto z-10 py-4">
+          <div className="relative flex flex-col items-center justify-center my-auto z-10 py-4 w-full">
             {selectedArea === 'throat' && (
-              <div className="absolute top-[28%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+              <div className="absolute top-[32%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
                 <div className="w-8 h-8 rounded-full border-2 border-amber-400 animate-ping absolute -inset-2"></div>
                 <div className="w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_15px_#f59e0b]"></div>
-                <div className="absolute top-2 left-6 w-16 h-[1px] bg-amber-400">
-                  <div className="absolute -top-3 left-16 bg-slate-900/90 border border-amber-500 text-amber-300 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
+                <div className="absolute top-2 left-6 w-20 h-[1px] bg-amber-400">
+                  <div className="absolute -top-3 left-20 bg-slate-900/90 border border-amber-500 text-amber-300 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
                     تنبيه: التهاب حنجري
                   </div>
                 </div>
               </div>
             )}
 
-            <svg className="w-44 h-80 drop-shadow-[0_0_20px_rgba(0,229,255,0.5)]" viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M50 2 C 35 2, 28 15, 28 30 C 28 45, 35 55, 38 75 C 32 90, 22 130, 25 180 C 26 195, 32 198, 36 198 C 40 198, 44 185, 48 140 C 49 130, 51 130, 52 140 C 56 185, 60 198, 64 198 C 68 198, 74 195, 75 180 C 78 130, 68 90, 62 75 C 65 55, 72 45, 72 30 C 72 15, 65 2, 50 2 Z" fill="rgba(0, 229, 255, 0.04)" stroke="rgba(0, 229, 255, 0.6)" strokeWidth="0.8"/>
-              <ellipse cx="50" cy="22" rx="11" ry="13" stroke="#00e5ff" strokeWidth="1" fill="rgba(0,229,255,0.1)"/>
-              <path d="M47 18 Q 50 15 53 18 Q 53 24 47 24 Z" fill="#38bdf8" opacity="0.8"/>
-              <line x1="50" y1="35" x2="50" y2="115" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="2 2"/>
-              <path d="M38 45 Q 50 42 62 45 M36 53 Q 50 49 64 53 M35 61 Q 50 57 65 61 M36 69 Q 50 65 64 69" stroke="#00e5ff" strokeWidth="1.2" fill="none"/>
-              <line x1="32" y1="42" x2="68" y2="42" stroke="#00e5ff" strokeWidth="1.5"/>
-              <path d="M38 105 Q 50 100 62 105" stroke="#00e5ff" strokeWidth="1.5" fill="none"/>
-              <path d="M38 105 L 30 150 L 27 190 M62 105 L 70 150 L 73 190" stroke="#00e5ff" strokeWidth="1" strokeDasharray="1 1"/>
+            <svg className="w-64 h-80 drop-shadow-[0_0_20px_rgba(0,229,255,0.5)]" viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M80 5 C 55 5, 42 20, 42 45 C 42 65, 52 80, 58 105 C 48 125, 30 160, 35 190 C 37 198, 48 198, 54 198 C 60 198, 66 180, 72 135 C 76 125, 84 125, 88 135 C 94 180, 100 198, 106 198 C 112 198, 123 198, 125 190 C 130 160, 112 125, 102 105 C 108 80, 118 65, 118 45 C 118 20, 105 5, 80 5 Z" fill="rgba(0, 229, 255, 0.05)" stroke="rgba(0, 229, 255, 0.7)" strokeWidth="1"/>
+              <ellipse cx="80" cy="25" rx="16" ry="18" stroke="#00e5ff" strokeWidth="1.2" fill="rgba(0,229,255,0.12)"/>
+              <path d="M74 20 Q 80 15 86 20 Q 86 28 74 28 Z" fill="#38bdf8" opacity="0.85"/>
+              <line x1="80" y1="43" x2="80" y2="125" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3 3"/>
+              <path d="M60 55 Q 80 50 100 55 M57 65 Q 80 60 103 65 M55 75 Q 80 70 105 75 M57 85 Q 80 80 103 85" stroke="#00e5ff" strokeWidth="1.5" fill="none"/>
+              <line x1="50" y1="50" x2="110" y2="50" stroke="#00e5ff" strokeWidth="2"/>
+              <path d="M60 120 Q 80 115 100 120" stroke="#00e5ff" strokeWidth="1.8" fill="none"/>
+              <path d="M60 120 L 45 165 L 40 195 M100 120 L 115 165 L 120 195" stroke="#00e5ff" strokeWidth="1.2" strokeDasharray="2 2"/>
             </svg>
           </div>
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-56 h-16 flex items-center justify-center pointer-events-none z-0">
-            <div className="absolute w-56 h-12 rounded-[100%] border border-cyan-400/60 shadow-[0_0_25px_rgba(0,229,255,0.7)] animate-pulse"></div>
-            <div className="absolute w-40 h-8 rounded-[100%] border border-sky-400/90 shadow-[0_0_15px_rgba(56,189,248,0.9)]"></div>
-            <div className="absolute w-28 h-4 rounded-[100%] bg-cyan-400/20 blur-md"></div>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-64 h-16 flex items-center justify-center pointer-events-none z-0">
+            <div className="absolute w-64 h-12 rounded-[100%] border border-cyan-400/60 shadow-[0_0_25px_rgba(0,229,255,0.7)] animate-pulse"></div>
+            <div className="absolute w-48 h-8 rounded-[100%] border border-sky-400/90 shadow-[0_0_15px_rgba(56,189,248,0.9)]"></div>
+            <div className="absolute w-32 h-4 rounded-[100%] bg-cyan-400/20 blur-md"></div>
           </div>
 
           <div className="w-full grid grid-cols-2 gap-2 z-10 mt-4">
