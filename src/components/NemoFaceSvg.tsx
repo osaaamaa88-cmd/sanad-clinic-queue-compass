@@ -1,0 +1,102 @@
+type NemoFaceSvgProps = {
+  happy?: boolean;
+  className?: string;
+};
+
+/**
+ * Nemo's vector face — a calm, Baymax-inspired healthcare companion.
+ * Keeps the shared `nemo-eye` blink animation hooks so existing CSS
+ * (styles.css) drives blinking and reduced-motion behavior.
+ */
+export function NemoFaceSvg({ happy = false, className }: NemoFaceSvgProps) {
+  return (
+    <svg
+      viewBox="0 0 120 92"
+      role="img"
+      aria-hidden="true"
+      className={className}
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id="nemo-face-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="55%" stopColor="#f4f9ff" />
+          <stop offset="100%" stopColor="#d9e9fb" />
+        </linearGradient>
+        <linearGradient id="nemo-face-shine" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.9" />
+          <stop offset="50%" stopColor="#ffffff" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#99f6e4" stopOpacity="0.9" />
+        </linearGradient>
+      </defs>
+
+      {/* Head */}
+      <rect
+        x="6"
+        y="6"
+        width="108"
+        height="80"
+        rx="40"
+        fill="url(#nemo-face-fill)"
+        stroke="#bae6fd"
+        strokeWidth="1.5"
+      />
+      {/* Forehead shine */}
+      <rect
+        x="40"
+        y="3"
+        width="40"
+        height="10"
+        rx="5"
+        fill="url(#nemo-face-shine)"
+      />
+      {/* Cheek pads */}
+      <ellipse cx="16" cy="48" rx="5" ry="9" fill="#cffafe" opacity="0.85" />
+      <ellipse cx="104" cy="48" rx="5" ry="9" fill="#cffafe" opacity="0.85" />
+
+      {/* Eyes — keep as the first two children of this group so
+          `.nemo-eye:nth-child(2)` staggered blinking keeps working */}
+      <g>
+        {happy ? (
+          <>
+            <path
+              className="nemo-eye"
+              d="M36 44 Q42 37 48 44"
+              fill="none"
+              stroke="#1e293b"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            <path
+              className="nemo-eye"
+              d="M72 44 Q78 37 84 44"
+              fill="none"
+              stroke="#1e293b"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+          </>
+        ) : (
+          <>
+            <ellipse className="nemo-eye" cx="42" cy="42" rx="5" ry="7" fill="#1e293b" />
+            <ellipse className="nemo-eye" cx="78" cy="42" rx="5" ry="7" fill="#1e293b" />
+          </>
+        )}
+      </g>
+
+      {/* Smile */}
+      <path
+        d="M46 60 Q60 70 74 60"
+        fill="none"
+        stroke="#0e7490"
+        strokeWidth="3"
+        strokeLinecap="round"
+        style={{
+          transform: happy ? "scale(1.15)" : "scale(1)",
+          transformOrigin: "60px 62px",
+          transition: "transform 220ms ease",
+        }}
+      />
+    </svg>
+  );
+}

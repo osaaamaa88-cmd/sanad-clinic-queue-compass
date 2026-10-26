@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useFloatingVoiceAssistant } from "@/hooks/use-floating-voice-assistant";
+import { NemoFaceSvg } from "@/components/NemoFaceSvg";
 
 const POSITION_KEY = "sanad-nemo-widget-position";
 const BUTTON_SIZE = 56;
@@ -171,35 +172,9 @@ export function FloatingVoiceAssistant() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-1 rounded-full bg-cyan-100/60 motion-safe:animate-pulse"
       />
-      <span
-        aria-hidden="true"
-        className="nemo-breathe relative z-10 grid h-10 w-9 place-items-center rounded-[48%_48%_42%_42%] border border-cyan-100 bg-gradient-to-b from-white via-white to-sky-100 shadow-[inset_0_-3px_6px_rgba(34,211,238,0.12)]"
-      >
-        <span
-          className="absolute -top-1 left-1/2 flex -translate-x-1/2 items-end gap-0.5"
-          aria-hidden="true"
-        >
-          <span className="h-1 w-1 rounded-full border border-cyan-300 bg-white" />
-          <span className="h-1.5 w-1.5 rounded-full border border-cyan-300 bg-cyan-100" />
-          <span className="mb-0.5 h-0.5 w-0.5 rounded-full bg-sky-300" />
-        </span>
-        <span
-          className="absolute left-1 top-[42%] h-2 w-1.5 rounded-full bg-cyan-100/90"
-          aria-hidden="true"
-        />
-        <span
-          className="absolute right-1 top-[42%] h-2 w-1.5 rounded-full bg-sky-100"
-          aria-hidden="true"
-        />
-        <span className="flex -translate-y-0.5 items-center gap-3" aria-hidden="true">
-          <span className="nemo-eye h-1.5 w-1 rounded-full bg-slate-800" />
-          <span className="nemo-eye h-1.5 w-1 rounded-full bg-slate-800" />
-        </span>
-        <span
-          className="absolute top-[58%] h-1.5 w-2.5 rounded-b-full border-b border-cyan-500/80"
-          aria-hidden="true"
-        />
-      </span>
+      <NemoFaceSvg
+        className="nemo-breathe relative z-10 h-10 w-11 drop-shadow-[0_2px_6px_rgba(34,211,238,0.25)]"
+      />
     </button>
   );
 }

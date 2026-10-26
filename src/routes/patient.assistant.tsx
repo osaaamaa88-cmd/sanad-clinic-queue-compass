@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { applyBaymaxVoice, cleanForSpeech, isSeniorModeOn, setSeniorMode } from "@/lib/voice";
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
+import { NemoFaceSvg } from "@/components/NemoFaceSvg";
 import {
   getPatientLocation,
   savePatientLocation,
@@ -237,20 +238,7 @@ function NemoFace({
         speaking ? "nemo-speaking-glow" : ""
       } ${emergency ? "nemo-emergency-flash shadow-[0_0_48px_-12px_rgba(251,146,60,0.5)]" : ""}`}
     >
-      <span className="absolute -top-1 left-1/2 h-3 w-7 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-100 via-white to-teal-100" />
-      <span className="absolute left-3 top-1/2 h-3 w-2 -translate-y-1/2 rounded-full bg-cyan-100/80" />
-      <span className="absolute right-3 top-1/2 h-3 w-2 -translate-y-1/2 rounded-full bg-cyan-100/80" />
-      <span className="flex -translate-y-1 items-center gap-6">
-        <span
-          className={`nemo-eye h-3 w-2 rounded-full bg-slate-800 ${happy ? "nemo-eye-happy" : ""}`}
-        />
-        <span
-          className={`nemo-eye h-3 w-2 rounded-full bg-slate-800 ${happy ? "nemo-eye-happy" : ""}`}
-        />
-      </span>
-      <span
-        className={`absolute top-[58%] h-2 w-5 rounded-b-full border-b-2 border-cyan-600 transition-transform ${happy ? "scale-125" : ""}`}
-      />
+      <NemoFaceSvg happy={happy} className="h-full w-full" />
       {speaking && (
         <span className="absolute -bottom-2 flex items-center gap-1" aria-hidden="true">
           <span className="h-1 w-1 animate-ping rounded-full bg-cyan-400" />
@@ -877,6 +865,12 @@ function Assistant() {
               key={message.id}
               className={`nemo-chat-message scroll-mb-36 flex items-end gap-2 ${message.role === "patient" ? "justify-start" : "justify-end"}`}
             >
+              {message.role === "nemo" && (
+                <NemoFaceSvg
+                  className="h-9 w-11 shrink-0 drop-shadow-[0_1px_4px_rgba(34,211,238,0.25)]"
+                  aria-hidden="true"
+                />
+              )}
               <div
                 className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 leading-6 ${
                   senior ? "text-base" : "text-sm"
