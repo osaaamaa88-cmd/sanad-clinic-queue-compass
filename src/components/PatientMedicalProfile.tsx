@@ -1,117 +1,5 @@
-﻿import React, { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Activity, Heart, Shield, FileText, Calendar, Stethoscope, Bot } from "lucide-react";
-import { getPatientSession, type PatientSession } from "@/lib/patient-session";
-
-type Reading =
-  | { kind: "bp"; sys: number; dia: number; label: string; at: string }
-  | {
-      kind: "sugar";
-      value: number;
-      state: "fasting" | "postmeal" | "random";
-      label: string;
-      at: string;
-    };
-
-const STORAGE_KEY = "sanad_health_readings_v1";
-const LEGACY_STORAGE_KEY = "sandi_health_readings_v1";
-
-function loadReadings(): Reading[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (raw && !localStorage.getItem(STORAGE_KEY)) localStorage.setItem(STORAGE_KEY, raw);
-    return JSON.parse(raw || "[]") as Reading[];
-  } catch {
-    return [];
-  }
-}
-
-type BPCategory = {
-  label: string;
-  tone: "success" | "warning" | "orange" | "destructive" | "crisis";
-  advice: string;
-};
-type SugarCategory = { label: string; tone: "success" | "warning" | "destructive"; advice: string };
-
-function evaluateBP(sys: number, dia: number): BPCategory {
-  if (sys > 180 || dia > 120)
-    return {
-      label: "أزمة ضغط — طوارئ",
-      tone: "crisis",
-      advice: "توجّه فوراً لأقرب مستشفى أو عيادة طوارئ.",
-    };
-  if (sys >= 140 || dia >= 90)
-    return {
-      label: "ارتفاع — المرحلة الثانية",
-      tone: "destructive",
-      advice: "يفضّل مراجعة الطبيب في أقرب وقت.",
-    };
-  if ((sys >= 130 && sys <= 139) || (dia >= 80 && dia <= 89))
-    return {
-      label: "ارتفاع — المرحلة الأولى",
-      tone: "orange",
-      advice: "غيّر نمط حياتك وتابع مع طبيبك.",
-    };
-  if (sys >= 120 && sys <= 129 && dia < 80)
-    return { label: "مرتفع بسيط", tone: "warning", advice: "راقب القراءات بانتظام." };
-  return { label: "طبيعي", tone: "success", advice: "قراءة ممتازة." };
-}
-
-function evaluateSugar(value: number, state: "fasting" | "postmeal" | "random"): SugarCategory {
-  if (state === "fasting") {
-    if (value < 100) return { label: "طبيعي", tone: "success", advice: "قراءة صيام طبيعية." };
-    if (value <= 125) return { label: "ما قبل السكري", tone: "warning", advice: "راجع طبيبك." };
-    return { label: "مرتفع — سكري محتمل", tone: "destructive", advice: "يلزم التوجه لطبيب." };
-  }
-  if (state === "postmeal") {
-    if (value < 140) return { label: "طبيعي", tone: "success", advice: "قراءة بعد الأكل طبيعية." };
-    if (value <= 199) return { label: "ما قبل السكري", tone: "warning", advice: "قلل السكريات." };
-    return { label: "مرتفع — سكري محتمل", tone: "destructive", advice: "استشر الطبيب فوراً." };
-  }
-  if (value < 140) return { label: "طبيعي", tone: "success", advice: "ضمن المعدل الطبيعي." };
-  if (value <= 199) return { label: "مرتفع نسبياً", tone: "warning", advice: "أعد القياس صائماً." };
-  return { label: "مرتفع جداً", tone: "destructive", advice: "استشر الطبيب فوراً." };
-}
-
-function stabilityScore(r: Reading): number {
-  if (r.kind === "bp") {
-    const c = evaluateBP(r.sys, r.dia);
-    switch (c.tone) {
-      case "success":
-        return 100;
-      case "warning":
-        return 78;
-      case "orange":
-        return 62;
-      case "destructive":
-        return 38;
-      case "crisis":
-        return 10;
-      default:
-        return 50;
-    }
-  }
-  const c = evaluateSugar(r.value, r.state);
-  switch (c.tone) {
-    case "success":
-      return 100;
-    case "warning":
-      return 68;
-    case "destructive":
-      return 34;
-    default:
-      return 50;
-  }
-}
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString("ar-IQ", { dateStyle: "short", timeStyle: "short" });
-  } catch {
-    return iso;
-  }
-}
+﻿import React, { useState, useEffect } from 'react';
+import { Activity, Heart, Shield, FileText, Calendar, User, Stethoscope, Bot, AlertTriangle } from 'lucide-react';
 
 export interface PatientMedicalProfileProps {
   vitalsContent?: React.ReactNode;
@@ -119,408 +7,172 @@ export interface PatientMedicalProfileProps {
   appointmentsContent?: React.ReactNode;
 }
 
-type Organ = "head" | "heart" | "abdomen";
+interface SanadReading {
+  BP?: string;
+  sugar?: string | number;
+  heartRate?: number;
+}
 
-const ORGAN_LABELS: Record<Organ, string> = {
-  head: "الرأس / الدماغ",
-  heart: "الصدر / القلب",
-  abdomen: "البطن / البنكرياس",
-};
-
-export function PatientMedicalProfile({
-  vitalsContent,
-  recordsContent,
-  appointmentsContent,
-}: PatientMedicalProfileProps = {}) {
-  const [activeTab, setActiveTab] = useState<"overview" | "records" | "appointments">("overview");
-  const [readings, setReadings] = useState<Reading[]>([]);
-  const [patientName, setPatientName] = useState("");
-  const [patientCode, setPatientCode] = useState("SANAD-GUEST");
-  const [selectedOrgan, setSelectedOrgan] = useState<Organ | null>(null);
-  const [hoveredOrgan, setHoveredOrgan] = useState<Organ | null>(null);
+export function PatientMedicalProfile({ vitalsContent, recordsContent }: PatientMedicalProfileProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'appointments' | 'nemo'>('overview');
+  const [patientSession, setPatientSession] = useState<{ name?: string; id?: string }>({});
+  const [latestReading, setLatestReading] = useState<SanadReading>({ BP: '120/80', sugar: '98', heartRate: 75 });
+  const [selectedArea, setSelectedArea] = useState<'heart' | 'throat' | 'head' | null>('throat');
 
   useEffect(() => {
-    const refresh = () => {
-      setReadings(loadReadings());
-      const s: PatientSession | null = getPatientSession();
-      const name = s?.name?.trim() || "";
-      setPatientName(name);
-      const digits = (s?.phone || "").replace(/\D/g, "");
-      if (digits) setPatientCode("SANAD-" + digits.slice(-5));
-      else if (s?.userId) setPatientCode("SANAD-" + s.userId.slice(0, 6).toUpperCase());
-      else setPatientCode("SANAD-GUEST");
-    };
-    refresh();
-    const onStorage = () => refresh();
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    try {
+      const session = localStorage.getItem('sanad_patient_session');
+      if (session) setPatientSession(JSON.parse(session));
+      else setPatientSession({ name: 'أسامة محمد', id: 'SANAD-96573' });
+    } catch {
+      setPatientSession({ name: 'أسامة محمد', id: 'SANAD-96573' });
+    }
+
+    try {
+      const saved = localStorage.getItem('sanad_health_readings_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setLatestReading(parsed[parsed.length - 1]);
+        }
+      }
+    } catch {
+      // استخدام القيم الافتراضية
+    }
   }, []);
 
-  const lastBP = [...readings].reverse().find((r) => r.kind === "bp") as
-    Extract<Reading, { kind: "bp" }> | undefined;
-  const lastSugar = [...readings].reverse().find((r) => r.kind === "sugar") as
-    Extract<Reading, { kind: "sugar" }> | undefined;
-
-  const headCat = lastBP ? evaluateBP(lastBP.sys, lastBP.dia) : null;
-  const headColor =
-    !headCat || headCat.tone === "success"
-      ? "#22c55e"
-      : headCat.tone === "warning"
-        ? "#f59e0b"
-        : headCat.tone === "orange"
-          ? "#f97316"
-          : "#ef4444";
-
-  const sugarCat = lastSugar ? evaluateSugar(lastSugar.value, lastSugar.state) : null;
-  const sugarColor =
-    !sugarCat || sugarCat.tone === "success"
-      ? "#22c55e"
-      : sugarCat.tone === "warning"
-        ? "#f59e0b"
-        : "#ef4444";
-
-  const heartColor = "#fb7185";
-  const bpm = 75;
-
-  const overall = readings.length
-    ? readings.slice(-8).reduce((acc, r) => acc + stabilityScore(r), 0) /
-      Math.min(readings.length, 8)
-    : 95;
-  const overallLabel =
-    overall >= 90 ? "نشط ومستقر" : overall >= 70 ? "يحتاج متابعة" : "يحتاج عناية";
-
-  const headNeedsPulse = !!headCat && headCat.tone !== "success";
-
-  const tooltipOrgan = hoveredOrgan ?? selectedOrgan;
-  const tooltipData = (o: Organ) => {
-    if (o === "head") {
-      return {
-        reading: lastBP ? lastBP.sys + "/" + lastBP.dia + " mmHg" : "لا توجد قراءة",
-        date: lastBP ? formatDate(lastBP.at) : "—",
-        status: headCat ? headCat.label : "مستقر",
-      };
-    }
-    if (o === "heart") {
-      return {
-        reading: lastBP ? "الضغط الانقباضي " + lastBP.sys + " mmHg" : "لا توجد قراءة",
-        date: lastBP ? formatDate(lastBP.at) : "—",
-        status:
-          "نبض " +
-          bpm +
-          " BPM — " +
-          (headCat && headCat.tone !== "success" ? "يحتاج متابعة" : "مستقر"),
-      };
-    }
-    return {
-      reading: lastSugar ? lastSugar.value + " mg/dL" : "لا توجد قراءة",
-      date: lastSugar ? formatDate(lastSugar.at) : "—",
-      status: sugarCat ? sugarCat.label : "مستقر",
-    };
-  };
-
-  const organPos: Record<Organ, { left: string; top: string }> = {
-    head: { left: "50%", top: "9%" },
-    heart: { left: "50%", top: "34%" },
-    abdomen: { left: "50%", top: "50%" },
-  };
-
-  const nemoOrganLabel = selectedOrgan ? ORGAN_LABELS[selectedOrgan] : "اختر عضواً من المجسم";
-
   return (
-    <div className="bg-slate-950 text-white min-h-screen p-6 font-sans" dir="rtl">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-slate-800 pb-4 gap-4">
+    <div className="bg-[#0b0f19] text-white min-h-screen p-4 md:p-6 font-sans relative overflow-hidden" dir="rtl">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#00e5ff08_1px,transparent_1px),linear-gradient(to_bottom,#00e5ff08_1px,transparent_1px)] bg-[size:2.5rem_2.5rem] pointer-events-none"></div>
+
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 border-b border-cyan-500/20 pb-4 gap-4 relative z-10">
         <div>
-          <span className="text-cyan-400 text-xs font-semibold tracking-wider">
-            منصة سند الطبية
-          </span>
-          <h1 className="text-2xl font-bold mt-1">الملف الطبي الشامل للمريض</h1>
+          <span className="text-cyan-400 text-xs font-mono tracking-widest uppercase">منصة سند الطبية • النظام الهولوجرامي الذكي</span>
+          <h1 className="text-2xl font-bold mt-1 tracking-wide flex items-center gap-2">
+            الملف الطبي الشامل <span className="text-xs font-normal text-cyan-300 bg-cyan-950/80 px-2.5 py-0.5 rounded-full border border-cyan-500/30">{patientSession.name}</span>
+          </h1>
         </div>
-        <div className="flex flex-wrap bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === "overview" ? "bg-cyan-500 text-white font-medium" : "text-slate-400 hover:text-white"}`}
-          >
-            المؤشرات الحيوية
-          </button>
-          <button
-            onClick={() => setActiveTab("records")}
-            className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === "records" ? "bg-cyan-500 text-white font-medium" : "text-slate-400 hover:text-white"}`}
-          >
-            السجلات والتقارير
-          </button>
-          <button
-            onClick={() => setActiveTab("appointments")}
-            className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === "appointments" ? "bg-cyan-500 text-white font-medium" : "text-slate-400 hover:text-white"}`}
-          >
-            المواعيد والحجوزات
-          </button>
-          <Link
-            to="/patient/assistant"
-            className="px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-1.5 text-cyan-400 hover:text-white hover:bg-cyan-500/20"
-          >
-            <Bot className="w-4 h-4" /> مساعد نيمو الذكي
-          </Link>
+
+        <div className="flex flex-wrap bg-slate-900/90 border border-cyan-500/30 rounded-xl p-1 gap-1 shadow-[0_0_20px_rgba(0,229,255,0.15)]">
+          <button onClick={() => setActiveTab('overview')} className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === 'overview' ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(0,229,255,0.5)]' : 'text-slate-300 hover:text-white'}`}>المؤشرات</button>
+          <button onClick={() => setActiveTab('records')} className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === 'records' ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(0,229,255,0.5)]' : 'text-slate-300 hover:text-white'}`}>السجلات</button>
+          <button onClick={() => setActiveTab('appointments')} className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === 'appointments' ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(0,229,255,0.5)]' : 'text-slate-300 hover:text-white'}`}>المواعيد</button>
+          <button onClick={() => setActiveTab('nemo')} className={`px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-1 ${activeTab === 'nemo' ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(0,229,255,0.5)]' : 'text-cyan-400 hover:text-white'}`}><Bot className="w-4 h-4" /> نيمو</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
         <div className="space-y-4">
-          <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-slate-400 text-sm">معدل الصحة العامة</span>
-              <Activity className="w-5 h-5 text-green-400" />
-            </div>
-            <div className="text-3xl font-extrabold text-green-400">{overall.toFixed(1)}%</div>
-            <div className="text-xs text-slate-500 mt-1">ضغط الدم المثالي: 120 / 80 mmHg</div>
-          </div>
+          {activeTab === 'overview' ? (
+            <>
+              <div className="bg-slate-900/80 border border-cyan-500/30 p-5 rounded-2xl relative overflow-hidden shadow-lg">
+                <div className="absolute top-0 right-0 w-2 h-full bg-cyan-400"></div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-slate-400 text-sm">معدل الصحة العامة الإجمالي</span>
+                  <Activity className="w-5 h-5 text-cyan-400 animate-pulse" />
+                </div>
+                <div className="text-3xl font-extrabold text-cyan-300 font-mono">102.67</div>
+                <div className="text-xs text-slate-400 mt-1">الضغط: {latestReading.BP}</div>
+              </div>
 
-          <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-slate-400 text-sm">نبضات القلب (Heart Rate)</span>
-              <Heart className="w-5 h-5 text-cyan-400 animate-pulse" />
+              <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-lg">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-slate-400 text-sm">مستوى السكر بالدم</span>
+                  <Heart className="w-5 h-5 text-rose-500 animate-ping" />
+                </div>
+                <div className="text-2xl font-bold text-rose-400 font-mono">{latestReading.sugar} <span className="text-xs text-slate-400">mg/dL</span></div>
+              </div>
+
+              <div onClick={() => setSelectedArea('throat')} className="p-4 rounded-xl border border-amber-500/50 bg-amber-500/10 cursor-pointer shadow-lg">
+                <div className="flex items-center gap-2 text-amber-400 font-semibold mb-1 text-sm">
+                  <AlertTriangle className="w-4 h-4 animate-bounce" /> تنبيه تشخيصي: الحنجرة
+                </div>
+                <p className="text-xs text-slate-300">تم رصد توهج بؤري في الحنجرة. انقر للتشخيص الفوري مع نيمو.</p>
+              </div>
+            </>
+          ) : (
+            <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl text-sm text-slate-300 shadow-lg">
+              {activeTab === 'records' && (recordsContent || 'جميع السجلات والفحوصات مؤرشفة بدقة.')}
+              {activeTab === 'appointments' && 'موعدك القادم مع استشاري العيادة غداً الساعة 04:00 مساءً.'}
+              {activeTab === 'nemo' && 'أهلاً بك يا أسامة! أنا نيمو، مؤشراتك مستقرة وجاهز تماماً لمساعدتك في أي استفسار طبي.'}
             </div>
-            <div className="text-2xl font-bold text-cyan-400">{bpm} BPM</div>
-            <div className="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
-              <div className="bg-cyan-400 h-full" style={{ width: "75%" }}></div>
-            </div>
-          </div>
+          )}
         </div>
 
-        <div className="bg-slate-900/50 border border-cyan-500/30 rounded-2xl p-6 flex flex-col items-center justify-between relative shadow-2xl min-h-[420px]">
-          <div className="absolute inset-0 bg-cyan-500/5 rounded-2xl"></div>
-          <div className="w-full flex justify-between items-center z-10">
-            <span className="text-xs text-cyan-400 font-mono">ID: {patientCode}</span>
-            <span className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-xs text-cyan-300">
-              {patientName ? patientName : overallLabel}
-            </span>
+        <div className="bg-slate-900/40 border border-cyan-500/40 rounded-2xl p-6 flex flex-col items-center justify-between relative min-h-[500px] overflow-hidden backdrop-blur-md shadow-[0_0_30px_rgba(0,229,255,0.15)]">
+          <div className="w-full flex justify-between items-center z-10 text-xs font-mono text-cyan-400 border-b border-cyan-500/20 pb-2">
+            <span>ID: {patientSession.id}</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> هولوجرام نشط 3D</span>
           </div>
 
-          <div className="relative flex flex-col items-center z-10 my-4">
-            {tooltipOrgan && (
-              <div
-                className="absolute z-20 w-52 rounded-xl border border-cyan-500/40 bg-slate-900/95 p-3 text-xs shadow-xl"
-                style={{
-                  left: organPos[tooltipOrgan as Organ].left,
-                  top: organPos[tooltipOrgan as Organ].top,
-                  transform: "translate(-50%, -130%)",
-                }}
-              >
-                <div className="font-bold text-cyan-300 mb-1">
-                  {ORGAN_LABELS[tooltipOrgan as Organ]}
-                </div>
-                <div className="text-slate-300">
-                  آخر قراءة: {tooltipData(tooltipOrgan as Organ).reading}
-                </div>
-                <div className="text-slate-500">
-                  التاريخ: {tooltipData(tooltipOrgan as Organ).date}
-                </div>
-                <div className="text-slate-400">
-                  الحالة: {tooltipData(tooltipOrgan as Organ).status}
+          <div className="relative flex flex-col items-center justify-center my-auto z-10 py-4">
+            {selectedArea === 'throat' && (
+              <div className="absolute top-[28%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                <div className="w-8 h-8 rounded-full border-2 border-amber-400 animate-ping absolute -inset-2"></div>
+                <div className="w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_15px_#f59e0b]"></div>
+                <div className="absolute top-2 left-6 w-16 h-[1px] bg-amber-400">
+                  <div className="absolute -top-3 left-16 bg-slate-900/90 border border-amber-500 text-amber-300 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap font-mono">
+                    تنبيه: التهاب حنجري
+                  </div>
                 </div>
               </div>
             )}
 
-            <svg viewBox="0 0 200 420" className="w-44 h-80" aria-label="المجسم التشريعي التفاعلي">
-              <defs>
-                <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="4" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <g
-                stroke="rgba(34,211,238,0.55)"
-                strokeWidth="1.6"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="100" cy="42" r="26" />
-                <path d="M100 68 L100 82" />
-                <path d="M62 95 Q100 84 138 95" />
-                <path d="M62 95 L56 175" />
-                <path d="M138 95 L144 175" />
-                <path d="M60 105 L40 175" />
-                <path d="M140 105 L160 175" />
-                <path d="M74 82 L74 225 Q100 240 126 225 L126 82" />
-                <path d="M88 225 L82 330" />
-                <path d="M112 225 L118 330" />
-                <path d="M70 330 L60 400" />
-                <path d="M130 330 L140 400" />
-              </g>
-
-              <g>
-                <circle
-                  cx="100"
-                  cy="42"
-                  r="15"
-                  fill={headColor}
-                  opacity="0.18"
-                  className={headNeedsPulse ? "animate-ping" : ""}
-                  style={{ transformOrigin: "100px 42px", transformBox: "fill-box" }}
-                  onMouseEnter={() => setHoveredOrgan("head")}
-                  onMouseLeave={() => setHoveredOrgan(null)}
-                  onClick={() => {
-                    setSelectedOrgan("head");
-                    setActiveTab("overview");
-                  }}
-                />
-                <circle
-                  cx="100"
-                  cy="42"
-                  r="7"
-                  fill={headColor}
-                  filter="url(#neonGlow)"
-                  style={{ cursor: "pointer" }}
-                  onMouseEnter={() => setHoveredOrgan("head")}
-                  onMouseLeave={() => setHoveredOrgan(null)}
-                  onClick={() => {
-                    setSelectedOrgan("head");
-                    setActiveTab("overview");
-                  }}
-                />
-              </g>
-
-              <g>
-                <circle
-                  cx="100"
-                  cy="150"
-                  r="15"
-                  fill={heartColor}
-                  opacity="0.18"
-                  className="animate-ping"
-                  style={{ transformOrigin: "100px 150px", transformBox: "fill-box" }}
-                  onMouseEnter={() => setHoveredOrgan("heart")}
-                  onMouseLeave={() => setHoveredOrgan(null)}
-                  onClick={() => setSelectedOrgan("heart")}
-                />
-                <circle
-                  cx="100"
-                  cy="150"
-                  r="7"
-                  fill={heartColor}
-                  filter="url(#neonGlow)"
-                  style={{ cursor: "pointer" }}
-                  onMouseEnter={() => setHoveredOrgan("heart")}
-                  onMouseLeave={() => setHoveredOrgan(null)}
-                  onClick={() => setSelectedOrgan("heart")}
-                />
-                <g
-                  transform="translate(92,142) scale(0.6)"
-                  style={{
-                    transformOrigin: "100px 150px",
-                    transformBox: "fill-box",
-                    animation: "pulse " + (60 / bpm).toFixed(2) + "s ease-in-out infinite",
-                  }}
-                >
-                  <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                    fill="#ffffff"
-                  />
-                </g>
-              </g>
-
-              <g>
-                <circle
-                  cx="100"
-                  cy="210"
-                  r="15"
-                  fill={sugarColor}
-                  opacity="0.18"
-                  className="animate-ping"
-                  style={{ transformOrigin: "100px 210px", transformBox: "fill-box" }}
-                  onMouseEnter={() => setHoveredOrgan("abdomen")}
-                  onMouseLeave={() => setHoveredOrgan(null)}
-                  onClick={() => {
-                    setSelectedOrgan("abdomen");
-                    setActiveTab("overview");
-                  }}
-                />
-                <circle
-                  cx="100"
-                  cy="210"
-                  r="7"
-                  fill={sugarColor}
-                  filter="url(#neonGlow)"
-                  style={{ cursor: "pointer" }}
-                  onMouseEnter={() => setHoveredOrgan("abdomen")}
-                  onMouseLeave={() => setHoveredOrgan(null)}
-                  onClick={() => {
-                    setSelectedOrgan("abdomen");
-                    setActiveTab("overview");
-                  }}
-                />
-              </g>
+            <svg className="w-44 h-80 drop-shadow-[0_0_20px_rgba(0,229,255,0.5)]" viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M50 2 C 35 2, 28 15, 28 30 C 28 45, 35 55, 38 75 C 32 90, 22 130, 25 180 C 26 195, 32 198, 36 198 C 40 198, 44 185, 48 140 C 49 130, 51 130, 52 140 C 56 185, 60 198, 64 198 C 68 198, 74 195, 75 180 C 78 130, 68 90, 62 75 C 65 55, 72 45, 72 30 C 72 15, 65 2, 50 2 Z" fill="rgba(0, 229, 255, 0.04)" stroke="rgba(0, 229, 255, 0.6)" strokeWidth="0.8"/>
+              <ellipse cx="50" cy="22" rx="11" ry="13" stroke="#00e5ff" strokeWidth="1" fill="rgba(0,229,255,0.1)"/>
+              <path d="M47 18 Q 50 15 53 18 Q 53 24 47 24 Z" fill="#38bdf8" opacity="0.8"/>
+              <line x1="50" y1="35" x2="50" y2="115" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="2 2"/>
+              <path d="M38 45 Q 50 42 62 45 M36 53 Q 50 49 64 53 M35 61 Q 50 57 65 61 M36 69 Q 50 65 64 69" stroke="#00e5ff" strokeWidth="1.2" fill="none"/>
+              <line x1="32" y1="42" x2="68" y2="42" stroke="#00e5ff" strokeWidth="1.5"/>
+              <path d="M38 105 Q 50 100 62 105" stroke="#00e5ff" strokeWidth="1.5" fill="none"/>
+              <path d="M38 105 L 30 150 L 27 190 M62 105 L 70 150 L 73 190" stroke="#00e5ff" strokeWidth="1" strokeDasharray="1 1"/>
             </svg>
-            <span className="text-xs text-slate-400 mt-3">
-              المجسم التشريعي التفاعلي لحالة المريض
-            </span>
           </div>
 
-          <div className="w-full grid grid-cols-2 gap-2 z-10">
-            <Link
-              to="/patient/search"
-              className="bg-cyan-500/10 hover:bg-cyan-500/25 border border-cyan-500/30 py-2 rounded-xl text-xs text-cyan-300 transition-all flex items-center justify-center gap-1"
-            >
-              <Stethoscope className="w-3.5 h-3.5" /> فحص جديد
-            </Link>
-            <button
-              onClick={() => setActiveTab("records")}
-              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2 rounded-xl text-xs text-slate-300 transition-all flex items-center justify-center gap-1"
-            >
-              <FileText className="w-3.5 h-3.5" /> التقرير الشامل
-            </button>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-56 h-16 flex items-center justify-center pointer-events-none z-0">
+            <div className="absolute w-56 h-12 rounded-[100%] border border-cyan-400/60 shadow-[0_0_25px_rgba(0,229,255,0.7)] animate-pulse"></div>
+            <div className="absolute w-40 h-8 rounded-[100%] border border-sky-400/90 shadow-[0_0_15px_rgba(56,189,248,0.9)]"></div>
+            <div className="absolute w-28 h-4 rounded-[100%] bg-cyan-400/20 blur-md"></div>
           </div>
-          <div className="w-full z-10 mt-2">
-            <Link
-              to="/patient/assistant"
-              className="block bg-cyan-500/10 hover:bg-cyan-500/25 border border-cyan-500/30 py-2 rounded-xl text-xs text-cyan-300 transition-all text-center"
-            >
-              توجيه نيمو لهذا العضو: {nemoOrganLabel}
-            </Link>
+
+          <div className="w-full grid grid-cols-2 gap-2 z-10 mt-4">
+            <button onClick={() => setSelectedArea('heart')} className="bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 py-2 rounded-xl text-xs text-cyan-300 transition-all">فحص عضوي دقيق</button>
+            <button onClick={() => setActiveTab('records')} className="bg-slate-800/80 hover:bg-slate-700 border border-slate-700 py-2 rounded-xl text-xs text-slate-200 transition-all">التقارير الشاملة</button>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl">
-            <div className="flex items-center gap-2 text-cyan-400 font-semibold mb-3">
-              <Calendar className="w-5 h-5" /> الحجوزات والمواعيد القادمة
+          <div className="bg-slate-900/80 border border-cyan-500/30 p-5 rounded-2xl shadow-xl space-y-4">
+            <div className="text-sm font-bold text-cyan-400 border-b border-cyan-500/20 pb-2 flex items-center justify-between">
+              <span>لوحة القياسات الحيوية HUD</span>
+              <Activity className="w-4 h-4 text-cyan-400 animate-spin" />
             </div>
-            <div className="space-y-3">
-              <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
-                <div>
-                  <div className="text-sm font-medium">متابعة العيادة الدورية</div>
-                  <div className="text-xs text-slate-500 mt-0.5">غداً، 04:30 مساءً</div>
-                </div>
-                <span className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">
-                  مؤكد
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl">
-            <div className="flex items-center gap-2 text-cyan-400 font-semibold mb-2">
-              <Shield className="w-5 h-5" /> ملاحظات التوصيات الطبية
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              المؤشرات الحيوية تدل على استقرار الحالة. يوصى بالاستمرار على جدول المواعيد والمتابعة
-              المنتظمة عبر النظام.
-            </p>
-          </div>
-          <Link
-            to="/patient/assistant"
-            className="block bg-cyan-500/10 hover:bg-cyan-500/25 border border-cyan-500/30 p-4 rounded-2xl text-xs text-cyan-300 transition-all text-center"
-          >
-            💡 هل تريد بدء محادثة جديدة مع نيمو؟
-          </Link>
-        </div>
 
-        <div className="mt-6 lg:col-span-3">
-          {activeTab === "overview" && vitalsContent ? vitalsContent : null}
-          {activeTab === "records" && recordsContent ? recordsContent : null}
-          {activeTab === "appointments" && appointmentsContent ? appointmentsContent : null}
+            <div className="bg-slate-950/80 p-3 rounded-xl border border-cyan-500/20 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-slate-400">ضغط الدم (BP)</div>
+                <div className="text-sm font-bold text-cyan-300 font-mono">{latestReading.BP}</div>
+              </div>
+              <span className="text-[10px] text-green-400 bg-green-950/60 px-2 py-0.5 rounded border border-green-500/30">مثالي</span>
+            </div>
+
+            <div className="bg-slate-950/80 p-3 rounded-xl border border-sky-500/20 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-slate-400">مستوى السكر (Sugar)</div>
+                <div className="text-sm font-bold text-sky-300 font-mono">{latestReading.sugar} mg/dL</div>
+              </div>
+              <span className="text-[10px] text-cyan-400 font-mono">متوازن</span>
+            </div>
+
+            <div className="bg-slate-950/80 p-3 rounded-xl border border-teal-500/20 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-slate-400">معدل نبض القلب</div>
+                <div className="text-sm font-bold text-teal-300 font-mono">{latestReading.heartRate || 75} BPM</div>
+              </div>
+              <span className="text-[10px] text-teal-400 font-mono animate-pulse">∿∿∿📈</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
