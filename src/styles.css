@@ -647,53 +647,58 @@ body[data-story-open="true"] [data-bottom-nav] {
 @keyframes nemo-breathe {
   0%,
   100% {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
   50% {
-    transform: scale(1.035);
+    transform: scale(1.08) translateY(-2px);
   }
 }
 @keyframes nemo-blink {
   0%,
-  94%,
+  88%,
   100% {
     transform: scaleY(1);
   }
-  96%,
-  98% {
-    transform: scaleY(0.12);
+  92% {
+    transform: scaleY(0.08);
+  }
+  96% {
+    transform: scaleY(1);
   }
 }
-@keyframes nemo-speaking-glow {
+@keyframes nemo-glow-pulse {
   0%,
   100% {
     box-shadow:
-      0 0 22px 2px oklch(0.78 0.11 210 / 0.24),
-      0 24px 55px -24px oklch(0.48 0.1 215 / 0.42);
+      0 0 18px 2px oklch(0.78 0.12 205 / 0.28),
+      0 12px 30px -8px oklch(0.55 0.14 210 / 0.35);
   }
   50% {
     box-shadow:
-      0 0 42px 10px oklch(0.78 0.11 210 / 0.38),
-      0 24px 55px -24px oklch(0.48 0.1 215 / 0.42);
+      0 0 36px 8px oklch(0.78 0.15 205 / 0.52),
+      0 16px 38px -6px oklch(0.55 0.15 210 / 0.5);
   }
 }
+.nemo-speaking-glow {
+  animation: nemo-glow-pulse 2.2s ease-in-out infinite;
+}
 .nemo-breathe {
-  animation: nemo-breathe 5s ease-in-out infinite;
+  animation: nemo-breathe 3.5s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform;
 }
 .nemo-eye {
-  transform-origin: center;
-  animation: nemo-blink 4s ease-in-out infinite;
+  transform-origin: 50% 50%;
+  animation: nemo-blink 3.5s ease-in-out infinite;
+  will-change: transform;
 }
 .nemo-eye:nth-child(2) {
-  animation-delay: 80ms;
+  animation-delay: 90ms;
 }
 .nemo-eye-happy {
   animation: none;
   transform: scaleY(0.2);
   transition: transform 220ms ease;
-}
-.nemo-speaking-glow {
-  animation: nemo-speaking-glow 1.8s ease-in-out infinite;
 }
 .nemo-emergency-flash {
   animation: nemo-emergency-flash 700ms ease-in-out infinite alternate;
@@ -737,7 +742,8 @@ body[data-story-open="true"] [data-bottom-nav] {
   transition: transform 8s ease-in-out;
 }
 .nemo-breath-halo {
-  animation: nemo-breathe 5s ease-in-out infinite;
+  animation: nemo-glow-pulse 3.5s ease-in-out infinite;
+  will-change: box-shadow;
 }
 .nemo-emergency {
   animation: nemo-emergency-pulse 1.8s ease-in-out infinite;
