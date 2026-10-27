@@ -1,7 +1,12 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Activity, Heart, Shield, FileText, Bot, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { Activity, Heart, Bot, AlertTriangle, PlusCircle, MessageCircle } from 'lucide-react';
 import hologramFigure from '@/assets/hologram-figure.png';
 import hologramPlatform from '@/assets/hologram-platform.jpg';
+import {
+  buildOrgans, healthScore, parseReadings, NEMO_PREFILL_KEY, READINGS_KEY,
+  type HealthSnapshot, type OrganId, type OrganStatus, type OrganAction,
+} from '@/lib/organ-insights';
 
 export interface PatientMedicalProfileProps {
   vitalsContent?: React.ReactNode;
@@ -9,39 +14,50 @@ export interface PatientMedicalProfileProps {
   appointmentsContent?: React.ReactNode;
 }
 
-interface SanadReading {
-  BP?: string;
-  sugar?: string | number;
-  heartRate?: number;
-}
+const STATUS_STYLE: Record<OrganStatus, { dot: string; ring: string; text: string; label: string }> = {
+  normal: { dot: 'bg-emerald-400 shadow-[0_0_12px_#34d399]', ring: 'border-emerald-400', text: 'text-emerald-300', label: 'طبيعي' },
+  watch: { dot: 'bg-amber-400 shadow-[0_0_12px_#f59e0b]', ring: 'border-amber-400', text: 'text-amber-300', label: 'يحتاج متابعة' },
+  alert: { dot: 'bg-rose-500 shadow-[0_0_14px_#f43f5e]', ring: 'border-rose-500', text: 'text-rose-300', label: 'تنبيه' },
+  unknown: { dot: 'bg-cyan-300 shadow-[0_0_12px_#00e5ff]', ring: 'border-cyan-300', text: 'text-cyan-200', label: 'لا توجد قراءة' },
+};
 
-export function PatientMedicalProfile({ vitalsContent, recordsContent }: PatientMedicalProfileProps) {
+export function PatientMedicalProfile({ vitalsContent, recordsContent, appointmentsContent }: PatientMedicalProfileProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'appointments' | 'nemo'>('overview');
-  const [patientSession, setPatientSession] = useState<{ name?: string; id?: string }>({});
-  const [latestReading, setLatestReading] = useState<SanadReading>({ BP: '120/80', sugar: '98', heartRate: 75 });
-  const [selectedArea, setSelectedArea] = useState<'heart' | 'throat' | 'head' | null>('throat');
+  const [patientName, setPatientName] = useState<string>('');
+  const [snap, setSnap] = useState<HealthSnapshot>({});
+  const [selected, setSelected] = useState<OrganId>('heart');
 
   useEffect(() => {
     try {
       const session = localStorage.getItem('sanad_patient_session');
-      if (session) setPatientSession(JSON.parse(session));
-      else setPatientSession({ name: 'أسامة محمد', id: 'SANAD-96573' });
-    } catch {
-      setPatientSession({ name: 'أسامة محمد', id: 'SANAD-96573' });
-    }
-
-    try {
-      const saved = localStorage.getItem('sanad_health_readings_v1');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setLatestReading(parsed[parsed.length - 1]);
-        }
-      }
-    } catch {
-      // افتراضي
-    }
+      if (session) setPatientName(JSON.parse(session)?.name ?? '');
+    } catch { /* ignore */ }
+    const load = () => setSnap(parseReadings(localStorage.getItem(READINGS_KEY)));
+    load();
+    // re-read when the calculators below save a new reading
+    const t = window.setInterval(load, 2000);
+    window.addEventListener('storage', load);
+    return () => { window.clearInterval(t); window.removeEventListener('storage', load); };
   }, []);
+
+  const organs = useMemo(() => buildOrgans(snap), [snap]);
+  const organ = organs.find((o) => o.id === selected) ?? organs[0];
+  const score = healthScore(snap);
+  const alerts = organs.filter((o) => o.status === 'alert' || o.status === 'watch');
+  const uniqueAlerts = alerts.filter((o, i) => alerts.findIndex((a) => a.reading === o.reading) === i);
+
+  const runAction = (a: OrganAction) => {
+    if (a.nemo) {
+      try { sessionStorage.setItem(NEMO_PREFILL_KEY, a.nemo); } catch { /* ignore */ }
+      navigate({ to: '/patient/assistant' });
+    } else if (a.measure) {
+      setActiveTab('overview');
+      setTimeout(() => document.getElementById('sanad-vitals')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+  };
+
+  const st = STATUS_STYLE[organ.status];
 
   return (
     <div className="bg-[#0b0f19] text-white min-h-screen p-4 md:p-6 font-sans relative overflow-hidden" dir="rtl">
@@ -51,123 +67,130 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent }: Patient
         <div>
           <span className="text-cyan-400 text-xs font-mono tracking-widest uppercase">منصة سند الطبية • النظام الهولوجرامي الذكي</span>
           <h1 className="text-2xl font-bold mt-1 tracking-wide flex items-center gap-2">
-            الملف الطبي الشامل <span className="text-xs font-normal text-cyan-300 bg-cyan-950/80 px-2.5 py-0.5 rounded-full border border-cyan-500/30">{patientSession.name}</span>
+            ملفك الطبي {patientName && <span className="text-xs font-normal text-cyan-300 bg-cyan-950/80 px-2.5 py-0.5 rounded-full border border-cyan-500/30">{patientName}</span>}
           </h1>
         </div>
-        
-        <div className="flex flex-wrap bg-slate-900/90 border border-cyan-500/30 rounded-xl p-1 gap-1 shadow-[0_0_20px_rgba(0,229,255,0.15)]">
-          <button onClick={() => setActiveTab('overview')} className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === 'overview' ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(0,229,255,0.5)]' : 'text-slate-300 hover:text-white'}`}>المؤشرات</button>
-          <button onClick={() => setActiveTab('records')} className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === 'records' ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(0,229,255,0.5)]' : 'text-slate-300 hover:text-white'}`}>السجلات</button>
-          <button onClick={() => setActiveTab('appointments')} className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === 'appointments' ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(0,229,255,0.5)]' : 'text-slate-300 hover:text-white'}`}>المواعيد</button>
-          <button onClick={() => setActiveTab('nemo')} className={`px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-1 ${activeTab === 'nemo' ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(0,229,255,0.5)]' : 'text-cyan-400 hover:text-white'}`}><Bot className="w-4 h-4" /> نيمو</button>
+        <div className="flex flex-wrap bg-slate-900/90 border border-cyan-500/30 rounded-xl p-1 gap-1">
+          {([['overview', 'المؤشرات'], ['records', 'السجلات'], ['appointments', 'المواعيد'], ['nemo', 'نيمو']] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setActiveTab(k)} className={`px-4 py-2 rounded-lg text-sm transition-all ${activeTab === k ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-300 hover:text-white'}`}>{l}</button>
+          ))}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
-        <div className="space-y-4">
+        <div className="space-y-4 order-2 lg:order-1">
           {activeTab === 'overview' ? (
             <>
-              <div className="bg-slate-900/80 border border-cyan-500/30 p-5 rounded-2xl relative overflow-hidden shadow-lg">
+              <div className="bg-slate-900/80 border border-cyan-500/30 p-5 rounded-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-2 h-full bg-cyan-400"></div>
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-slate-400 text-sm">معدل الصحة العامة الإجمالي</span>
+                  <span className="text-slate-400 text-sm">مؤشر صحتك من قياساتك</span>
                   <Activity className="w-5 h-5 text-cyan-400 animate-pulse" />
                 </div>
-                <div className="text-3xl font-extrabold text-cyan-300 font-mono">102.67</div>
-                <div className="text-xs text-slate-400 mt-1">الضغط: {latestReading.BP}</div>
+                <div className="text-3xl font-extrabold text-cyan-300 font-mono">{score ?? '—'}{score !== null && <span className="text-sm">/100</span>}</div>
+                <div className="text-xs text-slate-400 mt-1">{score === null ? 'سجّل ضغطك أو سكرك ليتكيّف ملفك معك' : 'يتحدّث تلقائياً مع كل قياس جديد'}</div>
               </div>
-
-              <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-lg">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-slate-400 text-sm">مستوى السكر بالدم</span>
-                  <Heart className="w-5 h-5 text-rose-500 animate-ping" />
-                </div>
-                <div className="text-2xl font-bold text-rose-400 font-mono">{latestReading.sugar} <span className="text-xs text-slate-400">mg/dL</span></div>
-              </div>
-
-              <div onClick={() => setSelectedArea('throat')} className="p-4 rounded-xl border border-amber-500/50 bg-amber-500/10 cursor-pointer shadow-lg">
-                <div className="flex items-center gap-2 text-amber-400 font-semibold mb-1 text-sm">
-                  <AlertTriangle className="w-4 h-4 animate-bounce" /> تنبيه تشخيصي: الحنجرة
-                </div>
-                <p className="text-xs text-slate-300">تم رصد توهج بؤري في الحنجرة. انقر للتشخيص الفوري مع نيمو.</p>
-              </div>
+              {uniqueAlerts.length > 0 ? uniqueAlerts.map((o) => (
+                <button key={o.id} onClick={() => setSelected(o.id)} className={`w-full text-right p-4 rounded-xl border ${STATUS_STYLE[o.status].ring}/50 bg-slate-900/70`}>
+                  <div className={`flex items-center gap-2 font-semibold mb-1 text-sm ${STATUS_STYLE[o.status].text}`}>
+                    <AlertTriangle className="w-4 h-4" /> {o.name}: {STATUS_STYLE[o.status].label}
+                  </div>
+                  <p className="text-xs text-slate-300">{o.reading} — اضغط لعرض اقتراحات نيمو.</p>
+                </button>
+              )) : (
+                <div className="p-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-xs text-emerald-200">لا توجد تنبيهات من قياساتك المسجلة.</div>
+              )}
             </>
           ) : (
-            <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl text-sm text-slate-300 shadow-lg">
+            <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl text-sm text-slate-300">
               {activeTab === 'records' && (recordsContent || 'جميع السجلات والفحوصات مؤرشفة بدقة.')}
-              {activeTab === 'appointments' && 'موعدك القادم مع استشاري العيادة غداً الساعة 04:00 مساءً.'}
-              {activeTab === 'nemo' && 'أهلاً بك يا أسامة! أنا نيمو، مؤشراتك مستقرة وجاهز تماماً لمساعدتك.'}
+              {activeTab === 'appointments' && (appointmentsContent || 'لا توجد مواعيد قادمة.')}
+              {activeTab === 'nemo' && (
+                <div className="space-y-3">
+                  <p>اضغط على أي عضو في المجسم، وهختار لك الأسئلة المناسبة عشان تكلم نيمو عنها.</p>
+                  <button onClick={() => runAction({ label: '', nemo: 'أهلاً يا نيمو، عايز أطمن على صحتي' })} className="w-full rounded-xl bg-cyan-500 text-slate-950 font-bold py-2.5 flex items-center justify-center gap-2"><Bot className="w-4 h-4" /> كلم نيمو</button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        <div className="bg-slate-900/40 border border-cyan-500/40 rounded-2xl p-6 flex flex-col items-center justify-between relative min-h-[550px] overflow-hidden backdrop-blur-md shadow-[0_0_30px_rgba(0,229,255,0.15)]">
+        <div className="order-1 lg:order-2 bg-slate-900/40 border border-cyan-500/40 rounded-2xl p-4 flex flex-col items-center relative overflow-hidden backdrop-blur-md">
           <div className="w-full flex justify-between items-center z-10 text-xs font-mono text-cyan-400 border-b border-cyan-500/20 pb-2">
-            <span>ID: {patientSession.id}</span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> هولوجرام نشط 3D</span>
+            <span>اضغط على أي عضو</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> هولوجرام 3D</span>
           </div>
 
-          <div className="relative w-full my-auto z-10 h-[440px] rounded-xl overflow-hidden">
+          <div className="relative w-full z-10 h-[420px] rounded-xl overflow-hidden mt-2">
             <img src={hologramPlatform} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover object-bottom" />
             <div className="hologram-scan absolute inset-x-0 h-16 bg-gradient-to-b from-transparent via-cyan-300/20 to-transparent pointer-events-none z-20" />
             <div className="absolute inset-x-0 mx-auto bottom-[9%] h-[86%] aspect-[318/667] hologram-float z-10">
               <img src={hologramFigure} alt="مجسم هولوجرامي لجسم المريض" className="w-full h-full object-contain opacity-90 drop-shadow-[0_0_18px_rgba(0,229,255,0.55)]" />
-              <button type="button" onClick={() => setSelectedArea('head')} aria-label="الرأس" className="absolute top-[0%] left-[35%] w-[30%] h-[12%] rounded-full" />
-              <button type="button" onClick={() => setSelectedArea('throat')} aria-label="الحنجرة" className="absolute top-[12%] left-[38%] w-[24%] h-[6%] rounded-full" />
-              <button type="button" onClick={() => setSelectedArea('heart')} aria-label="القلب" className="absolute top-[19%] left-[40%] w-[25%] h-[12%] rounded-full" />
-              {selectedArea && (
-                <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{ top: selectedArea === 'head' ? '7%' : selectedArea === 'throat' ? '15%' : '24%' }}>
-                  <div className={`w-8 h-8 rounded-full border-2 animate-ping absolute -inset-2.5 ${selectedArea === 'throat' ? 'border-amber-400' : 'border-cyan-300'}`}></div>
-                  <div className={`w-3 h-3 rounded-full ${selectedArea === 'throat' ? 'bg-amber-400 shadow-[0_0_15px_#f59e0b]' : 'bg-cyan-300 shadow-[0_0_15px_#00e5ff]'}`}></div>
-                  <div className={`absolute top-1 left-4 w-8 h-[1px] ${selectedArea === 'throat' ? 'bg-amber-400' : 'bg-cyan-300'}`}>
-                    <div className={`absolute -top-3 left-8 bg-slate-900/90 border text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap ${selectedArea === 'throat' ? 'border-amber-500 text-amber-300' : 'border-cyan-400 text-cyan-200'}`}>
-                      {selectedArea === 'throat' ? 'تنبيه: التهاب حنجري' : selectedArea === 'heart' ? `القلب • ${latestReading.heartRate ?? 75} BPM` : `الرأس • ضغط ${latestReading.BP ?? '120/80'}`}
-                    </div>
-                  </div>
-                </div>
-              )}
+              {organs.map((o) => {
+                const s = STATUS_STYLE[o.status];
+                const active = o.id === selected;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => setSelected(o.id)}
+                    aria-label={o.name}
+                    aria-pressed={active}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full z-30"
+                    style={{ left: `${o.x}%`, top: `${o.y}%` }}
+                  >
+                    {active && <span className={`absolute inset-0 rounded-full border-2 animate-ping ${s.ring}`} />}
+                    <span className={`rounded-full ${s.dot} ${active ? 'w-3.5 h-3.5' : 'w-2.5 h-2.5 opacity-80'}`} />
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="w-full grid grid-cols-2 gap-2 z-10 mt-4">
-            <button onClick={() => setSelectedArea('throat')} className="bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 py-2 rounded-xl text-xs text-cyan-300 transition-all">فحص عضوي دقيق</button>
-            <button onClick={() => setActiveTab('records')} className="bg-slate-800/80 hover:bg-slate-700 border border-slate-700 py-2 rounded-xl text-xs text-slate-200 transition-all">التقارير الشاملة</button>
+          <div className="w-full mt-3 rounded-xl border border-cyan-500/30 bg-slate-950/80 p-3 z-10">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-bold text-cyan-200">{organ.name}</div>
+              <span className={`text-[11px] px-2 py-0.5 rounded-full border ${st.ring} ${st.text}`}>{st.label}</span>
+            </div>
+            <div className="text-xs text-slate-400 mt-1">{organ.reading}</div>
+            <div className="mt-3 grid gap-2">
+              {organ.actions.map((a) => (
+                <button key={a.label} onClick={() => runAction(a)} className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-100 text-right active:scale-[0.98] transition">
+                  {a.measure ? <PlusCircle className="w-4 h-4 shrink-0" /> : <MessageCircle className="w-4 h-4 shrink-0" />}
+                  <span className="flex-1">{a.label}</span>
+                  {a.nemo && <span className="text-[10px] text-cyan-400">نيمو ←</span>}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-slate-900/80 border border-cyan-500/30 p-5 rounded-2xl shadow-xl space-y-4">
-            <div className="text-sm font-bold text-cyan-400 border-b border-cyan-500/20 pb-2 flex items-center justify-between">
-              <span>لوحة القياسات الحيوية HUD</span>
-              <Activity className="w-4 h-4 text-cyan-400 animate-spin" />
-            </div>
-
-            <div className="bg-slate-950/80 p-3 rounded-xl border border-cyan-500/20 flex items-center justify-between">
-              <div>
-                <div className="text-xs text-slate-400">ضغط الدم (BP)</div>
-                <div className="text-sm font-bold text-cyan-300 font-mono">{latestReading.BP}</div>
-              </div>
-              <span className="text-[10px] text-green-400 bg-green-950/60 px-2 py-0.5 rounded border border-green-500/30">مثالي</span>
-            </div>
-
-            <div className="bg-slate-950/80 p-3 rounded-xl border border-sky-500/20 flex items-center justify-between">
-              <div>
-                <div className="text-xs text-slate-400">مستوى السكر (Sugar)</div>
-                <div className="text-sm font-bold text-sky-300 font-mono">{latestReading.sugar} mg/dL</div>
-              </div>
-              <span className="text-[10px] text-cyan-400 font-mono">متوازن</span>
-            </div>
-
-            <div className="bg-slate-950/80 p-3 rounded-xl border border-teal-500/20 flex items-center justify-between">
-              <div>
-                <div className="text-xs text-slate-400">معدل نبض القلب</div>
-                <div className="text-sm font-bold text-teal-300 font-mono">{latestReading.heartRate || 75} BPM</div>
-              </div>
-              <span className="text-[10px] text-teal-400 font-mono animate-pulse">∿∿∿📈</span>
-            </div>
+        <div className="space-y-4 order-3">
+          <div className="bg-slate-900/80 border border-cyan-500/30 p-5 rounded-2xl space-y-3">
+            <div className="text-sm font-bold text-cyan-400 border-b border-cyan-500/20 pb-2">آخر قياساتك</div>
+            {[
+              { id: 'heart' as const, t: 'ضغط الدم', v: snap.bp ? `${snap.bp.sys}/${snap.bp.dia}` : '—' },
+              { id: 'pancreas' as const, t: 'السكر', v: snap.sugar ? `${snap.sugar.value} mg/dL` : '—' },
+            ].map((r) => {
+              const o = organs.find((x) => x.id === r.id)!;
+              return (
+                <button key={r.id} onClick={() => setSelected(r.id)} className="w-full bg-slate-950/80 p-3 rounded-xl border border-cyan-500/20 flex items-center justify-between">
+                  <div className="text-right">
+                    <div className="text-xs text-slate-400">{r.t}</div>
+                    <div className="text-sm font-bold text-cyan-300 font-mono">{r.v}</div>
+                  </div>
+                  <span className={`text-[10px] ${STATUS_STYLE[o.status].text}`}>{STATUS_STYLE[o.status].label}</span>
+                </button>
+              );
+            })}
+            <Heart className="hidden" />
           </div>
         </div>
       </div>
+
+      {activeTab === 'overview' && vitalsContent && (
+        <div id="sanad-vitals" className="relative z-10 mt-6 scroll-mt-4">{vitalsContent}</div>
+      )}
     </div>
   );
 }
