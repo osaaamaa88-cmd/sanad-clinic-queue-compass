@@ -846,3 +846,9 @@ body[data-story-open="true"] [data-bottom-nav] {
   font-family: "Marhey", sans-serif;
   font-weight: 600;
 }
+
+@keyframes hologram-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes hologram-scan { 0% { top: -10%; } 100% { top: 100%; } }
+.hologram-float { animation: hologram-float 4s ease-in-out infinite; }
+.hologram-scan { animation: hologram-scan 3.5s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .hologram-float, .hologram-scan { animation: none; } }
