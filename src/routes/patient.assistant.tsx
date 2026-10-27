@@ -254,6 +254,17 @@ function Assistant() {
   const navigate = useNavigate();
   const router = useRouter();
   const [need, setNeed] = useState("");
+  useEffect(() => {
+    try {
+      const pre = sessionStorage.getItem("sanad_nemo_prefill");
+      if (pre) {
+        sessionStorage.removeItem("sanad_nemo_prefill");
+        setNeed(pre);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
   const [loc, setLoc] = useState<PatientLocation>(defaultLocation);
   const [picker, setPicker] = useState(false);
   const [analyzingImage, setAnalyzingImage] = useState(false);

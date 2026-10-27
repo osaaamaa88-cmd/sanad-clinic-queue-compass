@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
+import hologramFigure from "@/assets/hologram-figure.png";
 import { specialties, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
 const StoryViewer = lazy(() =>
@@ -152,6 +153,17 @@ function PatientHome() {
           تغيير ▾
         </span>
       </button>
+      <Link
+        to="/patient/health"
+        className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-primary/40 bg-gradient-to-l from-primary/15 to-card p-3 text-right shadow-soft transition active:scale-[0.98] hover:border-primary"
+      >
+        <img src={hologramFigure} alt="" aria-hidden className="h-14 w-8 object-contain drop-shadow-[0_0_8px_var(--color-primary)]" />
+        <span className="flex-1">
+          <span className="block text-sm font-bold">ملفك الطبي التفاعلي</span>
+          <span className="block text-xs text-muted-foreground">اضغط على أي عضو وتابع ضغطك وسكرك مع نيمو</span>
+        </span>
+        <HeartPulse className="h-5 w-5 shrink-0 text-primary" />
+      </Link>
       <Link
         to="/patient/assistant"
         className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-3 text-right transition hover:border-primary"
