@@ -119,8 +119,8 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent }: Patient
                 <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{ top: selectedArea === 'head' ? '7%' : selectedArea === 'throat' ? '15%' : '24%' }}>
                   <div className={`w-8 h-8 rounded-full border-2 animate-ping absolute -inset-2.5 ${selectedArea === 'throat' ? 'border-amber-400' : 'border-cyan-300'}`}></div>
                   <div className={`w-3 h-3 rounded-full ${selectedArea === 'throat' ? 'bg-amber-400 shadow-[0_0_15px_#f59e0b]' : 'bg-cyan-300 shadow-[0_0_15px_#00e5ff]'}`}></div>
-                  <div className={`absolute top-1 left-4 w-16 h-[1px] ${selectedArea === 'throat' ? 'bg-amber-400' : 'bg-cyan-300'}`}>
-                    <div className={`absolute -top-3 left-16 bg-slate-900/90 border text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap ${selectedArea === 'throat' ? 'border-amber-500 text-amber-300' : 'border-cyan-400 text-cyan-200'}`}>
+                  <div className={`absolute top-1 left-4 w-8 h-[1px] ${selectedArea === 'throat' ? 'bg-amber-400' : 'bg-cyan-300'}`}>
+                    <div className={`absolute -top-3 left-8 bg-slate-900/90 border text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap ${selectedArea === 'throat' ? 'border-amber-500 text-amber-300' : 'border-cyan-400 text-cyan-200'}`}>
                       {selectedArea === 'throat' ? 'تنبيه: التهاب حنجري' : selectedArea === 'heart' ? `القلب • ${latestReading.heartRate ?? 75} BPM` : `الرأس • ضغط ${latestReading.BP ?? '120/80'}`}
                     </div>
                   </div>
