@@ -110,7 +110,7 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent }: Patient
           <div className="relative w-full my-auto z-10 h-[440px] rounded-xl overflow-hidden">
             <img src={hologramPlatform} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover object-bottom" />
             <div className="hologram-scan absolute inset-x-0 h-16 bg-gradient-to-b from-transparent via-cyan-300/20 to-transparent pointer-events-none z-20" />
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-[9%] h-[86%] aspect-[318/667] hologram-float z-10">
+            <div className="absolute left-1/2 bottom-[9%] h-[86%] aspect-[318/667] hologram-float z-10">
               <img src={hologramFigure} alt="مجسم هولوجرامي لجسم المريض" className="w-full h-full object-contain opacity-90 drop-shadow-[0_0_18px_rgba(0,229,255,0.55)]" />
               <button type="button" onClick={() => setSelectedArea('head')} aria-label="الرأس" className="absolute top-[0%] left-[35%] w-[30%] h-[12%] rounded-full" />
               <button type="button" onClick={() => setSelectedArea('throat')} aria-label="الحنجرة" className="absolute top-[12%] left-[38%] w-[24%] h-[6%] rounded-full" />
