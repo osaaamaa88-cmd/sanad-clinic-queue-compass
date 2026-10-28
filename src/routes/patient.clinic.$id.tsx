@@ -281,6 +281,7 @@ function ClinicDetail() {
         clinicName: clinic.doctor,
         dayLabel,
         slot,
+        queueNumber: b.queueNumber,
       });
       setBookingCode(b.code);
       setBooked(true);
