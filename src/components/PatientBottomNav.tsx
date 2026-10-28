@@ -46,9 +46,9 @@ export function PatientBottomNav() {
     <nav
       aria-label="التنقل الرئيسي للمريض"
       data-bottom-nav
-      className="fixed inset-x-0 bottom-0 z-[80] border-t border-border/40 bg-card/75 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-soft backdrop-blur-2xl backdrop-saturate-150 md:inset-x-auto md:bottom-4 md:left-1/2 md:w-full md:max-w-lg md:-translate-x-1/2 md:rounded-2xl md:border md:shadow-lg"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto grid h-16 max-w-xl grid-cols-5 px-1">
+      <div className="pointer-events-auto grid h-16 w-full max-w-md grid-cols-5 rounded-full border border-border/50 bg-card/70 px-2 shadow-lg backdrop-blur-2xl backdrop-saturate-150">
         {items.map((item) => {
           const active = item.matches(pathname);
           const Icon = item.icon;
@@ -58,13 +58,10 @@ export function PatientBottomNav() {
               to={item.to}
               activeOptions={{ exact: true }}
               aria-current={active ? "page" : undefined}
-              className={`group relative flex min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-bold transition-all duration-200 active:scale-90 ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={`group relative flex min-w-0 flex-col items-center justify-center gap-0.5 text-[10px] font-bold transition-all duration-200 active:scale-90 ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
               <span
-                className={`absolute top-0 h-0.5 w-8 rounded-full bg-primary transition-opacity ${active ? "opacity-100" : "opacity-0"}`}
-              />
-              <span
-                className={`grid h-8 w-12 place-items-center rounded-full transition-colors ${active ? "bg-primary-soft" : "bg-transparent group-hover:bg-secondary"}`}
+                className={`grid h-9 w-14 place-items-center rounded-full transition-all duration-300 ${active ? "bg-primary-soft shadow-soft" : "bg-transparent group-hover:bg-secondary"}`}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.6 : 2} />
               </span>

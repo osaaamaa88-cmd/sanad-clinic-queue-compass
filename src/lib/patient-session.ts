@@ -94,6 +94,8 @@ export type SavedBooking = {
   clinicName: string;
   dayLabel: string;
   slot: string;
+  /** Queue number returned at booking time; absent on bookings saved before this field existed. */
+  queueNumber?: number;
   savedAt: number;
 };
 
