@@ -10,14 +10,16 @@ const POLL_MS = 20000;
 /** Live queue tracker shown on the patient home when a booking was made on this device. */
 export function QueueTrackerCard() {
   const [clinic, setClinic] = useState<Clinic | null>(null);
+  const [myNumber, setMyNumber] = useState(0);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const latest = getSavedBookings()[0];
+    const latest = getSavedBookings().find((b) => (b.queueNumber ?? 0) > 0);
     if (!latest) {
       setChecked(true);
       return;
     }
+    setMyNumber(latest.queueNumber ?? 0);
     let cancelled = false;
     const tick = async () => {
       const c = await getVerifiedClinic(latest.clinicId);
@@ -39,9 +41,11 @@ export function QueueTrackerCard() {
       <div className="mt-3 h-28 animate-pulse rounded-3xl border border-border/50 bg-card/60" />
     );
   }
-  if (!clinic || !clinic.yourNumber) return null;
+  if (!clinic || !myNumber) return null;
+  // Hide once the visit is well past (clinic moved 3+ numbers beyond ours).
+  if ((clinic.nowServing ?? 0) > myNumber + 2) return null;
 
-  const state = computeQueueState(clinic.nowServing, clinic.yourNumber);
+  const state = computeQueueState(clinic.nowServing ?? 0, myNumber);
 
   return (
     <Link
