@@ -498,8 +498,8 @@ function ClinicDetail() {
                 الكشف {clinic.price} ج
               </span>
             ) : null}
-            <span className="rounded-full border border-dashed border-border px-2.5 py-0.5 text-muted-foreground">
-              متابعة الدور (قريباً)
+            <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-primary">
+              بيكشف دلوقتي على #{clinic.nowServing}
             </span>
             <span className="ms-auto">
               <NotificationsBell
@@ -674,11 +674,11 @@ function ClinicDetail() {
           </button>
           <button
             type="button"
-            disabled
-            title="الحجز أونلاين قريباً"
-            className="flex cursor-not-allowed items-center justify-center gap-1 rounded-lg border border-dashed border-border py-2 text-[11px] font-extrabold text-muted-foreground"
+            onClick={() => setTab("book")}
+            disabled={clinic.bookingsClosed}
+            className="flex items-center justify-center gap-1 rounded-lg bg-primary py-2 text-[11px] font-extrabold text-primary-foreground transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <CalendarPlus className="h-4 w-4" /> حجز (قريباً)
+            <CalendarPlus className="h-4 w-4" /> {clinic.bookingsClosed ? "الحجز مقفول" : "احجز دورك"}
           </button>
         </div>
 
@@ -1199,12 +1199,20 @@ function ClinicDetail() {
           </div>
 
           {/* Confirm */}
-          <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-border bg-card/95 p-4 backdrop-blur">
+          <div className="fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[85] mx-auto max-w-md px-4">
             <button
-              disabled
-              className="w-full cursor-not-allowed rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft opacity-50"
+              type="button"
+              onClick={() => void confirmBooking()}
+              disabled={!slot || submitting || clinic.bookingsClosed}
+              className="w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-primary-foreground shadow-soft transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              الحجز أونلاين قريباً ⏳ — كلّم العيادة مباشرة
+              {clinic.bookingsClosed
+                ? "الحجز مقفول دلوقتي — كلّم العيادة"
+                : submitting
+                  ? "جاري تأكيد الحجز…"
+                  : slot
+                    ? `أكّد الحجز — ${slot}`
+                    : "اختار الساعة الأول"}
             </button>
           </div>
         </>

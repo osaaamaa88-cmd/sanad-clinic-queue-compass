@@ -16,6 +16,7 @@ import {
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
 import { QueueTrackerCard } from "@/components/QueueTrackerCard";
+import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
 import hologramFigure from "@/assets/hologram-figure.png";
 import { specialties, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -155,6 +156,7 @@ function PatientHome() {
         </span>
       </button>
       <QueueTrackerCard />
+      <HealthActivityCarousel />
       <Link
         to="/patient/health"
         className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-primary/40 bg-gradient-to-l from-primary/15 to-card p-3 text-right shadow-soft transition active:scale-[0.98] hover:border-primary"
