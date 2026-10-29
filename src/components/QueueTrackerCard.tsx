@@ -74,7 +74,7 @@ export function QueueTrackerCard() {
       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-primary-soft/50 px-2 py-2.5">
           <p className="text-[10px] font-bold text-muted-foreground">رقم دورك</p>
-          <p className="mt-0.5 text-2xl font-black text-primary">{clinic.yourNumber}</p>
+          <p className="mt-0.5 text-2xl font-black text-primary">{myNumber}</p>
         </div>
         <div className="rounded-2xl bg-secondary/60 px-2 py-2.5">
           <p className="text-[10px] font-bold text-muted-foreground">جوه دلوقتي</p>
