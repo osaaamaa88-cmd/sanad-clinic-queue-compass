@@ -1199,7 +1199,7 @@ function ClinicDetail() {
           </div>
 
           {/* Confirm */}
-          <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md border-t border-border bg-card/95 p-4 backdrop-blur">
+          <div className="fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[85] mx-auto max-w-md px-4">
             <button
               type="button"
               onClick={() => void confirmBooking()}
