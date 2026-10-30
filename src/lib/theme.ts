@@ -21,12 +21,10 @@ export function useTheme() {
   }, []);
 
   const toggle = () => {
-    setMode((prev) => {
-      const next: ThemeMode = prev === "dark" ? "light" : "dark";
-      localStorage.setItem(KEY, next);
-      applyTheme(next);
-      return next;
-    });
+    const next: ThemeMode = document.documentElement.classList.contains("light") ? "dark" : "light";
+    localStorage.setItem(KEY, next);
+    applyTheme(next);
+    setMode(next);
   };
 
   return { mode, toggle };
