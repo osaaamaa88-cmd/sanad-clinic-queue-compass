@@ -66,6 +66,7 @@ function PatientHome() {
     if (doctorClinicId) void goDoctor({ to: "/doctor", replace: true });
   }, [doctorClinicId, goDoctor]);
   const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [clinicsLoaded, setClinicsLoaded] = useState(false);
   const [profiles, setProfiles] = useState<Record<string, ClinicProfileExtras>>({});
   const [stories, setStories] = useState<Record<string, StoryItem[]>>({});
   const [viewer, setViewer] = useState<{ clinic: Clinic; items: StoryItem[] } | null>(null);
@@ -83,6 +84,7 @@ function PatientHome() {
     queryClient.fetchQuery(clinicsQuery).then(async (list) => {
       if (cancelled) return;
       setClinics(list);
+      setClinicsLoaded(true);
       const visible = list.slice(0, 10);
       const results = await Promise.all(
         visible.map(async (clinic) => {
@@ -351,7 +353,25 @@ function PatientHome() {
             </Button>
           </div>
         )}
-        {recommended.length === 0 ? (
+        {!clinicsLoaded ? (
+          <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="جاري تحميل العيادات">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="rounded-2xl border border-border/50 bg-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="shimmer h-14 w-14 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="shimmer h-4 w-2/3 rounded-md" />
+                    <div className="shimmer h-3 w-1/2 rounded-md" />
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <div className="shimmer h-8 flex-1 rounded-full" />
+                  <div className="shimmer h-8 w-20 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : recommended.length === 0 ? (
           <div className="mt-3 rounded-xl border-2 border-dashed border-border bg-card p-7 text-center">
             <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
               <Hospital className="h-6 w-6" />
