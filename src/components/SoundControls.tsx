@@ -54,7 +54,7 @@ export function ThemeSetting() {
   return (
     <button
       type="button"
-      onClick={toggle}
+      onClick={(e) => circularReveal(e, toggle)}
       role="switch"
       aria-checked={dark}
       className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-start"
