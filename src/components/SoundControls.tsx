@@ -1,5 +1,5 @@
 import { AlarmClockOff, Moon, Sun, Volume2, VolumeX } from "lucide-react";
-import { useTheme } from "@/lib/theme";
+import { circularReveal, useTheme } from "@/lib/theme";
 import { stopAlarm, useAlarmActive, useSoundOn } from "@/lib/sounds";
 
 /** Settings row: turn app sounds on/off. */
@@ -54,7 +54,7 @@ export function ThemeSetting() {
   return (
     <button
       type="button"
-      onClick={toggle}
+      onClick={(e) => circularReveal(e, toggle)}
       role="switch"
       aria-checked={dark}
       className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-start"

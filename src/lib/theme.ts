@@ -21,13 +21,29 @@ export function useTheme() {
   }, []);
 
   const toggle = () => {
-    setMode((prev) => {
-      const next: ThemeMode = prev === "dark" ? "light" : "dark";
-      localStorage.setItem(KEY, next);
-      applyTheme(next);
-      return next;
-    });
+    const next: ThemeMode = document.documentElement.classList.contains("light") ? "dark" : "light";
+    localStorage.setItem(KEY, next);
+    applyTheme(next);
+    setMode(next);
   };
 
   return { mode, toggle };
+}
+
+type VTDoc = Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void> } };
+
+/** Runs a theme toggle with a circular reveal expanding from the tap point. */
+export function circularReveal(e: { clientX: number; clientY: number }, run: () => void) {
+  const doc = document as VTDoc;
+  if (!doc.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return run();
+  const x = e.clientX || window.innerWidth / 2;
+  const y = e.clientY || window.innerHeight / 2;
+  const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+  const t = doc.startViewTransition(run);
+  void t.ready.then(() => {
+    document.documentElement.animate(
+      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+      { duration: 550, easing: "cubic-bezier(0.32, 0.72, 0, 1)", pseudoElement: "::view-transition-new(root)" },
+    );
+  });
 }
