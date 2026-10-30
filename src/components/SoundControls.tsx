@@ -1,5 +1,5 @@
 import { AlarmClockOff, Moon, Sun, Volume2, VolumeX } from "lucide-react";
-import { useTheme } from "@/lib/theme";
+import { circularReveal, useTheme } from "@/lib/theme";
 import { stopAlarm, useAlarmActive, useSoundOn } from "@/lib/sounds";
 
 /** Settings row: turn app sounds on/off. */
