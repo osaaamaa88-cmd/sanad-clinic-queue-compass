@@ -139,7 +139,12 @@ function PatientHome() {
     <AppShell
       title="سند | SANAD"
       tone="primary"
-      right={<NotificationsBell audience="patient" />}
+      right={
+        <>
+          <ThemeToggle />
+          <NotificationsBell audience="patient" />
+        </>
+      }
       wide
       hideBack
       centeredTitle
