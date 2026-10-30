@@ -64,7 +64,7 @@ export function AppShell({
         className={`mx-auto w-full ${wide ? "max-w-7xl" : "max-w-xl md:max-w-2xl lg:max-w-3xl"} ${fullHeight ? "flex h-full flex-col" : ""}`}
       >
         <header
-          className={`sticky inset-x-0 top-0 z-50 grid w-full transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"} min-h-16 items-center gap-2 px-4 py-3 pb-[max(0.25rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 sm:py-4 ${fullHeight ? "shrink-0" : ""} ${centeredTitle ? "grid-cols-[2.75rem_minmax(0,1fr)_2.75rem]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
+          className={`sticky inset-x-0 top-0 z-50 grid w-full transition-transform duration-300 ${hidden ? "-translate-y-full" : "translate-y-0"} min-h-16 items-center gap-2 px-4 py-3 pb-[max(0.25rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 sm:py-4 ${fullHeight ? "shrink-0" : ""} ${centeredTitle ? "grid-cols-[2.75rem_minmax(0,1fr)_auto]" : "grid-cols-[auto_minmax(0,1fr)_auto]"} ${
             isPrimary
               ? "gradient-primary text-primary-foreground"
               : "border-b border-border/40 bg-card/70 backdrop-blur-2xl backdrop-saturate-150"

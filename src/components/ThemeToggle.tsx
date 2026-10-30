@@ -12,7 +12,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       onClick={onClick}
       aria-label={mode === "dark" ? "تشغيل الوضع النهاري" : "تشغيل الوضع المظلم"}
       title={mode === "dark" ? "الوضع النهاري" : "الوضع المظلم"}
-      className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border bg-secondary text-foreground transition-transform active:scale-90 ${className}`}
+      className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-card/70 text-primary backdrop-blur transition-transform active:scale-90 ${className}`}
     >
       {mode === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>
