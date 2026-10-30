@@ -20,6 +20,7 @@ import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
 import hologramFigure from "@/assets/hologram-figure.png";
 import { specialties, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { ThemeToggle } from "@/components/ThemeToggle";
 const StoryViewer = lazy(() =>
   import("@/components/StoryViewer").then((m) => ({ default: m.StoryViewer })),
 );
