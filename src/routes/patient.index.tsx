@@ -4,13 +4,18 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Building2,
+  CalendarPlus,
+  ClipboardList,
   Clock,
   Globe2,
   HeartPulse,
   Hospital,
   MapPin,
+  MessageCircleHeart,
   Search,
+  Sparkles,
   Star,
+  Siren,
   X,
 } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
@@ -30,6 +35,7 @@ import { getClinicProfileExtras, type ClinicProfileExtras } from "@/lib/clinic-p
 import { getClinicStories, type StoryItem } from "@/lib/stories";
 import { Button } from "@/components/ui/button";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
+import { getPatientSession } from "@/lib/patient-session";
 import {
   defaultLocation,
   distanceKm,
@@ -37,6 +43,42 @@ import {
   savePatientLocation,
   type PatientLocation,
 } from "@/lib/patient-location";
+
+// ===== شبكة الخدمات السريعة: تعريف ثابت خارج المكوّن لتجنّب إعادة الإنشاء =====
+const quickActions = [
+  {
+    to: "/patient/search",
+    label: "حجز عيادة",
+    hint: "دوّر على أقرب طبيب",
+    icon: CalendarPlus,
+    tone: "bg-primary-soft text-primary",
+    badge: undefined,
+  },
+  {
+    to: "/patient/assistant",
+    label: "اسأل نيمو",
+    hint: "مساعدك الذكي 24 ساعة",
+    icon: MessageCircleHeart,
+    tone: "bg-success/15 text-success",
+    badge: "نبض ذكي",
+  },
+  {
+    to: "/patient/emergency",
+    label: "طوارئ 123",
+    hint: "مساعدة فورية الآن",
+    icon: Siren,
+    tone: "bg-destructive/10 text-destructive",
+    badge: undefined,
+  },
+  {
+    to: "/patient/meds",
+    label: "الروشتة والتحاليل",
+    hint: "فحص علاجك وتحاليلك",
+    icon: ClipboardList,
+    tone: "bg-warning/15 text-warning",
+    badge: undefined,
+  },
+] as const;
 
 export const Route = createFileRoute("/patient/")({
   staticData: { sitemap: true },
@@ -75,9 +117,20 @@ function PatientHome() {
   const [specialtiesOpen, setSpecialtiesOpen] = useState(false);
   const [location, setLocation] = useState<PatientLocation>(defaultLocation);
   const [locOpen, setLocOpen] = useState(false);
+  const [patientName, setPatientName] = useState<string>("");
   const queryClient = useQueryClient();
   useEffect(() => {
     setLocation(getPatientLocation());
+    // اسم المريض للتحية الشخصية في الهيدر (زائر أو عبر جوجل)
+    setPatientName(getPatientSession()?.name?.trim() || "");
+  }, []);
+
+  // تحية حسب توقيت اليوم (صباحاً / مساءً)
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "صباح الخير";
+    if (hour < 17) return "طاب يومك";
+    return "مساء الخير";
   }, []);
 
   useEffect(() => {
@@ -150,44 +203,105 @@ function PatientHome() {
       hideBack
       centeredTitle
     >
-      <button
-        type="button"
-        onClick={() => setLocOpen(true)}
-        className="flex w-full items-center gap-2 rounded-full border border-border/50 bg-card/80 px-3 py-2 backdrop-blur-xl active:scale-[0.98] text-right shadow-soft transition hover:border-primary/50"
-      >
-        <MapPin className="h-4 w-4 shrink-0 text-primary" />
-        <span className="min-w-0 flex-1 truncate text-sm font-bold">
-          {location.name}، {location.city}
-        </span>
-        <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-[11px] font-bold text-primary">
-          تغيير ▾
-        </span>
-      </button>
+      {/* ===== الهيدر الزجاجي (Hero Status Card) =====
+        كارت زجاجي ناعم بتحية شخصية واسم المريض وزر تغيير الموقع */}
+      <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-card/80 p-4 shadow-soft backdrop-blur-xl backdrop-saturate-150">
+        {/* توهج خلفي هادئ لإحساس الزجاج العميق */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-16 -left-10 h-44 w-44 rounded-full bg-primary/15 blur-3xl"
+        />
+        <div className="relative flex items-center gap-3">
+          {/* صورة رمزية دائرية بحافة متدرجة */}
+          <span
+            aria-hidden="true"
+            className="gradient-primary grid h-12 w-12 shrink-0 place-items-center rounded-full text-lg font-extrabold text-primary-foreground shadow-soft"
+          >
+            {(patientName || "ز").slice(0, 1)}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
+              {greeting}
+              <Sparkles className="h-3 w-3 text-primary" />
+            </p>
+            <p className="truncate text-base font-extrabold">
+              {patientName ? patientName.split(" ")[0] : "أهلاً بك في سند"}
+            </p>
+          </div>
+          {/* زر تغيير الموقع الجغرافي */}
+          <button
+            type="button"
+            onClick={() => setLocOpen(true)}
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-background/60 px-3 py-2 text-right shadow-soft backdrop-blur-xl transition hover:border-primary/50 active:scale-[0.97]"
+            aria-label="تغيير الموقع الجغرافي"
+          >
+            <MapPin className="h-4 w-4 shrink-0 text-primary" />
+            <span className="max-w-[9rem] truncate text-xs font-bold">{location.city}</span>
+            <span className="text-[10px] text-muted-foreground">▾</span>
+          </button>
+        </div>
+      </section>
+
+      {/* ===== تتبع الحجز والدور المباشر ===== */}
       <QueueTrackerCard />
       <HealthActivityCarousel />
+      {/* ===== شبكة الخدمات السريعة (Quick Medical Grid 2x2) ===== */}
+      <section aria-label="الخدمات السريعة" className="mt-4 grid grid-cols-2 gap-3">
+        {quickActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link
+              key={action.to}
+              to={action.to}
+              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 p-3.5 text-right shadow-soft backdrop-blur-xl backdrop-saturate-150 transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg active:scale-[0.97]"
+            >
+              <span className="flex items-start justify-between">
+                <span
+                  className={`grid h-10 w-10 place-items-center rounded-xl shadow-soft ${action.tone}`}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+                {/* شارة نبض ذكية لخدمة نيمو فقط */}
+                {action.badge && (
+                  <span className="flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-[9px] font-extrabold text-primary">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+                    </span>
+                    {action.badge}
+                  </span>
+                )}
+              </span>
+              <span className="mt-2.5 block truncate text-[13px] font-extrabold">
+                {action.label}
+              </span>
+              <span className="mt-0.5 block truncate text-[10px] font-medium text-muted-foreground">
+                {action.hint}
+              </span>
+            </Link>
+          );
+        })}
+      </section>
+
+      {/* ===== كارت المتابعة الصحية والمجسم (Health & Hologram Banner) =====
+        يربط مباشرة بالملف الطبي الهولوجرامي مع ملخص سريع للمؤشرات */}
       <Link
         to="/patient/health"
-        className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-primary/40 bg-gradient-to-l from-primary/15 to-card p-3 text-right shadow-soft transition active:scale-[0.98] hover:border-primary"
+        className="relative mt-4 flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-l from-primary/15 via-primary/5 to-card p-3.5 text-right shadow-soft backdrop-blur-xl transition active:scale-[0.98] hover:border-primary"
       >
-        <img src={hologramFigure} alt="" aria-hidden className="h-14 w-8 object-contain drop-shadow-[0_0_8px_var(--color-primary)]" />
-        <span className="flex-1">
-          <span className="block text-sm font-bold">ملفك الطبي التفاعلي</span>
-          <span className="block text-xs text-muted-foreground">اضغط على أي عضو وتابع ضغطك وسكرك مع نيمو</span>
-        </span>
-        <HeartPulse className="h-5 w-5 shrink-0 text-primary" />
-      </Link>
-      <Link
-        to="/patient/assistant"
-        className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 p-3 text-right transition hover:border-primary"
-      >
-        <span className="text-2xl">🤖</span>
-        <span className="flex-1">
-          <span className="block text-sm font-bold">مش عارف تروح لأنهي دكتور؟</span>
-          <span className="block text-xs text-muted-foreground">
-            اكتب اللي بتحس بيه والمساعد الذكي يرشّح لك
+        <img
+          src={hologramFigure}
+          alt=""
+          aria-hidden
+          className="h-14 w-8 shrink-0 object-contain drop-shadow-[0_0_8px_var(--color-primary)]"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-extrabold">متابعتك الصحية والمجسم</span>
+          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+            اضغط على أي عضو وتابع ضغطك وسكرك مع نيمو
           </span>
         </span>
-        <span className="text-xs font-bold text-primary">جرّب ←</span>
+        <HeartPulse className="h-5 w-5 shrink-0 animate-pulse text-primary" />
       </Link>
       {locOpen && (
         <LocationPickerModal
@@ -360,7 +474,11 @@ function PatientHome() {
           </div>
         )}
         {!clinicsLoaded ? (
-          <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-busy="true" aria-label="جاري تحميل العيادات">
+          <div
+            className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+            aria-busy="true"
+            aria-label="جاري تحميل العيادات"
+          >
             {[0, 1, 2].map((i) => (
               <div key={i} className="rounded-2xl border border-border/50 bg-card p-4">
                 <div className="flex items-center gap-3">
