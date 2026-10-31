@@ -376,7 +376,7 @@ function PatientHome() {
 
         {/* الكارت السفلي الأيسر — فحص الروشتة والتحاليل MedScan */}
         <Link
-          to="/patient/assistant?scan=prescription"
+          to="/patient/medscan"
           className="glass-liquid flex flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-right shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.97]"
         >
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-success/15 text-success">
