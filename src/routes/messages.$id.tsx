@@ -1,3 +1,4 @@
+import { defaultDoctorAvatar, DEFAULT_PATIENT_AVATAR } from "@/lib/default-avatars";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -336,13 +337,7 @@ function ChatScreen() {
         >
           <ArrowRight className="h-5 w-5" />
         </Link>
-        {peer.avatar ? (
-          <img src={peer.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
-        ) : (
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-primary-soft font-extrabold text-primary">
-            {(peer.name || "؟").slice(0, 1)}
-          </span>
-        )}
+        <img src={peer.avatar || (amClinic ? DEFAULT_PATIENT_AVATAR : defaultDoctorAvatar(peer.name))} alt="" className="h-10 w-10 rounded-full object-cover" />
         <div className="min-w-0 flex-1">
           <p className="truncate font-extrabold">{peer.name || "…"}</p>
           <p className="text-[11px] text-muted-foreground">بترد عادةً خلال ساعات العمل</p>
