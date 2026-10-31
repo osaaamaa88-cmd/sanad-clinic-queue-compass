@@ -48,7 +48,7 @@ export function PatientBottomNav() {
       data-bottom-nav
       className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] mb-3"
     >
-      <div className="pointer-events-auto grid h-16 w-full max-w-md grid-cols-5 rounded-full border border-border/60 bg-card/85 px-2 shadow-lg backdrop-blur-xl backdrop-saturate-150">
+      <div className="glass-ios-card pointer-events-auto grid h-16 w-full max-w-md grid-cols-5 rounded-full border border-border/60 px-2 shadow-lg">
         {items.map((item) => {
           const active = item.matches(pathname);
           const Icon = item.icon;

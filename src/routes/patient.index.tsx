@@ -205,7 +205,7 @@ function PatientHome() {
     >
       {/* ===== الهيدر الزجاجي (Hero Status Card) =====
         كارت زجاجي ناعم بتحية شخصية واسم المريض وزر تغيير الموقع */}
-      <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-card/80 p-4 shadow-soft backdrop-blur-xl backdrop-saturate-150">
+      <section className="glass-ios-card relative overflow-hidden rounded-3xl border border-border/60 p-4 shadow-soft">
         {/* توهج خلفي هادئ لإحساس الزجاج العميق */}
         <div
           aria-hidden="true"
@@ -253,7 +253,7 @@ function PatientHome() {
             <Link
               key={action.to}
               to={action.to}
-              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 p-3.5 text-right shadow-soft backdrop-blur-xl backdrop-saturate-150 transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg active:scale-[0.97]"
+              className="glass-ios-card group relative overflow-hidden rounded-2xl border border-border/60 p-3.5 text-right shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg active:scale-[0.97]"
             >
               <span className="flex items-start justify-between">
                 <span
