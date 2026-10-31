@@ -1,3 +1,4 @@
+import { defaultDoctorAvatar } from "@/lib/default-avatars";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { BadgeCheck, Clock, MapPin, Search as SearchIcon, Stethoscope, X } from "lucide-react";
@@ -35,18 +36,11 @@ function Avatar({
       style={{ width: size, height: size }}
     >
       <span className="grid h-full w-full place-items-center overflow-hidden rounded-full border-2 border-background bg-secondary">
-        {d.avatarUrl ? (
-          <img
-            src={d.avatarUrl}
+        <img src={d.avatarUrl || defaultDoctorAvatar(d.doctor)}
             alt={d.doctor}
             loading="lazy"
             className="h-full w-full object-cover"
           />
-        ) : (
-          <span className="text-lg font-extrabold text-primary">
-            {d.doctor.replace(TITLE_PREFIX, "").charAt(0) || "د"}
-          </span>
-        )}
       </span>
     </span>
   );
