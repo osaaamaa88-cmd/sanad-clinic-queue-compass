@@ -4,6 +4,7 @@ import { ChevronLeft, Clock, Users } from "lucide-react";
 import { getVerifiedClinic, type Clinic } from "@/lib/mock-data";
 import { getSavedBookings } from "@/lib/patient-session";
 import { computeQueueState } from "@/lib/queue-tracker";
+import { BorderBeam } from "@/components/BorderBeam";
 
 const POLL_MS = 20000;
 
@@ -52,8 +53,10 @@ export function QueueTrackerCard() {
       to="/patient/queue/$id"
       params={{ id: clinic.id }}
       aria-label={`متابعة دورك في عيادة ${clinic.doctor}`}
-      className="mt-3 block rounded-3xl border border-primary/30 bg-gradient-to-b from-card/90 to-card/60 p-4 text-right shadow-soft backdrop-blur-xl transition active:scale-[0.98] hover:border-primary/60"
+      className="relative mt-3 block overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-b from-card/90 to-card/60 p-4 text-right shadow-soft backdrop-blur-xl transition active:scale-[0.98] hover:border-primary/60"
     >
+      {/* الهالة الدوّارة على حواف الكارت — تعبير عن "المتابعة المباشرة" */}
+      <BorderBeam size={90} duration={5} colorFrom="var(--color-primary)" colorTo="transparent" />
       <div className="flex items-center gap-3">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary">
           <Users className="h-5 w-5" />

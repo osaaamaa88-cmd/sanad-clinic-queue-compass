@@ -322,6 +322,83 @@
     0 12px 32px -4px oklch(0 0 0 / 0.4);
 }
 
+/* ===== BorderBeam — هالة ضوئية دوّارة على حواف الكارت =====
+  قناع الحافة: يظهر فقط إطار بسماكة --border-beam-width، والشعاع داخلته
+  يرسم conic-gradient من لون إلى شفاف ويدور بحركة infinite */
+@utility border-beam {
+  /* 1) قناع يعرض الحافة فقط */
+  padding: var(--border-beam-width);
+  mask:
+    linear-gradient(145deg, transparent, black 40%, black 60%, transparent),
+    linear-gradient(black, black);
+  mask-clip: content-box, border-box;
+  mask-composite: intersect;
+
+  /* 2) الشعاع الدوّار نفسه */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    background: conic-gradient(
+      from calc(var(--beam-angle, 0deg) - var(--border-beam-size) / 2),
+      transparent 0deg,
+      transparent calc(var(--border-beam-size) / 2 / 3.14),
+      var(--border-beam-from) calc(var(--border-beam-size) / 3.14),
+      var(--border-beam-to) calc(var(--border-beam-size) / 1.57),
+      transparent calc(var(--border-beam-size) / 1.57 + 10deg)
+    );
+    animation: beam-spin 6s linear infinite;
+    animation-duration: inherit;
+    animation-delay: inherit;
+    animation-direction: inherit;
+  }
+}
+
+@keyframes beam-spin {
+  from {
+    --beam-angle: 0deg;
+  }
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
+/* تحريك الزاوية يتطلب تسجيل الخاصية كـ angle */
+@property --beam-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* ===== Spotlight — بقعة ضوء تتبع مؤشر/لمس المستخدم على الكروت ===== */
+@utility spotlight-card {
+  position: relative;
+  /* متغيرات يملؤها JS من pointermove */
+  --spot-x: 50%;
+  --spot-y: 50%;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    background: radial-gradient(
+      220px circle at var(--spot-x) var(--spot-y),
+      color-mix(in oklab, var(--color-primary) 16%, transparent),
+      transparent 70%
+    );
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
 @keyframes sheet-up {
   from {
     transform: translateY(100%);

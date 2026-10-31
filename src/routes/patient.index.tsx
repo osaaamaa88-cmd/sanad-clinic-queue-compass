@@ -245,7 +245,7 @@ function PatientHome() {
       {/* ===== تتبع الحجز والدور المباشر ===== */}
       <QueueTrackerCard />
       <HealthActivityCarousel />
-      {/* ===== شبكة الخدمات السريعة (Quick Medical Grid 2x2) ===== */}
+      {/* ===== شبكة الخدمات السريعة (Quick Medical Grid 2x2) مع Spotlight ===== */}
       <section aria-label="الخدمات السريعة" className="mt-4 grid grid-cols-2 gap-3">
         {quickActions.map((action) => {
           const Icon = action.icon;
@@ -253,7 +253,13 @@ function PatientHome() {
             <Link
               key={action.to}
               to={action.to}
-              className="glass-ios-card group relative overflow-hidden rounded-2xl border border-border/60 p-3.5 text-right shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg active:scale-[0.97]"
+              /* spotlight-card: بقعة ضوء تتبع اللمس/المؤشر عبر متغيرات --spot-x/--spot-y */
+              onPointerMove={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                event.currentTarget.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
+                event.currentTarget.style.setProperty("--spot-y", `${event.clientY - rect.top}px`);
+              }}
+              className="glass-ios-card spotlight-card group relative overflow-hidden rounded-2xl border border-border/60 p-3.5 text-right shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg active:scale-[0.97]"
             >
               <span className="flex items-start justify-between">
                 <span

@@ -24,6 +24,7 @@ import { installAndroidBack, installGlobalHaptics, setupStatusBar } from "../lib
 import { useTheme } from "../lib/theme";
 import { useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
+import Lenis from "lenis";
 
 function NotFoundComponent() {
   return (
@@ -170,6 +171,29 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   // Apply the saved light/dark mode on every page, not only where a toggle is mounted.
   useTheme();
+
+  // ===== Lenis: تنعيم حركة التمرير في الشاشات الطويلة =====
+  // نثبت جلسة واحدة عند الإقلاع، ونحدّث المقاس عند تغيير المسار أو تغيّر المحتوى.
+  useEffect(() => {
+    // تعطيل على أجهزة اللمس الخام: نظام التمرير الأصلي فيها أسرع ولا يحتاج تنعيماً
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    const lenis = new Lenis({ lerp: 0.12, wheelMultiplier: 1, touchMultiplier: 1.4 });
+    let raf = 0;
+    const loop = (time: number) => {
+      lenis.raf(time);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      lenis.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    // عند التنقل بين الشاشات: ارجع لأعلى فوراً وأعِد حساب مقاسات Lenis
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     installGlobalSounds(toast);
