@@ -268,7 +268,7 @@ export function FloatingVoiceAssistant() {
         <div
           role="dialog"
           aria-label="نيمو"
-          className={`nemo-bubble-in absolute bottom-[calc(100%+10px)] w-56 rounded-2xl border border-border/60 bg-card/85 p-3 text-right text-card-foreground shadow-soft backdrop-blur-xl ${onLeft ? "left-0" : "right-0"}`}
+          className={`nemo-bubble-in absolute bottom-[calc(100%+10px)] w-56 rounded-2xl border border-border/60 bg-card p-3 text-right text-card-foreground shadow-soft backdrop-blur-xl ${onLeft ? "left-0" : "right-0"}`}
         >
           <p className="text-sm font-bold leading-relaxed">
             أنا معاك يا بطل.. تحب تسألني عن حاجة أو تدردش بصوتك؟
