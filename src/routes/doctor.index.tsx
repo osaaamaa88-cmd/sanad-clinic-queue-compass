@@ -10,6 +10,8 @@ import {
   Pill,
   Settings,
   Utensils,
+  HeartPulse,
+  BookOpen,
 } from "lucide-react";
 import { DoctorBottomNav } from "@/components/DoctorBottomNav";
 import { RxComposer } from "@/components/RxComposer";
@@ -155,6 +157,31 @@ function DoctorHome() {
             <span className="block text-xs text-muted-foreground">زي ما المريض بيشوفها</span>
           </Link>
         </div>
+      </div>
+      {/* Floating Quick Bar (Executive) */}
+      <div className="fixed bottom-20 right-4 z-[70] flex flex-col gap-2 print:hidden">
+        <button
+          type="button"
+          onClick={() => setRxOpen(true)}
+          aria-label="الروشتة الذكية"
+          className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition active:scale-95 hover:brightness-110"
+        >
+          <Pill className="h-5 w-5" />
+        </button>
+        <Link
+          to="/patient/health"
+          aria-label="الملف الطبي والمجسم"
+          className="grid h-12 w-12 place-items-center rounded-2xl border border-border bg-card text-foreground shadow-lg transition active:scale-95 hover:bg-secondary"
+        >
+          <HeartPulse className="h-5 w-5 text-primary" />
+        </Link>
+        <Link
+          to="/reception"
+          aria-label="دفتر الحجز"
+          className="grid h-12 w-12 place-items-center rounded-2xl border border-border bg-card text-foreground shadow-lg transition active:scale-95 hover:bg-secondary"
+        >
+          <BookOpen className="h-5 w-5 text-primary" />
+        </Link>
       </div>
       <DoctorBottomNav clinicId={clinic.id} />
       {rxOpen && (

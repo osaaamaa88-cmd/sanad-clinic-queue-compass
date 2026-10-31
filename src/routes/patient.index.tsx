@@ -22,6 +22,9 @@ import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
 import { QueueTrackerCard } from "@/components/QueueTrackerCard";
 import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
+import { PatientCallModal } from "@/components/PatientCallModal";
+import { supabase } from "@/integrations/supabase/client";
+import { playNotification } from "@/lib/sounds";
 import hologramFigure from "@/assets/hologram-figure.png";
 import { specialties, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -118,6 +121,12 @@ function PatientHome() {
   const [location, setLocation] = useState<PatientLocation>(defaultLocation);
   const [locOpen, setLocOpen] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
+  const [callData, setCallData] = useState<{
+    patientName: string;
+    doctorName: string;
+    queueNumber: number;
+    room?: string;
+  } | null>(null);
   const queryClient = useQueryClient();
   useEffect(() => {
     setLocation(getPatientLocation());
@@ -176,6 +185,53 @@ function PatientHome() {
     const bookings = getSavedBookings().filter((b) => (b.queueNumber ?? 0) > 0);
     return bookings[0] ?? null;
   }, []);
+
+  useEffect(() => {
+    if (!upcomingBooking?.clinicId) return;
+    const booking = upcomingBooking;
+    const session = getPatientSession();
+    const myName = (session?.name || patientName || "").trim();
+    const myCode = booking.code;
+    const myQueue = booking.queueNumber ?? 0;
+
+    const ch = supabase
+      .channel(`clinic-call-${booking.clinicId}`)
+      .on("broadcast", { event: "patient-called" }, (payload) => {
+        const p = (payload?.payload ?? {}) as {
+          patientName?: string;
+          code?: string;
+          queueNumber?: number;
+          doctorName?: string;
+          room?: string;
+        };
+        const matches =
+          (p.code && p.code === myCode) ||
+          (p.patientName && myName && p.patientName.trim() === myName) ||
+          (typeof p.queueNumber === "number" && p.queueNumber === myQueue && myQueue > 0);
+        if (!matches) return;
+        try {
+          playNotification();
+        } catch {
+          /* ignore */
+        }
+        try {
+          navigator.vibrate?.([200, 100, 200]);
+        } catch {
+          /* ignore */
+        }
+        setCallData({
+          patientName: p.patientName || myName || "مريض",
+          doctorName: p.doctorName || "طبيب",
+          queueNumber: p.queueNumber ?? myQueue,
+          room: p.room,
+        });
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(ch);
+    };
+  }, [upcomingBooking, patientName]);
   const recommended = useMemo(
     () =>
       clinics
@@ -614,6 +670,15 @@ function PatientHome() {
             onClose={() => setViewer(null)}
           />
         </Suspense>
+      )}
+      {callData && (
+        <PatientCallModal
+          patientName={callData.patientName}
+          doctorName={callData.doctorName}
+          queueNumber={callData.queueNumber}
+          room={callData.room}
+          onAcknowledge={() => setCallData(null)}
+        />
       )}
     </AppShell>
   );

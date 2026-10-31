@@ -11,7 +11,12 @@ import {
   RefreshCw,
   LogOut,
   Loader2,
+  BellRing,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { playNotification } from "@/lib/sounds";
+
 import { AppShell } from "@/components/AppShell";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { StaffAuth } from "@/components/StaffAuth";
@@ -78,6 +83,7 @@ function Reception() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [visitType, setVisitType] = useState<"new" | "followup">("new");
+  const [recentlyCalledIds, setRecentlyCalledIds] = useState<Set<string>>(new Set());
 
   const refresh = useCallback(async (clinicId: string) => {
     setRefreshing(true);
@@ -114,6 +120,58 @@ function Reception() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!clinic) return;
+    const ch = supabase
+      .channel(`reception-bookings-${clinic.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings", filter: `clinic_id=eq.${clinic.id}` },
+        () => void refresh(clinic.id),
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(ch);
+    };
+  }, [clinic, refresh]);
+
+  const callPatient = useCallback(
+    async (r: Booking) => {
+      if (!clinic) return;
+      const payload = {
+        bookingId: r.id,
+        code: r.code,
+        patientName: r.patientName,
+        queueNumber: r.queueNumber,
+        doctorName: clinic.doctor,
+        room: "غرفة الكشف الرئيسية",
+        clinicId: clinic.id,
+      };
+      const ch = supabase.channel(`clinic-call-${clinic.id}`);
+      ch.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          void ch.send({ type: "broadcast", event: "patient-called", payload });
+          window.setTimeout(() => void supabase.removeChannel(ch), 1000);
+        }
+      });
+      playNotification();
+      toast.success("تم توجيه النداء للمريض 🔔");
+      setRecentlyCalledIds((prev) => {
+        const next = new Set(prev);
+        next.add(r.id);
+        return next;
+      });
+      window.setTimeout(() => {
+        setRecentlyCalledIds((prev) => {
+          const next = new Set(prev);
+          next.delete(r.id);
+          return next;
+        });
+      }, 4000);
+    },
+    [clinic],
+  );
 
   const ops = async (patch: {
     nowServing?: number;
@@ -332,11 +390,24 @@ function Reception() {
         </div>
       )}
 
-      {/* Counters */}
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center print:hidden">
-        <Counter value={waiting} label="منتظر" />
-        <Counter value={inside} label="جوه" />
-        <Counter value={done} label="خلصوا" />
+      {/* Doctor HUD Header (Executive Luxury) */}
+      <div className="mt-4 grid grid-cols-2 gap-2 print:hidden sm:grid-cols-4">
+        <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
+          <div className="text-[10px] font-bold text-muted-foreground">رضا المرضى</div>
+          <div className="mt-1 text-lg font-black text-gold">97% 👍</div>
+        </div>
+        <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
+          <div className="text-[10px] font-bold text-muted-foreground">منتظر</div>
+          <div className="mt-1 text-lg font-black text-primary">{waiting}</div>
+        </div>
+        <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
+          <div className="text-[10px] font-bold text-muted-foreground">كشوفات منجزة</div>
+          <div className="mt-1 text-lg font-black text-success">{done}</div>
+        </div>
+        <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
+          <div className="text-[10px] font-bold text-muted-foreground">متوسط الكشف</div>
+          <div className="mt-1 text-lg font-black">~10 د</div>
+        </div>
       </div>
 
       {/* Paper sheet */}
@@ -385,6 +456,9 @@ function Reception() {
                   }`}
                 >
                   {r.patientName}
+                  {recentlyCalledIds.has(r.id) && (
+                    <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-success" />
+                  )}
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">
                   {r.patientPhone || "بدون رقم"} • {r.code} • {r.slot || "—"}
@@ -431,6 +505,26 @@ function Reception() {
                 icon={X}
                 label="إلغاء"
               />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5 print:hidden">
+              {r.status === "waiting" && (
+                <button
+                  type="button"
+                  onClick={() => callPatient(r)}
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition hover:bg-primary hover:text-primary-foreground active:scale-95 ${
+                    recentlyCalledIds.has(r.id) ? "animate-pulse" : ""
+                  }`}
+                >
+                  <BellRing className="h-3.5 w-3.5" />
+                  نداء
+                </button>
+              )}
+              <Link
+                to="/patient/health"
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-foreground transition hover:bg-secondary active:scale-95"
+              >
+                🩺 الملف الطبي
+              </Link>
             </div>
             {r.status === "in" && (
               <button
