@@ -35,7 +35,7 @@ import { getClinicProfileExtras, type ClinicProfileExtras } from "@/lib/clinic-p
 import { getClinicStories, type StoryItem } from "@/lib/stories";
 import { Button } from "@/components/ui/button";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
-import { getPatientSession } from "@/lib/patient-session";
+import { getPatientSession, getSavedBookings } from "@/lib/patient-session";
 import {
   defaultLocation,
   distanceKm,
@@ -171,6 +171,11 @@ function PatientHome() {
     [clinics],
   );
   const selectedSpecialtyData = specialties.find((item) => item.id === selectedSpecialty);
+  // أقرب حجز قادم على هذا الجهاز — لعرض رقم الدور في كارت البطل
+  const upcomingBooking = useMemo(() => {
+    const bookings = getSavedBookings().filter((b) => (b.queueNumber ?? 0) > 0);
+    return bookings[0] ?? null;
+  }, []);
   const recommended = useMemo(
     () =>
       clinics
@@ -192,7 +197,7 @@ function PatientHome() {
   return (
     <AppShell
       title="سند | SANAD"
-      tone="primary"
+      tone="light"
       right={
         <>
           <ThemeToggle />
@@ -202,6 +207,7 @@ function PatientHome() {
       wide
       hideBack
       centeredTitle
+      contentClassName="content-bottom-fade"
     >
       {/* ===== الهيدر الزجاجي (Hero Status Card) =====
         كارت زجاجي ناعم بتحية شخصية واسم المريض وزر تغيير الموقع */}
@@ -242,73 +248,150 @@ function PatientHome() {
         </div>
       </section>
 
-      {/* ===== تتبع الحجز والدور المباشر ===== */}
-      <QueueTrackerCard />
-      <HealthActivityCarousel />
-      {/* ===== شبكة الخدمات السريعة (Quick Medical Grid 2x2) مع Spotlight ===== */}
-      <section aria-label="الخدمات السريعة" className="mt-4 grid grid-cols-2 gap-3">
-        {quickActions.map((action) => {
-          const Icon = action.icon;
-          return (
+      {/* ===== كارت البطل المتوهج (Hero Aurora Status Card) =====
+        يعرض رقم الدور إن وجد حجز، وإلا مؤشر صحة سريع — بتحية نيمو المصرية */}
+      <section className="aurora-medical-card rounded-3xl p-5 mb-5">
+        {/* توهجات أورورا خلفية */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-14 -left-8 h-40 w-40 rounded-full bg-primary/20 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-16 -right-10 h-44 w-44 rounded-full bg-success/10 blur-3xl"
+        />
+        <div className="relative">
+          <p className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
+            {greeting}
+            <Sparkles className="h-3 w-3 text-primary" />
+          </p>
+          <p className="mt-1 text-lg font-black leading-7">
+            {patientName ? `صباح الخير يا ${patientName.split(" ")[0]}.. ` : "صباح الخير يا بطل.. "}
+            <span className="text-muted-foreground">صحتك وأدويتك في أمان</span>
+          </p>
+
+          {/* الحالة: رقم الدور المباشر أو مؤشر صحة سريع */}
+          {upcomingBooking ? (
+            <div className="mt-3 flex items-center gap-3 rounded-2xl bg-primary-soft/50 px-3 py-2.5">
+              <CalendarPlus className="h-5 w-5 shrink-0 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold text-muted-foreground">رقم دورك في</p>
+                <p className="truncate text-sm font-extrabold">{upcomingBooking.clinicName}</p>
+              </div>
+              <span className="text-3xl font-black text-primary">
+                {upcomingBooking.queueNumber}
+              </span>
+            </div>
+          ) : (
+            <div className="mt-3 flex items-center gap-3 rounded-2xl bg-success/10 px-3 py-2.5">
+              <HeartPulse className="h-5 w-5 shrink-0 text-success" />
+              <p className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
+                مؤشراتك مستقرة — استمر كده 💚
+              </p>
+              <Link
+                to="/patient/health"
+                className="shrink-0 text-[11px] font-extrabold text-primary"
+              >
+                التفاصيل ←
+              </Link>
+            </div>
+          )}
+
+          {/* الزرّان الزجاجيان العريضان */}
+          <div className="mt-3 grid grid-cols-2 gap-2">
             <Link
-              key={action.to}
-              to={action.to}
-              /* spotlight-card: بقعة ضوء تتبع اللمس/المؤشر عبر متغيرات --spot-x/--spot-y */
-              onPointerMove={(event) => {
-                const rect = event.currentTarget.getBoundingClientRect();
-                event.currentTarget.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
-                event.currentTarget.style.setProperty("--spot-y", `${event.clientY - rect.top}px`);
-              }}
-              className="glass-ios-card spotlight-card group relative overflow-hidden rounded-2xl border border-border/60 p-3.5 text-right shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg active:scale-[0.97]"
+              to="/patient/assistant"
+              className="btn-liquid-primary flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-center text-xs font-extrabold"
             >
-              <span className="flex items-start justify-between">
-                <span
-                  className={`grid h-10 w-10 place-items-center rounded-xl shadow-soft ${action.tone}`}
-                >
-                  <Icon className="h-5 w-5" />
-                </span>
-                {/* شارة نبض ذكية لخدمة نيمو فقط */}
-                {action.badge && (
-                  <span className="flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-[9px] font-extrabold text-primary">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-                    </span>
-                    {action.badge}
-                  </span>
-                )}
-              </span>
-              <span className="mt-2.5 block truncate text-[13px] font-extrabold">
-                {action.label}
-              </span>
-              <span className="mt-0.5 block truncate text-[10px] font-medium text-muted-foreground">
-                {action.hint}
-              </span>
+              <MessageCircleHeart className="h-4 w-4" />
+              اسأل نيمو بصوتك
             </Link>
-          );
-        })}
+            <Link
+              to="/patient/search"
+              className="btn-liquid-glass flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-center text-xs font-extrabold"
+            >
+              <Search className="h-4 w-4 text-primary" />
+              احجز عيادة أو دكتور
+            </Link>
+          </div>
+        </div>
+      </section>
+      <HealthActivityCarousel />
+      {/* ===== شبكة بينتو الطبية الذكية (Medical Bento Grid) =====
+        كارت هولوجرام طولي (row-span-2) + طوارئ + MedScan */}
+      <section aria-label="الخدمات الطبية" className="mb-6 grid grid-cols-2 gap-3">
+        {/* الكارت الطولي الأيمن — مجسم الهولوجرام والملف الطبي الذكي */}
+        <Link
+          to="/patient/health"
+          className="glass-liquid spotlight-card group relative col-start-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-3xl p-4 text-right transition hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
+          onPointerMove={(event) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            event.currentTarget.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
+            event.currentTarget.style.setProperty("--spot-y", `${event.clientY - rect.top}px`);
+          }}
+        >
+          {/* المجسم المضيء مع خط ليزر ممسوح */}
+          <div className="relative mx-auto grid h-36 w-20 place-items-center overflow-hidden">
+            <img
+              src={hologramFigure}
+              alt=""
+              aria-hidden
+              className="h-full w-auto object-contain drop-shadow-[0_0_14px_var(--color-primary)]"
+            />
+            <span aria-hidden="true" className="holo-laser" />
+          </div>
+          <div>
+            <p className="flex items-center gap-1.5 text-sm font-extrabold">
+              ملفك الطبي الذكي
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+              </span>
+            </p>
+            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+              نقطة نبض حية لآخر قراءات الضغط والسكر — اضغط على أي عضو
+            </p>
+            <span className="mt-2 inline-block rounded-full bg-primary-soft px-3 py-1 text-[11px] font-extrabold text-primary">
+              فتح الملف ←
+            </span>
+          </div>
+        </Link>
+
+        {/* الكارت العلوي الأيسر — طوارئ 123 الإسعافية */}
+        <Link
+          to="/patient/emergency"
+          className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-right shadow-soft backdrop-blur-xl transition hover:border-destructive active:scale-[0.97]"
+        >
+          <span className="relative grid h-10 w-10 place-items-center rounded-xl bg-destructive/15 text-destructive">
+            <span className="absolute inset-0 animate-ping rounded-xl bg-destructive/20" />
+            <Siren className="relative h-5 w-5" />
+          </span>
+          <span className="mt-2">
+            <span className="block text-[13px] font-extrabold text-destructive">طوارئ 123</span>
+            <span className="block text-[10px] font-medium text-muted-foreground">
+              اتصال إسعاف فوري بلمسة
+            </span>
+          </span>
+        </Link>
+
+        {/* الكارت السفلي الأيسر — فحص الروشتة والتحاليل MedScan */}
+        <Link
+          to="/patient/assistant?scan=prescription"
+          className="glass-liquid flex flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-right shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.97]"
+        >
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-success/15 text-success">
+            <ClipboardList className="h-5 w-5" />
+          </span>
+          <span className="mt-2">
+            <span className="block text-[13px] font-extrabold">روشتة وتحاليل</span>
+            <span className="block text-[10px] font-medium text-muted-foreground">
+              فحص MedScan الذكي بلمسة
+            </span>
+          </span>
+        </Link>
       </section>
 
-      {/* ===== كارت المتابعة الصحية والمجسم (Health & Hologram Banner) =====
-        يربط مباشرة بالملف الطبي الهولوجرامي مع ملخص سريع للمؤشرات */}
-      <Link
-        to="/patient/health"
-        className="relative mt-4 flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-l from-primary/15 via-primary/5 to-card p-3.5 text-right shadow-soft backdrop-blur-xl transition active:scale-[0.98] hover:border-primary"
-      >
-        <img
-          src={hologramFigure}
-          alt=""
-          aria-hidden
-          className="h-14 w-8 shrink-0 object-contain drop-shadow-[0_0_8px_var(--color-primary)]"
-        />
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-extrabold">متابعتك الصحية والمجسم</span>
-          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-            اضغط على أي عضو وتابع ضغطك وسكرك مع نيمو
-          </span>
-        </span>
-        <HeartPulse className="h-5 w-5 shrink-0 animate-pulse text-primary" />
-      </Link>
+      {/* ===== كارت المتابعة الصحية والمجسم أُدمج في شبكة البينتو أعلاه ===== */}
       {locOpen && (
         <LocationPickerModal
           current={location}
@@ -518,9 +601,9 @@ function PatientHome() {
             </p>
           </div>
         ) : (
-          <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="-mx-4 mt-3 flex gap-3 overflow-x-auto pb-2 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-none snap-x">
             {recommended.map((clinic) => (
-              <ClinicCard key={clinic.id} clinic={clinic} profile={profiles[clinic.id]} />
+              <ClinicCapsule key={clinic.id} clinic={clinic} profile={profiles[clinic.id]} />
             ))}
           </div>
         )}
@@ -800,6 +883,53 @@ function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfi
           </Link>
         </Button>
       </div>
+    </article>
+  );
+}
+
+/* كبسولة عيادة زجاجية للكواروسيل الأفقي */
+function ClinicCapsule({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfileExtras }) {
+  const specialty = specialties.find((item) => item.id === clinic.specialtyId);
+  const rating = profile?.reviewsCount ? profile.ratingAvg : clinic.rating;
+  return (
+    <article className="glass-liquid group flex w-64 shrink-0 snap-start flex-col rounded-2xl p-3 text-right transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg">
+      <Link
+        to="/patient/clinic/$id"
+        params={{ id: clinic.id }}
+        className="flex min-w-0 items-start gap-2.5"
+      >
+        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary-soft text-primary">
+          {profile?.avatarUrl ? (
+            <img
+              src={profile.avatarUrl}
+              alt={clinic.doctor}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <ClinicPlaceholder compact />
+          )}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-extrabold">{clinic.doctor}</span>
+          <span className="block truncate text-[11px] text-muted-foreground">
+            {specialty?.name} • {clinic.area}
+          </span>
+          <span className="mt-1 flex items-center gap-1 text-[11px] font-bold text-warning">
+            <Star className="h-3 w-3 fill-warning" />
+            {rating ? rating.toFixed(1) : "جديد"}
+            <span className="text-muted-foreground">• {clinic.distanceKm.toFixed(1)} كم</span>
+          </span>
+        </span>
+      </Link>
+      <Button
+        asChild
+        size="sm"
+        className="btn-liquid-primary mt-2.5 w-full rounded-full py-2 text-xs font-extrabold"
+      >
+        <Link to="/patient/clinic/$id" params={{ id: clinic.id }}>
+          حجز سريع
+        </Link>
+      </Button>
     </article>
   );
 }

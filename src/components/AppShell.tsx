@@ -16,6 +16,7 @@ export function AppShell({
   hideBack = false,
   centeredTitle = false,
   fullHeight = false,
+  contentClassName = "",
 }: {
   title: string;
   subtitle?: string;
@@ -28,6 +29,8 @@ export function AppShell({
   hideBack?: boolean;
   centeredTitle?: boolean;
   fullHeight?: boolean;
+  /** كلاسات إضافية للحاوية الرئيسية (مثل content-bottom-fade) */
+  contentClassName?: string;
 }) {
   const isPrimary = tone === "primary";
   const [hidden, setHidden] = useState(false);
@@ -94,7 +97,7 @@ export function AppShell({
           <div className="flex shrink-0 items-center justify-end gap-2">{right}</div>
         </header>
         <main
-          className={`px-4 py-4 ${fullHeight ? "flex min-h-0 flex-1 flex-col overflow-hidden pb-4" : `${showPatientNav || showDoctorNav ? "pb-28" : "pb-24"}`} sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}
+          className={`px-4 py-4 ${contentClassName} ${fullHeight ? "flex min-h-0 flex-1 flex-col overflow-hidden pb-4" : `${showPatientNav || showDoctorNav ? "pb-28" : "pb-24"}`} sm:px-6 sm:py-6 ${wide ? "lg:px-8" : ""}`}
         >
           {children}
         </main>
