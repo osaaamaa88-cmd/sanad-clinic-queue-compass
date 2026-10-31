@@ -207,49 +207,10 @@ function PatientHome() {
       wide
       hideBack
       centeredTitle
-      contentClassName="content-bottom-fade"
+      contentClassName="content-bottom-fade pb-32"
     >
-      {/* ===== الهيدر الزجاجي (Hero Status Card) =====
-        كارت زجاجي ناعم بتحية شخصية واسم المريض وزر تغيير الموقع */}
-      <section className="glass-ios-card relative overflow-hidden rounded-3xl border border-border/60 p-4 shadow-soft">
-        {/* توهج خلفي هادئ لإحساس الزجاج العميق */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-16 -left-10 h-44 w-44 rounded-full bg-primary/15 blur-3xl"
-        />
-        <div className="relative flex items-center gap-3">
-          {/* صورة رمزية دائرية بحافة متدرجة */}
-          <span
-            aria-hidden="true"
-            className="gradient-primary grid h-12 w-12 shrink-0 place-items-center rounded-full text-lg font-extrabold text-primary-foreground shadow-soft"
-          >
-            {(patientName || "ز").slice(0, 1)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
-              {greeting}
-              <Sparkles className="h-3 w-3 text-primary" />
-            </p>
-            <p className="truncate text-base font-extrabold">
-              {patientName ? patientName.split(" ")[0] : "أهلاً بك في سند"}
-            </p>
-          </div>
-          {/* زر تغيير الموقع الجغرافي */}
-          <button
-            type="button"
-            onClick={() => setLocOpen(true)}
-            className="btn-liquid-glass flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-right"
-            aria-label="تغيير الموقع الجغرافي"
-          >
-            <MapPin className="h-4 w-4 shrink-0 text-primary" />
-            <span className="max-w-[9rem] truncate text-xs font-bold">{location.city}</span>
-            <span className="text-[10px] text-muted-foreground">▾</span>
-          </button>
-        </div>
-      </section>
-
       {/* ===== كارت البطل المتوهج (Hero Aurora Status Card) =====
-        يعرض رقم الدور إن وجد حجز، وإلا مؤشر صحة سريع — بتحية نيمو المصرية */}
+        الصورة الرمزية + الاسم أعلى الكارت، وكبسولة الموقع جهة اليسار */}
       <section className="aurora-medical-card rounded-3xl p-5 mb-5">
         {/* توهجات أورورا خلفية */}
         <div
@@ -261,11 +222,39 @@ function PatientHome() {
           className="pointer-events-none absolute -bottom-16 -right-10 h-44 w-44 rounded-full bg-success/10 blur-3xl"
         />
         <div className="relative">
-          <p className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
-            {greeting}
-            <Sparkles className="h-3 w-3 text-primary" />
-          </p>
-          <p className="mt-1 text-lg font-black leading-7">
+          {/* صف علوي مرن: الصورة الرمزية والاسم يميناً، الموقع يساراً */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="gradient-primary grid h-12 w-12 shrink-0 place-items-center rounded-full text-lg font-extrabold text-primary-foreground shadow-soft"
+              >
+                {(patientName || "ز").slice(0, 1)}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-base font-extrabold">
+                  {patientName ? patientName.split(" ")[0] : "يا بطل"}
+                </p>
+                <p className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground">
+                  {greeting}
+                  <Sparkles className="h-3 w-3 text-primary" />
+                </p>
+              </div>
+            </div>
+            {/* كبسولة الموقع الجغرافي السائلة */}
+            <button
+              type="button"
+              onClick={() => setLocOpen(true)}
+              className="btn-liquid-glass flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-right"
+              aria-label="تغيير الموقع الجغرافي"
+            >
+              <MapPin className="h-4 w-4 shrink-0 text-primary" />
+              <span className="max-w-[8rem] truncate text-xs font-bold">{location.city}</span>
+              <span className="text-[10px] text-muted-foreground">▾</span>
+            </button>
+          </div>
+
+          <p className="mt-3 text-lg font-black leading-7">
             {patientName ? `صباح الخير يا ${patientName.split(" ")[0]}.. ` : "صباح الخير يا بطل.. "}
             <span className="text-muted-foreground">صحتك وأدويتك في أمان</span>
           </p>
@@ -323,7 +312,7 @@ function PatientHome() {
         {/* الكارت الطولي الأيمن — مجسم الهولوجرام والملف الطبي الذكي */}
         <Link
           to="/patient/health"
-          className="glass-liquid spotlight-card group relative col-start-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-3xl p-4 text-right transition hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
+          className="glass-liquid spotlight-card group relative col-start-1 row-span-2 flex flex-col justify-between overflow-visible rounded-3xl p-4 text-right transition hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
           onPointerMove={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
             event.currentTarget.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
@@ -341,9 +330,9 @@ function PatientHome() {
             <span aria-hidden="true" className="holo-laser" />
           </div>
           <div>
-            <p className="flex items-center gap-1.5 text-sm font-extrabold">
+            <p className="flex items-center gap-1.5 text-base font-extrabold leading-6">
               ملفك الطبي الذكي
-              <span className="relative flex h-2 w-2">
+              <span className="relative flex h-2 w-2 shrink-0">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
               </span>
