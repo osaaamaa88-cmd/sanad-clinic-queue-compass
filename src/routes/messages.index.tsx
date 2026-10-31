@@ -1,3 +1,4 @@
+import { defaultDoctorAvatar, DEFAULT_PATIENT_AVATAR } from "@/lib/default-avatars";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, MessagesSquare } from "lucide-react";
@@ -106,17 +107,10 @@ function Inbox() {
                   params={{ id: c.id }}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/60"
                 >
-                  {avatar ? (
-                    <img
-                      src={avatar}
+                  <img src={avatar || (amPatient ? defaultDoctorAvatar(name) : DEFAULT_PATIENT_AVATAR)}
                       alt=""
                       className="h-12 w-12 shrink-0 rounded-full object-cover"
                     />
-                  ) : (
-                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary-soft text-lg font-extrabold text-primary">
-                      {name.slice(0, 1)}
-                    </span>
-                  )}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate font-extrabold">{name}</p>

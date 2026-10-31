@@ -1,3 +1,4 @@
+import { defaultDoctorAvatar } from "@/lib/default-avatars";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
@@ -430,15 +431,7 @@ function PatientHome() {
                   className={`mx-auto block h-[68px] w-[68px] rounded-full p-[3px] ${clinicStories.length ? "gradient-story" : "bg-border"}`}
                 >
                   <span className="grid h-full w-full place-items-center overflow-hidden rounded-full border-[3px] border-background bg-card text-2xl">
-                    {profile?.avatarUrl ? (
-                      <img
-                        src={profile.avatarUrl}
-                        alt={clinic.doctor}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <ClinicPlaceholder compact />
-                    )}
+                    <img src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)} alt={clinic.doctor} className="h-full w-full object-cover" />
                   </span>
                 </span>
                 <span className="mt-1.5 block truncate text-xs font-bold group-hover:text-primary">
@@ -819,15 +812,7 @@ function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfi
         </div>
         <div className="flex min-w-0 items-start gap-3 p-4 pb-3">
           <span className="-mt-9 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border-2 border-card bg-primary-soft text-primary">
-            {profile?.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={clinic.doctor}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <ClinicPlaceholder compact />
-            )}
+            <img src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)} alt={clinic.doctor} className="h-full w-full object-cover" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate font-extrabold">{clinic.doctor}</span>
@@ -888,15 +873,7 @@ function ClinicCapsule({ clinic, profile }: { clinic: Clinic; profile?: ClinicPr
         className="flex min-w-0 items-start gap-2.5"
       >
         <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary-soft text-primary">
-          {profile?.avatarUrl ? (
-            <img
-              src={profile.avatarUrl}
-              alt={clinic.doctor}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <ClinicPlaceholder compact />
-          )}
+          <img src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)} alt={clinic.doctor} className="h-full w-full object-cover" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-extrabold">{clinic.doctor}</span>
