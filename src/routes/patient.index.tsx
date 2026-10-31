@@ -232,7 +232,7 @@ function PatientHome() {
           <button
             type="button"
             onClick={() => setLocOpen(true)}
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-background/60 px-3 py-2 text-right shadow-soft backdrop-blur-xl transition hover:border-primary/50 active:scale-[0.97]"
+            className="btn-liquid-glass flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-right"
             aria-label="تغيير الموقع الجغرافي"
           >
             <MapPin className="h-4 w-4 shrink-0 text-primary" />

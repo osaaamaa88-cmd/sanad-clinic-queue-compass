@@ -75,9 +75,7 @@ export function AppShell({
           ) : (
             <Link
               to={backTo}
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-transform duration-200 active:scale-90 ${
-                isPrimary ? "bg-primary-foreground/15" : "bg-secondary"
-              }`}
+              className="btn-liquid-glass grid h-10 w-10 shrink-0 place-items-center rounded-full"
               aria-label="رجوع"
             >
               <ArrowRight className="h-5 w-5" />

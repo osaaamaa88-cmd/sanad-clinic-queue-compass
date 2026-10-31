@@ -104,7 +104,7 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
           to="/find-doctor"
           aria-label="ابحث عن زميل"
           data-bottom-nav
-          className="fixed left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[80] grid h-10 w-10 place-items-center rounded-full border border-border bg-card/70 text-foreground shadow backdrop-blur-2xl transition-transform active:scale-90"
+          className="btn-liquid-glass fixed left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[80] grid h-10 w-10 place-items-center rounded-full text-foreground"
         >
           <Search className="h-5 w-5" />
         </Link>
@@ -115,7 +115,7 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
         className="fixed inset-x-0 bottom-0 z-[80] pb-[max(0.25rem,env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-4 md:left-1/2 md:w-full md:max-w-lg md:-translate-x-1/2"
       >
         <div
-          className="mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-3xl border border-border/40 bg-card/70 px-1 shadow-[0_-8px_24px_hsl(var(--primary)/0.12)] backdrop-blur-2xl backdrop-saturate-150 sm:max-w-xl"
+          className="glass-liquid mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-3xl px-1 sm:max-w-xl"
           style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}
         >
           {items.map((it) => {
