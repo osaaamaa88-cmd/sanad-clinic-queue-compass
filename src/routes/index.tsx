@@ -1,3 +1,4 @@
+import { defaultDoctorAvatar, DEFAULT_PATIENT_AVATAR } from "@/lib/default-avatars";
 import { ModeSwitch } from "@/components/ModeSwitch";
 import { WelcomeGate, ENTRY_KEY } from "@/components/WelcomeGate";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
@@ -53,13 +54,7 @@ function ResumeCard() {
       to={t.to}
       className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-soft"
     >
-      {profile.avatar ? (
-        <img src={profile.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />
-      ) : (
-        <div className="grid h-12 w-12 place-items-center rounded-full gradient-primary text-lg font-bold text-primary-foreground">
-          {profile.name.slice(0, 1)}
-        </div>
-      )}
+      <img src={profile.avatar || (profile.role === "patient" ? DEFAULT_PATIENT_AVATAR : defaultDoctorAvatar(profile.name))} alt="" className="h-12 w-12 rounded-full object-cover" />
       <div className="min-w-0 flex-1">
         <div className="truncate font-bold">مرحباً بك مجدداً {name}</div>
         <div className="text-sm text-primary">{t.label}</div>
