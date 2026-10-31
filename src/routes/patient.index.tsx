@@ -1,7 +1,7 @@
 import { defaultDoctorAvatar } from "@/lib/default-avatars";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useDoctorClinicId } from "@/lib/use-doctor-mode";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Building2,
