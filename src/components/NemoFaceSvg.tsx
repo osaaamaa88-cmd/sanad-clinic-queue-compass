@@ -1,6 +1,10 @@
 type NemoFaceSvgProps = {
   happy?: boolean;
   className?: string;
+  /** Pupil offset in SVG units (-1..1 scaled to ~4px), for eye tracking. */
+  look?: { x: number; y: number };
+  /** Extra expressions used by the floating companion. */
+  mood?: "normal" | "surprised" | "sleepy";
 };
 
 /**
@@ -8,7 +12,11 @@ type NemoFaceSvgProps = {
  * Keeps the shared `nemo-eye` blink animation hooks so existing CSS
  * (styles.css) drives blinking and reduced-motion behavior.
  */
-export function NemoFaceSvg({ happy = false, className }: NemoFaceSvgProps) {
+export function NemoFaceSvg({ happy = false, className, look, mood = "normal" }: NemoFaceSvgProps) {
+  const lx = (look?.x ?? 0) * 4;
+  const ly = (look?.y ?? 0) * 3;
+  const eyeRy = mood === "surprised" ? 9 : mood === "sleepy" ? 1.5 : 7;
+  const eyeRx = mood === "surprised" ? 6 : 5;
   return (
     <svg
       viewBox="0 0 120 92"
@@ -56,7 +64,9 @@ export function NemoFaceSvg({ happy = false, className }: NemoFaceSvgProps) {
 
       {/* Eyes — keep as the first two children of this group so
           `.nemo-eye:nth-child(2)` staggered blinking keeps working */}
-      <g>
+      <g
+        style={{ transform: `translate(${lx}px, ${ly}px)`, transition: "transform 180ms ease-out" }}
+      >
         {happy ? (
           <>
             <path
@@ -78,8 +88,8 @@ export function NemoFaceSvg({ happy = false, className }: NemoFaceSvgProps) {
           </>
         ) : (
           <>
-            <ellipse className="nemo-eye" cx="42" cy="42" rx="5" ry="7" fill="#1e293b" />
-            <ellipse className="nemo-eye" cx="78" cy="42" rx="5" ry="7" fill="#1e293b" />
+            <ellipse className="nemo-eye" cx="42" cy="42" rx={eyeRx} ry={eyeRy} fill="#1e293b" style={{ transition: "ry 200ms ease, rx 200ms ease" }} />
+            <ellipse className="nemo-eye" cx="78" cy="42" rx={eyeRx} ry={eyeRy} fill="#1e293b" style={{ transition: "ry 200ms ease, rx 200ms ease" }} />
           </>
         )}
       </g>
