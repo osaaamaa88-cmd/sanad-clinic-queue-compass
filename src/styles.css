@@ -300,25 +300,26 @@
   box-shadow: var(--shadow-soft);
 }
 
-/* ===== زجاج Apple iOS الاحترافي (Frosted Glassmorphism) =====
-  backdrop-blur 24px + تشبع 180% + انعكاس حافة داخلية مضيء (specular highlight).
-  الوضع الداكن يضاعف الشفافية ويخفض قوة الانعكاس لتطابق سلوك iOS الليلي */
+/* ===== زجاج Apple iOS الفاخر (Deep Frosted Glass) =====
+  backdrop-blur 24px + تشبع 180% + انعكاس حافة داخلية مضيء (specular highlight) */
 @utility glass-ios-card {
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  /* الوضع الفاتح: سطح أبيض ناعم مع انعكاس حافة أفق ساطع */
-  background-color: oklch(1 0 0 / 0.72);
+  /* الوضع الفاتح: زجاج أبيض شفاف وناعم */
+  background-color: color-mix(in oklab, var(--card) 75%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
   box-shadow:
-    inset 0 1px 1px 0 oklch(1 0 0 / 0.5),
-    0 8px 32px -8px oklch(0 0 0 / 0.12);
+    inset 0 1px 1px 0 oklch(1 0 0 / 0.35),
+    0 8px 24px -4px oklch(0 0 0 / 0.08);
 }
 
-/* تظليل الحاوية داخل الوضع الداكن: زجاج أدكن مع انعكاس أخف (نفس ملمس iOS) */
+/* الوضع الداكن: زجاج أسود داكن عميق (OLED) بدون بياض حليبي */
 .dark .glass-ios-card {
-  background-color: oklch(0.22 0 0 / 0.62);
+  background-color: color-mix(in oklab, var(--card) 45%, transparent);
+  border: 1px solid oklch(1 0 0 / 0.08);
   box-shadow:
-    inset 0 1px 1px 0 oklch(1 0 0 / 0.15),
-    0 8px 32px -8px oklch(0 0 0 / 0.5);
+    inset 0 1px 1px 0 oklch(1 0 0 / 0.12),
+    0 12px 32px -4px oklch(0 0 0 / 0.4);
 }
 
 @keyframes sheet-up {
