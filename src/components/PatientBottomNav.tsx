@@ -49,7 +49,7 @@ export function PatientBottomNav() {
       className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] mb-3"
     >
       {/* شريط التنقل السفلي — كبسولة زجاج سائل عائمة (Liquid Glass Dock) */}
-      <div className="glass-liquid pointer-events-auto grid h-16 w-full max-w-md grid-cols-5 rounded-full px-2 shadow-lg">
+      <div className="glass-liquid pointer-events-auto grid h-16 w-full max-w-md grid-cols-5 rounded-full px-2 shadow-2xl">
         {items.map((item) => {
           const active = item.matches(pathname);
           const Icon = item.icon;
