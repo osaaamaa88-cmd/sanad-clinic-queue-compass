@@ -8,6 +8,7 @@ import {
   CalendarPlus,
   ClipboardList,
   Clock,
+  Droplets,
   Globe2,
   HeartPulse,
   Hospital,
@@ -17,6 +18,7 @@ import {
   Sparkles,
   Star,
   Siren,
+  Wind,
   X,
 } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
@@ -24,6 +26,7 @@ import { AppShell } from "@/components/AppShell";
 import { QueueTrackerCard } from "@/components/QueueTrackerCard";
 import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
 import { PatientCallModal } from "@/components/PatientCallModal";
+import { QuickBookingDrawer } from "@/components/booking/QuickBookingDrawer";
 import { supabase } from "@/integrations/supabase/client";
 import { playNotification } from "@/lib/sounds";
 import hologramFigure from "@/assets/hologram-figure.png";
@@ -128,6 +131,11 @@ function PatientHome() {
     queueNumber: number;
     room?: string;
   } | null>(null);
+  const [selectedClinicForBooking, setSelectedClinicForBooking] = useState<Clinic | null>(null);
+  const [bookingDrawerOpen, setBookingDrawerOpen] = useState(false);
+  const [breathingActive, setBreathingActive] = useState(false);
+  const [breathPhase, setBreathPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
+  const [hydration, setHydration] = useState(0);
   const queryClient = useQueryClient();
   useEffect(() => {
     setLocation(getPatientLocation());
@@ -186,6 +194,23 @@ function PatientHome() {
     const bookings = getSavedBookings().filter((b) => (b.queueNumber ?? 0) > 0);
     return bookings[0] ?? null;
   }, []);
+
+  const handleOpenQuickBooking = useCallback((clinic: Clinic) => {
+    setSelectedClinicForBooking(clinic);
+    setBookingDrawerOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!breathingActive) return;
+    setBreathPhase("inhale");
+    const phases: Array<"inhale" | "hold" | "exhale"> = ["inhale", "hold", "exhale"];
+    let index = 0;
+    const interval = window.setInterval(() => {
+      index = (index + 1) % phases.length;
+      setBreathPhase(phases[index]);
+    }, 4000);
+    return () => window.clearInterval(interval);
+  }, [breathingActive]);
 
   useEffect(() => {
     if (!upcomingBooking?.clinicId) return;
@@ -264,6 +289,7 @@ function PatientHome() {
       wide
       hideBack
       centeredTitle
+      headerClassName="backdrop-blur-md bg-background/80 border-b border-border/50"
       contentClassName="content-bottom-fade pb-32"
     >
       {/* ===== كارت البطل المتوهج (Hero Aurora Status Card) =====
@@ -363,6 +389,81 @@ function PatientHome() {
         </div>
       </section>
       <HealthActivityCarousel />
+      {/* ===== العناية اليومية (Daily Calm & Wellness) ===== */}
+      <section className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-3xl border border-border/60 bg-card/80 p-4 shadow-soft backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-extrabold text-foreground">تمرين التنفس مع نيمو</h3>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {breathingActive
+                  ? breathPhase === "inhale"
+                    ? "شهيق هادئ..."
+                    : breathPhase === "hold"
+                      ? "احبس النفس..."
+                      : "زفير واسترخاء"
+                  : "4 ثوانٍ • تهدئة ضربات القلب"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBreathingActive((v) => !v)}
+              className="rounded-full bg-primary px-3 py-1.5 text-[11px] font-extrabold text-primary-foreground transition active:scale-95"
+            >
+              {breathingActive ? "إيقاف" : "ابدأ"}
+            </button>
+          </div>
+          <div className="mt-4 grid place-items-center">
+            <span
+              className={`grid h-24 w-24 place-items-center rounded-full border-4 border-primary/30 bg-primary/10 text-primary transition-all duration-[4000ms] ease-in-out ${
+                breathingActive
+                  ? breathPhase === "exhale"
+                    ? "scale-100"
+                    : "scale-125"
+                  : "scale-100"
+              }`}
+            >
+              <Wind className="h-8 w-8" />
+            </span>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-border/60 bg-card/80 p-4 shadow-soft backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-extrabold text-foreground">متتبع شرب الماء</h3>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {hydration}/8 أكواب • {Math.round((hydration / 8) * 100)}%
+              </p>
+            </div>
+            <Droplets className="h-5 w-5 text-primary" />
+          </div>
+          <div className="mt-3 grid grid-cols-8 gap-1.5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setHydration(i + 1)}
+                className={`grid aspect-square place-items-center rounded-full border transition active:scale-95 ${
+                  i < hydration
+                    ? "border-primary/40 bg-primary/20 text-primary"
+                    : "border-border bg-secondary/50 text-muted-foreground"
+                }`}
+                aria-label={`كوب ${i + 1}`}
+              >
+                <Droplets className="h-3.5 w-3.5" />
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setHydration(0)}
+            className="mt-3 text-[11px] font-bold text-muted-foreground transition hover:text-primary"
+          >
+            إعادة تعيين
+          </button>
+        </div>
+      </section>
       {/* ===== شبكة بينتو الطبية الذكية (Medical Bento Grid) =====
         كارت هولوجرام طولي (row-span-2) + طوارئ + MedScan */}
       <section aria-label="الخدمات الطبية" className="mb-6 grid grid-cols-2 gap-3">
@@ -452,7 +553,7 @@ function PatientHome() {
 
       <Link
         to="/patient/search"
-        className="mt-4 flex items-center gap-3 rounded-2xl border border-border/50 bg-card/80 px-4 py-3.5 shadow-soft backdrop-blur-xl active:scale-[0.98] transition hover:border-primary/50"
+        className="mt-4 flex items-center gap-3 rounded-full border border-border/50 bg-card/80 px-4 py-3.5 shadow-soft backdrop-blur-xl transition-all duration-200 active:scale-[0.97] hover:border-primary/50"
       >
         <Search className="h-5 w-5 shrink-0 text-primary" />
         <span className="min-w-0 flex-1 text-sm text-muted-foreground">
@@ -641,7 +742,7 @@ function PatientHome() {
         ) : (
           <div className="-mx-4 mt-3 flex gap-3 overflow-x-auto pb-2 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-none snap-x">
             {recommended.map((clinic) => (
-              <ClinicCapsule key={clinic.id} clinic={clinic} profile={profiles[clinic.id]} />
+              <ClinicCapsule key={clinic.id} clinic={clinic} profile={profiles[clinic.id]} onQuickBook={handleOpenQuickBooking} />
             ))}
           </div>
         )}
@@ -673,6 +774,11 @@ function PatientHome() {
           onAcknowledge={() => setCallData(null)}
         />
       )}
+      <QuickBookingDrawer
+        clinic={selectedClinicForBooking}
+        isOpen={bookingDrawerOpen}
+        onOpenChange={setBookingDrawerOpen}
+      />
     </AppShell>
   );
 }
@@ -847,7 +953,7 @@ function AllSpecialtiesSheet({
   );
 }
 
-function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfileExtras }) {
+function ClinicCard({ clinic, profile, onQuickBook }: { clinic: Clinic; profile?: ClinicProfileExtras; onQuickBook?: (clinic: Clinic) => void }) {
   const specialty = specialties.find((item) => item.id === clinic.specialtyId);
   const rating = profile?.reviewsCount ? profile.ratingAvg : clinic.rating;
   return (
@@ -921,13 +1027,23 @@ function ClinicCard({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfi
             عرض الطبيب
           </Link>
         </Button>
+        {onQuickBook && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onQuickBook(clinic)}
+            className="px-4 font-extrabold transition active:scale-95"
+          >
+            حجز سريع
+          </Button>
+        )}
       </div>
     </article>
   );
 }
 
 /* كبسولة عيادة زجاجية للكواروسيل الأفقي */
-function ClinicCapsule({ clinic, profile }: { clinic: Clinic; profile?: ClinicProfileExtras }) {
+function ClinicCapsule({ clinic, profile, onQuickBook }: { clinic: Clinic; profile?: ClinicProfileExtras; onQuickBook?: (clinic: Clinic) => void }) {
   const specialty = specialties.find((item) => item.id === clinic.specialtyId);
   const rating = profile?.reviewsCount ? profile.ratingAvg : clinic.rating;
   return (
@@ -953,13 +1069,11 @@ function ClinicCapsule({ clinic, profile }: { clinic: Clinic; profile?: ClinicPr
         </span>
       </Link>
       <Button
-        asChild
         size="sm"
-        className="btn-liquid-primary mt-2.5 w-full rounded-full py-2 text-xs font-extrabold"
+        onClick={() => onQuickBook?.(clinic)}
+        className="btn-liquid-primary mt-2.5 w-full rounded-full py-2 text-xs font-extrabold transition active:scale-95"
       >
-        <Link to="/patient/clinic/$id" params={{ id: clinic.id }}>
-          حجز سريع
-        </Link>
+        حجز سريع
       </Button>
     </article>
   );

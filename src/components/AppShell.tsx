@@ -17,6 +17,7 @@ export function AppShell({
   centeredTitle = false,
   fullHeight = false,
   contentClassName = "",
+  headerClassName = "",
 }: {
   title: string;
   subtitle?: string;
@@ -31,6 +32,8 @@ export function AppShell({
   fullHeight?: boolean;
   /** كلاسات إضافية للحاوية الرئيسية (مثل content-bottom-fade) */
   contentClassName?: string;
+  /** كلاسات إضافية للهيدر */
+  headerClassName?: string;
 }) {
   const isPrimary = tone === "primary";
   const [hidden, setHidden] = useState(false);
@@ -71,7 +74,7 @@ export function AppShell({
             isPrimary
               ? "gradient-primary text-primary-foreground"
               : "border-b border-border/40 bg-card/70 backdrop-blur-2xl backdrop-saturate-150"
-          }`}
+          } ${headerClassName}`}
         >
           {hideBack ? (
             <span className="h-10 w-10 shrink-0" aria-hidden="true" />
