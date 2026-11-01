@@ -29,6 +29,7 @@ import { applyBaymaxVoice, cleanForSpeech, isSeniorModeOn, setSeniorMode } from 
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { NemoFaceSvg } from "@/components/NemoFaceSvg";
+import { NemoBreathingCard } from "@/components/NemoBreathingCard";
 import {
   getPatientLocation,
   savePatientLocation,
@@ -1183,6 +1184,8 @@ function Assistant() {
             )}
           </section>
         )}
+
+        {!urgent && <NemoBreathingCard />}
 
         {(urgent || (painLevel !== null && painLevel >= 8)) && (
           <section
