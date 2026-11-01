@@ -49,7 +49,7 @@ export function HealthActivityCarousel() {
         {booking ? (
           <Link to="/patient/clinic/$id" params={{ id: booking.clinicId }} className={card}>
             <CalendarClock className="mb-2 h-5 w-5 text-primary" />
-            <span className="block text-xs text-muted-foreground">حجزك القادم</span>
+            <span className="block text-xs text-muted-foreground">حجز محفوظ</span>
             <span className="block truncate text-sm font-bold">{booking.clinicName}</span>
             <span className="mt-1 block text-xs text-muted-foreground">
               {booking.dayLabel} · {booking.slot}
@@ -60,7 +60,9 @@ export function HealthActivityCarousel() {
           <Link to="/patient/search" className={card}>
             <CalendarClock className="mb-2 h-5 w-5 text-primary" />
             <span className="block text-sm font-bold">مفيش حجز قادم</span>
-            <span className="mt-1 block text-xs text-muted-foreground">دوّر على عيادة واحجز دورك</span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              دوّر على عيادة واحجز دورك
+            </span>
           </Link>
         )}
 
@@ -69,11 +71,15 @@ export function HealthActivityCarousel() {
           <span className="block text-xs text-muted-foreground">آخر قياساتك</span>
           <span className="mt-1 flex items-center justify-between gap-2 text-sm font-bold">
             الضغط {snap.bp ? `${snap.bp.sys}/${snap.bp.dia}` : "—"}
-            <span className={`rounded-full px-2 py-0.5 text-[10px] ${statusStyle[bp].cls}`}>{statusStyle[bp].label}</span>
+            <span className={`rounded-full px-2 py-0.5 text-xs ${statusStyle[bp].cls}`}>
+              {statusStyle[bp].label}
+            </span>
           </span>
           <span className="mt-1 flex items-center justify-between gap-2 text-sm font-bold">
             السكر {snap.sugar ? snap.sugar.value : "—"}
-            <span className={`rounded-full px-2 py-0.5 text-[10px] ${statusStyle[sugar].cls}`}>{statusStyle[sugar].label}</span>
+            <span className={`rounded-full px-2 py-0.5 text-xs ${statusStyle[sugar].cls}`}>
+              {statusStyle[sugar].label}
+            </span>
           </span>
         </Link>
 

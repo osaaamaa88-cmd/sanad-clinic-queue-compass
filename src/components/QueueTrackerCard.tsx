@@ -63,7 +63,7 @@ export function QueueTrackerCard() {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-extrabold">{clinic.doctor}</span>
-          <span className="mt-0.5 flex items-center gap-1.5 text-[11px] font-bold text-success">
+          <span className="mt-0.5 flex items-center gap-1.5 text-xs font-bold text-success">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
@@ -76,15 +76,15 @@ export function QueueTrackerCard() {
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-2xl bg-primary-soft/50 px-2 py-2.5">
-          <p className="text-[10px] font-bold text-muted-foreground">رقم دورك</p>
+          <p className="text-xs font-bold text-muted-foreground">رقم دورك</p>
           <p className="mt-0.5 text-2xl font-black text-primary">{myNumber}</p>
         </div>
         <div className="rounded-2xl bg-secondary/60 px-2 py-2.5">
-          <p className="text-[10px] font-bold text-muted-foreground">جوه دلوقتي</p>
+          <p className="text-xs font-bold text-muted-foreground">جوه دلوقتي</p>
           <p className="mt-0.5 text-2xl font-black">{clinic.nowServing}</p>
         </div>
         <div className="rounded-2xl bg-secondary/60 px-2 py-2.5">
-          <p className="text-[10px] font-bold text-muted-foreground">الانتظار</p>
+          <p className="text-xs font-bold text-muted-foreground">الانتظار</p>
           <p className="mt-0.5 flex items-center justify-center gap-1 text-sm font-extrabold">
             <Clock className="h-3.5 w-3.5 text-primary" />
             {state.arrived ? "دورك!" : `~${state.etaMinutes} د`}

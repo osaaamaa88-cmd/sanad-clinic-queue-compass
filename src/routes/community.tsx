@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   BadgeCheck,
   CalendarPlus,
+  Flag,
   Heart,
   ImagePlus,
   Lock,
@@ -58,6 +59,20 @@ const FONTS = [
   { id: "amiri", label: "نسخ" },
   { id: "marhey", label: "مرح" },
 ] as const;
+const SPECIALTY_CATEGORIES = [
+  { id: "popular", label: "الشائعة" },
+  { id: "surgical", label: "جراحية" },
+  { id: "family", label: "أطفال وأسرة" },
+  { id: "therapy", label: "علاجات" },
+] as const;
+const REPORT_REASONS = [
+  { id: "spam", label: "محتوى مزعج أو غير مرغوب" },
+  { id: "harassment", label: "إساءة أو مضايقة" },
+  { id: "medical_misinformation", label: "معلومة طبية مضللة" },
+  { id: "privacy", label: "انتهاك الخصوصية" },
+  { id: "other", label: "سبب آخر" },
+] as const;
+type ReportReason = (typeof REPORT_REASONS)[number]["id"];
 
 type Post = {
   id: string;
@@ -105,17 +120,20 @@ function CommunityPage() {
   const [clinics, setClinics] = useState<Record<string, ClinicLite>>({});
   const [images, setImages] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState("");
+  const [specialtyCategory, setSpecialtyCategory] = useState<string>("popular");
+  const [noReplyOnly, setNoReplyOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [composer, setComposer] = useState<null | "post" | "card">(null);
+  const [composerAnonymous, setComposerAnonymous] = useState(false);
+  const [quickImageFile, setQuickImageFile] = useState<File | null>(null);
+  const imagePickerRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       setUserId(u?.id ?? null);
       const md = (u?.user_metadata ?? {}) as Record<string, string>;
-      setUserName(
-        md.full_name || md.name || (u?.email ? u.email.split("@")[0] : "") || "عضو سند",
-      );
+      setUserName(md.full_name || md.name || (u?.email ? u.email.split("@")[0] : "") || "عضو سند");
     });
   }, [authOpen]);
 
@@ -251,6 +269,38 @@ function CommunityPage() {
     await supabase.from("community_comments").delete().eq("id", c.id);
     void load();
   };
+  const submitReport = async (
+    target: { postId?: string; commentId?: string },
+    reason: ReportReason,
+    details: string,
+  ) => {
+    if (!requireAuth()) return false;
+    try {
+      const { error } = await supabase.from("community_reports").insert({
+        post_id: target.postId ?? null,
+        comment_id: target.commentId ?? null,
+        reason,
+        details: details.trim(),
+      });
+      if (error) {
+        if (error.code === "23505") toast.info("سبق وأبلغت عن هذا المحتوى");
+        else toast.error("تعذّر إرسال البلاغ");
+        return false;
+      }
+      toast.success("تم إرسال البلاغ للمراجعة");
+      return true;
+    } catch (error) {
+      console.error("Community report submission failed", error);
+      toast.error("تعذّر إرسال البلاغ؛ تحقق من اتصالك وحاول مرة أخرى");
+      return false;
+    }
+  };
+  const visiblePosts = posts.filter(
+    (post) => !noReplyOnly || (comments[post.id]?.length ?? 0) === 0,
+  );
+  const visibleSpecialties = specialties.filter(
+    (specialty) => specialty.category === specialtyCategory,
+  );
 
   // Make sure the doctor's own clinic name is known for their comments.
   useEffect(() => {
@@ -287,7 +337,7 @@ function CommunityPage() {
           >
             <MessageCircle className="h-5 w-5" />
             {unreadTotal > 0 && (
-              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-black text-destructive-foreground ring-2 ring-card">
+              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-xs font-black text-destructive-foreground ring-2 ring-card">
                 {unreadTotal > 9 ? "9+" : unreadTotal}
               </span>
             )}
@@ -297,13 +347,36 @@ function CommunityPage() {
     >
       {searchOpen && <SearchOverlay posts={posts} onClose={() => setSearchOpen(false)} />}
       <div className="space-y-4 px-4 pb-28 pt-3">
+        <input
+          ref={imagePickerRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = "";
+            if (!file) return;
+            if (!file.type.startsWith("image/")) {
+              toast.error("اختر صورة فقط");
+              return;
+            }
+            setQuickImageFile(file);
+            setComposerAnonymous(false);
+            setComposer("post");
+          }}
+        />
+        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-bold leading-relaxed text-foreground">
+          للتوعية فقط ولا يغني عن الكشف الطبي — في الطوارئ اتصل بـ 123.
+        </div>
         <StoriesBar
+          isDoctor={!!doctorClinicId}
           onCompose={() => {
             if (doctorClinicId) return false;
             if (!userId) {
               setAuthOpen(true);
               return true;
             }
+            setComposerAnonymous(false);
             setComposer("card");
             return true;
           }}
@@ -330,16 +403,24 @@ function CommunityPage() {
             </button>
             <button
               type="button"
-              onClick={() => requireAuth() && setComposer("post")}
-              className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-success hover:bg-secondary"
+              onClick={() => {
+                if (!requireAuth()) return;
+                setComposerAnonymous(false);
+                imagePickerRef.current?.click();
+              }}
+              className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl py-2 text-success hover:bg-secondary"
             >
               <ImagePlus className="h-4 w-4" />
               صورة / تحليل
             </button>
             <button
               type="button"
-              onClick={() => requireAuth() && setComposer("post")}
-              className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-muted-foreground hover:bg-secondary"
+              onClick={() => {
+                if (!requireAuth()) return;
+                setComposerAnonymous(true);
+                setComposer("post");
+              }}
+              className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl py-2 text-muted-foreground hover:bg-secondary"
             >
               <Lock className="h-4 w-4" />
               مجهول
@@ -348,15 +429,42 @@ function CommunityPage() {
         </div>
 
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+          {SPECIALTY_CATEGORIES.map((category) => (
+            <Chip
+              key={category.id}
+              active={specialtyCategory === category.id}
+              onClick={() => {
+                setSpecialtyCategory(category.id);
+                if (
+                  filter &&
+                  !specialties.some((s) => s.id === filter && s.category === category.id)
+                ) {
+                  setFilter("");
+                }
+              }}
+            >
+              {category.label}
+            </Chip>
+          ))}
+        </div>
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
           <Chip active={!filter} onClick={() => setFilter("")}>
             الكل
           </Chip>
-          {specialties.map((s) => (
+          {visibleSpecialties.map((s) => (
             <Chip key={s.id} active={filter === s.id} onClick={() => setFilter(s.id)}>
               {s.emoji} {s.name}
             </Chip>
           ))}
         </div>
+        <button
+          type="button"
+          aria-pressed={noReplyOnly}
+          onClick={() => setNoReplyOnly((current) => !current)}
+          className={`min-h-11 rounded-full border px-4 text-xs font-bold ${noReplyOnly ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"}`}
+        >
+          بدون رد
+        </button>
 
         {loading ? (
           <div className="space-y-3">
@@ -364,13 +472,22 @@ function CommunityPage() {
               <div key={i} className="h-48 animate-pulse rounded-3xl bg-secondary" />
             ))}
           </div>
-        ) : posts.length === 0 ? (
+        ) : visiblePosts.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            <p>{filter ? "لا توجد منشورات في هذا التخصص حالياً." : "لا توجد منشورات بعد."}</p>
-            {filter && (
+            <p>
+              {noReplyOnly
+                ? "لا توجد منشورات بلا رد حالياً."
+                : filter
+                  ? "لا توجد منشورات في هذا التخصص حالياً."
+                  : "لا توجد منشورات بعد."}
+            </p>
+            {(filter || noReplyOnly) && (
               <button
                 type="button"
-                onClick={() => setFilter("")}
+                onClick={() => {
+                  setFilter("");
+                  setNoReplyOnly(false);
+                }}
                 className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-bold text-primary-foreground"
               >
                 عرض الكل
@@ -378,7 +495,7 @@ function CommunityPage() {
             )}
           </div>
         ) : (
-          posts.map((p) => (
+          visiblePosts.map((p) => (
             <PostCard
               key={p.id}
               post={p}
@@ -393,25 +510,30 @@ function CommunityPage() {
               onComment={(b) => addComment(p.id, b)}
               onDelete={() => deletePost(p.id)}
               onDeleteComment={deleteComment}
+              onReport={(target, reason, details) => submitReport(target, reason, details)}
+              onRequestReport={requireAuth}
             />
           ))
         )}
-
-        <p className="px-2 text-center text-[11px] leading-relaxed text-muted-foreground">
-          الاستشارات في المجتمع للتوعية والتوجيه فقط، ولا تغني عن الكشف الطبي. في الطوارئ اتصل بـ
-          123.
-        </p>
       </div>
 
       {composer && userId && (
         <Composer
           mode={composer}
+          initialAnonymous={composerAnonymous}
+          initialFile={quickImageFile}
           userId={userId}
           userName={doctorClinicId ? clinics[doctorClinicId]?.doctor || userName : userName}
           clinicId={doctorClinicId}
-          onClose={() => setComposer(null)}
+          onClose={() => {
+            setComposer(null);
+            setComposerAnonymous(false);
+            setQuickImageFile(null);
+          }}
           onDone={() => {
             setComposer(null);
+            setComposerAnonymous(false);
+            setQuickImageFile(null);
             void load();
           }}
         />
@@ -501,7 +623,7 @@ function SearchOverlay({ posts, onClose }: { posts: Post[]; onClose: () => void 
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold">{d.doctor}</span>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {getSpecialty(d.specialty_id)?.name ?? ""}
                     </span>
                   </span>
@@ -575,7 +697,7 @@ const STORY_TIPS = [
   { bg: "lavender", text: "🥗 أضف سلطة خضراء لوجبتين يومياً" },
 ];
 
-function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
+function StoriesBar({ isDoctor, onCompose }: { isDoctor: boolean; onCompose: () => boolean }) {
   const navigate = useNavigate();
   const [clinics, setClinics] = useState<
     {
@@ -619,7 +741,9 @@ function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
               <span className="grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-primary/25">
                 <Plus className="h-6 w-6" />
               </span>
-              <span className="text-[11px] font-extrabold text-white">إنشاء قصة</span>
+              <span className="text-xs font-extrabold text-white">
+                {isDoctor ? "إنشاء قصة" : "إنشاء بطاقة باسمك"}
+              </span>
             </span>
           </span>
         </button>
@@ -669,7 +793,7 @@ function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
                 </span>
               </span>
             </span>
-            <span className="absolute inset-x-1.5 bottom-2 line-clamp-2 text-center text-[11px] font-extrabold leading-tight text-white drop-shadow">
+            <span className="absolute inset-x-1.5 bottom-2 line-clamp-2 text-center text-xs font-extrabold leading-tight text-white drop-shadow">
               {c.doctor}
             </span>
           </button>
@@ -679,10 +803,10 @@ function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
           <span key={i} className="relative h-44 w-[6.5rem] shrink-0 overflow-hidden rounded-2xl">
             <span className={`absolute inset-0 card-bg-${t.bg}`} />
             <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3 text-center">
-              <span className="rounded-full bg-black/25 px-2 py-0.5 text-[9px] font-extrabold text-white">
+              <span className="rounded-full bg-black/25 px-2 py-0.5 text-xs font-extrabold text-white">
                 نصيحة سند
               </span>
-              <span className="text-[11px] font-bold leading-relaxed text-white">{t.text}</span>
+              <span className="text-xs font-bold leading-relaxed text-white">{t.text}</span>
             </span>
           </span>
         ))}
@@ -704,7 +828,7 @@ function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
 function DoctorBadge({ clinic }: { clinic: ClinicLite }) {
   if (!clinic.is_verified) return null;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-extrabold text-success">
+    <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-xs font-extrabold text-success">
       <BadgeCheck className="h-3 w-3" />
       طبيب معتمد
       {getSpecialty(clinic.specialty_id) ? ` • ${getSpecialty(clinic.specialty_id)!.name}` : ""}
@@ -725,6 +849,8 @@ function PostCard({
   onComment,
   onDelete,
   onDeleteComment,
+  onReport,
+  onRequestReport,
 }: {
   post: Post;
   image?: string;
@@ -738,10 +864,20 @@ function PostCard({
   onComment: (b: string) => Promise<boolean>;
   onDelete: () => void;
   onDeleteComment: (c: Comment) => void;
+  onReport: (
+    target: { postId?: string; commentId?: string },
+    reason: ReportReason,
+    details: string,
+  ) => Promise<boolean>;
+  onRequestReport: () => boolean;
 }) {
-  const [showAll, setShowAll] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ postId?: string; commentId?: string } | null>(
+    null,
+  );
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const commentInputRef = useRef<HTMLInputElement>(null);
   const spec = getSpecialty(post.specialty_id);
   const sorted = useMemo(
     () =>
@@ -752,7 +888,12 @@ function PostCard({
       ),
     [comments, clinics],
   );
-  const visible = showAll ? sorted : sorted.slice(0, 2);
+  const hasVerifiedAnswer = comments.some(
+    (comment) => !!comment.clinic_id && !!clinics[comment.clinic_id]?.is_verified,
+  );
+  useEffect(() => {
+    if (commentsOpen) commentInputRef.current?.focus();
+  }, [commentsOpen]);
 
   return (
     <article
@@ -774,17 +915,23 @@ function PostCard({
             <span className="truncate text-sm font-bold">{post.author_name}</span>
             {clinic?.is_verified && <DoctorBadge clinic={clinic} />}
           </div>
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             {timeAgo(post.created_at)}
             {spec ? ` • ${spec.emoji} ${spec.name}` : ""}
           </div>
+          {hasVerifiedAnswer && (
+            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-1 text-xs font-bold text-success">
+              <BadgeCheck className="h-3.5 w-3.5" />
+              تمت الإجابة من طبيب
+            </span>
+          )}
         </div>
         {post.is_mine && (
           <button
             type="button"
             onClick={onDelete}
             aria-label="حذف"
-            className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
+            className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground hover:bg-secondary"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -829,15 +976,30 @@ function PostCard({
           <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
           {likes || ""} دعم
         </button>
-        <span className="flex items-center gap-1.5 px-3 py-2 font-bold text-muted-foreground">
+        <button
+          type="button"
+          aria-expanded={commentsOpen}
+          onClick={() => setCommentsOpen(true)}
+          className="flex min-h-11 items-center gap-1.5 rounded-xl px-3 py-2 font-bold text-muted-foreground hover:bg-secondary"
+        >
           <MessageCircle className="h-5 w-5" />
-          {comments.length || ""} تعليق
-        </span>
+          التعليقات ({comments.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (onRequestReport()) setReportTarget({ postId: post.id });
+          }}
+          aria-label="الإبلاغ عن المنشور"
+          className="mr-auto grid h-11 w-11 place-items-center rounded-xl text-muted-foreground hover:bg-secondary"
+        >
+          <Flag className="h-4 w-4" />
+        </button>
       </div>
 
-      {comments.length > 0 && (
+      {commentsOpen && comments.length > 0 && (
         <div className="space-y-2 px-4 pb-2">
-          {visible.map((c) => {
+          {sorted.map((c) => {
             const dc = c.clinic_id ? clinics[c.clinic_id] : undefined;
             return dc?.is_verified ? (
               <div key={c.id} className="rounded-2xl border border-gold/50 bg-gold-soft p-3">
@@ -848,9 +1010,22 @@ function PostCard({
                     <button
                       type="button"
                       onClick={() => onDeleteComment(c)}
-                      className="mr-auto text-muted-foreground"
+                      aria-label="حذف التعليق"
+                      className="mr-auto grid h-11 w-11 place-items-center text-muted-foreground"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {userId !== c.author_id && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onRequestReport()) setReportTarget({ commentId: c.id });
+                      }}
+                      aria-label="الإبلاغ عن التعليق"
+                      className="grid h-11 w-11 place-items-center text-muted-foreground"
+                    >
+                      <Flag className="h-3.5 w-3.5" />
                     </button>
                   )}
                 </div>
@@ -873,9 +1048,22 @@ function PostCard({
                     <button
                       type="button"
                       onClick={() => onDeleteComment(c)}
-                      className="mr-auto text-muted-foreground"
+                      aria-label="حذف التعليق"
+                      className="mr-auto grid h-11 w-11 place-items-center text-muted-foreground"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {userId !== c.author_id && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onRequestReport()) setReportTarget({ commentId: c.id });
+                      }}
+                      aria-label="الإبلاغ عن التعليق"
+                      className="grid h-11 w-11 place-items-center text-muted-foreground"
+                    >
+                      <Flag className="h-3.5 w-3.5" />
                     </button>
                   )}
                 </div>
@@ -883,50 +1071,135 @@ function PostCard({
               </div>
             );
           })}
-          {sorted.length > 2 && !showAll && (
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
-              className="text-xs font-bold text-primary"
-            >
-              عرض كل التعليقات ({sorted.length})
-            </button>
-          )}
         </div>
       )}
 
+      {commentsOpen && (
+        <form
+          className="flex items-center gap-2 border-t border-border p-3"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!text.trim() || sending) return;
+            setSending(true);
+            if (await onComment(text)) setText("");
+            setSending(false);
+          }}
+        >
+          <input
+            ref={commentInputRef}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            maxLength={1000}
+            placeholder="اكتب تعليقاً..."
+            className="h-11 flex-1 rounded-full bg-secondary px-4 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+          <button
+            type="submit"
+            disabled={!text.trim() || sending}
+            aria-label="إرسال"
+            className="grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
+          >
+            <Send className="h-4 w-4 -scale-x-100" />
+          </button>
+        </form>
+      )}
+      {reportTarget && (
+        <ReportDialog
+          onClose={() => setReportTarget(null)}
+          onSubmit={async (reason, details) => {
+            if (await onReport(reportTarget, reason, details)) setReportTarget(null);
+          }}
+        />
+      )}
+    </article>
+  );
+}
+
+function ReportDialog({
+  onClose,
+  onSubmit,
+}: {
+  onClose: () => void;
+  onSubmit: (reason: ReportReason, details: string) => Promise<void>;
+}) {
+  const [reason, setReason] = useState<ReportReason>("spam");
+  const [details, setDetails] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <div
+      className="fixed inset-0 z-[130] grid place-items-center bg-background/80 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="community-report-title"
+    >
       <form
-        className="flex items-center gap-2 border-t border-border p-3"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!text.trim() || sending) return;
-          setSending(true);
-          if (await onComment(text)) setText("");
-          setSending(false);
+        className="w-full max-w-md space-y-4 rounded-3xl border border-border bg-card p-5 shadow-soft"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          if (busy) return;
+          setBusy(true);
+          await onSubmit(reason, details);
+          setBusy(false);
         }}
       >
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          maxLength={1000}
-          placeholder="اكتب تعليقاً..."
-          className="h-10 flex-1 rounded-full bg-secondary px-4 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
-        <button
-          type="submit"
-          disabled={!text.trim() || sending}
-          aria-label="إرسال"
-          className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"
-        >
-          <Send className="h-4 w-4 -scale-x-100" />
-        </button>
+        <div>
+          <h2 id="community-report-title" className="text-base font-extrabold">
+            الإبلاغ عن محتوى
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            لن يظهر البلاغ لصاحب المنشور أو التعليق.
+          </p>
+        </div>
+        <label className="block space-y-2 text-sm font-bold">
+          سبب البلاغ
+          <select
+            value={reason}
+            onChange={(event) => setReason(event.target.value as ReportReason)}
+            className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-normal"
+          >
+            {REPORT_REASONS.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block space-y-2 text-sm font-bold">
+          تفاصيل إضافية (اختياري)
+          <textarea
+            value={details}
+            onChange={(event) => setDetails(event.target.value)}
+            maxLength={500}
+            rows={3}
+            className="w-full resize-none rounded-xl border border-border bg-background p-3 text-sm font-normal"
+          />
+        </label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-11 flex-1 rounded-xl border border-border px-4 text-sm font-bold"
+          >
+            إلغاء
+          </button>
+          <button
+            type="submit"
+            disabled={busy}
+            className="min-h-11 flex-1 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground disabled:opacity-50"
+          >
+            {busy ? "جارٍ الإرسال..." : "إرسال البلاغ"}
+          </button>
+        </div>
       </form>
-    </article>
+    </div>
   );
 }
 
 function Composer({
   mode,
+  initialAnonymous,
+  initialFile,
   userId,
   userName,
   clinicId,
@@ -934,6 +1207,8 @@ function Composer({
   onDone,
 }: {
   mode: "post" | "card";
+  initialAnonymous: boolean;
+  initialFile: File | null;
   userId: string;
   userName: string;
   clinicId: string | null;
@@ -944,9 +1219,9 @@ function Composer({
   const [body, setBody] = useState("");
   const [bg, setBg] = useState<(typeof BGS)[number]>("navy");
   const [font, setFont] = useState<string>("alexandria");
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(initialFile);
   const [preview, setPreview] = useState("");
-  const [anon, setAnon] = useState(false);
+  const [anon, setAnon] = useState(initialAnonymous);
   const [spec, setSpec] = useState("");
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -957,6 +1232,11 @@ function Composer({
     },
     [preview],
   );
+  useEffect(() => {
+    if (!initialFile) return;
+    setIsCard(false);
+    setPreview(URL.createObjectURL(initialFile));
+  }, [initialFile]);
 
   const pick = (f?: File) => {
     if (!f) return;
@@ -1047,6 +1327,9 @@ function Composer({
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        <div className="mx-4 mt-4 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-bold leading-relaxed">
+          للتوعية فقط ولا يغني عن الكشف الطبي — في الطوارئ اتصل بـ 123.
+        </div>
         {isCard ? (
           <div
             className={`card-bg-${bg} card-ink relative grid min-h-[55vh] place-items-center px-6 transition-[background] duration-300`}

@@ -35,6 +35,9 @@ const items = [
       path.startsWith("/patient/login") ||
       path.startsWith("/patient/health") ||
       path.startsWith("/patient/meds") ||
+      path.startsWith("/patient/drug-scan") ||
+      path.startsWith("/patient/lab-reader") ||
+      path.startsWith("/nutrition") ||
       path.startsWith("/messages"),
   },
 ] as const;
@@ -52,6 +55,7 @@ export function PatientBottomNav() {
       <div className="glass-liquid pointer-events-auto grid h-16 w-full max-w-md grid-cols-5 rounded-full px-2 shadow-2xl">
         {items.map((item) => {
           const active = item.matches(pathname);
+          const emergency = item.to === "/patient/emergency";
           const Icon = item.icon;
           return (
             <Link
@@ -59,10 +63,10 @@ export function PatientBottomNav() {
               to={item.to}
               activeOptions={{ exact: true }}
               aria-current={active ? "page" : undefined}
-              className={`group relative flex min-w-0 flex-col items-center justify-center gap-0.5 text-[10px] font-bold transition-all duration-200 active:scale-90 ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={`group relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 text-xs font-bold transition-all duration-200 active:scale-90 ${emergency ? "text-destructive" : active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
               <span
-                className={`grid h-9 w-14 place-items-center rounded-full transition-all duration-300 ${active ? "bg-primary-soft shadow-soft" : "bg-transparent group-hover:bg-secondary"}`}
+                className={`grid h-9 w-14 place-items-center rounded-full transition-all duration-300 ${emergency && active ? "bg-destructive/10 shadow-soft" : active ? "bg-primary-soft shadow-soft" : "bg-transparent group-hover:bg-secondary"}`}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.6 : 2} />
               </span>

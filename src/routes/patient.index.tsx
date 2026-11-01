@@ -1,11 +1,9 @@
 import { defaultDoctorAvatar } from "@/lib/default-avatars";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useDoctorClinicId } from "@/lib/use-doctor-mode";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
-  Building2,
-  CalendarPlus,
   ClipboardList,
   Clock,
   Droplets,
@@ -18,6 +16,7 @@ import {
   Sparkles,
   Star,
   Siren,
+  Users,
   Wind,
   X,
 } from "lucide-react";
@@ -50,41 +49,26 @@ import {
   type PatientLocation,
 } from "@/lib/patient-location";
 
-// ===== شبكة الخدمات السريعة: تعريف ثابت خارج المكوّن لتجنّب إعادة الإنشاء =====
-const quickActions = [
-  {
-    to: "/patient/search",
-    label: "حجز عيادة",
-    hint: "دوّر على أقرب طبيب",
-    icon: CalendarPlus,
-    tone: "bg-primary-soft text-primary",
-    badge: undefined,
-  },
-  {
-    to: "/patient/assistant",
-    label: "اسأل نيمو",
-    hint: "مساعدك الذكي 24 ساعة",
-    icon: MessageCircleHeart,
-    tone: "bg-success/15 text-success",
-    badge: "نبض ذكي",
-  },
-  {
-    to: "/patient/emergency",
-    label: "طوارئ 123",
-    hint: "مساعدة فورية الآن",
-    icon: Siren,
-    tone: "bg-destructive/10 text-destructive",
-    badge: undefined,
-  },
-  {
-    to: "/patient/meds",
-    label: "الروشتة والتحاليل",
-    hint: "فحص علاجك وتحاليلك",
-    icon: ClipboardList,
-    tone: "bg-warning/15 text-warning",
-    badge: undefined,
-  },
-] as const;
+const HYDRATION_KEY = "sanad.patient.hydration";
+
+function todayKey() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getTodayHydration() {
+  if (typeof window === "undefined") return 0;
+  try {
+    const raw = window.localStorage.getItem(HYDRATION_KEY);
+    if (!raw) return 0;
+    const saved = JSON.parse(raw) as { day?: string; count?: number };
+    const count = typeof saved.count === "number" && Number.isFinite(saved.count) ? saved.count : 0;
+    return saved.day === todayKey() ? Math.max(0, Math.min(8, count)) : 0;
+  } catch (error) {
+    console.error("[PatientHome] Failed to read hydration progress:", error);
+    return 0;
+  }
+}
 
 export const Route = createFileRoute("/patient/")({
   staticData: { sitemap: true },
@@ -133,6 +117,8 @@ function PatientHome() {
   const [breathingActive, setBreathingActive] = useState(false);
   const [breathPhase, setBreathPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [hydration, setHydration] = useState(0);
+  const [hydrationReady, setHydrationReady] = useState(false);
+  const featuredClinicsRef = useRef<HTMLElement | null>(null);
   const queryClient = useQueryClient();
   useEffect(() => {
     setLocation(getPatientLocation());
@@ -147,6 +133,29 @@ function PatientHome() {
       window.removeEventListener("storage", refreshReadings);
     };
   }, []);
+
+  useEffect(() => {
+    setHydration(getTodayHydration());
+    setHydrationReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrationReady) return;
+    try {
+      window.localStorage.setItem(
+        HYDRATION_KEY,
+        JSON.stringify({ day: todayKey(), count: hydration }),
+      );
+    } catch (error) {
+      console.error("[PatientHome] Failed to save hydration progress:", error);
+    }
+  }, [hydration, hydrationReady]);
+
+  useEffect(() => {
+    if (selectedSpecialty) {
+      featuredClinicsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedSpecialty]);
 
   // تحية حسب توقيت اليوم (صباحاً / مساءً)
   const greeting = useMemo(() => {
@@ -268,9 +277,7 @@ function PatientHome() {
           {/* صف علوي مرن: الصورة الرمزية والاسم يميناً، الموقع يساراً */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <span
-                className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-primary-soft text-lg font-extrabold text-primary shadow-soft"
-              >
+              <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-primary-soft text-lg font-extrabold text-primary shadow-soft">
                 {patientAvatar ? (
                   <img src={patientAvatar} alt="" className="h-full w-full object-cover" />
                 ) : (
@@ -280,8 +287,8 @@ function PatientHome() {
               <div className="min-w-0">
                 <p className="truncate text-base font-extrabold">
                   {patientName ? patientName.split(" ")[0] : "يا بطل"}
-                  </p>
-                <p className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground">
+                </p>
+                <p className="flex items-center gap-1 text-xs font-bold text-muted-foreground">
                   <Sparkles className="h-3 w-3 text-primary" />
                 </p>
               </div>
@@ -295,7 +302,7 @@ function PatientHome() {
             >
               <MapPin className="h-4 w-4 shrink-0 text-primary" />
               <span className="max-w-[8rem] truncate text-xs font-bold">{location.city}</span>
-              <span className="text-[10px] text-muted-foreground">▾</span>
+              <span className="text-xs text-muted-foreground">▾</span>
             </button>
           </div>
 
@@ -304,37 +311,37 @@ function PatientHome() {
           </p>
 
           <div className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2.5">
-              <HeartPulse className="h-5 w-5 shrink-0 text-primary" />
-              {healthSnapshot.bp || healthSnapshot.sugar ? (
-                <div className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
-                  <p>
-                    الضغط:{" "}
-                    {healthSnapshot.bp
-                      ? { normal: "طبيعي", watch: "تابعه", alert: "تنبيه", unknown: "غير معروف" }[
-                          bpStatus(healthSnapshot.bp)
-                        ]
-                      : "لا توجد قراءة"}
+            <HeartPulse className="h-5 w-5 shrink-0 text-primary" />
+            {healthSnapshot.bp || healthSnapshot.sugar ? (
+              <div className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
+                <p>
+                  الضغط:{" "}
+                  {healthSnapshot.bp
+                    ? { normal: "طبيعي", watch: "تابعه", alert: "تنبيه", unknown: "غير معروف" }[
+                        bpStatus(healthSnapshot.bp)
+                      ]
+                    : "لا توجد قراءة"}
                 </p>
-                  <p>
-                    السكر:{" "}
-                    {healthSnapshot.sugar
-                      ? { normal: "طبيعي", watch: "تابعه", alert: "تنبيه", unknown: "غير معروف" }[
-                          sugarStatus(healthSnapshot.sugar)
-                        ]
-                      : "لا توجد قراءة"}
-                  </p>
-                </div>
-              ) : (
-                <p className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
-                  لا توجد قراءات مسجلة
+                <p>
+                  السكر:{" "}
+                  {healthSnapshot.sugar
+                    ? { normal: "طبيعي", watch: "تابعه", alert: "تنبيه", unknown: "غير معروف" }[
+                        sugarStatus(healthSnapshot.sugar)
+                      ]
+                    : "لا توجد قراءة"}
                 </p>
-              )}
-              <Link
-                to="/patient/health"
-                className="flex min-h-11 shrink-0 items-center text-xs font-extrabold text-primary"
-              >
-                {healthSnapshot.bp || healthSnapshot.sugar ? "التفاصيل ←" : "سجّل أول قراءة"}
-              </Link>
+              </div>
+            ) : (
+              <p className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
+                لا توجد قراءات مسجلة
+              </p>
+            )}
+            <Link
+              to="/patient/health"
+              className="flex min-h-11 shrink-0 items-center text-xs font-extrabold text-primary"
+            >
+              {healthSnapshot.bp || healthSnapshot.sugar ? "التفاصيل ←" : "سجّل أول قراءة"}
+            </Link>
           </div>
 
           {/* الزرّان الزجاجيان العريضان */}
@@ -357,82 +364,16 @@ function PatientHome() {
         </div>
       </section>
       {upcomingBooking && <QueueTrackerCard />}
-      <HealthActivityCarousel />
-      {/* ===== العناية اليومية (Daily Calm & Wellness) ===== */}
-      <section className="mt-6 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-3xl border border-border/60 bg-card/80 p-4 shadow-soft backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-extrabold text-foreground">تمرين التنفس مع نيمو</h3>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                {breathingActive
-                  ? breathPhase === "inhale"
-                    ? "شهيق هادئ..."
-                    : breathPhase === "hold"
-                      ? "احبس النفس..."
-                      : "زفير واسترخاء"
-                  : "4 ثوانٍ • تهدئة ضربات القلب"}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setBreathingActive((v) => !v)}
-              className="rounded-full bg-primary px-3 py-1.5 text-[11px] font-extrabold text-primary-foreground transition active:scale-95"
-            >
-              {breathingActive ? "إيقاف" : "ابدأ"}
-            </button>
-          </div>
-          <div className="mt-4 grid place-items-center">
-            <span
-              className={`grid h-24 w-24 place-items-center rounded-full border-4 border-primary/30 bg-primary/10 text-primary transition-all duration-[4000ms] ease-in-out ${
-                breathingActive
-                  ? breathPhase === "exhale"
-                    ? "scale-100"
-                    : "scale-125"
-                  : "scale-100"
-              }`}
-            >
-              <Wind className="h-8 w-8" />
-            </span>
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-border/60 bg-card/80 p-4 shadow-soft backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-extrabold text-foreground">متتبع شرب الماء</h3>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                {hydration}/8 أكواب • {Math.round((hydration / 8) * 100)}%
-              </p>
-            </div>
-            <Droplets className="h-5 w-5 text-primary" />
-          </div>
-          <div className="mt-3 grid grid-cols-8 gap-1.5">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setHydration(i + 1)}
-                className={`grid aspect-square place-items-center rounded-full border transition active:scale-95 ${
-                  i < hydration
-                    ? "border-primary/40 bg-primary/20 text-primary"
-                    : "border-border bg-secondary/50 text-muted-foreground"
-                }`}
-                aria-label={`كوب ${i + 1}`}
-              >
-                <Droplets className="h-3.5 w-3.5" />
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setHydration(0)}
-            className="mt-3 text-[11px] font-bold text-muted-foreground transition hover:text-primary"
-          >
-            إعادة تعيين
-          </button>
-        </div>
-      </section>
+      <Link
+        to="/patient/search"
+        className="mt-4 flex min-h-11 items-center gap-3 rounded-full border border-border/50 bg-card px-4 py-3.5 shadow-soft transition-all duration-200 active:scale-[0.97] hover:border-primary/50"
+      >
+        <Search className="h-5 w-5 shrink-0 text-primary" />
+        <span className="min-w-0 flex-1 text-sm text-muted-foreground">
+          دور على طبيب، تخصص أو عيادة…
+        </span>
+        <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </Link>
       {/* ===== شبكة بينتو الطبية الذكية (Medical Bento Grid) =====
         كارت هولوجرام طولي (row-span-2) + طوارئ + MedScan */}
       <section aria-label="الخدمات الطبية" className="mb-6 grid grid-cols-2 gap-3">
@@ -464,10 +405,10 @@ function PatientHome() {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
               </span>
             </p>
-            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
               نقطة نبض حية لآخر قراءات الضغط والسكر — اضغط على أي عضو
             </p>
-            <span className="mt-2 inline-block rounded-full bg-primary-soft px-3 py-1 text-[11px] font-extrabold text-primary">
+            <span className="mt-2 inline-block rounded-full bg-primary-soft px-3 py-1 text-xs font-extrabold text-primary">
               فتح الملف ←
             </span>
           </div>
@@ -484,7 +425,7 @@ function PatientHome() {
           </span>
           <span className="mt-2">
             <span className="block text-[13px] font-extrabold text-destructive">طوارئ 123</span>
-            <span className="block text-[10px] font-medium text-muted-foreground">
+            <span className="block text-xs font-medium text-muted-foreground">
               اتصال إسعاف فوري بلمسة
             </span>
           </span>
@@ -492,7 +433,7 @@ function PatientHome() {
 
         {/* الكارت السفلي الأيسر — فحص الروشتة والتحاليل MedScan */}
         <Link
-          to="/patient/meds"
+          to="/patient/drug-scan"
           className="glass-liquid flex flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-right shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.97]"
         >
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-success/15 text-success">
@@ -500,7 +441,7 @@ function PatientHome() {
           </span>
           <span className="mt-2">
             <span className="block text-[13px] font-extrabold">روشتة وتحاليل</span>
-            <span className="block text-[10px] font-medium text-muted-foreground">
+            <span className="block text-xs font-medium text-muted-foreground">
               فحص MedScan الذكي بلمسة
             </span>
           </span>
@@ -520,17 +461,6 @@ function PatientHome() {
         />
       )}
 
-      <Link
-        to="/patient/search"
-        className="mt-4 flex items-center gap-3 rounded-full border border-border/50 bg-card/80 px-4 py-3.5 shadow-soft backdrop-blur-xl transition-all duration-200 active:scale-[0.97] hover:border-primary/50"
-      >
-        <Search className="h-5 w-5 shrink-0 text-primary" />
-        <span className="min-w-0 flex-1 text-sm text-muted-foreground">
-          دور على طبيب، تخصص أو عيادة…
-        </span>
-        <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
-      </Link>
-
       <section className="mt-6">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
@@ -548,7 +478,12 @@ function PatientHome() {
                 key={clinic.id}
                 type="button"
                 onClick={() =>
-                  clinicStories.length ? setViewer({ clinic, items: clinicStories }) : undefined
+                  clinicStories.length
+                    ? setViewer({ clinic, items: clinicStories })
+                    : void goDoctor({
+                        to: "/patient/clinic/$id",
+                        params: { id: clinic.id },
+                      })
                 }
                 className="group w-[78px] shrink-0 snap-start text-center transition active:scale-95"
                 aria-label={`مشاهدة تحديثات ${clinic.doctor}`}
@@ -557,16 +492,18 @@ function PatientHome() {
                   className={`mx-auto block h-[68px] w-[68px] rounded-full p-[3px] ${clinicStories.length ? "gradient-story" : "bg-border"}`}
                 >
                   <span className="grid h-full w-full place-items-center overflow-hidden rounded-full border-[3px] border-background bg-card text-2xl">
-                    <img src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)} alt={clinic.doctor} className="h-full w-full object-cover" />
+                    <img
+                      src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)}
+                      alt={clinic.doctor}
+                      className="h-full w-full object-cover"
+                    />
                   </span>
                 </span>
                 <span className="mt-1.5 block truncate text-xs font-bold group-hover:text-primary">
                   {clinic.doctor.replace(/^د\.?\s*/, "د. ")}
                 </span>
                 {clinic.isDemo && (
-                  <span className="mt-1 block text-xs font-bold text-warning">
-                    بيانات تجريبية
-                  </span>
+                  <span className="mt-1 block text-xs font-bold text-warning">بيانات تجريبية</span>
                 )}
               </button>
             );
@@ -614,7 +551,7 @@ function PatientHome() {
                   <span className="block text-[13px] font-bold leading-5 break-words group-hover:text-primary sm:text-sm">
                     {specialty.name}
                   </span>
-                  <span className="mt-0.5 block text-[10px] font-medium leading-4 text-muted-foreground">
+                  <span className="mt-0.5 block text-xs font-medium leading-4 text-muted-foreground">
                     {availableCounts[specialty.id] ?? 0} عيادة مفتوحة
                   </span>
                 </span>
@@ -632,7 +569,7 @@ function PatientHome() {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-bold group-hover:text-primary">كل التخصصات</span>
-              <span className="mt-0.5 block text-[10px] font-medium text-muted-foreground">
+              <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
                 {specialties.length} تخصص
               </span>
             </span>
@@ -640,7 +577,7 @@ function PatientHome() {
         </div>
       </section>
 
-      <section className="mt-8">
+      <section ref={featuredClinicsRef} className="mt-8 scroll-mt-24">
         <div className="flex items-end justify-between gap-3">
           <div>
             <h2 className="text-lg font-extrabold">
@@ -716,10 +653,91 @@ function PatientHome() {
         ) : (
           <div className="-mx-4 mt-3 flex gap-3 overflow-x-auto pb-2 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scrollbar-none snap-x">
             {recommended.map((clinic) => (
-              <ClinicCapsule key={clinic.id} clinic={clinic} profile={profiles[clinic.id]} onQuickBook={handleOpenQuickBooking} />
+              <ClinicCapsule
+                key={clinic.id}
+                clinic={clinic}
+                profile={profiles[clinic.id]}
+                onQuickBook={handleOpenQuickBooking}
+              />
             ))}
           </div>
         )}
+      </section>
+
+      <HealthActivityCarousel />
+      <section className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-3xl border border-border/60 bg-card p-4 shadow-soft">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-extrabold text-foreground">تمرين التنفس مع نيمو</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {breathingActive
+                  ? breathPhase === "inhale"
+                    ? "شهيق هادئ..."
+                    : breathPhase === "hold"
+                      ? "احبس النفس..."
+                      : "زفير واسترخاء"
+                  : "4 ثوانٍ • تهدئة ضربات القلب"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBreathingActive((v) => !v)}
+              className="min-h-11 rounded-full bg-primary px-4 py-2 text-xs font-extrabold text-primary-foreground transition active:scale-95"
+            >
+              {breathingActive ? "إيقاف" : "ابدأ"}
+            </button>
+          </div>
+          <div className="mt-4 grid place-items-center">
+            <span
+              className={`grid h-24 w-24 place-items-center rounded-full border-4 border-primary/30 bg-primary/10 text-primary transition-all duration-[4000ms] ease-in-out ${
+                breathingActive
+                  ? breathPhase === "exhale"
+                    ? "scale-100"
+                    : "scale-125"
+                  : "scale-100"
+              }`}
+            >
+              <Wind className="h-8 w-8" />
+            </span>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-border/60 bg-card p-4 shadow-soft">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-extrabold text-foreground">متتبع شرب الماء</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {hydration}/8 أكواب • {Math.round((hydration / 8) * 100)}%
+              </p>
+            </div>
+            <Droplets className="h-5 w-5 text-primary" />
+          </div>
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setHydration(i + 1)}
+                className={`grid aspect-square min-h-11 min-w-11 place-items-center rounded-full border transition active:scale-95 ${
+                  i < hydration
+                    ? "border-primary/40 bg-primary/20 text-primary"
+                    : "border-border bg-secondary/50 text-muted-foreground"
+                }`}
+                aria-label={`كوب ${i + 1}`}
+              >
+                <Droplets className="h-4 w-4" />
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setHydration(0)}
+            className="mt-2 min-h-11 text-xs font-bold text-muted-foreground transition hover:text-primary"
+          >
+            إعادة تعيين
+          </button>
+        </div>
       </section>
 
       {specialtiesOpen && (
@@ -899,7 +917,7 @@ function AllSpecialtiesSheet({
                     <span className="block text-xs font-bold leading-5 break-words sm:text-sm">
                       {specialty.name}
                     </span>
-                    <span className="block text-[10px] leading-4 text-muted-foreground">
+                    <span className="block text-xs leading-4 text-muted-foreground">
                       {counts[specialty.id] ?? 0} عيادة مفتوحة
                     </span>
                   </span>
@@ -918,97 +936,16 @@ function AllSpecialtiesSheet({
   );
 }
 
-function ClinicCard({ clinic, profile, onQuickBook }: { clinic: Clinic; profile?: ClinicProfileExtras; onQuickBook?: (clinic: Clinic) => void }) {
-  const specialty = specialties.find((item) => item.id === clinic.specialtyId);
-  const rating = profile?.reviewsCount ? profile.ratingAvg : clinic.rating;
-  return (
-    <article className="overflow-hidden rounded-3xl border border-border/60 bg-card shadow-soft transition duration-200 active:scale-[0.98] hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft">
-      <Link to="/patient/clinic/$id" params={{ id: clinic.id }} className="block">
-        <div className="relative aspect-[16/7] bg-primary-soft">
-          {profile?.coverUrl || clinic.coverUrl ? (
-            <img
-              src={profile?.coverUrl || clinic.coverUrl}
-              loading="lazy"
-              alt={`عيادة ${clinic.doctor}`}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <ClinicPlaceholder cover />
-          )}
-          {clinic.availableNow && (
-            <span className="absolute right-3 top-3 rounded-full bg-success px-2.5 py-1 text-[10px] font-extrabold text-success-foreground">
-              متاح الآن
-            </span>
-          )}
-          {clinic.isDemo && (
-            <span className="absolute left-3 top-3 rounded-full border border-warning/40 bg-card/95 px-2.5 py-1 text-[10px] font-extrabold text-warning">
-              بيانات تجريبية
-            </span>
-          )}
-        </div>
-        <div className="flex min-w-0 items-start gap-3 p-4 pb-3">
-          <span className="-mt-9 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl border-2 border-card bg-primary-soft text-primary">
-            <img src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)} alt={clinic.doctor} className="h-full w-full object-cover" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate font-extrabold">{clinic.doctor}</span>
-            <span className="block truncate text-xs text-muted-foreground">
-              {specialty?.name} • {clinic.area}
-            </span>
-          </span>
-          <span className="shrink-0 text-left">
-            <span className="flex items-center gap-0.5" aria-label={`التقييم ${rating || 0} من 5`}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={`h-3.5 w-3.5 text-warning ${rating >= star - 0.5 ? "fill-warning" : "fill-transparent"}`}
-                />
-              ))}
-            </span>
-            <span className="mt-1 block text-xs font-bold">
-              {rating ? rating.toFixed(1) : "جديد"}
-            </span>
-          </span>
-        </div>
-      </Link>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-border px-4 py-3">
-        <div className="min-w-0 space-y-1 text-xs text-muted-foreground">
-          <div>
-            <span className="font-bold text-foreground">{clinic.price} ج</span>
-            <span> • </span>
-            <Clock className="inline h-3.5 w-3.5" /> <span>حوالي {clinic.waitingCount * 10} د</span>
-          </div>
-          <div className="flex items-center gap-1 font-semibold text-primary">
-            <MapPin className="h-3.5 w-3.5" />
-            <span>{clinic.distanceKm.toFixed(1)} كم</span>
-          </div>
-        </div>
-        <Button
-          asChild
-          size="sm"
-          className="gradient-primary px-5 font-extrabold text-primary-foreground shadow-soft transition hover:scale-[1.03]"
-        >
-          <Link to="/patient/clinic/$id" params={{ id: clinic.id }}>
-            عرض الطبيب
-          </Link>
-        </Button>
-        {onQuickBook && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onQuickBook(clinic)}
-            className="px-4 font-extrabold transition active:scale-95"
-          >
-            حجز سريع
-          </Button>
-        )}
-      </div>
-    </article>
-  );
-}
-
 /* كبسولة عيادة زجاجية للكواروسيل الأفقي */
-function ClinicCapsule({ clinic, profile, onQuickBook }: { clinic: Clinic; profile?: ClinicProfileExtras; onQuickBook?: (clinic: Clinic) => void }) {
+function ClinicCapsule({
+  clinic,
+  profile,
+  onQuickBook,
+}: {
+  clinic: Clinic;
+  profile?: ClinicProfileExtras;
+  onQuickBook?: (clinic: Clinic) => void;
+}) {
   const specialty = specialties.find((item) => item.id === clinic.specialtyId);
   const rating = profile?.reviewsCount ? profile.ratingAvg : clinic.rating;
   return (
@@ -1019,11 +956,15 @@ function ClinicCapsule({ clinic, profile, onQuickBook }: { clinic: Clinic; profi
         className="flex min-w-0 items-start gap-2.5"
       >
         <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary-soft text-primary">
-          <img src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)} alt={clinic.doctor} className="h-full w-full object-cover" />
+          <img
+            src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)}
+            alt={clinic.doctor}
+            className="h-full w-full object-cover"
+          />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-extrabold">{clinic.doctor}</span>
-          <span className="block truncate text-[11px] text-muted-foreground">
+          <span className="block truncate text-xs text-muted-foreground">
             {specialty?.name} • {clinic.area}
           </span>
           <span className="mt-1 flex items-center gap-1 text-xs font-bold text-warning">
@@ -1037,6 +978,9 @@ function ClinicCapsule({ clinic, profile, onQuickBook }: { clinic: Clinic; profi
             )}
             <span className="text-muted-foreground">• {clinic.distanceKm.toFixed(1)} كم</span>
           </span>
+          <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+            <Users className="h-3.5 w-3.5" /> {clinic.waitingCount} منتظر
+          </span>
         </span>
       </Link>
       <Button
@@ -1047,27 +991,5 @@ function ClinicCapsule({ clinic, profile, onQuickBook }: { clinic: Clinic; profi
         حجز سريع
       </Button>
     </article>
-  );
-}
-
-function ClinicPlaceholder({
-  compact = false,
-  cover = false,
-}: {
-  compact?: boolean;
-  cover?: boolean;
-}) {
-  if (cover)
-    return (
-      <div className="relative grid h-full place-items-center overflow-hidden bg-primary-soft">
-        <Building2 className="h-16 w-16 text-primary/55" />
-        <HeartPulse className="absolute h-7 w-7 translate-x-4 translate-y-2 rounded-full bg-card p-1.5 text-primary shadow-soft" />
-      </div>
-    );
-  return (
-    <span className="relative grid h-full w-full place-items-center bg-primary-soft text-primary">
-      <Hospital className={compact ? "h-7 w-7" : "h-9 w-9"} />
-      <HeartPulse className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full bg-card p-0.5" />
-    </span>
   );
 }

@@ -852,6 +852,58 @@ export type Database = {
           },
         ]
       }
+      community_reports: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          details: string
+          id: string
+          post_id: string | null
+          reason: string
+          reporter_id: string
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          details?: string
+          id?: string
+          post_id?: string | null
+          reason: string
+          reporter_id?: string
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          details?: string
+          id?: string
+          post_id?: string | null
+          reason?: string
+          reporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deletion_requests: {
         Row: {
           created_at: string

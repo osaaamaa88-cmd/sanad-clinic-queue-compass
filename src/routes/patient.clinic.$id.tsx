@@ -32,7 +32,6 @@ import {
   Grid3x3,
   Clapperboard,
   Info,
-  CheckCircle2,
 } from "lucide-react";
 import { MessagesSquare, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
@@ -78,14 +77,12 @@ import {
 } from "@/lib/mock-data";
 import {
   getClinicProfileExtras,
-  getQueueStats,
   isFollowingClinic,
   toggleFollowClinic,
   saveClinicProfile,
   uploadClinicMedia,
   deleteClinicPost,
   type ClinicProfileExtras,
-  type QueueStats,
 } from "@/lib/clinic-profile";
 
 /** Feature flag: review form stays disabled until verified booking codes reach patients. */
@@ -117,7 +114,6 @@ function ClinicDetail() {
   const [pendingStory, setPendingStory] = useState<{ file: File; url: string } | null>(null);
   const [storyHours, setStoryHours] = useState<12 | 24>(24);
   const [extras, setExtras] = useState<ClinicProfileExtras | null>(null);
-  const [queue, setQueue] = useState<QueueStats | null>(null);
   const [following, setFollowing] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -176,28 +172,18 @@ function ClinicDetail() {
     };
   }, [id]);
 
-  // Profile extras (media, posts, followers, real rating) + live queue numbers.
+  // Profile extras and follow state; clinic subscriptions provide live clinic updates.
   useEffect(() => {
     let cancelled = false;
-    const pull = async () => {
-      const q = await getQueueStats(id);
-      if (!cancelled && q) setQueue(q);
-    };
     (async () => {
       const [e, f] = await Promise.all([getClinicProfileExtras(id), isFollowingClinic(id)]);
       if (cancelled) return;
       setExtras(e);
       setFollowing(f);
     })();
-    pull();
-    const timer = window.setInterval(pull, 15000);
-    const unsub = subscribeClinic(id, (c) => {
-      setClinic(c);
-      pull();
-    });
+    const unsub = subscribeClinic(id, setClinic);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
       unsub();
     };
   }, [id]);
@@ -234,7 +220,7 @@ function ClinicDetail() {
     }
   };
 
-  const [tab, setTab] = useState<"posts" | "reels" | "info" | "reviews">("posts");
+  const [tab, setTab] = useState<"info" | "reviews" | "posts" | "reels">("info");
   const [bookingOpen, setBookingOpen] = useState(false);
   const [patient, setPatient] = useState<PatientSession | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
@@ -255,15 +241,19 @@ function ClinicDetail() {
   }, []);
 
   const backTarget = isOwner ? "/doctor" : "/patient/search";
+  const handleBack = () => {
+    if (window.history.length > 1) window.history.back();
+    else void navigate({ to: backTarget });
+  };
   if (!loaded)
     return (
-      <AppShell title="جاري التحميل…" backTo={backTarget}>
+      <AppShell title="جاري التحميل…" backTo={backTarget} onBack={handleBack}>
         <div />
       </AppShell>
     );
   if (!clinic) {
     return (
-      <AppShell title="عيادة غير متاحة" backTo={backTarget}>
+      <AppShell title="عيادة غير متاحة" backTo={backTarget} onBack={handleBack}>
         <div className="mt-4 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
           العيادة دي مش موجودة أو لسه ما تمّش توثيقها.
         </div>
@@ -271,9 +261,11 @@ function ClinicDetail() {
     );
   }
   const spec = getSpecialty(clinic.specialtyId);
+  const realReviewsCount = clinic.isDemo ? 0 : (extras?.reviewsCount ?? 0);
+  const realRating = extras?.ratingAvg ?? 0;
 
   return (
-    <AppShell title={clinic.doctor} subtitle={spec?.name} backTo={backTarget}>
+    <AppShell title="تفاصيل العيادة" backTo={backTarget} onBack={handleBack}>
       <div>
         {clinic.isDemo && (
           <p className="mb-3 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-xs font-bold text-warning">
@@ -295,18 +287,78 @@ function ClinicDetail() {
             setBusy(null);
           }}
         />
-        {/* Instagram header: avatar + stats */}
-        <div className="flex items-center gap-5 pt-1">
+        <div className="pt-1">
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-base font-black text-foreground">{clinic.doctor}</h2>
+            {clinic.isVerified && !clinic.isDemo && (
+              <BadgeCheck className="h-5 w-5 shrink-0 text-primary" aria-label="موثّق" />
+            )}
+          </div>
+          <p className="text-xs font-bold text-muted-foreground">{spec?.name || "تخصص طبي"}</p>
+          <button
+            type="button"
+            onClick={() => setTab("reviews")}
+            className="mt-1 flex min-h-11 flex-wrap items-center gap-1.5 text-xs font-bold"
+            aria-label="عرض تقييمات العيادة"
+          >
+            {clinic.isDemo ? (
+              <span className="rounded-full bg-warning/10 px-2.5 py-1 text-warning">
+                بيانات تجريبية
+              </span>
+            ) : realReviewsCount > 0 ? (
+              <>
+                <span className="flex items-center gap-0.5" aria-label={`${realRating} من 5`}>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Star
+                      key={n}
+                      className={`h-4 w-4 ${
+                        n <= Math.round(realRating)
+                          ? "fill-warning text-warning"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </span>
+                <span>
+                  {realRating.toFixed(1)} ({realReviewsCount} تقييم)
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">جديد</span>
+            )}
+          </button>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-bold">
+            {clinic.availableNow ? (
+              <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-success">
+                مفتوح دلوقتي
+              </span>
+            ) : (
+              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-muted-foreground">
+                مغلق دلوقتي
+              </span>
+            )}
+            <span className="rounded-full bg-secondary px-2.5 py-0.5 text-foreground">
+              {clinic.price ? `الكشف ${clinic.price} ج` : "السعر غير محدد"}
+            </span>
+            <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-primary">
+              {clinic.nowServing > 0
+                ? `بيكشف دلوقتي على #${clinic.nowServing}`
+                : "لم يبدأ الكشف بعد"}
+            </span>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-5">
           <div className="shrink-0">
             <div className="relative">
               <button
+                type="button"
                 onClick={() => {
                   if (isOwner) setAvatarSheet(true);
                   else if (stories.stories.length)
                     setStoryView({ items: stories.stories, title: clinic.doctor });
                 }}
-                aria-label={stories.stories.length ? "مشاهدة ستوري العيادة" : "إضافة ستوري"}
-                className={`relative block aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full p-[3px] shadow-gold sm:h-28 sm:w-28 ${
+                aria-label={stories.stories.length ? "مشاهدة ستوري العيادة" : "صورة العيادة"}
+                className={`relative block aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full p-[3px] shadow-soft ${
                   stories.stories.length ? "gradient-story" : "bg-border"
                 }`}
               >
@@ -320,118 +372,50 @@ function ClinicDetail() {
                     />
                   </span>
                 ) : (
-                  <div className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-primary/10 text-3xl font-black text-primary">
+                  <span className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-primary/10 text-3xl font-black text-primary">
                     {(clinic.doctor || "د")
                       .replace(/^(د\.?|دكتور|دكتورة)\s*/, "")
                       .trim()
                       .charAt(0) || "د"}
-                  </div>
+                  </span>
                 )}
               </button>
               {isOwner && (
                 <button
+                  type="button"
                   onClick={() => {
                     storyTargetHighlight.current = null;
                     storyInputRef.current?.click();
                   }}
                   aria-label="إضافة ستوري جديدة"
-                  className="absolute -right-1 bottom-1 grid h-7 w-7 place-items-center rounded-full border-2 border-background gradient-gold text-gold-foreground"
+                  className="absolute -right-1 bottom-1 grid h-11 w-11 place-items-center rounded-full border-2 border-background gradient-gold text-gold-foreground"
                 >
                   {busy === "story" ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Camera className="h-3.5 w-3.5" />
+                    <Camera className="h-4 w-4" />
                   )}
                 </button>
               )}
-              {clinic.isVerified && !clinic.isDemo && (
-                <span
-                  className="absolute -left-1 bottom-1 grid h-7 w-7 place-items-center rounded-full border-2 border-background bg-[#1D9BF0]"
-                  aria-label="حساب موثّق"
-                >
-                  <BadgeCheck className="h-4 w-4 text-white" />
-                </span>
-              )}
             </div>
           </div>
-          <div className="grid flex-1 grid-cols-3 text-center">
+          <div className="grid flex-1 grid-cols-2 text-center">
             <Stat value={String(extras?.postsCount ?? 0)} label="منشور" />
             <Stat value={String(extras?.followers ?? 0)} label="متابع" />
-            <Stat
-              value={
-                clinic.isDemo
-                  ? "تجريبي"
-                  : String(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)
-              }
-              label={
-                clinic.isDemo
-                  ? "بيانات تجريبية"
-                  : `${extras?.reviewsCount ?? clinic.reviews ?? 0} تقييم`
-              }
-            />
-          </div>
-        </div>
-
-        {/* Name + bio */}
-        <div className="mt-3">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-base font-black text-foreground">{clinic.doctor}</h2>
-            {clinic.isVerified && !clinic.isDemo && (
-              <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="موثّق" />
-            )}
-          </div>
-          <p className="text-xs font-bold text-muted-foreground">
-            {spec?.name} • {clinic.area || "—"}
-          </p>
-          {clinic.workingHours && (
-            <p className="mt-1 flex items-start gap-1 text-xs font-bold text-foreground">
-              <Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> {clinic.workingHours}
-            </p>
-          )}
-          {extras?.bio && (
-            <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-foreground">
-              {extras.bio}
-            </p>
-          )}
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold">
-            {clinic.availableNow ? (
-              <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-success">
-                مفتوح دلوقتي
-              </span>
-            ) : (
-              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-muted-foreground">
-                مغلق دلوقتي
-              </span>
-            )}
-            {clinic.price ? (
-              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-foreground">
-                الكشف {clinic.price} ج
-              </span>
-            ) : null}
-            <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-primary">
-              بيكشف دلوقتي على #{clinic.nowServing}
-            </span>
-            <span className="ms-auto">
-              <NotificationsBell
-                audience={isOwner ? "clinic" : "patient"}
-                clinicId={clinic.id}
-                tone="gold"
-              />
-            </span>
           </div>
         </div>
 
         {/* Actions */}
         {isOwner ? (
           <div className="relative mt-3 flex items-center justify-between gap-2 rounded-xl bg-secondary/60 p-1.5">
-            <span className="px-2 text-[11px] font-extrabold text-muted-foreground">
+            <span className="px-2 text-xs font-extrabold text-muted-foreground">
               بروفايلك زي ما المريض بيشوفه
             </span>
             <button
               type="button"
               onClick={() => setCreateSheet(true)}
               aria-label="إنشاء قصة أو منشور"
-              className="ms-auto grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground"
+              className="ms-auto grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground"
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -440,7 +424,7 @@ function ClinicDetail() {
               onClick={() => setOwnerMenu((v) => !v)}
               aria-label="خيارات العيادة"
               aria-expanded={ownerMenu}
-              className="grid h-8 w-8 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
+              className="grid h-11 w-11 place-items-center rounded-full border border-gold/40 bg-background/70 text-gold backdrop-blur"
             >
               <MoreVertical className="h-4 w-4" />
             </button>
@@ -462,7 +446,7 @@ function ClinicDetail() {
                       setOwnerMenu(false);
                       setEditOpen(true);
                     }}
-                    className="flex w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary"
+                    className="flex min-h-11 w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary"
                   >
                     <Pencil className="h-4 w-4 text-primary" /> تعديل البروفايل
                   </button>
@@ -472,7 +456,7 @@ function ClinicDetail() {
                       setOwnerMenu(false);
                       postInputRef.current?.click();
                     }}
-                    className="flex w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary"
+                    className="flex min-h-11 w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary"
                   >
                     {busy === "post" ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -484,14 +468,14 @@ function ClinicDetail() {
                   <Link
                     role="menuitem"
                     to="/doctor"
-                    className="flex w-full items-center gap-2 px-4 py-2.5 hover:bg-secondary"
+                    className="flex min-h-11 w-full items-center gap-2 px-4 py-2.5 hover:bg-secondary"
                   >
                     <Grid3x3 className="h-4 w-4 text-primary" /> لوحة الطبيب
                   </Link>
                   <Link
                     role="menuitem"
                     to="/doctor-settings"
-                    className="flex w-full items-center gap-2 px-4 py-2.5 hover:bg-secondary"
+                    className="flex min-h-11 w-full items-center gap-2 px-4 py-2.5 hover:bg-secondary"
                   >
                     <Settings className="h-4 w-4 text-primary" /> إعدادات العيادة
                   </Link>
@@ -502,7 +486,7 @@ function ClinicDetail() {
                       await signOutStaff();
                       navigate({ to: "/doctor/login", replace: true });
                     }}
-                    className="flex w-full items-center gap-2 border-t border-border px-4 py-2.5 text-right text-destructive hover:bg-secondary"
+                    className="flex min-h-11 w-full items-center gap-2 border-t border-border px-4 py-2.5 text-right text-destructive hover:bg-secondary"
                   >
                     <LogOut className="h-4 w-4" /> تسجيل الخروج
                   </button>
@@ -511,8 +495,48 @@ function ClinicDetail() {
             )}
           </div>
         ) : null}
-        <div className="mt-3 grid grid-cols-3 gap-1.5">
+        <button
+          type="button"
+          onClick={() => setBookingOpen(true)}
+          disabled={clinic.bookingsClosed || clinic.isDemo}
+          className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <CalendarPlus className="h-5 w-5" />
+          {clinic.isDemo
+            ? "بيانات تجريبية — الحجز غير متاح"
+            : clinic.bookingsClosed
+              ? "الحجز مقفول"
+              : "احجز دورك"}
+        </button>
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {clinic.phone && (
+            <>
+              <a
+                href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold text-foreground"
+              >
+                <MessageCircle className="h-4 w-4 text-success" /> واتساب
+              </a>
+              <a
+                href={`tel:${clinic.phone}`}
+                className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold text-foreground"
+              >
+                <Phone className="h-4 w-4 text-primary" /> اتصال
+              </a>
+            </>
+          )}
+          <a
+            href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}
+            className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold text-foreground"
+          >
+            <Navigation className="h-4 w-4 text-primary" /> اتجاهات
+          </a>
+        </div>
+        <div className="mt-2 grid grid-cols-3 gap-2">
           <button
+            type="button"
             onClick={() =>
               requirePatient(async () => {
                 const next = !following;
@@ -522,15 +546,14 @@ function ClinicDetail() {
                 else setFollowing(!next);
               })
             }
-            className={`flex min-h-11 items-center justify-center gap-1 rounded-lg py-2 text-xs font-extrabold ${
-              following ? "bg-secondary text-foreground" : "bg-primary text-primary-foreground"
-            }`}
+            className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold"
           >
             {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
             {following ? "بتتابعه" : "متابعة"}
           </button>
           {!isOwner && (
             <button
+              type="button"
               onClick={() =>
                 requirePatient(async (s) => {
                   const convId = await openConversation(id, s.name);
@@ -541,141 +564,59 @@ function ClinicDetail() {
                   }
                 })
               }
-              className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-primary/15 py-2 text-xs font-extrabold text-primary"
+              className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold"
             >
               <MessagesSquare className="h-4 w-4" /> مراسلة
             </button>
           )}
-          {clinic.phone && (
-            <>
-              <a
-                href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
-              >
-                <MessageCircle className="h-4 w-4 text-success" /> واتساب
-              </a>
-              <a
-                href={`tel:${clinic.phone}`}
-                className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
-              >
-                <Phone className="h-4 w-4 text-primary" /> اتصال
-              </a>
-            </>
-          )}
-          <a
-            href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}
-            className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
-          >
-            <Navigation className="h-4 w-4 text-primary" /> اتجاهات
-          </a>
           <button
+            type="button"
             onClick={shareProfile}
-            className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
+            className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold"
           >
             <Share2 className="h-4 w-4" /> مشاركة
           </button>
-          <button
-            type="button"
-            onClick={() => setBookingOpen(true)}
-            disabled={clinic.bookingsClosed || clinic.isDemo}
-            className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-primary py-2 text-xs font-extrabold text-primary-foreground transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <CalendarPlus className="h-4 w-4" />{" "}
-            {clinic.isDemo ? "بيانات تجريبية" : clinic.bookingsClosed ? "الحجز مقفول" : "احجز دورك"}
-          </button>
         </div>
-
-        {/* Highlights */}
-        <div className="-mx-4 sm:-mx-5">
-          {/* Highlights */}
-          <div className="-mx-4 mt-5 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
-            <div className="flex gap-4 pb-1">
-              {isOwner && (
-                <button
-                  onClick={() => {
-                    setHlPicked([]);
-                    setHlMsg("");
-                    setNewHighlight(true);
-                  }}
-                  className="shrink-0 text-center"
-                  aria-label="هايلايت جديد"
-                >
-                  <span className="grid h-[68px] w-[68px] place-items-center rounded-full border-2 border-dashed border-border bg-card/70 text-foreground">
-                    <Plus className="h-6 w-6" />
-                  </span>
-                  <span className="mt-1.5 block max-w-[68px] truncate text-[10px] font-bold text-gold">
-                    هايلايت جديد
-                  </span>
-                </button>
-              )}
-              {stories.highlights.map((h) => (
-                <div key={h.id} className="relative shrink-0 text-center">
-                  <button
-                    onClick={() => {
-                      if (h.items.length) setStoryView({ items: h.items, title: h.title });
-                      else if (isOwner) {
-                        storyTargetHighlight.current = h.id;
-                        storyInputRef.current?.click();
-                      }
-                    }}
-                    className="block"
-                  >
-                    <span className="block h-[68px] w-[68px] rounded-full border border-border p-[3px]">
-                      <span className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-secondary text-2xl">
-                        {h.items[0]?.url && h.items[0].mediaType === "image" ? (
-                          <img
-                            src={h.items[0].url}
-                            alt={h.title}
-                            className="absolute inset-0 h-full w-full object-cover"
-                          />
-                        ) : (
-                          h.emoji
-                        )}
-                      </span>
-                    </span>
-                    <span className="mt-1.5 block max-w-[68px] truncate text-[11px] font-semibold text-foreground">
-                      {h.title}
-                    </span>
-                  </button>
-                  {isOwner && (
-                    <span className="absolute -top-1 right-0 flex flex-col gap-1">
-                      <button
-                        onClick={() => {
-                          storyTargetHighlight.current = h.id;
-                          storyInputRef.current?.click();
-                        }}
-                        aria-label={`إضافة لـ ${h.title}`}
-                        className="grid h-5 w-5 place-items-center rounded-full gradient-gold text-gold-foreground"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (await deleteHighlight(h.id)) await refreshStories();
-                        }}
-                        aria-label={`حذف ${h.title}`}
-                        className="grid h-5 w-5 place-items-center rounded-full bg-background/90 text-destructive"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </span>
-                  )}
-                </div>
-              ))}
-              {!isOwner && stories.highlights.length === 0 && (
-                <p className="py-4 text-[11px] text-muted-foreground">
-                  لسه مفيش هايلايتس من العيادة.
-                </p>
-              )}
-            </div>
+        <div className="mt-2 flex min-h-11 items-center justify-end">
+          <NotificationsBell
+            audience={isOwner ? "clinic" : "patient"}
+            clinicId={clinic.id}
+            tone="gold"
+          />
+        </div>
+        <section className="mt-3 grid gap-3 sm:grid-cols-2" aria-label="ملخص العيادة">
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="flex items-center gap-2 text-sm font-bold">
+              <Clock3 className="h-4 w-4 text-primary" /> المواعيد والسعر
+            </p>
+            <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
+              {clinic.workingHours || "لم تُضف العيادة مواعيدها بعد — اتصل للاستفسار."}
+            </p>
+            <p className="mt-3 border-t border-border pt-3 text-sm font-bold">
+              سعر الكشف: {clinic.price ? `${clinic.price} جنيه` : "غير محدد"}
+            </p>
           </div>
-        </div>
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="flex items-center gap-2 text-sm font-bold">
+              <MapPin className="h-4 w-4 text-primary" /> العنوان
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {clinic.address || "العنوان غير متاح"}
+              {clinic.area ? `، ${clinic.area}` : ""}
+            </p>
+            <iframe
+              title="خريطة العيادة"
+              className="mt-3 h-28 w-full rounded-xl border border-border"
+              loading="lazy"
+              src={`https://maps.google.com/maps?q=${clinic.lat},${clinic.lng}&z=15&output=embed`}
+            />
+          </div>
+        </section>
+
         {isOwner && (
           <button
             onClick={() => setUrgentOpen(true)}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/50 bg-destructive/10 py-2.5 text-[11px] font-extrabold text-destructive"
+            className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-destructive/50 bg-destructive/10 py-2.5 text-xs font-extrabold text-destructive"
           >
             <AlertTriangle className="h-4 w-4" /> نشر تنبيه عاجل للمتابعين (ستوري نصية)
           </button>
@@ -685,17 +626,18 @@ function ClinicDetail() {
         <div className="-mx-4 mt-4 grid grid-cols-4 border-t border-border sm:-mx-5">
           {(
             [
-              ["posts", Grid3x3, "المنشورات"],
-              ["reels", Clapperboard, "الفيديو"],
               ["info", Info, "العيادة"],
               ["reviews", Star, "التقييمات"],
+              ["posts", Grid3x3, "المنشورات"],
+              ["reels", Clapperboard, "الفيديو"],
             ] as const
           ).map(([k, Icon, l]) => (
             <button
               key={k}
               onClick={() => setTab(k)}
               aria-label={l}
-              className={`-mt-px flex flex-col items-center gap-0.5 border-t-2 py-2.5 text-[10px] font-bold ${
+              aria-pressed={tab === k}
+              className={`-mt-px flex min-h-11 flex-col items-center gap-0.5 border-t-2 py-2.5 text-xs font-bold ${
                 tab === k
                   ? "border-foreground text-foreground"
                   : "border-transparent text-muted-foreground"
@@ -710,8 +652,101 @@ function ClinicDetail() {
 
       {(tab === "posts" || tab === "reels") && (
         <div className="mt-0.5">
-          {(extras?.posts ?? []).filter((p) => tab === "posts" || p.mediaType === "video")
-            .length === 0 ? (
+          {tab === "posts" && (stories.highlights.length > 0 || isOwner) && (
+            <section className="mb-4 -mx-4 border-b border-border/70 px-4 pb-3 sm:mx-0 sm:px-0">
+              <h2 className="mb-2 text-sm font-extrabold">أبرز القصص</h2>
+              <div className="flex gap-4 overflow-x-auto pb-1">
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHlPicked([]);
+                      setHlMsg("");
+                      setNewHighlight(true);
+                    }}
+                    className="flex min-h-11 shrink-0 flex-col items-center text-center"
+                    aria-label="هايلايت جديد"
+                  >
+                    <span className="grid h-[68px] w-[68px] place-items-center rounded-full border-2 border-dashed border-border bg-card text-foreground">
+                      <Plus className="h-6 w-6" />
+                    </span>
+                    <span className="mt-1.5 block max-w-[68px] truncate text-xs font-bold text-gold">
+                      هايلايت جديد
+                    </span>
+                  </button>
+                )}
+                {stories.highlights.map((highlight) => (
+                  <div key={highlight.id} className="relative shrink-0 text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (highlight.items.length) {
+                          setStoryView({ items: highlight.items, title: highlight.title });
+                        } else if (isOwner) {
+                          storyTargetHighlight.current = highlight.id;
+                          storyInputRef.current?.click();
+                        }
+                      }}
+                      className="flex min-h-11 flex-col items-center"
+                    >
+                      <span className="block h-[68px] w-[68px] rounded-full border border-border p-[3px]">
+                        <span className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-secondary text-2xl">
+                          {highlight.items[0]?.url && highlight.items[0].mediaType === "image" ? (
+                            <img
+                              src={highlight.items[0].url}
+                              alt={highlight.title}
+                              className="absolute inset-0 h-full w-full object-cover"
+                            />
+                          ) : (
+                            highlight.emoji
+                          )}
+                        </span>
+                      </span>
+                      <span className="mt-1.5 block max-w-[68px] truncate text-xs font-semibold text-foreground">
+                        {highlight.title}
+                      </span>
+                    </button>
+                    {isOwner && (
+                      <span className="mt-1 flex justify-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            storyTargetHighlight.current = highlight.id;
+                            storyInputRef.current?.click();
+                          }}
+                          aria-label={`إضافة قصة إلى ${highlight.title}`}
+                          className="grid h-11 w-11 place-items-center rounded-full gradient-gold text-gold-foreground"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!window.confirm(`هل تريد حذف هايلايت «${highlight.title}»؟`))
+                              return;
+                            try {
+                              if (await deleteHighlight(highlight.id)) await refreshStories();
+                              else toast.error("تعذر حذف الهايلايت.");
+                            } catch (error) {
+                              console.error("[ClinicDetail] Failed to delete highlight:", error);
+                              toast.error("تعذر حذف الهايلايت.");
+                            }
+                          }}
+                          aria-label={`حذف ${highlight.title}`}
+                          className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+          {(extras?.posts ?? []).filter((p) =>
+            tab === "reels" ? p.mediaType === "video" : p.mediaType !== "video",
+          ).length === 0 ? (
             <div className="py-12 text-center">
               <Camera className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-2 text-sm font-bold">
@@ -730,55 +765,69 @@ function ClinicDetail() {
             <div className="-mx-4 grid grid-cols-3 gap-[3px] sm:mx-0">
               {(extras?.posts ?? [])
                 .map((p, i) => ({ p, i }))
-                .filter(({ p }) => (tab === "reels" ? p.mediaType === "video" : true))
+                .filter(({ p }) =>
+                  tab === "reels" ? p.mediaType === "video" : p.mediaType !== "video",
+                )
                 .map(({ p, i }) => (
-                  <button
+                  <div
                     key={p.id}
-                    onClick={() => setViewerIndex(i)}
-                    aria-label={p.mediaType === "video" ? "تشغيل الفيديو" : "فتح المنشور"}
                     className={`relative overflow-hidden bg-surface-deep ${tab === "reels" ? "aspect-[9/16]" : "aspect-square"}`}
                   >
-                    {p.mediaType === "video" ? (
-                      <>
-                        <video
+                    <button
+                      type="button"
+                      onClick={() => setViewerIndex(i)}
+                      aria-label={p.mediaType === "video" ? "تشغيل الفيديو" : "فتح المنشور"}
+                      className="absolute inset-0 z-0 h-full w-full"
+                    >
+                      {p.mediaType === "video" ? (
+                        <>
+                          <video
+                            src={p.url}
+                            className="h-full w-full object-cover"
+                            muted
+                            playsInline
+                          />
+                          <span className="absolute left-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-background/70 text-gold">
+                            <Play className="h-3 w-3" />
+                          </span>
+                        </>
+                      ) : (
+                        <img
                           src={p.url}
+                          alt={p.caption || `منشور من عيادة ${clinic.doctor}`}
+                          loading="lazy"
                           className="h-full w-full object-cover"
-                          muted
-                          playsInline
                         />
-                        <span className="absolute left-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-background/70 text-gold">
-                          <Play className="h-3 w-3" />
-                        </span>
-                      </>
-                    ) : (
-                      <img
-                        src={p.url}
-                        alt={p.caption || `منشور من عيادة ${clinic.doctor}`}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    )}
+                      )}
+                    </button>
                     {isOwner && (
-                      <span
-                        role="button"
-                        tabIndex={0}
+                      <button
+                        type="button"
                         aria-label="حذف المنشور"
                         onClick={async (e) => {
                           e.stopPropagation();
+                          if (!window.confirm("هل تريد حذف هذا المنشور؟")) return;
                           setBusy(p.id);
-                          if (await deleteClinicPost(p.id)) await refreshExtras();
-                          setBusy(null);
+                          try {
+                            if (await deleteClinicPost(p.id)) await refreshExtras();
+                            else toast.error("تعذر حذف المنشور.");
+                          } catch (error) {
+                            console.error("[ClinicDetail] Failed to delete clinic post:", error);
+                            toast.error("تعذر حذف المنشور.");
+                          } finally {
+                            setBusy(null);
+                          }
                         }}
-                        className="absolute bottom-1.5 left-1.5 grid h-6 w-6 place-items-center rounded-full bg-background/80 text-destructive"
+                        className="absolute bottom-1.5 left-1.5 z-10 grid h-11 w-11 place-items-center rounded-full bg-background/90 text-destructive"
                       >
                         {busy === p.id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-4 w-4" />
                         )}
-                      </span>
+                      </button>
                     )}
-                    <span className="absolute bottom-1.5 right-1.5 flex items-center gap-2 rounded-full bg-background/70 px-2 py-0.5 text-[10px] font-extrabold backdrop-blur">
+                    <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex items-center gap-2 rounded-full bg-background/70 px-2 py-0.5 text-xs font-extrabold backdrop-blur">
                       <span
                         className={`flex items-center gap-0.5 ${social.liked[p.id] ? "text-destructive" : ""}`}
                       >
@@ -789,7 +838,7 @@ function ClinicDetail() {
                         <MessageCircle className="h-3 w-3" /> {social.comments[p.id] ?? 0}
                       </span>
                     </span>
-                  </button>
+                  </div>
                 ))}
             </div>
           )}
@@ -815,38 +864,15 @@ function ClinicDetail() {
               </div>
             </div>
           )}
-          {/* Working hours */}
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <p className="flex items-center gap-2 text-sm font-bold">
-              <Clock3 className="h-4 w-4 text-primary" /> مواعيد وأيام العمل
-            </p>
-            <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-              {clinic.workingHours || "لم تُضف العيادة مواعيدها بعد — اتصل للاستفسار."}
-            </p>
-          </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm font-bold">نبذة</p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {extras?.bio
-                ? extras.bio
-                : `${clinic.doctor} — أخصائي ${spec?.name}. الحجز عن طريق سند، والدفع نقداً في العيادة.`}
+              {extras?.bio ? extras.bio : "لم تضف العيادة نبذة تعريفية بعد."}
             </p>
-            <div className="mt-3 flex items-center justify-between rounded-xl bg-secondary p-3">
-              <span className="text-xs text-muted-foreground">سعر الكشف</span>
-              <span className="font-extrabold">
-                {clinic.price ? `${clinic.price} جنيه` : "غير محدد"}
-              </span>
-            </div>
-            {clinic.price ? (
-              <div className="mt-2 flex items-start gap-2 rounded-xl bg-success/10 p-3 text-[11px] font-bold leading-relaxed text-success">
-                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                <span>سعر صافٍ وشفاف — لا توجد أي رسوم إدارية أو مصاريف خفية من سند.</span>
-              </div>
-            ) : null}
             <div className="mt-2 flex items-center gap-2 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
               <Phone className="h-4 w-4 text-primary" /> {clinic.phone || "—"}
             </div>
-            <div className="mt-2 rounded-xl border border-dashed border-border p-3 text-[11px] leading-relaxed text-muted-foreground">
+            <div className="mt-2 rounded-xl border border-dashed border-border p-3 text-xs leading-relaxed text-muted-foreground">
               <p>
                 آخر تحديث للبيانات:{" "}
                 <span className="font-bold text-foreground">
@@ -863,29 +889,13 @@ function ClinicDetail() {
               </p>
             </div>
           </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-start gap-3">
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold">العنوان</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">{clinic.address || "—"}</p>
-                <p className="text-sm text-muted-foreground">{clinic.area}</p>
-              </div>
-            </div>
-            <iframe
-              title="خريطة العيادة"
-              className="mt-3 h-40 w-full rounded-xl border border-border"
-              loading="lazy"
-              src={`https://maps.google.com/maps?q=${clinic.lat},${clinic.lng}&z=15&output=embed`}
-            />
-          </div>
           {/* FAQ */}
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm font-bold">أسئلة شائعة</p>
             <div className="mt-2 divide-y divide-border">
               {[
                 ["إزاي أحجز؟", "استخدم زر «احجز دورك» أعلى صفحة العيادة."],
+                ["أتابع دوري؟", "بعد تأكيد الحجز، افتح «تابع دورك» من شاشة نجاح الحجز."],
                 ["الدفع إزاي؟", "الدفع نقداً في العيادة، مفيش أي دفع أونلاين."],
                 [
                   "لو اتأخرت أو عايز ألغي؟",
@@ -911,20 +921,15 @@ function ClinicDetail() {
             <p className="text-sm font-bold">التقييم</p>
             <div className="mt-2 flex items-center gap-3">
               <div className="text-3xl font-black text-primary">
-                {clinic.isDemo ? "—" : extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0}
+                {clinic.isDemo ? "—" : realReviewsCount > 0 ? realRating.toFixed(1) : "جديد"}
               </div>
               <div>
-                {!clinic.isDemo && (
+                {!clinic.isDemo && realReviewsCount > 0 && (
                   <div className="flex items-center gap-0.5">
                     {[1, 2, 3, 4, 5].map((n) => (
                       <Star
                         key={n}
-                        className={`h-4 w-4 ${
-                          n <=
-                          Math.round(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)
-                            ? "fill-warning text-warning"
-                            : "text-muted-foreground"
-                        }`}
+                        className={`h-4 w-4 ${n <= Math.round(realRating) ? "fill-warning text-warning" : "text-muted-foreground"}`}
                       />
                     ))}
                   </div>
@@ -932,13 +937,13 @@ function ClinicDetail() {
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {clinic.isDemo
                     ? "العيادة تجريبية ولا تملك تقييماً حقيقياً"
-                    : (extras?.reviewsCount ?? 0) > 0
-                      ? `${extras?.reviewsCount} تقييم من المرضى`
+                    : realReviewsCount > 0
+                      ? `${realReviewsCount} تقييم من المرضى`
                       : "لسه مفيش تقييمات"}
                 </p>
               </div>
             </div>
-            <p className="mt-3 rounded-xl bg-secondary p-3 text-[11px] text-muted-foreground">
+            <p className="mt-3 rounded-xl bg-secondary p-3 text-xs text-muted-foreground">
               {clinic.isDemo
                 ? "بيانات التقييمات التجريبية غير معروضة كتقييمات حقيقية."
                 : "التقييم بيتحدّث تلقائياً من تقييمات المرضى اللي خلصوا كشف فعلاً."}
@@ -946,7 +951,7 @@ function ClinicDetail() {
 
             {/* Real reviews */}
             <div className="mt-3 space-y-2">
-              {reviews.length === 0 ? (
+              {clinic.isDemo || reviews.length === 0 ? (
                 <p className="text-xs text-muted-foreground">لسه مفيش تعليقات من المرضى.</p>
               ) : (
                 reviews.map((r) => (
@@ -955,7 +960,7 @@ function ClinicDetail() {
                       <div className="flex items-center gap-1.5">
                         <span className="text-xs font-extrabold">{r.patientName}</span>
                         {r.visited && (
-                          <span className="flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">
+                          <span className="flex items-center gap-1 rounded-full bg-success/15 px-2 py-1 text-xs font-bold text-success">
                             <BadgeCheck className="h-3 w-3" /> مريض قام بالزيارة
                           </span>
                         )}
@@ -980,7 +985,7 @@ function ClinicDetail() {
             </div>
 
             {!isOwner && (
-              <p className="mt-3 rounded-xl border border-dashed border-border p-3 text-center text-[11px] font-bold text-muted-foreground">
+              <p className="mt-3 rounded-xl border border-dashed border-border p-3 text-center text-xs font-bold text-muted-foreground">
                 التقييم بكود الحجز قريباً ⏳
               </p>
             )}
@@ -988,14 +993,20 @@ function ClinicDetail() {
             {REVIEW_FORM_ENABLED && !isOwner && (
               <div className="mt-3 rounded-xl border border-dashed border-border p-3">
                 <p className="text-xs font-extrabold">قيّم الطبيب بعد الكشف</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   اكتب كود الحجز بتاعك (SND-XXXXX) — التقييم متاح بعد ما العيادة تسجّل إنك خلصت كشف.
                 </p>
                 <div className="mt-2 flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} onClick={() => setReviewRating(n)} aria-label={`${n} نجوم`}>
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setReviewRating(n)}
+                      aria-label={`${n} نجوم`}
+                      className="grid h-11 w-11 place-items-center"
+                    >
                       <Star
-                        className={`h-6 w-6 ${n <= reviewRating ? "fill-warning text-warning" : "text-muted-foreground"}`}
+                        className={`h-5 w-5 ${n <= reviewRating ? "fill-warning text-warning" : "text-muted-foreground"}`}
                       />
                     </button>
                   ))}
@@ -1013,9 +1024,7 @@ function ClinicDetail() {
                   rows={2}
                   className="mt-2 w-full rounded-xl border border-border bg-background p-2 text-sm"
                 />
-                {reviewMsg && (
-                  <p className="mt-2 text-[11px] font-bold text-primary">{reviewMsg}</p>
-                )}
+                {reviewMsg && <p className="mt-2 text-xs font-bold text-primary">{reviewMsg}</p>}
                 <button
                   disabled={busy === "review"}
                   onClick={() =>
@@ -1189,7 +1198,7 @@ function ClinicDetail() {
                 </span>
                 <span>
                   <span className="block text-sm font-extrabold">{l}</span>
-                  <span className="block text-[11px] text-muted-foreground">{d}</span>
+                  <span className="block text-xs text-muted-foreground">{d}</span>
                 </span>
               </button>
             ))}
@@ -1208,7 +1217,7 @@ function ClinicDetail() {
                   URL.revokeObjectURL(pendingStory.url);
                   setPendingStory(null);
                 }}
-                className="grid h-8 w-8 place-items-center rounded-full bg-secondary"
+                className="grid h-11 w-11 place-items-center rounded-full bg-secondary"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1285,7 +1294,16 @@ function ClinicDetail() {
             isOwner={isOwner}
             onClose={() => setStoryView(null)}
             onDelete={async (storyId) => {
-              await deleteStory(storyId);
+              try {
+                if (!(await deleteStory(storyId))) {
+                  toast.error("تعذر حذف القصة.");
+                  return;
+                }
+              } catch (error) {
+                console.error("[ClinicDetail] Failed to delete story:", error);
+                toast.error("تعذر حذف القصة.");
+                return;
+              }
               setStoryView(null);
               await refreshStories();
             }}
@@ -1307,7 +1325,7 @@ function ClinicDetail() {
               <button
                 onClick={() => setNewHighlight(false)}
                 aria-label="إغلاق"
-                className="grid h-8 w-8 place-items-center rounded-full bg-secondary"
+                className="grid h-11 w-11 place-items-center rounded-full bg-secondary"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1322,7 +1340,7 @@ function ClinicDetail() {
             {stories.stories.length === 0 ? (
               <div className="mt-4 rounded-2xl border border-dashed border-border p-4 text-center">
                 <p className="text-sm font-bold">لازم تنشر ستوري واحدة على الأقل الأول</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   الهايلايت بيتعمل من الستوريز اللي نشرتها، زي إنستجرام.
                 </p>
                 <button
@@ -1367,17 +1385,17 @@ function ClinicDetail() {
                             className="absolute inset-0 h-full w-full object-cover"
                           />
                         ) : (
-                          <span className="absolute inset-0 grid place-items-center p-1 text-[10px] font-bold">
+                          <span className="absolute inset-0 grid place-items-center p-1 text-xs font-bold">
                             {st.caption}
                           </span>
                         )}
                         <span
-                          className={`absolute left-1 top-1 grid h-5 w-5 place-items-center rounded-full border-2 border-white text-[10px] font-black ${idx >= 0 ? "bg-gold text-gold-foreground" : "bg-black/30"}`}
+                          className={`absolute left-1 top-1 grid h-5 w-5 place-items-center rounded-full border-2 border-white text-xs font-black ${idx >= 0 ? "bg-gold text-gold-foreground" : "bg-black/30"}`}
                         >
                           {idx >= 0 ? idx + 1 : ""}
                         </span>
                         {idx === 0 && (
-                          <span className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-[9px] font-bold text-white">
+                          <span className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-xs font-bold text-white">
                             الغلاف
                           </span>
                         )}
@@ -1385,12 +1403,12 @@ function ClinicDetail() {
                     );
                   })}
                 </div>
-                <p className="mt-2 text-[10px] text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                   أول ستوري تختارها هتبقى غلاف الهايلايت.
                 </p>
               </>
             )}
-            {hlMsg && <p className="mt-2 text-[11px] font-bold text-destructive">{hlMsg}</p>}
+            {hlMsg && <p className="mt-2 text-xs font-bold text-destructive">{hlMsg}</p>}
             <button
               disabled={!hlTitle.trim() || hlPicked.length === 0 || busy === "hl"}
               onClick={async () => {
@@ -1476,12 +1494,12 @@ function ClinicDetail() {
               <button
                 onClick={() => setUrgentOpen(false)}
                 aria-label="إغلاق"
-                className="grid h-8 w-8 place-items-center rounded-full bg-secondary"
+                className="grid h-11 w-11 place-items-center rounded-full bg-secondary"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               هيوصل إشعار لكل متابعي العيادة، ويختفي بعد ٢٤ ساعة.
             </p>
             <textarea
@@ -1594,7 +1612,7 @@ function EditProfileModal({
           <button
             onClick={onClose}
             aria-label="إغلاق"
-            className="grid h-9 w-9 place-items-center rounded-full bg-secondary"
+            className="grid h-11 w-11 place-items-center rounded-full bg-secondary"
           >
             <X className="h-4 w-4" />
           </button>
@@ -1604,7 +1622,7 @@ function EditProfileModal({
           <button
             type="button"
             onClick={() => setSheet(true)}
-            className="flex flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-[11px] font-bold text-gold"
+            className="flex min-h-11 flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-xs font-bold text-gold"
           >
             {uploading === "avatar" ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -1613,7 +1631,7 @@ function EditProfileModal({
             )}
             تعديل الصورة الشخصية
           </button>
-          <label className="flex cursor-pointer flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-[11px] font-bold text-gold">
+          <label className="flex min-h-11 cursor-pointer flex-col items-center gap-1 rounded-2xl border border-dashed border-gold/40 p-3 text-xs font-bold text-gold">
             {uploading === "cover" ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
@@ -1698,7 +1716,7 @@ function EditProfileModal({
               placeholder="https://youtu.be/..."
               className="w-full rounded-xl border border-border bg-secondary p-3 text-sm"
             />
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               للفيديوهات الطويلة وجولات العيادة — ارفعه على يوتيوب والصق الرابط هنا.
             </p>
           </Field>
@@ -1749,7 +1767,7 @@ function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="px-1">
       <p className="text-base font-black text-foreground">{value}</p>
-      <p className="text-[10px] font-bold text-muted-foreground">{label}</p>
+      <p className="text-xs font-bold text-muted-foreground">{label}</p>
     </div>
   );
 }

@@ -293,9 +293,11 @@ export function StoryViewer({
               )}
               {isOwner && onDelete && (
                 <button
-                  onClick={() => onDelete(current.id)}
+                  onClick={() => {
+                    if (window.confirm("هل تريد حذف هذه القصة؟")) onDelete(current.id);
+                  }}
                   aria-label="حذف الستوري"
-                  className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur"
+                  className="grid h-11 w-11 place-items-center rounded-full bg-white/15 text-white backdrop-blur"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -303,7 +305,7 @@ export function StoryViewer({
               <button
                 onClick={close}
                 aria-label="إغلاق"
-                className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur"
+                className="grid h-11 w-11 place-items-center rounded-full bg-white/15 text-white backdrop-blur"
               >
                 <X className="h-5 w-5" />
               </button>

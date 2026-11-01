@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Mic, UserRound } from "lucide-react";
 import { isSeniorModeOn, isVoiceModeOn, setSeniorMode, setVoiceMode } from "@/lib/voice";
-import { Button } from "@/components/ui/button";
+import { ModeSwitch } from "@/components/ModeSwitch";
+import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
 
 export const Route = createFileRoute("/settings")({
   staticData: { sitemap: false },
@@ -52,8 +53,9 @@ export function SettingsPage() {
         </Link>
         <h1 className="text-xl font-extrabold">الإعدادات</h1>
       </header>
-      <div className="flex items-stretch gap-2">
-        <label className="flex flex-1 cursor-pointer items-center justify-between gap-4 rounded-2xl border bg-card p-4">
+      <section className="space-y-3">
+        <h2 className="text-sm font-extrabold">إمكانية الوصول</h2>
+        <label className="flex min-h-20 cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
           <span className="flex items-center gap-3">
             <Mic className="h-6 w-6 text-primary" />
             <span className="font-bold">نمط المساعد الصوتي (لكبار السن وفاقدي البصر)</span>
@@ -66,34 +68,38 @@ export function SettingsPage() {
             className="h-6 w-11 accent-primary"
           />
         </label>
-      </div>
-      <Button onClick={() => setVoiceMode(!on)} className="mt-4 w-full font-bold">
-        <Mic /> {on ? "إيقاف المساعد الصوتي" : "تفعيل المساعد الصوتي هنا"}
-      </Button>
-      <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 rounded-2xl border bg-card p-4">
-        <span className="flex items-center gap-3">
-          <span aria-hidden="true" className="text-xl">
-            👵
+        <label className="flex min-h-20 cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
+          <span className="flex items-center gap-3">
+            <UserRound className="h-6 w-6 shrink-0 text-primary" />
+            <span className="font-bold">
+              وضع كبار السن داخل نيمو — ردود صوتية تلقائية وأزرار أكبر
+            </span>
           </span>
-          <span className="font-bold">
-            وضع كبار السن داخل نيمو — ردود صوتية تلقائية وأزرار أكبر
-          </span>
-        </span>
-        <input
-          type="checkbox"
-          role="switch"
-          checked={senior}
-          onChange={() => setSeniorMode(!senior)}
-          className="h-6 w-11 accent-primary"
-        />
-      </label>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={senior}
+            onChange={() => setSeniorMode(!senior)}
+            className="h-6 w-11 accent-primary"
+          />
+        </label>
+      </section>
+      <section className="mt-6 space-y-3">
+        <h2 className="text-sm font-extrabold">الصوت والمظهر</h2>
+        <SoundToggle />
+        <ThemeSetting />
+      </section>
+      <section className="mt-6 space-y-3">
+        <h2 className="text-sm font-extrabold">وضع الاستخدام</h2>
+        <ModeSwitch current="patient" />
+      </section>
       <Link
         to="/developer"
-        className="mt-4 flex items-center gap-3 rounded-2xl border bg-card p-4 transition active:scale-[0.99]"
+        className="mt-6 flex min-h-20 items-center gap-3 rounded-2xl border border-border bg-card p-4 transition active:scale-[0.99]"
       >
         <UserRound className="h-6 w-6 text-primary" />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-extrabold">عن المطور</span>
+          <span className="block text-sm font-extrabold">عن المطوّر</span>
           <span className="block text-xs text-muted-foreground">أسامة سند — مؤسس سند</span>
         </span>
         <ArrowLeft className="h-4 w-4 text-muted-foreground" />
