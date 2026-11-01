@@ -147,40 +147,74 @@ function speakArabic(text: string, onEnd: (success: boolean) => void): () => voi
 
   const synthesis = window.speechSynthesis;
   if (synthesis.speaking || synthesis.pending) synthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(spokenText);
-  applyBaymaxVoice(utterance);
-  utterance.volume = 1;
+
+  // Chrome/Android silently drop long utterances (~15s) and speech issued
+  // right after cancel(), so speak sentence-sized chunks after a short delay.
+  const chunks = (spokenText.match(/[^.!؟?،,\n]{1,160}[.!؟?،,\n]?/g) ?? [spokenText])
+    .map((c) => c.trim())
+    .filter(Boolean);
 
   let cancelled = false;
   let started = false;
   let completed = false;
+  let index = 0;
+  let keepAlive = 0;
   const finish = (success: boolean) => {
     if (cancelled || completed) return;
     completed = true;
     window.clearTimeout(startTimer);
+    window.clearInterval(keepAlive);
     onEnd(success);
+  };
+  const speakNext = () => {
+    if (cancelled || completed) return;
+    if (index >= chunks.length) return finish(true);
+    const utterance = new SpeechSynthesisUtterance(chunks[index++]);
+    applyBaymaxVoice(utterance);
+    utterance.volume = 1;
+    utterance.onstart = () => {
+      started = true;
+      window.clearTimeout(startTimer);
+    };
+    utterance.onend = speakNext;
+    utterance.onerror = (event) => {
+      if (cancelled || completed) return;
+      if (event.error === "interrupted" || event.error === "canceled") return;
+      console.warn("[Nemo] Browser speech error:", event.error);
+      finish(false);
+    };
+    synthesis.speak(utterance);
+    if (synthesis.paused) synthesis.resume();
   };
   const startTimer = window.setTimeout(() => {
     if (started || cancelled || completed) return;
     synthesis.cancel();
-    console.warn("[Nemo] Speech playback delayed or blocked by browser autoplay policy");
+    console.warn("[Nemo] Speech playback blocked by browser");
+    toast.info("اضغط على زر السماعة جنب الرسالة عشان تسمع نيمو", { id: "nemo-audio" });
     finish(false);
-  }, 5000);
-  utterance.onstart = () => {
-    started = true;
-    window.clearTimeout(startTimer);
-  };
-  utterance.onend = () => finish(true);
-  utterance.onerror = (event) => {
-    if (cancelled || completed) return;
-    console.error("[Nemo] Browser speech failed", event.error);
-    console.warn("[Nemo] Browser speech error:", event.error);
-    finish(false);
-  };
-  synthesis.speak(utterance);
+  }, 6000);
+  // Keep Chrome's speech engine from pausing itself mid-reply.
+  keepAlive = window.setInterval(() => {
+    if (synthesis.speaking && synthesis.paused) synthesis.resume();
+  }, 4000);
+
+  const begin = () => window.setTimeout(speakNext, 120);
+  if (synthesis.getVoices().length) begin();
+  else {
+    let launched = false;
+    const go = () => {
+      if (launched) return;
+      launched = true;
+      synthesis.removeEventListener("voiceschanged", go);
+      begin();
+    };
+    synthesis.addEventListener("voiceschanged", go);
+    window.setTimeout(go, 800);
+  }
   return () => {
     cancelled = true;
     window.clearTimeout(startTimer);
+    window.clearInterval(keepAlive);
     synthesis.cancel();
   };
 }
