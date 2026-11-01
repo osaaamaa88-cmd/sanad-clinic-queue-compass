@@ -326,14 +326,14 @@ function CommunityPage() {
             type="button"
             onClick={() => setSearchOpen(true)}
             aria-label="بحث"
-            className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground"
+            className="grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground"
           >
             <Search className="h-5 w-5" />
           </button>
           <Link
             to="/messages"
             aria-label="الرسائل"
-            className="relative grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground"
+            className="relative grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground"
           >
             <MessageCircle className="h-5 w-5" />
             {unreadTotal > 0 && (
@@ -386,7 +386,7 @@ function CommunityPage() {
           <button
             type="button"
             onClick={() => requireAuth() && setComposer("post")}
-            className="w-full rounded-2xl bg-secondary px-4 py-3 text-right text-sm text-muted-foreground"
+            className="min-h-11 w-full rounded-2xl bg-secondary px-4 py-3 text-right text-sm text-muted-foreground"
           >
             {doctorClinicId
               ? "شارك نصيحة طبية مع المرضى..."
@@ -396,7 +396,7 @@ function CommunityPage() {
             <button
               type="button"
               onClick={() => requireAuth() && setComposer("card")}
-              className="flex items-center justify-center gap-1.5 rounded-xl py-2 text-primary hover:bg-primary-soft"
+              className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl py-2 text-primary hover:bg-primary-soft"
             >
               <PenLine className="h-4 w-4" />
               بطاقة ملونة
@@ -586,7 +586,7 @@ function SearchOverlay({ posts, onClose }: { posts: Post[]; onClose: () => void 
           type="button"
           onClick={onClose}
           aria-label="إغلاق"
-          className="grid h-10 w-10 place-items-center rounded-full bg-secondary"
+          className="grid h-11 w-11 place-items-center rounded-full bg-secondary"
         >
           <X className="h-5 w-5" />
         </button>
@@ -683,7 +683,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"}`}
+      className={`min-h-11 shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"}`}
     >
       {children}
     </button>
@@ -971,7 +971,7 @@ function PostCard({
         <button
           type="button"
           onClick={onLike}
-          className={`flex items-center gap-1.5 rounded-xl px-3 py-2 font-bold ${liked ? "text-destructive" : "text-muted-foreground"}`}
+          className={`flex min-h-11 items-center gap-1.5 rounded-xl px-3 py-2 font-bold ${liked ? "text-destructive" : "text-muted-foreground"}`}
         >
           <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
           {likes || ""} دعم
@@ -1033,7 +1033,7 @@ function PostCard({
                 <Link
                   to="/patient/clinic/$id"
                   params={{ id: dc.id }}
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
+                  className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
                 >
                   <CalendarPlus className="h-3.5 w-3.5" />
                   احجز في عيادة {dc.doctor}
@@ -1291,7 +1291,7 @@ function Composer({
           type="button"
           onClick={onClose}
           aria-label="إغلاق"
-          className="rounded-full p-2 hover:bg-secondary"
+          className="grid h-11 w-11 place-items-center rounded-full hover:bg-secondary"
         >
           <X className="h-5 w-5" />
         </button>
@@ -1299,7 +1299,7 @@ function Composer({
           <button
             type="button"
             onClick={() => setIsCard(false)}
-            className={`rounded-full px-3 py-1.5 ${!isCard ? "bg-card shadow" : "text-muted-foreground"}`}
+            className={`min-h-11 rounded-full px-3 py-1.5 ${!isCard ? "bg-card shadow" : "text-muted-foreground"}`}
           >
             منشور
           </button>
@@ -1310,7 +1310,7 @@ function Composer({
               setFile(null);
               setPreview("");
             }}
-            className={`flex items-center gap-1 rounded-full px-3 py-1.5 ${isCard ? "bg-card shadow" : "text-muted-foreground"}`}
+            className={`flex min-h-11 items-center gap-1 rounded-full px-3 py-1.5 ${isCard ? "bg-card shadow" : "text-muted-foreground"}`}
           >
             <PenLine className="h-3.5 w-3.5" />
             بطاقة
@@ -1320,7 +1320,7 @@ function Composer({
           type="button"
           onClick={submit}
           disabled={busy}
-          className="rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+          className="min-h-11 rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
           {busy ? "..." : "نشر"}
         </button>
@@ -1369,7 +1369,7 @@ function Composer({
                     setFile(null);
                     setPreview("");
                   }}
-                  className="absolute left-2 top-2 rounded-full bg-background/90 p-1.5"
+                  className="absolute left-2 top-2 grid h-11 w-11 place-items-center rounded-full bg-background/90"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1406,7 +1406,7 @@ function Composer({
                       type="button"
                       aria-label={b}
                       onClick={() => setBg(b)}
-                      className={`card-bg-${b} h-10 w-10 rounded-full transition-transform ${bg === b ? "scale-110 ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
+                      className={`card-bg-${b} h-11 w-11 rounded-full transition-transform ${bg === b ? "scale-110 ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
                     />
                   ))}
                 </div>
@@ -1419,7 +1419,7 @@ function Composer({
                       key={f.id}
                       type="button"
                       onClick={() => setFont(f.id)}
-                      className={`font-card-${f.id} rounded-xl border px-3 py-1.5 text-base ${font === f.id ? "border-primary bg-primary-soft text-primary" : "border-border"}`}
+                      className={`font-card-${f.id} min-h-11 rounded-xl border px-3 py-1.5 text-base ${font === f.id ? "border-primary bg-primary-soft text-primary" : "border-border"}`}
                     >
                       {f.label}
                     </button>
