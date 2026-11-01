@@ -46,6 +46,13 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
 
   const confirm = useCallback(async () => {
     if (!clinic || !slot || submitting) return;
+
+    // التحقق إذا كانت العيادة تجريبية
+    if (clinic.isDemo) {
+      toast.error("لا يمكن حجز العيادات التجريبية");
+      return;
+    }
+
     const who = getPatientSession();
     if (!who) {
       setAuthOpen(true);
@@ -100,7 +107,11 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
                     <div className="mt-1 flex flex-wrap items-center gap-3 text-xs font-bold text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Star className="h-3.5 w-3.5 fill-warning text-warning" />
-                        {clinic.rating ? clinic.rating.toFixed(1) : "جديد"}
+                        {clinic.isDemo
+                          ? "تقييم تجريبي"
+                          : clinic.rating
+                            ? clinic.rating.toFixed(1)
+                            : "جديد"}
                       </span>
                       <span className="flex items-center gap-1">
                         <Banknote className="h-3.5 w-3.5 text-primary" />
@@ -114,6 +125,11 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
                   </div>
                 </div>
               </DrawerHeader>
+              {clinic.isDemo && (
+                <p className="rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-sm font-bold text-warning">
+                  بيانات تجريبية — لا يمكن إنشاء حجز لهذه العيادة.
+                </p>
+              )}
               {bookedCode ? (
                 <div className="rounded-2xl border border-success/30 bg-success/10 p-4 text-center">
                   <CheckCircle2 className="mx-auto h-8 w-8 text-success" />
@@ -177,7 +193,7 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
                     <Button
                       className="w-full"
                       onClick={() => void confirm()}
-                      disabled={!slot || submitting || clinic.bookingsClosed}
+                      disabled={!slot || submitting || clinic.bookingsClosed || clinic.isDemo}
                     >
                       {submitting ? (
                         <>
@@ -227,4 +243,3 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
 }
 
 export default QuickBookingDrawer;
-

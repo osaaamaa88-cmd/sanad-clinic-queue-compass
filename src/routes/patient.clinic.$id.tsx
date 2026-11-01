@@ -37,6 +37,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { MessagesSquare, MoreVertical } from "lucide-react";
+import { toast } from "sonner";
 import { openConversation } from "@/lib/chat";
 import { AppShell } from "@/components/AppShell";
 import { AvatarActionSheet } from "@/components/AvatarActionSheet";
@@ -290,6 +291,10 @@ function ClinicDetail() {
 
   const confirmBooking = async () => {
     if (!clinic || !slot || submitting) return;
+    if (clinic.isDemo) {
+      toast.error("هذه عيادة ببيانات تجريبية، ولا يمكن الحجز فيها.");
+      return;
+    }
     const who = patient ?? getPatientSession();
     if (!who) {
       setAuthOpen(true);
@@ -442,7 +447,7 @@ function ClinicDetail() {
                   )}
                 </button>
               )}
-              {clinic.isVerified && (
+              {clinic.isVerified && !clinic.isDemo && (
                 <span
                   className="absolute -left-1 bottom-1 grid h-7 w-7 place-items-center rounded-full border-2 border-background bg-[#1D9BF0]"
                   aria-label="حساب موثّق"
@@ -456,8 +461,8 @@ function ClinicDetail() {
             <Stat value={String(extras?.postsCount ?? 0)} label="منشور" />
             <Stat value={String(extras?.followers ?? 0)} label="متابع" />
             <Stat
-              value={String(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)}
-              label={`${extras?.reviewsCount ?? clinic.reviews ?? 0} تقييم`}
+              value={clinic.isDemo ? "تجريبي" : String(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)}
+              label={clinic.isDemo ? "بيانات تجريبية" : `${extras?.reviewsCount ?? clinic.reviews ?? 0} تقييم`}
             />
           </div>
         </div>
@@ -466,7 +471,7 @@ function ClinicDetail() {
         <div className="mt-3">
           <div className="flex items-center gap-1.5">
             <h2 className="text-base font-black text-foreground">{clinic.doctor}</h2>
-            {clinic.isVerified && (
+            {clinic.isVerified && !clinic.isDemo && (
               <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="موثّق" />
             )}
           </div>
@@ -675,10 +680,10 @@ function ClinicDetail() {
           <button
             type="button"
             onClick={() => setTab("book")}
-            disabled={clinic.bookingsClosed}
+            disabled={clinic.bookingsClosed || clinic.isDemo}
             className="flex items-center justify-center gap-1 rounded-lg bg-primary py-2 text-[11px] font-extrabold text-primary-foreground transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <CalendarPlus className="h-4 w-4" /> {clinic.bookingsClosed ? "الحجز مقفول" : "احجز دورك"}
+            <CalendarPlus className="h-4 w-4" /> {clinic.isDemo ? "بيانات تجريبية" : clinic.bookingsClosed ? "الحجز مقفول" : "احجز دورك"}
           </button>
         </div>
 
@@ -919,12 +924,6 @@ function ClinicDetail() {
               {clinic.workingHours || "لم تُضف العيادة مواعيدها بعد — اتصل للاستفسار."}
             </p>
           </div>
-          <div className="rounded-3xl border border-dashed border-border bg-card/60 p-5 text-center">
-            <p className="text-sm font-extrabold text-foreground">الدور المباشر والحجز أونلاين</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              قريباً — هتقدر تحجز وتتابع دورك لحظياً من سند.
-            </p>
-          </div>
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-sm font-bold">نبذة</p>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
@@ -986,12 +985,8 @@ function ClinicDetail() {
             <p className="text-sm font-bold">أسئلة شائعة</p>
             <div className="mt-2 divide-y divide-border">
               {[
-                [
-                  "إزاي أحجز؟",
-                  "الحجز أونلاين قريباً — حالياً تواصل مع العيادة بالاتصال أو الواتساب.",
-                ],
+                ["إزاي أحجز؟", "استخدم زر «احجز دورك» أعلى صفحة العيادة."],
                 ["الدفع إزاي؟", "الدفع نقداً في العيادة، مفيش أي دفع أونلاين."],
-                ["أقدر أعرف دوري؟", "متابعة الدور لحظياً ميزة قادمة قريباً."],
                 [
                   "لو اتأخرت أو عايز ألغي؟",
                   "كلّم العيادة على الواتساب أو الرقم المباشر وهيتم تعديل حجزك.",
@@ -1016,31 +1011,37 @@ function ClinicDetail() {
             <p className="text-sm font-bold">التقييم</p>
             <div className="mt-2 flex items-center gap-3">
               <div className="text-3xl font-black text-primary">
-                {extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0}
+                {clinic.isDemo ? "—" : extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0}
               </div>
               <div>
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <Star
-                      key={n}
-                      className={`h-4 w-4 ${
-                        n <=
-                        Math.round(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)
-                          ? "fill-warning text-warning"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  ))}
-                </div>
+                {!clinic.isDemo && (
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        className={`h-4 w-4 ${
+                          n <=
+                          Math.round(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)
+                            ? "fill-warning text-warning"
+                            : "text-muted-foreground"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  {(extras?.reviewsCount ?? 0) > 0
+                  {clinic.isDemo
+                    ? "العيادة تجريبية ولا تملك تقييماً حقيقياً"
+                    : (extras?.reviewsCount ?? 0) > 0
                     ? `${extras?.reviewsCount} تقييم من المرضى`
                     : "لسه مفيش تقييمات"}
                 </p>
               </div>
             </div>
             <p className="mt-3 rounded-xl bg-secondary p-3 text-[11px] text-muted-foreground">
-              التقييم بيتحدّث تلقائياً من تقييمات المرضى اللي خلصوا كشف فعلاً.
+              {clinic.isDemo
+                ? "بيانات التقييمات التجريبية غير معروضة كتقييمات حقيقية."
+                : "التقييم بيتحدّث تلقائياً من تقييمات المرضى اللي خلصوا كشف فعلاً."}
             </p>
 
             {/* Real reviews */}

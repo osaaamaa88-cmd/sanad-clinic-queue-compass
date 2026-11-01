@@ -43,6 +43,8 @@ import { getClinicStories, type StoryItem } from "@/lib/stories";
 import { Button } from "@/components/ui/button";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientSession, getSavedBookings } from "@/lib/patient-session";
+import { getCachedProfile } from "@/lib/user-profile-cache";
+import { bpStatus, parseReadings, READINGS_KEY, sugarStatus } from "@/lib/organ-insights";
 import {
   defaultLocation,
   distanceKm,
@@ -125,6 +127,10 @@ function PatientHome() {
   const [location, setLocation] = useState<PatientLocation>(defaultLocation);
   const [locOpen, setLocOpen] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
+  const [patientAvatar, setPatientAvatar] = useState<string | undefined>();
+  const [healthSnapshot, setHealthSnapshot] = useState(() =>
+    typeof window === "undefined" ? {} : parseReadings(window.localStorage.getItem(READINGS_KEY)),
+  );
   const [callData, setCallData] = useState<{
     patientName: string;
     doctorName: string;
@@ -139,8 +145,16 @@ function PatientHome() {
   const queryClient = useQueryClient();
   useEffect(() => {
     setLocation(getPatientLocation());
-    // اسم المريض للتحية الشخصية في الهيدر (زائر أو عبر جوجل)
     setPatientName(getPatientSession()?.name?.trim() || "");
+    setPatientAvatar(getCachedProfile()?.avatar);
+    const refreshReadings = () =>
+      setHealthSnapshot(parseReadings(window.localStorage.getItem(READINGS_KEY)));
+    window.addEventListener("focus", refreshReadings);
+    window.addEventListener("storage", refreshReadings);
+    return () => {
+      window.removeEventListener("focus", refreshReadings);
+      window.removeEventListener("storage", refreshReadings);
+    };
   }, []);
 
   // تحية حسب توقيت اليوم (صباحاً / مساءً)
@@ -270,6 +284,7 @@ function PatientHome() {
               }
             : clinic,
         )
+        .filter((clinic) => !clinic.isDemo)
         .filter((clinic) => !selectedSpecialty || clinic.specialtyId === selectedSpecialty)
         .sort((a, b) => a.distanceKm - b.distanceKm || b.rating - a.rating)
         .slice(0, selectedSpecialty ? undefined : 6),
@@ -309,17 +324,19 @@ function PatientHome() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <span
-                aria-hidden="true"
-                className="gradient-primary grid h-12 w-12 shrink-0 place-items-center rounded-full text-lg font-extrabold text-primary-foreground shadow-soft"
+                className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-primary-soft text-lg font-extrabold text-primary shadow-soft"
               >
-                {(patientName || "ز").slice(0, 1)}
+                {patientAvatar ? (
+                  <img src={patientAvatar} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  (patientName || "ز").slice(0, 1)
+                )}
               </span>
               <div className="min-w-0">
                 <p className="truncate text-base font-extrabold">
                   {patientName ? patientName.split(" ")[0] : "يا بطل"}
                 </p>
                 <p className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground">
-                  {greeting}
                   <Sparkles className="h-3 w-3 text-primary" />
                 </p>
               </div>
@@ -338,36 +355,42 @@ function PatientHome() {
           </div>
 
           <p className="mt-3 text-lg font-black leading-7">
-            {patientName ? `صباح الخير يا ${patientName.split(" ")[0]}.. ` : "صباح الخير يا بطل.. "}
-            <span className="text-muted-foreground">صحتك وأدويتك في أمان</span>
+            {greeting} <span className="text-muted-foreground">تابع صحتك مع سند</span>
           </p>
 
-          {/* الحالة: رقم الدور المباشر أو مؤشر صحة سريع */}
-          {upcomingBooking ? (
-            <div className="mt-3 flex items-center gap-3 rounded-2xl bg-primary-soft/50 px-3 py-2.5">
-              <CalendarPlus className="h-5 w-5 shrink-0 text-primary" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-bold text-muted-foreground">رقم دورك في</p>
-                <p className="truncate text-sm font-extrabold">{upcomingBooking.clinicName}</p>
-              </div>
-              <span className="text-3xl font-black text-primary">
-                {upcomingBooking.queueNumber}
-              </span>
-            </div>
-          ) : (
-            <div className="mt-3 flex items-center gap-3 rounded-2xl bg-success/10 px-3 py-2.5">
-              <HeartPulse className="h-5 w-5 shrink-0 text-success" />
-              <p className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
-                مؤشراتك مستقرة — استمر كده 💚
-              </p>
+          <div className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2.5">
+              <HeartPulse className="h-5 w-5 shrink-0 text-primary" />
+              {healthSnapshot.bp || healthSnapshot.sugar ? (
+                <div className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
+                  <p>
+                    الضغط:{" "}
+                    {healthSnapshot.bp
+                      ? { normal: "طبيعي", watch: "تابعه", alert: "تنبيه", unknown: "غير معروف" }[
+                          bpStatus(healthSnapshot.bp)
+                        ]
+                      : "لا توجد قراءة"}
+                  </p>
+                  <p>
+                    السكر:{" "}
+                    {healthSnapshot.sugar
+                      ? { normal: "طبيعي", watch: "تابعه", alert: "تنبيه", unknown: "غير معروف" }[
+                          sugarStatus(healthSnapshot.sugar)
+                        ]
+                      : "لا توجد قراءة"}
+                  </p>
+                </div>
+              ) : (
+                <p className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
+                  لا توجد قراءات مسجلة
+                </p>
+              )}
               <Link
                 to="/patient/health"
-                className="shrink-0 text-[11px] font-extrabold text-primary"
+                className="flex min-h-11 shrink-0 items-center text-xs font-extrabold text-primary"
               >
-                التفاصيل ←
+                {healthSnapshot.bp || healthSnapshot.sugar ? "التفاصيل ←" : "سجّل أول قراءة"}
               </Link>
-            </div>
-          )}
+          </div>
 
           {/* الزرّان الزجاجيان العريضان */}
           <div className="mt-3 grid grid-cols-2 gap-2">
@@ -388,6 +411,7 @@ function PatientHome() {
           </div>
         </div>
       </section>
+      {upcomingBooking && <QueueTrackerCard />}
       <HealthActivityCarousel />
       {/* ===== العناية اليومية (Daily Calm & Wellness) ===== */}
       <section className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -594,6 +618,11 @@ function PatientHome() {
                 <span className="mt-1.5 block truncate text-xs font-bold group-hover:text-primary">
                   {clinic.doctor.replace(/^د\.?\s*/, "د. ")}
                 </span>
+                {clinic.isDemo && (
+                  <span className="mt-1 block text-xs font-bold text-warning">
+                    بيانات تجريبية
+                  </span>
+                )}
               </button>
             );
           })}
@@ -1061,9 +1090,15 @@ function ClinicCapsule({ clinic, profile, onQuickBook }: { clinic: Clinic; profi
           <span className="block truncate text-[11px] text-muted-foreground">
             {specialty?.name} • {clinic.area}
           </span>
-          <span className="mt-1 flex items-center gap-1 text-[11px] font-bold text-warning">
-            <Star className="h-3 w-3 fill-warning" />
-            {rating ? rating.toFixed(1) : "جديد"}
+          <span className="mt-1 flex items-center gap-1 text-xs font-bold text-warning">
+            {clinic.isDemo ? (
+              "بيانات تجريبية"
+            ) : (
+              <>
+                <Star className="h-3 w-3 fill-warning" />
+                {rating ? rating.toFixed(1) : "جديد"}
+              </>
+            )}
             <span className="text-muted-foreground">• {clinic.distanceKm.toFixed(1)} كم</span>
           </span>
         </span>

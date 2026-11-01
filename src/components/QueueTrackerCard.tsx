@@ -25,7 +25,7 @@ export function QueueTrackerCard() {
     const tick = async () => {
       const c = await getVerifiedClinic(latest.clinicId);
       if (!cancelled) {
-        setClinic(c ?? null);
+        setClinic(c && !c.isDemo ? c : null);
         setChecked(true);
       }
     };

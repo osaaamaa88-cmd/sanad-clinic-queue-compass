@@ -715,7 +715,7 @@ function Assistant() {
 
   const matches = result
     ? clinics
-        .filter((clinic) => result.specialtyIds.includes(clinic.specialtyId))
+        .filter((clinic) => !clinic.isDemo && result.specialtyIds.includes(clinic.specialtyId))
         .map((clinic) => ({
           clinic,
           distance:

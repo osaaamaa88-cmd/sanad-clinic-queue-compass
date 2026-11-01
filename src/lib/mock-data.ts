@@ -123,7 +123,16 @@ type Row = {
   clinic_status?: string | null;
   delay_minutes?: number | null;
   bookings_closed?: boolean | null;
+  is_demo?: boolean | null;
 };
+
+const demoClinicIds = new Set([
+  "11111111-0000-4000-8000-000000000001",
+  "11111111-0000-4000-8000-000000000002",
+  "11111111-0000-4000-8000-000000000003",
+  "11111111-0000-4000-8000-000000000004",
+  "11111111-0000-4000-8000-000000000005",
+]);
 
 function rowToClinic(r: Row): Clinic {
   return {
@@ -144,6 +153,7 @@ function rowToClinic(r: Row): Clinic {
     lat: Number(r.lat) || 0,
     lng: Number(r.lng) || 0,
     isVerified: r.is_verified,
+    isDemo: r.is_demo ?? demoClinicIds.has(r.id),
     verificationStatus: r.is_verified
       ? "verified"
       : (((r as { verification_status?: string }).verification_status as

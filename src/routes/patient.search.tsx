@@ -150,12 +150,13 @@ function Search() {
         );
       });
     }
-    const sorted = [...list];
-    if (sort === "price") sorted.sort((a, b) => a.price - b.price);
-    else if (sort === "reviews") sorted.sort((a, b) => b.reviews - a.reviews);
-    else if (sort === "rating") sorted.sort((a, b) => b.rating - a.rating);
-    else sorted.sort((a, b) => a.distanceKm - b.distanceKm);
-    return sorted;
+    const ranked = list.filter((clinic) => !clinic.isDemo);
+    const demos = list.filter((clinic) => clinic.isDemo);
+    if (sort === "price") ranked.sort((a, b) => a.price - b.price);
+    else if (sort === "reviews") ranked.sort((a, b) => b.reviews - a.reviews);
+    else if (sort === "rating") ranked.sort((a, b) => b.rating - a.rating);
+    else ranked.sort((a, b) => a.distanceKm - b.distanceKm);
+    return [...ranked, ...demos];
   }, [clinics, hospitals, pos, kind, spec, q, sort, openNow]);
 
   return (
@@ -371,6 +372,11 @@ function Search() {
                         </span>
                       )}
                     </div>
+                    {c.isDemo && (
+                      <span className="mt-1 inline-flex rounded-full border border-warning/40 bg-warning/10 px-2 py-1 text-xs font-bold text-warning">
+                        بيانات تجريبية
+                      </span>
+                    )}
                     <p className="text-xs text-muted-foreground">{s?.name}</p>
                     <p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
                       <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
@@ -380,9 +386,13 @@ function Search() {
                     </p>
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-warning text-warning" /> {c.rating}
-                        </span>
+                        {c.isDemo ? (
+                          <span className="text-xs font-bold text-warning">تقييم تجريبي</span>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-warning text-warning" /> {c.rating}
+                          </span>
+                        )}
                         <span className="flex items-center gap-1">
                           <RouteIcon className="h-3 w-3" /> {c.distanceKm} كم
                         </span>
@@ -394,9 +404,6 @@ function Search() {
                     <span className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl gradient-primary py-2.5 text-sm font-extrabold text-primary-foreground shadow-soft">
                       عرض الطبيب والتواصل <ChevronLeft className="h-4 w-4" />
                     </span>
-                    <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-                      الحجز أونلاين قريباً ⏳
-                    </p>
                   </div>
                 </div>
               </Link>
@@ -534,6 +541,11 @@ function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void 
       <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">
         {clinic.area} — {clinic.address}
       </p>
+      {clinic.isDemo && (
+        <p className="mt-2 inline-flex rounded-full border border-warning/40 bg-warning/10 px-2 py-1 text-xs font-bold text-warning">
+          بيانات تجريبية
+        </p>
+      )}
       {hospital && (
         <div className="mt-2">
           <LocationBadge approx={!!clinic.approxLocation} />

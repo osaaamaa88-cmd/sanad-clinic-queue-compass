@@ -311,10 +311,7 @@ function Reception() {
           <Hourglass className="h-5 w-5" />
         </div>
         <p className="mt-2 text-sm font-extrabold">
-          الطابور المباشر وشاشة صالة الانتظار{" "}
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold">
-            قريباً
-          </span>
+          الطابور المباشر وشاشة صالة الانتظار
         </p>
         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
           حالياً الدفتر للمرضى الحاضرين في العيادة فقط — سجّلهم يدوي واطبع كشف اليوم.
@@ -390,12 +387,7 @@ function Reception() {
         </div>
       )}
 
-      {/* Doctor HUD Header (Executive Luxury) */}
-      <div className="mt-4 grid grid-cols-2 gap-2 print:hidden sm:grid-cols-4">
-        <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
-          <div className="text-[10px] font-bold text-muted-foreground">رضا المرضى</div>
-          <div className="mt-1 text-lg font-black text-gold">97% 👍</div>
-        </div>
+      <div className="mt-4 grid grid-cols-2 gap-2 print:hidden">
         <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
           <div className="text-[10px] font-bold text-muted-foreground">منتظر</div>
           <div className="mt-1 text-lg font-black text-primary">{waiting}</div>
@@ -403,10 +395,6 @@ function Reception() {
         <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
           <div className="text-[10px] font-bold text-muted-foreground">كشوفات منجزة</div>
           <div className="mt-1 text-lg font-black text-success">{done}</div>
-        </div>
-        <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
-          <div className="text-[10px] font-bold text-muted-foreground">متوسط الكشف</div>
-          <div className="mt-1 text-lg font-black">~10 د</div>
         </div>
       </div>
 
@@ -519,12 +507,6 @@ function Reception() {
                   نداء
                 </button>
               )}
-              <Link
-                to="/patient/health"
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-foreground transition hover:bg-secondary active:scale-95"
-              >
-                🩺 الملف الطبي
-              </Link>
             </div>
             {r.status === "in" && (
               <button

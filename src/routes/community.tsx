@@ -82,114 +82,7 @@ type Comment = {
   body: string;
   created_at: string;
 };
-type ClinicLite = { id: string; doctor: string; specialty_id: string };
-
-const SAMPLE_CLINICS: Record<string, ClinicLite> = {
-  "sample-clinic-1": { id: "sample-clinic-1", doctor: "د. أحمد البدري", specialty_id: "internal" },
-  "sample-clinic-2": { id: "sample-clinic-2", doctor: "د. سارة الحمود", specialty_id: "pediatrics" },
-};
-
-const SAMPLE_COMMUNITY_POSTS: Post[] = [
-  {
-    id: "sample-post-1",
-    is_mine: false,
-    author_name: "د. أحمد البدري",
-    is_anonymous: false,
-    clinic_id: "sample-clinic-1",
-    kind: "card",
-    body: "جرثومة المعدة (H. pylori) شائعة جداً في مجتمعنا. نصائح عملية: 1) لا تتوقف عن العلاج (الثلاثي/الرباعي) قبل إكمال 14 يوم حتى مع تحسن الأعراض. 2) تجنب الوجبات الدسمة والتوابل الحارة والكافئين during العلاج. 3) إعادة الفحص (urea breath test) بعد 4 أسابيع من إكمال العلاج للتأكد من الشفاء. 4) أعراض القولون العصبي (IBS) تتشابه (انتفاخ، ألم، تغير في الإخراج) — التمييز يتم عبر فحص جرثومة المعدة وتحليل البراز. لا تهمل الأعراض، راجع الطبيب.",
-    bg_style: "ocean",
-    font_style: "alexandria",
-    image_path: "",
-    specialty_id: "internal",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-  },
-  {
-    id: "sample-post-2",
-    is_mine: false,
-    author_name: "عضو مجهول",
-    is_anonymous: true,
-    clinic_id: null,
-    kind: "text",
-    body: "ابني عمره 6 أشهر، طبيب الأطفال أوصى بفيتامين د. كم هي الجرعة اليومية الموصى بها؟ وهل أستمر بعد إدخال الأطعمة الصلبة؟",
-    bg_style: "navy",
-    font_style: "alexandria",
-    image_path: "",
-    specialty_id: "pediatrics",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-  },
-  {
-    id: "sample-post-3",
-    is_mine: false,
-    author_name: "فاطمة",
-    is_anonymous: false,
-    clinic_id: null,
-    kind: "text",
-    body: "نصيحة من تجربتي: قياس السكر وضغط الدم صباحاً (قبل الفطور) بانتظام، وتسجيل النتائج في دفتر. هذا helpedني and طبيبي على ضبط العلاج. لا تنسَ أخذ الأدوية في وقتها، وبخاصة مابعد الأكل.",
-    bg_style: "emerald",
-    font_style: "alexandria",
-    image_path: "",
-    specialty_id: "endocrinology",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-  {
-    id: "sample-post-4",
-    is_mine: false,
-    author_name: "د. سارة الحمود",
-    is_anonymous: false,
-    clinic_id: "sample-clinic-2",
-    kind: "card",
-    body: "تذكير للآباء: children under 2 سنة should receive فيتامين د 400 وحدة دولية daily. بعد 6 أشهر، مع إدخال الأطعمة الصلبة، استمر بالجرعة until 12 شهر. الأطعمة (الأسماك، صفار البيض، الحليب المدعم) تساعد but لا تغني عن المكمل. always consult your pediatrician.",
-    bg_style: "lavender",
-    font_style: "alexandria",
-    image_path: "",
-    specialty_id: "pediatrics",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-  },
-];
-
-const SAMPLE_COMMENTS: Record<string, Comment[]> = {
-  "sample-post-1": [
-    {
-      id: "sample-comment-1",
-      post_id: "sample-post-1",
-      author_id: "sample-user-1",
-      author_name: "عضو",
-      clinic_id: null,
-      body: "شكراً دكتور، كم مدة العلاج typically؟",
-      created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-    },
-  ],
-  "sample-post-2": [
-    {
-      id: "sample-comment-2",
-      post_id: "sample-post-2",
-      author_id: "sample-doctor-2",
-      author_name: "د. سارة الحمود",
-      clinic_id: "sample-clinic-2",
-      body: "الجرعة الموصى بها 400 وحدة دولية daily until 12 month. استمر after introducing foods; foods help but supplement needed. consult pediatrician for exact dosing.",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-    },
-  ],
-  "sample-post-3": [
-    {
-      id: "sample-comment-3",
-      post_id: "sample-post-3",
-      author_id: "sample-user-2",
-      author_name: "علي",
-      clinic_id: null,
-      body: "ممتاز، سأبدأ بتسجيل readings from tomorrow.",
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
-    },
-  ],
-};
-
-const SAMPLE_LIKES: Record<string, number> = {
-  "sample-post-1": 12,
-  "sample-post-2": 5,
-  "sample-post-3": 8,
-  "sample-post-4": 15,
-};
+type ClinicLite = { id: string; doctor: string; specialty_id: string; is_verified: boolean };
 
 function timeAgo(iso: string) {
   const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -233,14 +126,19 @@ function CommunityPage() {
       .order("created_at", { ascending: false })
       .limit(50);
     if (filter) q = q.eq("specialty_id", filter);
-    const { data } = await q;
+    const { data, error } = await q;
+    if (error) {
+      toast.error("تعذّر تحميل منشورات المجتمع");
+      setLoading(false);
+      return;
+    }
     const list = (data ?? []) as Post[];
     if (list.length === 0) {
-      setPosts(SAMPLE_COMMUNITY_POSTS);
-      setComments(SAMPLE_COMMENTS);
-      setLikes(SAMPLE_LIKES);
+      setPosts([]);
+      setComments({});
+      setLikes({});
       setLiked({});
-      setClinics(SAMPLE_CLINICS);
+      setClinics({});
       setLoading(false);
       return;
     }
@@ -275,7 +173,7 @@ function CommunityPage() {
     if (cids.length) {
       const { data: cl } = await supabase
         .from("clinics")
-        .select("id, doctor, specialty_id")
+        .select("id, doctor, specialty_id, is_verified")
         .in("id", cids);
       setClinics(Object.fromEntries((cl ?? []).map((c) => [c.id, c as ClinicLite])));
     }
@@ -359,7 +257,7 @@ function CommunityPage() {
     if (!doctorClinicId || clinics[doctorClinicId]) return;
     void supabase
       .from("clinics")
-      .select("id, doctor, specialty_id")
+      .select("id, doctor, specialty_id, is_verified")
       .eq("id", doctorClinicId)
       .maybeSingle()
       .then(({ data }) => {
@@ -468,7 +366,16 @@ function CommunityPage() {
           </div>
         ) : posts.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            لا توجد منشورات بعد — كن أول من يشارك 💙
+            <p>{filter ? "لا توجد منشورات في هذا التخصص حالياً." : "لا توجد منشورات بعد."}</p>
+            {filter && (
+              <button
+                type="button"
+                onClick={() => setFilter("")}
+                className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-bold text-primary-foreground"
+              >
+                عرض الكل
+              </button>
+            )}
           </div>
         ) : (
           posts.map((p) => (
@@ -795,6 +702,7 @@ function StoriesBar({ onCompose }: { onCompose: () => boolean }) {
 }
 
 function DoctorBadge({ clinic }: { clinic: ClinicLite }) {
+  if (!clinic.is_verified) return null;
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-extrabold text-success">
       <BadgeCheck className="h-3 w-3" />
@@ -839,8 +747,8 @@ function PostCard({
     () =>
       [...comments].sort(
         (a, b) =>
-          Number(!!b.clinic_id && !!clinics[b.clinic_id]) -
-          Number(!!a.clinic_id && !!clinics[a.clinic_id]),
+          Number(!!b.clinic_id && !!clinics[b.clinic_id]?.is_verified) -
+          Number(!!a.clinic_id && !!clinics[a.clinic_id]?.is_verified),
       ),
     [comments, clinics],
   );
@@ -849,11 +757,11 @@ function PostCard({
   return (
     <article
       id={`post-${post.id}`}
-      className={`scroll-mt-20 overflow-hidden rounded-3xl border bg-card shadow-soft ${clinic ? "border-gold/50" : "border-border"}`}
+      className={`scroll-mt-20 overflow-hidden rounded-3xl border bg-card shadow-soft ${clinic?.is_verified ? "border-gold/50" : "border-border"}`}
     >
       <header className="flex items-center gap-3 p-4 pb-3">
         <span
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold ${clinic ? "gradient-gold text-gold-foreground" : post.is_anonymous ? "bg-secondary text-muted-foreground" : "bg-primary-soft text-primary"}`}
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold ${clinic?.is_verified ? "gradient-gold text-gold-foreground" : post.is_anonymous ? "bg-secondary text-muted-foreground" : "bg-primary-soft text-primary"}`}
         >
           {post.is_anonymous ? (
             <Lock className="h-4 w-4" />
@@ -864,7 +772,7 @@ function PostCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="truncate text-sm font-bold">{post.author_name}</span>
-            {clinic && <DoctorBadge clinic={clinic} />}
+            {clinic?.is_verified && <DoctorBadge clinic={clinic} />}
           </div>
           <div className="text-[11px] text-muted-foreground">
             {timeAgo(post.created_at)}
@@ -931,7 +839,7 @@ function PostCard({
         <div className="space-y-2 px-4 pb-2">
           {visible.map((c) => {
             const dc = c.clinic_id ? clinics[c.clinic_id] : undefined;
-            return dc ? (
+            return dc?.is_verified ? (
               <div key={c.id} className="rounded-2xl border border-gold/50 bg-gold-soft p-3">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="text-sm font-extrabold">🩺 {c.author_name || dc.doctor}</span>
