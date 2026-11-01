@@ -126,7 +126,7 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
                   type="button"
                   onClick={() => setRxOpen(true)}
                   aria-label="روشتة جديدة"
-                  className="relative flex flex-col items-center justify-end pb-1 transition-transform active:scale-90 text-[11px] font-bold text-primary"
+                  className="relative flex flex-col items-center justify-end pb-1 transition-transform active:scale-90 text-xs font-bold text-primary"
                 >
                   <span className="absolute -top-6 grid h-14 w-14 place-items-center rounded-full border-4 border-background bg-primary text-primary-foreground shadow-[0_6px_20px_hsl(var(--primary)/0.5)]">
                     <Pill className="h-6 w-6" />
@@ -142,11 +142,11 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
                   key={it.key}
                   type="button"
                   onClick={() => alert("إدارة الطابور والحجوزات قريباً ⏳")}
-                  className="relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold text-muted-foreground opacity-70"
+                  className="relative flex flex-col items-center justify-center gap-0.5 text-xs font-bold text-muted-foreground opacity-70"
                 >
                   <span className="relative grid h-8 w-11 place-items-center rounded-xl">
                     <Icon className="h-5 w-5" />
-                    <span className="absolute -top-1.5 -left-2 rounded-full bg-secondary px-1 text-[8px] font-extrabold text-foreground">
+                    <span className="absolute -top-1.5 -left-2 rounded-full bg-secondary px-1 text-xs font-extrabold text-foreground">
                       قريباً
                     </span>
                   </span>
@@ -159,14 +159,14 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
                 key={it.key}
                 {...(it.node as { to: "/doctor" })}
                 aria-current={it.active ? "page" : undefined}
-                className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold transition-transform active:scale-90 ${it.active ? "text-primary" : "text-muted-foreground"}`}
+                className={`relative flex flex-col items-center justify-center gap-0.5 text-xs font-bold transition-transform active:scale-90 ${it.active ? "text-primary" : "text-muted-foreground"}`}
               >
                 <span
                   className={`relative grid h-8 w-11 place-items-center rounded-xl ${it.active ? "bg-primary text-primary-foreground" : ""}`}
                 >
                   <Icon className="h-5 w-5" />
                   {!!it.badge && (
-                    <span className="absolute -top-1 -left-1 grid min-w-[18px] place-items-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-destructive-foreground">
+                    <span className="absolute -top-1 -left-1 grid min-w-[18px] place-items-center rounded-full bg-destructive px-1 text-xs font-extrabold text-destructive-foreground">
                       {it.badge > 99 ? "99+" : it.badge}
                     </span>
                   )}

@@ -123,7 +123,7 @@ export function UsersTab() {
           <button
             key={r}
             onClick={() => setRole(r)}
-            className={`flex-1 rounded-lg py-1.5 text-[11px] font-bold ${role === r ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+            className={`flex-1 rounded-lg py-1.5 text-xs font-bold ${role === r ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
           >
             {r === "all" ? "الكل" : roleLabel[r]}
           </button>
@@ -144,17 +144,17 @@ export function UsersTab() {
               <p className="truncate text-sm font-bold">
                 {u.name || u.email || u.phone || "بدون اسم"}
               </p>
-              <p className="truncate text-[11px] text-muted-foreground" dir="ltr">
+              <p className="truncate text-xs text-muted-foreground" dir="ltr">
                 {u.email || u.phone}
               </p>
-              {u.clinic && <p className="text-[11px] text-primary">{u.clinic}</p>}
+              {u.clinic && <p className="text-xs text-primary">{u.clinic}</p>}
             </div>
             <div className="flex flex-col items-end gap-1">
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold">
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-bold">
                 {roleLabel[u.role as keyof typeof roleLabel]}
               </span>
               {u.banned && (
-                <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">
+                <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-bold text-destructive">
                   موقوف
                 </span>
               )}
@@ -228,7 +228,7 @@ export function LiveBookingsTab() {
           setPage(0);
         }}
       />
-      <p className="text-[11px] text-muted-foreground">يتحدث تلقائياً كل 20 ثانية</p>
+      <p className="text-xs text-muted-foreground">يتحدث تلقائياً كل 20 ثانية</p>
       {data.rows.length === 0 && (
         <p className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
           لا يوجد حجوزات
@@ -239,12 +239,12 @@ export function LiveBookingsTab() {
           <div className="flex justify-between gap-2">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">{b.patient_name}</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {b.clinics?.doctor} • {b.day_label} {b.slot} • #{b.queue_number}
               </p>
             </div>
             <span
-              className={`h-fit rounded-full px-2 py-0.5 text-[10px] font-bold ${b.status === "cancelled" ? "bg-destructive/15 text-destructive" : "bg-secondary"}`}
+              className={`h-fit rounded-full px-2 py-0.5 text-xs font-bold ${b.status === "cancelled" ? "bg-destructive/15 text-destructive" : "bg-secondary"}`}
             >
               {b.status === "cancelled" ? "ملغي" : b.status}
             </span>
@@ -321,7 +321,7 @@ export function MediaTab() {
               setKind(k);
               setPage(0);
             }}
-            className={`flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-[11px] font-bold ${kind === k ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+            className={`flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold ${kind === k ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
           >
             <I className="h-3.5 w-3.5" /> {l}
           </button>
@@ -341,7 +341,7 @@ export function MediaTab() {
                   href={m.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="grid h-full place-items-center p-2 text-center text-[10px] break-all text-primary"
+                  className="grid h-full place-items-center p-2 text-center text-xs break-all text-primary"
                 >
                   <Youtube className="mb-1 h-8 w-8" />
                   {m.url}
@@ -363,13 +363,13 @@ export function MediaTab() {
               )}
             </div>
             <div className="p-2">
-              <p className="truncate text-[11px] font-bold">{m.doctor}</p>
+              <p className="truncate text-xs font-bold">{m.doctor}</p>
               <button
                 onClick={async () => {
                   if (!confirm("حذف هذا المحتوى؟")) return;
                   if (await run(() => del({ data: { id: m.id, kind } }), "تم الحذف")) load();
                 }}
-                className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-destructive/10 py-1.5 text-[11px] font-bold text-destructive"
+                className="mt-1 flex w-full items-center justify-center gap-1 rounded-lg bg-destructive/10 py-1.5 text-xs font-bold text-destructive"
               >
                 <Trash2 className="h-3 w-3" /> حذف / إخفاء
               </button>
@@ -422,7 +422,7 @@ export function SystemTab() {
             {maintenance ? "مفعّل" : "متوقف"}
           </button>
         </div>
-        <p className="mt-2 text-[11px] text-muted-foreground">يظهر شريط صيانة لكل المستخدمين.</p>
+        <p className="mt-2 text-xs text-muted-foreground">يظهر شريط صيانة لكل المستخدمين.</p>
       </div>
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center gap-2">
@@ -446,7 +446,7 @@ export function SystemTab() {
             <button
               key={k}
               onClick={() => setTone(k)}
-              className={`flex-1 rounded-lg py-1.5 text-[11px] font-bold ${tone === k ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
+              className={`flex-1 rounded-lg py-1.5 text-xs font-bold ${tone === k ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
             >
               {l}
             </button>

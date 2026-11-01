@@ -38,7 +38,7 @@ export function NetworkStatus() {
   return (
     <div className="fixed left-3 top-3 z-[60]" role="status" aria-live="polite">
       <div
-        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-soft ${
+        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-soft ${
           offline ? "bg-warning text-warning-foreground" : "bg-success text-success-foreground"
         }`}
       >

@@ -432,7 +432,7 @@ function Meds() {
                                 ? `تم أخذ جرعة ${m.name} الساعة ${t}`
                                 : `سجّل أخذ جرعة ${m.name} الساعة ${t}`
                             }
-                            className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
+                            className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition ${
                               did
                                 ? "bg-success/20 text-success"
                                 : "bg-secondary hover:bg-secondary/70"
@@ -460,7 +460,7 @@ function Meds() {
         )}
       </section>
 
-      <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-[11px] text-muted-foreground">
+      <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-xs text-muted-foreground">
         التذكيرات تعتمد على إبقاء التطبيق مفتوحاً في المتصفح.
       </p>
     </AppShell>

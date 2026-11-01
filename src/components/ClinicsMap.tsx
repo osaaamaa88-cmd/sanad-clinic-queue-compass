@@ -367,7 +367,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
         href="https://www.openstreetmap.org/copyright"
         target="_blank"
         rel="noreferrer"
-        className="absolute bottom-1 right-2 z-[500] rounded-sm bg-card/90 px-1 text-[10px] text-muted-foreground"
+        className="absolute bottom-1 right-2 z-[500] rounded-sm bg-card/90 px-1 text-xs text-muted-foreground"
         dir="ltr"
       >
         © OpenStreetMap

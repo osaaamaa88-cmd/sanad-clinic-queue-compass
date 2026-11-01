@@ -157,7 +157,7 @@ function UniversityDental() {
               <d.icon className="h-5 w-5" strokeWidth={2.2} />
             </div>
             <div className="mt-1 text-sm font-bold leading-snug">{d.name}</div>
-            <div className="text-[11px] text-muted-foreground">{d.hint}</div>
+            <div className="text-xs text-muted-foreground">{d.hint}</div>
           </button>
         ))}
       </div>

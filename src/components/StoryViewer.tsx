@@ -280,14 +280,14 @@ export function StoryViewer({
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-extrabold text-white">{title}</p>
-                <p className="text-[11px] font-medium text-white/70">
+                <p className="text-xs font-medium text-white/70">
                   {timeAgo(current.createdAt)}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {isOwner && (
-                <span className="flex items-center gap-1 rounded-full bg-white/15 px-2 py-1 text-[11px] font-bold text-white">
+                <span className="flex items-center gap-1 rounded-full bg-white/15 px-2 py-1 text-xs font-bold text-white">
                   <Eye className="h-3.5 w-3.5" /> {current.views ?? 0}
                 </span>
               )}
@@ -318,7 +318,7 @@ export function StoryViewer({
           className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-10 transition-opacity duration-200 ${hideUi ? "opacity-0" : "opacity-100"}`}
         >
           {current.tag && (
-            <span className="mb-2 inline-block rounded-full bg-primary px-3 py-1 text-[11px] font-extrabold text-primary-foreground">
+            <span className="mb-2 inline-block rounded-full bg-primary px-3 py-1 text-xs font-extrabold text-primary-foreground">
               {current.tag}
             </span>
           )}

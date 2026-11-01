@@ -218,7 +218,7 @@ function Reception() {
           hint="دفتر الحجز للسكرتير والطبيب فقط — المريض له الحجز والمتابعة فقط."
           onSignedIn={load}
           footer={
-            <p className="mt-1 text-center text-[11px] text-muted-foreground">
+            <p className="mt-1 text-center text-xs text-muted-foreground">
               مفيش حساب؟ الطبيب هو اللي بينشئ حساب السكرتير من لوحة الطبيب.
             </p>
           }
@@ -294,7 +294,7 @@ function Reception() {
       }
     >
       {fromCache && (
-        <p className="mb-3 rounded-xl bg-warning/15 px-3 py-2 text-center text-[11px] font-bold text-warning print:hidden">
+        <p className="mb-3 rounded-xl bg-warning/15 px-3 py-2 text-center text-xs font-bold text-warning print:hidden">
           بنعرض آخر نسخة محفوظة من الدفتر — اضغط 🔄 لإعادة التحميل.
         </p>
       )}
@@ -304,7 +304,7 @@ function Reception() {
           <Hourglass className="h-5 w-5" />
         </div>
         <p className="mt-2 text-sm font-extrabold">الطابور المباشر وشاشة صالة الانتظار</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           حالياً الدفتر للمرضى الحاضرين في العيادة فقط — سجّلهم يدوي واطبع كشف اليوم.
         </p>
       </div>
@@ -380,11 +380,11 @@ function Reception() {
 
       <div className="mt-4 grid grid-cols-2 gap-2 print:hidden">
         <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
-          <div className="text-[10px] font-bold text-muted-foreground">منتظر</div>
+          <div className="text-xs font-bold text-muted-foreground">منتظر</div>
           <div className="mt-1 text-lg font-black text-primary">{waiting}</div>
         </div>
         <div className="rounded-2xl border border-border/60 bg-card/75 p-3 text-center backdrop-blur-xl">
-          <div className="text-[10px] font-bold text-muted-foreground">كشوفات منجزة</div>
+          <div className="text-xs font-bold text-muted-foreground">كشوفات منجزة</div>
           <div className="mt-1 text-lg font-black text-success">{done}</div>
         </div>
       </div>
@@ -396,9 +396,9 @@ function Reception() {
           <p className="text-sm font-extrabold">
             دفتر حجز النهارده {clinic ? `— ${clinic.doctor}${spec ? ` (${spec.name})` : ""}` : ""}
           </p>
-          <span className="mr-auto text-[11px] text-muted-foreground">{sheet.length} سطر</span>
+          <span className="mr-auto text-xs text-muted-foreground">{sheet.length} سطر</span>
         </div>
-        <div className="grid grid-cols-[2.5rem_1fr_4.5rem_3.5rem] gap-2 border-b border-border bg-secondary/60 px-3 py-2 text-[11px] font-bold text-muted-foreground">
+        <div className="grid grid-cols-[2.5rem_1fr_4.5rem_3.5rem] gap-2 border-b border-border bg-secondary/60 px-3 py-2 text-xs font-bold text-muted-foreground">
           <span>الدور</span>
           <span>اسم المريض / الهاتف</span>
           <span>نوع الزيارة</span>
@@ -439,12 +439,12 @@ function Reception() {
                     <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-success" />
                   )}
                 </p>
-                <p className="truncate text-[11px] text-muted-foreground">
+                <p className="truncate text-xs text-muted-foreground">
                   {r.patientPhone || "بدون رقم"} • {r.code} • {r.slot || "—"}
                 </p>
               </div>
               <span
-                className={`rounded-full px-2 py-0.5 text-center text-[10px] font-bold ${
+                className={`rounded-full px-2 py-0.5 text-center text-xs font-bold ${
                   r.visitType === "followup"
                     ? "bg-warning/20 text-warning"
                     : "bg-primary-soft text-primary"
@@ -452,7 +452,7 @@ function Reception() {
               >
                 {r.visitType === "followup" ? "استشارة" : "كشف جديد"}
               </span>
-              <span className="text-center text-[10px] font-bold text-muted-foreground">
+              <span className="text-center text-xs font-bold text-muted-foreground">
                 {r.status === "in"
                   ? "جوه"
                   : r.status === "done"
@@ -502,7 +502,7 @@ function Reception() {
             {r.status === "in" && (
               <button
                 onClick={() => setStatus(r, "done")}
-                className="mt-1.5 w-full rounded-lg bg-success py-1.5 text-[11px] font-bold text-success-foreground print:hidden"
+                className="mt-1.5 w-full rounded-lg bg-success py-1.5 text-xs font-bold text-success-foreground print:hidden"
               >
                 خلص الكشف ✓
               </button>
@@ -518,7 +518,7 @@ function Counter({ value, label }: { value: number; label: string }) {
   return (
     <div className="rounded-xl border border-border bg-card py-2">
       <div className="text-lg font-black">{value}</div>
-      <div className="text-[11px] text-muted-foreground">{label}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   );
 }
@@ -551,7 +551,7 @@ function SheetBtn({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center justify-center gap-1 rounded-lg py-2 text-[11px] font-bold ${
+      className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-bold ${
         active ? activeCls : idleCls
       }`}
     >

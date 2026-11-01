@@ -47,7 +47,7 @@ export function OwnerAiTab() {
         </div>
         <div>
           <p className="text-sm font-bold text-foreground">مساعد المالك</p>
-          <p className="text-[11px] text-muted-foreground">بيشوف بيانات التطبيق لحظياً ويجاوبك</p>
+          <p className="text-xs text-muted-foreground">بيشوف بيانات التطبيق لحظياً ويجاوبك</p>
         </div>
       </div>
       <div className="min-h-[300px] max-h-[55vh] space-y-3 overflow-y-auto py-3">

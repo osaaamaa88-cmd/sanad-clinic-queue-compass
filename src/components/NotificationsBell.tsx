@@ -96,7 +96,7 @@ export function NotificationsBell({
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (
-          <span className="absolute -top-1 left-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-extrabold text-white">
+          <span className="absolute -top-1 left-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-xs font-extrabold text-white">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -154,7 +154,7 @@ export function NotificationsBell({
                               {n.body}
                             </span>
                           )}
-                          <span className="mt-1 block text-[10px] text-muted-foreground">
+                          <span className="mt-1 block text-xs text-muted-foreground">
                             {new Date(n.createdAt).toLocaleString("ar-EG", {
                               hour: "2-digit",
                               minute: "2-digit",

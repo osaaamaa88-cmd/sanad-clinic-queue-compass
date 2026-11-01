@@ -207,7 +207,7 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
                               : "border-border bg-card text-foreground hover:bg-secondary"
                           }`}
                         >
-                          <div className="text-[11px] opacity-80">{d.label}</div>
+                          <div className="text-xs opacity-80">{d.label}</div>
                           <div className="mt-0.5 text-xs font-bold">{d.date}</div>
                         </button>
                       ))}

@@ -178,7 +178,7 @@ function Landing() {
               <h1 className="text-xl font-extrabold leading-tight">
                 سند <span className="sr-only">— دليلك للعيادات والأطباء في مصر</span>
               </h1>
-              <p className="text-[11px] text-muted-foreground">سندك الطبي في كل وقت</p>
+              <p className="text-xs text-muted-foreground">سندك الطبي في كل وقت</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -248,7 +248,7 @@ function Landing() {
               </span>
               <span>
                 <span className="block text-sm font-extrabold">{label}</span>
-                <span className="block text-[11px] leading-4 text-muted-foreground">{hint}</span>
+                <span className="block text-xs leading-4 text-muted-foreground">{hint}</span>
               </span>
             </Link>
           ))}
@@ -275,7 +275,7 @@ function Landing() {
                   </span>
                 );
               })()}
-              <span className="truncate text-[11px] font-bold w-full">{s.name}</span>
+              <span className="truncate text-xs font-bold w-full">{s.name}</span>
             </Link>
           ))}
         </div>

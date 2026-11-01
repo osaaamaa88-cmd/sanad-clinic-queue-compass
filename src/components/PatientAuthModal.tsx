@@ -158,7 +158,7 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
 
       <Link
         to="/terms"
-        className="mt-3 block text-center text-[11px] font-bold text-muted-foreground underline"
+        className="mt-3 block text-center text-xs font-bold text-muted-foreground underline"
       >
         إخلاء المسؤولية الطبية وشروط الاستخدام
       </Link>

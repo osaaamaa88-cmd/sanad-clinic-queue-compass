@@ -65,17 +65,17 @@ export function DbHealthTab() {
             </div>
             <div className="rounded-xl bg-secondary p-3">
               <p className="text-lg font-black">{h?.latencyMs ?? "—"}</p>
-              <p className="text-[11px] text-muted-foreground">زمن الاستجابة ms</p>
+              <p className="text-xs text-muted-foreground">زمن الاستجابة ms</p>
             </div>
             <div className="rounded-xl bg-secondary p-3">
               <p className="text-lg font-black">{h?.lastDay ?? "—"}</p>
-              <p className="text-[11px] text-muted-foreground">أعطال 24 ساعة</p>
+              <p className="text-xs text-muted-foreground">أعطال 24 ساعة</p>
             </div>
           </div>
         )}
         {(err || h?.error) && <p className="mt-2 text-xs text-destructive">{err ?? h?.error}</p>}
         {h && (
-          <p className="mt-2 text-[11px] text-muted-foreground">
+          <p className="mt-2 text-xs text-muted-foreground">
             آخر فحص: {new Date(h.checkedAt).toLocaleTimeString("ar-EG")} • يتحدث كل 30 ثانية
           </p>
         )}
@@ -90,13 +90,13 @@ export function DbHealthTab() {
             <div key={r.id} className="rounded-xl bg-secondary p-3 text-sm">
               <div className="flex justify-between gap-2">
                 <span className="font-bold">{r.action}</span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {new Date(r.created_at).toLocaleString("ar-EG")}
                 </span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground break-words">{r.message}</p>
               {r.path && (
-                <p className="mt-1 text-[11px] text-muted-foreground" dir="ltr">
+                <p className="mt-1 text-xs text-muted-foreground" dir="ltr">
                   {r.path}
                 </p>
               )}

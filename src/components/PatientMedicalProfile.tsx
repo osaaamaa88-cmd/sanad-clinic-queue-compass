@@ -150,7 +150,7 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent, appointme
           <div className="w-full mt-3 rounded-xl border border-cyan-500/30 bg-slate-950/80 p-3 z-10">
             <div className="flex items-center justify-between gap-2">
               <div className="font-bold text-cyan-200">{organ.name}</div>
-              <span className={`text-[11px] px-2 py-0.5 rounded-full border ${st.ring} ${st.text}`}>{st.label}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full border ${st.ring} ${st.text}`}>{st.label}</span>
             </div>
             <div className="text-xs text-slate-400 mt-1">{organ.reading}</div>
             <div className="mt-3 grid gap-2">
@@ -158,7 +158,7 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent, appointme
                 <button key={a.label} onClick={() => runAction(a)} className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-100 text-right active:scale-[0.98] transition">
                   {a.measure ? <PlusCircle className="w-4 h-4 shrink-0" /> : <MessageCircle className="w-4 h-4 shrink-0" />}
                   <span className="flex-1">{a.label}</span>
-                  {a.nemo && <span className="text-[10px] text-cyan-400">نيمو ←</span>}
+                  {a.nemo && <span className="text-xs text-cyan-400">نيمو ←</span>}
                 </button>
               ))}
             </div>
@@ -179,7 +179,7 @@ export function PatientMedicalProfile({ vitalsContent, recordsContent, appointme
                     <div className="text-xs text-slate-400">{r.t}</div>
                     <div className="text-sm font-bold text-cyan-300 font-mono">{r.v}</div>
                   </div>
-                  <span className={`text-[10px] ${STATUS_STYLE[o.status].text}`}>{STATUS_STYLE[o.status].label}</span>
+                  <span className={`text-xs ${STATUS_STYLE[o.status].text}`}>{STATUS_STYLE[o.status].label}</span>
                 </button>
               );
             })}

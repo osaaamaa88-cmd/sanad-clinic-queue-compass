@@ -54,7 +54,7 @@ export function SanadLogo({ className = "", size = 36, showText = false }: Sanad
       {showText && (
         <div className="flex flex-col text-right leading-none">
           <span className="font-bold text-lg tracking-tight text-foreground">سند</span>
-          <span className="text-[10px] text-muted-foreground font-medium tracking-wider">SANAD</span>
+          <span className="text-xs text-muted-foreground font-medium tracking-wider">SANAD</span>
         </div>
       )}
     </div>

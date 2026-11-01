@@ -92,7 +92,7 @@ function RxCard({ rx }: { rx: RxPayload }) {
             >
               <div className="flex items-center gap-2" dir="ltr">
                 <span
-                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white"
+                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-xs font-bold text-white"
                   style={{ background: gold }}
                 >
                   {i + 1}
@@ -126,7 +126,7 @@ function RxCard({ rx }: { rx: RxPayload }) {
         className="h-1"
         style={{ background: `linear-gradient(90deg,${gold},#c9a96e,${gold})` }}
       />
-      <div className="space-y-0.5 px-3 py-2 text-[11px] text-[#555]">
+      <div className="space-y-0.5 px-3 py-2 text-xs text-[#555]">
         {rx.clinicAddress && <p>📍 {rx.clinicAddress}</p>}
         {rx.clinicHours && <p>🕒 {rx.clinicHours}</p>}
         {rx.clinicPhone && (
@@ -134,7 +134,7 @@ function RxCard({ rx }: { rx: RxPayload }) {
             {rx.clinicPhone}
           </p>
         )}
-        <p className="pt-1 text-center text-[10px] text-[#8a8a8a]">
+        <p className="pt-1 text-center text-xs text-[#8a8a8a]">
           صادرة عبر <b style={{ color: gold }}>سند | SANAD</b>
         </p>
       </div>
@@ -344,14 +344,14 @@ function ChatScreen() {
         />
         <div className="min-w-0 flex-1">
           <p className="truncate font-extrabold">{peer.name || "…"}</p>
-          <p className="text-[11px] text-muted-foreground">بترد عادةً خلال ساعات العمل</p>
+          <p className="text-xs text-muted-foreground">بترد عادةً خلال ساعات العمل</p>
         </div>
         {amClinic && conv && (
           <button
             type="button"
             onClick={toggleAllow}
             aria-label="إذن الصور"
-            className={`flex h-9 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold ${allow ? "bg-success/15 text-success" : "bg-secondary text-muted-foreground"}`}
+            className={`flex h-9 items-center gap-1 rounded-full px-2.5 text-xs font-bold ${allow ? "bg-success/15 text-success" : "bg-secondary text-muted-foreground"}`}
           >
             {allow ? <Camera className="h-4 w-4" /> : <ImageOff className="h-4 w-4" />}{" "}
             {allow ? "الصور مسموحة" : "الصور مقفولة"}
@@ -385,7 +385,7 @@ function ChatScreen() {
           </p>
         ) : (
           <>
-            <div className="mx-auto mb-4 max-w-xs rounded-lg bg-warning/15 px-3 py-2 text-center text-[11px] text-foreground">
+            <div className="mx-auto mb-4 max-w-xs rounded-lg bg-warning/15 px-3 py-2 text-center text-xs text-foreground">
               🔒 الرسائل خاصة بينك وبين العيادة. للحالات الطارئة اتصل بالإسعاف 123.
             </div>
             {msgs.map((m, i) => {
@@ -395,7 +395,7 @@ function ChatScreen() {
                 <div key={m.id}>
                   {newDay && (
                     <div className="my-3 flex justify-center">
-                      <span className="rounded-lg bg-card px-3 py-1 text-[11px] font-bold text-muted-foreground shadow-sm">
+                      <span className="rounded-lg bg-card px-3 py-1 text-xs font-bold text-muted-foreground shadow-sm">
                         {dayOf(m.created_at)}
                       </span>
                     </div>
@@ -418,7 +418,7 @@ function ChatScreen() {
                         </p>
                       )}
                       <div
-                        className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? "text-primary-foreground/80" : "text-muted-foreground"}`}
+                        className={`mt-0.5 flex items-center justify-end gap-1 text-xs ${mine ? "text-primary-foreground/80" : "text-muted-foreground"}`}
                       >
                         {timeOf(m.created_at)}
                         {mine &&

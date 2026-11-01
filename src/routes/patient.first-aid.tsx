@@ -145,7 +145,7 @@ function FirstAidPage() {
                   <ol className="space-y-2 text-sm leading-7 text-foreground">
                     {card.steps.map((step, i) => (
                       <li key={i} className="flex gap-2">
-                        <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/15 text-[10px] font-black text-primary">
+                        <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-black text-primary">
                           {i + 1}
                         </span>
                         <span>{step}</span>

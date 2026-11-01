@@ -222,7 +222,7 @@ function LabReader() {
             )}
           </div>
         )}
-        <p className="text-center text-[11px] leading-5 text-muted-foreground">
+        <p className="text-center text-xs leading-5 text-muted-foreground">
           الشرح استرشادي بالذكاء الاصطناعي ولا يغني عن الكشف الطبي — اعرض النتيجة على طبيبك دايماً.
         </p>
       </div>

@@ -682,7 +682,7 @@ function HealthTracker() {
                   </p>
                 </div>
               )}
-              <p className="mt-2 text-center text-[11px] text-muted-foreground">
+              <p className="mt-2 text-center text-xs text-muted-foreground">
                 تُستخدم البيانات لإنشاء الصورة على جهازك ولا تُحفظ من هذه الصفحة.
               </p>
             </section>
@@ -696,7 +696,7 @@ function HealthTracker() {
               >
                 <Download className="h-4 w-4" /> تصدير السجل الصحي كاملاً (JSON / نصي)
               </button>
-              <p className="mt-3 rounded-xl bg-success/10 px-3 py-2 text-center text-[11px] font-bold leading-relaxed text-success">
+              <p className="mt-3 rounded-xl bg-success/10 px-3 py-2 text-center text-xs font-bold leading-relaxed text-success">
                 بياناتك الصحية ملك لك بالكامل ومحفوظة محلياً — لك حرية تصديرها أو حذفها في أي وقت
                 بنقرة واحدة.
               </p>
@@ -758,13 +758,13 @@ function HealthTracker() {
               )}
             </section>
 
-            <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-[11px] text-muted-foreground">
+            <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-xs text-muted-foreground">
               النتائج استرشادية بناءً على المعايير الطبية المعتمدة ولا تغني عن الاستشارة الطبية.
             </p>
           </>
         }
         appointmentsContent={
-          <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-[11px] text-muted-foreground">
+          <p className="mt-6 rounded-xl bg-secondary/50 p-3 text-center text-xs text-muted-foreground">
             لا توجد حجوزات مجدولة حالياً. يمكنك البحث عن عيادات من صفحة البحث.
           </p>
         }

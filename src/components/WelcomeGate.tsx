@@ -90,7 +90,7 @@ export function WelcomeGate({ onGuest }: { onGuest: () => void }) {
           <ArrowLeft className="h-5 w-5 text-primary" />
         </Link>
 
-        <p className="mt-auto pt-8 text-center text-[11px] text-muted-foreground">
+        <p className="mt-auto pt-8 text-center text-xs text-muted-foreground">
           بالمتابعة أنت موافق على{" "}
           <Link to="/terms" className="underline">
             الشروط

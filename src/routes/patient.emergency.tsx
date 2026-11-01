@@ -103,7 +103,7 @@ function EmergencyPage() {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-extrabold">اتصال سريع بالطوارئ</p>
-            <p className="text-[11px] text-muted-foreground">اضغط الرقم للاتصال المباشر</p>
+            <p className="text-xs text-muted-foreground">اضغط الرقم للاتصال المباشر</p>
           </div>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -230,16 +230,16 @@ function EmergencyPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="truncate font-bold">{f.name}</p>
                     {f.open24h && (
-                      <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">
+                      <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-bold text-destructive">
                         24 ساعة
                       </span>
                     )}
                     {f.openNow ? (
-                      <span className="rounded-full bg-success px-2 py-0.5 text-[10px] font-bold text-success-foreground">
+                      <span className="rounded-full bg-success px-2 py-0.5 text-xs font-bold text-success-foreground">
                         مفتوح
                       </span>
                     ) : (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
                         مغلق
                       </span>
                     )}

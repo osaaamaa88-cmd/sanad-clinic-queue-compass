@@ -152,7 +152,7 @@ function Stat({ icon: Icon, label, value }: { icon: typeof Users; label: string;
     <div className="rounded-xl bg-secondary p-3">
       <Icon className="mx-auto h-4 w-4 text-muted-foreground" />
       <div className="mt-1 text-sm font-extrabold">{value}</div>
-      <div className="text-[10px] text-muted-foreground">{label}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   );
 }

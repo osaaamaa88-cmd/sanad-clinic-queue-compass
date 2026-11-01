@@ -64,7 +64,7 @@ export function DeletionRequestsTab() {
         </p>
         <button
           onClick={() => void load()}
-          className="flex items-center gap-1 rounded-xl border px-2 py-1 text-[11px] font-bold"
+          className="flex items-center gap-1 rounded-xl border px-2 py-1 text-xs font-bold"
         >
           <RefreshCw className="h-3 w-3" /> تحديث
         </button>
@@ -124,7 +124,7 @@ export function DeletionRequestsTab() {
         </ul>
       )}
 
-      <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
         التنفيذ الكامل يشمل حذف سجلات المريض من جداول التطبيق (الحجوزات، المحادثات، التقييمات،
         الإشعارات) وحذف حساب الدخول من لوحة التحكم.
       </p>

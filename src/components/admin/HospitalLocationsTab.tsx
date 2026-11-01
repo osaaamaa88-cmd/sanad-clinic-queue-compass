@@ -62,13 +62,13 @@ export function HospitalLocationsTab() {
         <div key={h.id} className="flex items-center gap-2 rounded-2xl border bg-card p-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold">{h.name}</p>
-            <p className="text-[11px] text-muted-foreground" dir="ltr">
+            <p className="text-xs text-muted-foreground" dir="ltr">
               {Number(h.lat).toFixed(5)}, {Number(h.lng).toFixed(5)}
             </p>
             {h.location_verified ? (
-              <span className="text-[10px] font-bold text-primary">✓ موقع مؤكد</span>
+              <span className="text-xs font-bold text-primary">✓ موقع مؤكد</span>
             ) : (
-              <span className="text-[10px] font-bold text-warning">📍 موقع تقريبي</span>
+              <span className="text-xs font-bold text-warning">📍 موقع تقريبي</span>
             )}
           </div>
           <button

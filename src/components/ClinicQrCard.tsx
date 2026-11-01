@@ -57,11 +57,11 @@ export function ClinicQrCard({ clinic, specName }: { clinic: Clinic; specName: s
             جاري توليد الرمز…
           </div>
         )}
-        <p className="mt-2 text-[11px]">
+        <p className="mt-2 text-xs">
           {clinic.address || ""} {clinic.area ? `— ${clinic.area}` : ""}
         </p>
-        <p className="text-[11px] font-bold">{clinic.phone || ""}</p>
-        <p className="mt-1 break-all text-[9px] text-[#64748B]">{url}</p>
+        <p className="text-xs font-bold">{clinic.phone || ""}</p>
+        <p className="mt-1 break-all text-xs text-[#64748B]">{url}</p>
       </div>
 
       <button

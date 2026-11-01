@@ -194,7 +194,7 @@ function Search() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setOpenNow((v) => !v)}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
               openNow ? "bg-success text-success-foreground" : "bg-secondary text-foreground"
             }`}
           >
@@ -203,7 +203,7 @@ function Search() {
             />
             متاح الآن
           </button>
-          <span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground">
+          <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-muted-foreground">
             <ArrowUpDown className="h-3.5 w-3.5" /> ترتيب:
           </span>
           {(
@@ -217,7 +217,7 @@ function Search() {
             <button
               key={o.id}
               onClick={() => setSort(o.id)}
-              className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
                 sort === o.id
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-foreground"
@@ -255,7 +255,7 @@ function Search() {
                   <Icon className="h-5 w-5" />
                 </span>
                 <span
-                  className={`w-full truncate text-[11px] font-bold ${active ? "text-primary" : ""}`}
+                  className={`w-full truncate text-xs font-bold ${active ? "text-primary" : ""}`}
                 >
                   {name}
                 </span>
@@ -276,7 +276,7 @@ function Search() {
           <button
             key={k}
             onClick={() => setKind(k)}
-            className={`rounded-full px-2 py-1.5 text-[11px] font-bold ${kind === k ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
+            className={`rounded-full px-2 py-1.5 text-xs font-bold ${kind === k ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}
           >
             {l}
           </button>
@@ -367,7 +367,7 @@ function Search() {
                     <div className="flex items-center gap-2">
                       <p className="truncate font-bold">{c.doctor}</p>
                       {c.availableNow && (
-                        <span className="rounded-full bg-success px-2 py-0.5 text-[10px] font-bold text-success-foreground">
+                        <span className="rounded-full bg-success px-2 py-0.5 text-xs font-bold text-success-foreground">
                           متاح
                         </span>
                       )}
@@ -444,11 +444,11 @@ function HospitalCard({ c }: { c: Clinic }) {
               </span>
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold">
+              <span className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs font-bold">
                 <RouteIcon className="h-3 w-3" /> {c.distanceKm} كم
               </span>
               {c.availableNow && (
-                <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">
+                <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs font-bold text-success">
                   طوارئ 24 ساعة
                 </span>
               )}
@@ -478,11 +478,11 @@ function HospitalCard({ c }: { c: Clinic }) {
 
 function LocationBadge({ approx }: { approx: boolean }) {
   return approx ? (
-    <span className="rounded-full border border-dashed border-warning px-2 py-0.5 text-[10px] font-bold text-warning">
+    <span className="rounded-full border border-dashed border-warning px-2 py-0.5 text-xs font-bold text-warning">
       📍 موقع تقريبي
     </span>
   ) : (
-    <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold text-primary">
+    <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-bold text-primary">
       ✓ موقع مؤكد
     </span>
   );

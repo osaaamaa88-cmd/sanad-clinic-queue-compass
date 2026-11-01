@@ -349,7 +349,7 @@ function DoctorEntry() {
                 </div>
               </div>
               <div className="rounded-xl bg-secondary p-3">
-                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                   بعد تفعيل الحساب، ارفع مستند الترخيص من إعدادات العيادة ليتمكن فريق التوثيق من
                   مراجعته بأمان.
                 </p>

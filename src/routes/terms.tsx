@@ -219,7 +219,7 @@ function Terms() {
         {speaking ? <Square className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         {speaking ? "إيقاف الاستماع" : "استمع إلى الشروط 🔊"}
       </button>
-      <p className="mt-1.5 text-center text-[11px] text-muted-foreground">
+      <p className="mt-1.5 text-center text-xs text-muted-foreground">
         قراءة صوتية بصوت عربي نسائي لأهم نقاط الشروط — لدعم ضعاف البصر
       </p>
 

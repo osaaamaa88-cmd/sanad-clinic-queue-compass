@@ -388,7 +388,7 @@ function DoctorSettings() {
                   </div>
                 </div>
                 <div className="rounded-xl bg-secondary p-3">
-                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="text-xs leading-relaxed text-muted-foreground">
                     بعد تفعيل الحساب، ارفع مستند الترخيص من إعدادات العيادة ليتمكن فريق التوثيق من
                     مراجعته بأمان.
                   </p>
@@ -407,7 +407,7 @@ function DoctorSettings() {
               >
                 {creating ? "جاري الإنشاء…" : "إنشاء حساب العيادة الآن"}
               </button>
-              <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+              <p className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
                 بتسجيلك أنت موافق على{" "}
                 <Link to="/terms" className="font-bold text-primary underline">
                   شروط الاستخدام وإخلاء المسؤولية
@@ -517,7 +517,7 @@ function DoctorSettings() {
             className="mt-3 w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-xs file:font-bold"
           />
           {kycFile && (
-            <p className="mt-2 truncate text-[11px] text-muted-foreground">{kycFile.name}</p>
+            <p className="mt-2 truncate text-xs text-muted-foreground">{kycFile.name}</p>
           )}
           <button
             type="button"
@@ -586,7 +586,7 @@ function DoctorSettings() {
       {/* Profile form */}
       <div className="mt-6 flex items-center justify-between gap-2">
         <h2 className="text-base font-bold">بيانات العيادة</h2>
-        <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+        <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-bold text-muted-foreground">
           اختيارية — أضفها لاحقاً
         </span>
       </div>
@@ -685,7 +685,7 @@ function DoctorSettings() {
               {(s.full_name || "س").charAt(0)}
             </div>
             <p className="min-w-0 flex-1 truncate text-sm font-bold">{s.full_name || "سكرتير"}</p>
-            <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success">
+            <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs font-bold text-success">
               مفعّل
             </span>
           </div>
@@ -745,7 +745,7 @@ function DoctorSettings() {
           تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سند.
         </div>
       )}
-      <p className="mt-6 text-center text-[11px] text-muted-foreground" dir="ltr">
+      <p className="mt-6 text-center text-xs text-muted-foreground" dir="ltr">
         SANAD {APP_VERSION_LABEL} · Stable
       </p>
     </AppShell>

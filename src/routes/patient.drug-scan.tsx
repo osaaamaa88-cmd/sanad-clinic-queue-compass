@@ -259,7 +259,7 @@ function DrugScanPage() {
             </div>
           </>
         )}
-        <p className="text-center text-[11px] leading-5 text-muted-foreground">
+        <p className="text-center text-xs leading-5 text-muted-foreground">
           المعلومات استرشادية بالذكاء الاصطناعي — راجع الصيدلي أو الطبيب قبل تغيير أي دواء.
         </p>
       </div>

@@ -116,7 +116,7 @@ function Inbox() {
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate font-extrabold">{name}</p>
                       <span
-                        className={`shrink-0 text-[11px] ${n ? "font-bold text-success" : "text-muted-foreground"}`}
+                        className={`shrink-0 text-xs ${n ? "font-bold text-success" : "text-muted-foreground"}`}
                       >
                         {formatChatTime(c.last_message_at)}
                       </span>
@@ -126,7 +126,7 @@ function Inbox() {
                         {c.last_message || "ابدأ المحادثة"}
                       </p>
                       {n > 0 && (
-                        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-success px-1.5 text-[11px] font-extrabold text-success-foreground">
+                        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-success px-1.5 text-xs font-extrabold text-success-foreground">
                           {n}
                         </span>
                       )}

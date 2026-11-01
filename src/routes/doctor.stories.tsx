@@ -195,7 +195,7 @@ function DoctorStories() {
                 role="menu"
                 className="absolute right-0 top-12 z-50 w-60 overflow-hidden rounded-2xl border border-border bg-card py-1 text-sm font-bold shadow-xl"
               >
-                <p className="px-4 pb-1 pt-2 text-[11px] text-muted-foreground">إنشاء</p>
+                <p className="px-4 pb-1 pt-2 text-xs text-muted-foreground">إنشاء</p>
                 <button
                   role="menuitem"
                   type="button"
@@ -427,7 +427,7 @@ function DoctorStories() {
                 دائمة
               </button>
             </div>
-            <p className="mt-1.5 text-[11px] text-muted-foreground">
+            <p className="mt-1.5 text-xs text-muted-foreground">
               {permanent
                 ? "هتتثبت في الهايلايت على صفحة عيادتك."
                 : `هتختفي تلقائيًا بعد ${hours} ساعة.`}
@@ -510,7 +510,7 @@ function DoctorStories() {
                     </span>
                   )}
                 </button>
-                <div className="flex items-center justify-between p-1.5 text-[10px] text-muted-foreground">
+                <div className="flex items-center justify-between p-1.5 text-xs text-muted-foreground">
                   <span className="flex items-center gap-0.5">
                     <Eye className="h-3 w-3" />
                     {s.views ?? 0}
@@ -548,7 +548,7 @@ function DoctorStories() {
                       h.emoji
                     )}
                   </span>
-                  <span className="truncate text-[11px] font-bold">
+                  <span className="truncate text-xs font-bold">
                     {h.title} ({h.items.length})
                   </span>
                 </button>

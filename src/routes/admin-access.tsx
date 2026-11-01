@@ -389,7 +389,7 @@ function Admin() {
           <button
             key={k}
             onClick={() => setTab(k)}
-            className={`rounded-xl py-2 text-[11px] font-bold ${
+            className={`rounded-xl py-2 text-xs font-bold ${
               tab === k ? "bg-card shadow-soft" : "text-muted-foreground"
             }`}
           >
@@ -428,7 +428,7 @@ function Admin() {
                   <p className="text-xs text-muted-foreground">
                     {getSpecialty(p.specialtyId)?.name} — {p.area}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {p.address} • 📞 {p.phone}
                   </p>
                 </div>
@@ -482,12 +482,12 @@ function Admin() {
                     {c.isVerified ? (
                       <BadgeCheck className="h-4 w-4 shrink-0 text-success" />
                     ) : (
-                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-bold text-muted-foreground">
                         غير موثّق
                       </span>
                     )}
                     {c.isDisabled && (
-                      <span className="rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-bold text-warning">
+                      <span className="rounded-full bg-warning/20 px-2 py-0.5 text-xs font-bold text-warning">
                         معطلة مؤقتاً
                       </span>
                     )}
@@ -495,7 +495,7 @@ function Admin() {
                   <p className="text-xs text-muted-foreground">
                     {getSpecialty(c.specialtyId)?.name} — {c.area}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {c.address} • 📞 {c.phone}
                   </p>
                 </div>
@@ -676,7 +676,7 @@ function AnalyticsTab({
               <div key={s.id} className="rounded-xl bg-secondary p-3">
                 <div className="text-lg">{s.emoji}</div>
                 <p className="mt-1 text-xs font-bold">{s.name}</p>
-                <p className="text-[11px] text-muted-foreground">{count} حجز</p>
+                <p className="text-xs text-muted-foreground">{count} حجز</p>
               </div>
             );
           })}
@@ -692,7 +692,7 @@ function SummaryBox({ label, value, tone }: { label: string; value: number; tone
       <p className={`text-xl font-black ${tone === "warn" ? "text-warning" : "text-primary"}`}>
         {value}
       </p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -748,7 +748,7 @@ function BookingsTab({
           <button
             key={k}
             onClick={() => setStatus(k)}
-            className={`rounded-full px-3 py-1.5 text-[11px] font-bold ${
+            className={`rounded-full px-3 py-1.5 text-xs font-bold ${
               status === k
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-muted-foreground"
@@ -784,17 +784,17 @@ function BookingsTab({
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-black">{b.patient_name}</p>
-                  <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">
+                  <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-bold text-primary">
                     {b.code}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">📞 {b.patient_phone}</p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="mt-0.5 text-xs text-muted-foreground">📞 {b.patient_phone}</p>
+                <p className="text-xs text-muted-foreground">
                   👨‍⚕️ {clinic?.doctor ?? "غير معروف"} • {b.day_label} • {b.slot}
                 </p>
               </div>
               <span
-                className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${
+                className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ${
                   b.status === "done"
                     ? "bg-success/15 text-success"
                     : b.status === "in"
@@ -940,7 +940,7 @@ function EditClinicModal({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-bold text-muted-foreground">{label}</span>
+      <span className="mb-1 block text-xs font-bold text-muted-foreground">{label}</span>
       {children}
     </label>
   );
@@ -979,19 +979,19 @@ const SYNDICATE_LOOKUP_URL = "https://www.emsa.org.eg/doctor-search/";
 function KycStatusBadge({ status }: { status: DoctorKycRow["verificationStatus"] }) {
   if (status === "verified")
     return (
-      <span className="flex items-center gap-1 rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-bold text-success">
+      <span className="flex items-center gap-1 rounded-full bg-success/15 px-2.5 py-1 text-xs font-bold text-success">
         <ShieldCheck className="h-3.5 w-3.5" /> معتمد وموثق نقابياً
       </span>
     );
   if (status === "rejected" || status === "action_required")
     return (
-      <span className="flex items-center gap-1 rounded-full bg-destructive/15 px-2.5 py-1 text-[11px] font-bold text-destructive">
+      <span className="flex items-center gap-1 rounded-full bg-destructive/15 px-2.5 py-1 text-xs font-bold text-destructive">
         <ShieldX className="h-3.5 w-3.5" />
         {status === "rejected" ? "مرفوض / بيانات غير مطابقة" : "مطلوب تدقيق إضافي"}
       </span>
     );
   return (
-    <span className="flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-bold text-warning">
+    <span className="flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-bold text-warning">
       <Clock className="h-3.5 w-3.5" /> قيد المراجعة والتدقيق
     </span>
   );
@@ -1065,7 +1065,7 @@ function DoctorKycTab() {
           <p className="text-sm font-black">توثيق الأطباء والعيادات</p>
         </div>
         {pendingCount > 0 && (
-          <span className="flex items-center gap-1 rounded-full bg-warning/20 px-2.5 py-1 text-[11px] font-black text-warning">
+          <span className="flex items-center gap-1 rounded-full bg-warning/20 px-2.5 py-1 text-xs font-black text-warning">
             <Clock className="h-3.5 w-3.5" /> {pendingCount} قيد التدقيق
           </span>
         )}
@@ -1097,13 +1097,13 @@ function DoctorKycTab() {
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {getSpecialty(r.specialtyId)?.name ?? r.specialtyId} — {r.area || "بدون منطقة"}
                 </p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   📞 {r.phone || "—"} {r.email && `• ✉️ ${r.email}`}
                 </p>
               </div>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-secondary/60 p-3 text-[11px]">
+            <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-secondary/60 p-3 text-xs">
               <div>
                 <p className="font-bold text-muted-foreground">ترخيص مزاولة المهنة</p>
                 <p className="font-black" dir="ltr">

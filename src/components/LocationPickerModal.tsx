@@ -86,7 +86,7 @@ export function LocationPickerModal({
                 <MapPin className="h-4 w-4 shrink-0 text-primary" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold">{a.name}</span>
-                  <span className="block text-[11px] text-muted-foreground">{a.city}</span>
+                  <span className="block text-xs text-muted-foreground">{a.city}</span>
                 </span>
                 {on && <Check className="h-4 w-4 text-primary" />}
               </button>

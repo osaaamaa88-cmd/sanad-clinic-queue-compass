@@ -83,18 +83,18 @@ export function SecurityTab() {
             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
               <div className="rounded-xl bg-secondary p-2">
                 <p className="text-sm font-black">{s.dbOk ? "تعمل" : "متعطلة"}</p>
-                <p className="text-[10px] text-muted-foreground">قاعدة البيانات</p>
+                <p className="text-xs text-muted-foreground">قاعدة البيانات</p>
               </div>
               <div className="rounded-xl bg-secondary p-2">
                 <p className="text-sm font-black">{s.dbMs}ms</p>
-                <p className="text-[10px] text-muted-foreground">زمن الاستجابة</p>
+                <p className="text-xs text-muted-foreground">زمن الاستجابة</p>
               </div>
               <div className="rounded-xl bg-secondary p-2">
                 <p className="text-sm font-black">{s.activeCount}</p>
-                <p className="text-[10px] text-muted-foreground">أعطال نشطة 24س</p>
+                <p className="text-xs text-muted-foreground">أعطال نشطة 24س</p>
               </div>
             </div>
-            <p className="mt-2 text-[10px] text-muted-foreground">
+            <p className="mt-2 text-xs text-muted-foreground">
               آخر فحص: {new Date(s.checkedAt).toLocaleTimeString("ar-EG")} • يتحدث كل دقيقة
             </p>
           </>
@@ -110,7 +110,7 @@ export function SecurityTab() {
         )}
         {s && s.rows.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-right text-[11px]">
+            <table className="w-full min-w-[640px] text-right text-xs">
               <thead className="text-muted-foreground">
                 <tr>
                   <th className="p-2">الوقت</th>

@@ -230,7 +230,7 @@ export function PostViewer({
             >
               <Heart className={`h-5 w-5 ${liked ? "fill-white" : ""}`} />
             </span>
-            <span className="text-[11px] font-extrabold">{likes}</span>
+            <span className="text-xs font-extrabold">{likes}</span>
           </button>
           <button
             onClick={() => setShowComments(true)}
@@ -240,7 +240,7 @@ export function PostViewer({
             <span className="grid h-11 w-11 place-items-center rounded-full bg-white/15 backdrop-blur">
               <MessageCircle className="h-5 w-5" />
             </span>
-            <span className="text-[11px] font-extrabold">{comments.length}</span>
+            <span className="text-xs font-extrabold">{comments.length}</span>
           </button>
           <button
             onClick={onShare}
@@ -250,7 +250,7 @@ export function PostViewer({
             <span className="grid h-11 w-11 place-items-center rounded-full bg-white/15 backdrop-blur">
               <Share2 className="h-5 w-5" />
             </span>
-            <span className="text-[11px] font-extrabold">مشاركة</span>
+            <span className="text-xs font-extrabold">مشاركة</span>
           </button>
         </div>
 
@@ -354,7 +354,7 @@ export function PostViewer({
                   )}
                 </button>
               </div>
-              <p className="text-[10px] leading-relaxed text-muted-foreground">
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 التعليقات للتنظيم والاستفسارات العامة فقط، وليست استشارة طبية.
               </p>
             </div>

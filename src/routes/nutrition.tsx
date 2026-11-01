@@ -262,7 +262,7 @@ function Nutrition() {
               x="60"
               y="76"
               textAnchor="middle"
-              className="fill-muted-foreground text-[10px]"
+              className="fill-muted-foreground text-xs"
               transform="rotate(90 60 60)"
             >
               من {target}
@@ -354,7 +354,7 @@ function Nutrition() {
                 <p className="font-extrabold">{result.name}</p>
                 <p className="text-lg font-extrabold text-primary">{result.calories} سعر</p>
               </div>
-              <div className="mt-2 grid grid-cols-4 gap-1 text-center text-[11px]">
+              <div className="mt-2 grid grid-cols-4 gap-1 text-center text-xs">
                 {[
                   ["بروتين", result.protein],
                   ["كارب", result.carbs],
@@ -412,7 +412,7 @@ function Nutrition() {
                   type="button"
                   disabled={altBusy}
                   onClick={() => void askAlts(q)}
-                  className="rounded-full border border-primary/30 bg-primary-soft px-3 py-1.5 text-[11px] font-bold text-primary active:scale-95"
+                  className="rounded-full border border-primary/30 bg-primary-soft px-3 py-1.5 text-xs font-bold text-primary active:scale-95"
                 >
                   {q}
                 </button>
@@ -454,11 +454,11 @@ function Nutrition() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="font-extrabold">{a.name}</p>
-                      <p className="text-[11px] text-muted-foreground">{a.amount}</p>
+                      <p className="text-xs text-muted-foreground">{a.amount}</p>
                     </div>
                     <p className="shrink-0 font-extrabold text-primary">{a.calories} سعر</p>
                   </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     بروتين {a.protein}ج • كارب {a.carbs}ج • دهون {a.fat}ج
                   </p>
                   {a.saving && <p className="mt-1 text-xs font-bold text-success">{a.saving}</p>}
@@ -521,7 +521,7 @@ function Nutrition() {
                   className={`w-full rounded-t-lg ${w.total > target ? "bg-destructive/70" : "bg-primary/70"}`}
                   style={{ height: `${(w.total / maxWeek) * 90}px` }}
                 />
-                <span className="text-[10px] text-muted-foreground">{w.label}</span>
+                <span className="text-xs text-muted-foreground">{w.label}</span>
               </div>
             ))}
           </div>
@@ -532,7 +532,7 @@ function Nutrition() {
           <h3 className="text-sm font-extrabold">
             احتياجك اليومي: <span className="text-primary">{target} سعر</span>
           </h3>
-          <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
+          <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
             <label>
               السن
               <input
@@ -629,7 +629,7 @@ function Nutrition() {
           </div>
         </section>
 
-        <p className="rounded-xl bg-secondary/50 p-3 text-center text-[11px] text-muted-foreground">
+        <p className="rounded-xl bg-secondary/50 p-3 text-center text-xs text-muted-foreground">
           السعرات تقديرية بالذكاء الاصطناعي ولا تغني عن استشارة أخصائي التغذية.
         </p>
       </div>
