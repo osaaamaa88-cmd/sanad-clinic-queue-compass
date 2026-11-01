@@ -1,68 +1,29 @@
 import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Camera, Loader2, Pill, Plus, Search, AlertTriangle, Repeat } from "lucide-react";
+import { Camera, Loader2, Pill, Search, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useAiConsent, aiErrorMessage } from "@/components/AiConsentDialog";
 import { scanDrug, type DrugScan } from "@/lib/medscan.functions";
-import { findLocalAlts, type LocalDrug } from "@/lib/drug-alternatives";
-
-/** Offline Egyptian-alternatives card — shown instantly while/after the AI result. */
-function LocalAlternativesBox({ query }: { query: string }) {
-  const hit: LocalDrug | null = findLocalAlts(query);
-  if (!hit) return null;
-  return (
-    <section className="rounded-3xl border border-success/30 bg-success/10 p-4">
-      <h3 className="font-extrabold">دليل البديل المصري — {hit.active}</h3>
-      <p className="mt-1 text-xs text-muted-foreground">
-        مثائل شائعة بنفس المادة الفعالة {hit.strength} — الأسعار استرشادية وتتغير.
-      </p>
-      <ul className="mt-3 space-y-2">
-        {hit.alts.map((a) => (
-          <li key={a.name} className="rounded-xl bg-card p-3 text-sm">
-            <b dir="ltr">{a.name}</b>{" "}
-            <span className="text-xs text-muted-foreground">— {a.company}</span>
-            <span className="mt-1 block text-xs font-bold text-success">{a.price}</span>
-            {a.note && <p className="text-xs text-muted-foreground">{a.note}</p>}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
 import { imageToBase64 } from "@/lib/image-to-base64";
 
 export const Route = createFileRoute("/patient/drug-scan")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "سند — ماسح الأدوية وبدائل النواقص" },
+      { title: "سند — ماسح الأدوية" },
       {
         name: "description",
-        content: "صوّر علبة الدواء واعرف مادته الفعالة وجرعته ومثائله المصرية لو ناقص.",
+        content: "صوّر علبة الدواء لقراءة المعلومات الظاهرة عليها ومراجعتها مع الصيدلي.",
       },
-      { property: "og:title", content: "سند — ماسح الأدوية وبدائل النواقص" },
-      { property: "og:description", content: "اعرف بدائل الدواء الناقص في مصر بصورة واحدة." },
+      { property: "og:title", content: "سند — ماسح الأدوية" },
+      { property: "og:description", content: "اقرأ المعلومات الظاهرة على علبة الدواء." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DrugScanPage,
 });
-
-function addToMeds(r: DrugScan) {
-  const KEY = "sanad_meds_v1";
-  const list = JSON.parse(localStorage.getItem(KEY) || "[]");
-  list.push({
-    id: crypto.randomUUID(),
-    name: `${r.name} ${r.strength}`.trim(),
-    dose: r.usualDose.slice(0, 60),
-    times: ["08:00"],
-    notes: r.active,
-    createdAt: new Date().toISOString(),
-  });
-  localStorage.setItem(KEY, JSON.stringify(list));
-}
 
 function DrugScanPage() {
   const toolsBack = useDoctorClinicId() ? "/doctor" : "/patient/login";
@@ -73,16 +34,14 @@ function DrugScanPage() {
   const [err, setErr] = useState<string>();
   const consent = useAiConsent();
   const [res, setRes] = useState<DrugScan>();
-  const [added, setAdded] = useState(false);
 
   async function run(input: { image?: string; mime?: string; text?: string }) {
     if (!(await consent.ask())) return;
     setLoading(true);
     setErr(undefined);
     setRes(undefined);
-    setAdded(false);
     try {
-      setRes(await scanDrug({ data: input }));
+      setRes(await scanDrug({ data: { ...input, consent: true } }));
     } catch (e: unknown) {
       setErr(aiErrorMessage(e));
     } finally {
@@ -163,7 +122,6 @@ function DrugScanPage() {
         {err && (
           <>
             <div className="rounded-2xl bg-destructive/10 p-4 text-sm text-destructive">{err}</div>
-            <LocalAlternativesBox query={text} />
           </>
         )}
 
@@ -174,7 +132,6 @@ function DrugScanPage() {
         )}
         {res?.found && (
           <>
-            <LocalAlternativesBox query={text} />
             <div className="space-y-3">
               <section className="rounded-3xl border border-border bg-card p-4 shadow-soft">
                 <h2 className="text-lg font-extrabold">
@@ -185,82 +142,26 @@ function DrugScanPage() {
                 </p>
                 <dl className="mt-3 space-y-2 text-sm">
                   <div>
-                    <dt className="font-bold">بيستخدم لـ</dt>
-                    <dd className="text-muted-foreground">{res.uses}</dd>
-                  </div>
-                  <div>
-                    <dt className="font-bold">الجرعة المعتادة</dt>
-                    <dd className="text-muted-foreground">{res.usualDose}</dd>
+                    <dt className="font-bold">مهم بخصوص الجرعة</dt>
+                    <dd className="text-muted-foreground">
+                      الصورة لا تحدد الجرعة أو مواعيدها. اتبع وصف الطبيب أو اسأل الصيدلي.
+                    </dd>
                   </div>
                 </dl>
-                {res.warnings && (
-                  <p className="mt-3 flex gap-2 rounded-xl bg-warning/15 p-3 text-xs">
-                    <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
-                    {res.warnings}
-                  </p>
-                )}
-                <button
-                  onClick={() => {
-                    addToMeds(res);
-                    setAdded(true);
-                  }}
-                  disabled={added}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-primary-foreground"
+                <Link
+                  to="/patient/meds"
+                  className="mt-3 block rounded-2xl bg-primary py-3 text-center text-sm font-bold text-primary-foreground"
                 >
-                  <Plus className="h-4 w-4" />
-                  {added ? "اتضاف لمواعيد الأدوية ✓" : "أضف لمنبه مواعيد الأدوية"}
-                </button>
-                {added && (
-                  <Link
-                    to="/patient/meds"
-                    className="mt-2 block text-center text-xs font-bold text-primary"
-                  >
-                    اضبط المواعيد ←
-                  </Link>
-                )}
+                  أضف الدواء يدوياً بعد مراجعة الجرعة والمواعيد مع الطبيب أو الصيدلي
+                </Link>
               </section>
-
-              {res.equivalents.length > 0 && (
-                <section className="rounded-3xl border border-success/30 bg-success/10 p-4">
-                  <h3 className="mb-2 flex items-center gap-2 font-extrabold">
-                    <Repeat className="h-4 w-4 text-success" />
-                    مثائل مصرية (نفس المادة والتركيز)
-                  </h3>
-                  <ul className="space-y-2">
-                    {res.equivalents.map((a, i) => (
-                      <li key={i} className="rounded-xl bg-card p-3 text-sm">
-                        <b>{a.name}</b>{" "}
-                        <span className="text-xs text-muted-foreground">— {a.company}</span>
-                        {a.note && <p className="text-xs text-muted-foreground">{a.note}</p>}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-              {res.similar.length > 0 && (
-                <section className="rounded-3xl border border-border bg-card p-4">
-                  <h3 className="mb-2 font-extrabold">
-                    بدائل من نفس العائلة{" "}
-                    <span className="text-xs font-normal text-destructive">
-                      (بموافقة الطبيب فقط)
-                    </span>
-                  </h3>
-                  <ul className="space-y-2">
-                    {res.similar.map((a, i) => (
-                      <li key={i} className="rounded-xl bg-muted p-3 text-sm">
-                        <b>{a.name}</b>{" "}
-                        <span className="text-xs text-muted-foreground">— {a.company}</span>
-                        {a.note && <p className="text-xs text-muted-foreground">{a.note}</p>}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
             </div>
           </>
         )}
-        <p className="text-center text-xs leading-5 text-muted-foreground">
-          المعلومات استرشادية بالذكاء الاصطناعي — راجع الصيدلي أو الطبيب قبل تغيير أي دواء.
+        <p className="flex items-start gap-2 rounded-2xl bg-warning/15 p-3 text-xs leading-5 text-warning-foreground">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          قد يخطئ التعرّف على الصورة. تأكد من اسم الدواء ومادته الفعالة مع صيدلي، ولا تعتمد على
+          الماسح لتحديد جرعة أو بديل.
         </p>
       </div>
     </AppShell>

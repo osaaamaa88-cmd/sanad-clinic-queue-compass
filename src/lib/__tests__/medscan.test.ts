@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { checkStatus, isCriticalLab } from "../medscan.functions.ts";
+import { checkStatus, isCriticalLab } from "../lab-values.ts";
 
 describe("isCriticalLab", () => {
   it("detects critically low or high potassium and accepts the limits and normal values", () => {

@@ -49,9 +49,9 @@ function LabReader() {
     setErr(undefined);
     setRes(undefined);
     try {
-      setRes(await readLab({ data: input }));
-    } catch (e: any) {
-      setErr(aiErrorMessage(e));
+      setRes(await readLab({ data: { ...input, consent: true } }));
+    } catch (error: unknown) {
+      setErr(aiErrorMessage(error));
     } finally {
       setLoading(false);
     }

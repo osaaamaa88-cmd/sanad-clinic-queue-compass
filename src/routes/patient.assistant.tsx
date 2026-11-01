@@ -509,7 +509,7 @@ function Assistant() {
       const { data, mime, preview } = await imageToBase64(file, 1600);
       if (!mountedRef.current || requestRef.current !== requestId) return;
       addPatientImageMessage(preview);
-      const report = await readLab({ data: { image: data, mime } });
+      const report = await readLab({ data: { image: data, mime, consent: true } });
       if (!mountedRef.current || requestRef.current !== requestId) return;
 
       if (report.found) {
@@ -537,7 +537,7 @@ function Assistant() {
         return;
       }
 
-      const drug = await scanDrug({ data: { image: data, mime } });
+      const drug = await scanDrug({ data: { image: data, mime, consent: true } });
       if (!mountedRef.current || requestRef.current !== requestId) return;
       if (!drug.found) {
         addChatMessage(
@@ -549,9 +549,7 @@ function Assistant() {
       const reply = [
         `الصورة باين فيها ${drug.name}${drug.strength ? ` بتركيز ${drug.strength}` : ""}${drug.form ? `، ${drug.form}` : ""}.`,
         drug.active ? `المادة الفعالة: ${drug.active}.` : "",
-        drug.uses ? drug.uses : "",
-        drug.warnings ? `ملاحظة مهمة: ${drug.warnings}.` : "",
-        "ده شرح للصورة فقط، ماتبدأش الدواء أو تغيّر جرعته من غير مراجعة الطبيب أو الصيدلي.",
+        "التعرّف على الصورة ممكن يخطئ. تأكد من اسم الدواء ومادته الفعالة مع صيدلي، وما تعتمدش على الصورة لتحديد جرعة أو بديل.",
       ]
         .filter(Boolean)
         .join(" ");

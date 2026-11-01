@@ -8,7 +8,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "test": "node --experimental-strip-types --test src/lib/__tests__/*.test.ts",
+    "test": "node --experimental-strip-types --test src/lib/__tests__/*.test.ts src/lib/*.test.ts",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
