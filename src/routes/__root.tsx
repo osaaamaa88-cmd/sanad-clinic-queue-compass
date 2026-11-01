@@ -181,12 +181,28 @@ function RootComponent() {
     const lenis = new Lenis({ lerp: 0.12, wheelMultiplier: 1, touchMultiplier: 1.4 });
     let raf = 0;
     const loop = (time: number) => {
+      raf = 0;
+      if (document.hidden) return;
       lenis.raf(time);
-      raf = requestAnimationFrame(loop);
+      raf = window.requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
+    const start = () => {
+      if (!document.hidden && raf === 0) raf = window.requestAnimationFrame(loop);
+    };
+    const stop = () => {
+      if (raf === 0) return;
+      window.cancelAnimationFrame(raf);
+      raf = 0;
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) stop();
+      else start();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    start();
     return () => {
-      cancelAnimationFrame(raf);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      stop();
       lenis.destroy();
     };
   }, []);
