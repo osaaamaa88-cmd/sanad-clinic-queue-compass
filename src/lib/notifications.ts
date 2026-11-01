@@ -17,38 +17,20 @@ export type AppNotification = {
   createdAt: string;
 };
 
-const EMPTY = { items: [] as AppNotification[], unread: 0 };
-
 export async function listPatientNotifications() {
-  try {
-    return await svrListPatientNotifications({ data: { recipientKey: getFollowerKey() } });
-  } catch {
-    return EMPTY;
-  }
+  return await svrListPatientNotifications({ data: { recipientKey: getFollowerKey() } });
 }
 
 export async function listClinicNotifications(clinicId: string) {
-  try {
-    return await svrListClinicNotifications({ data: { clinicId } });
-  } catch {
-    return EMPTY;
-  }
+  return await svrListClinicNotifications({ data: { clinicId } });
 }
 
 export async function markPatientNotificationsRead() {
-  try {
-    await svrMarkPatientNotificationsRead({ data: { recipientKey: getFollowerKey() } });
-  } catch {
-    /* ignore */
-  }
+  await svrMarkPatientNotificationsRead({ data: { recipientKey: getFollowerKey() } });
 }
 
 export async function markClinicNotificationsRead(clinicId: string) {
-  try {
-    await svrMarkClinicNotificationsRead({ data: { clinicId } });
-  } catch {
-    /* ignore */
-  }
+  await svrMarkClinicNotificationsRead({ data: { clinicId } });
 }
 
 export async function checkQueueProximity(clinicId: string, queueNumber: number) {

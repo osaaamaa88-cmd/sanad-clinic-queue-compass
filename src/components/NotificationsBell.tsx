@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import {
   listPatientNotifications,
   listClinicNotifications,
@@ -45,27 +46,35 @@ export function NotificationsBell({
   const [unread, setUnread] = useState(0);
   const seen = useRef<Set<string>>(new Set());
   const first = useRef(true);
+  const pullErrorNotified = useRef(false);
 
   const pull = useCallback(async () => {
-    const res =
-      audience === "clinic"
-        ? clinicId
-          ? await listClinicNotifications(clinicId)
-          : { items: [], unread: 0 }
-        : await listPatientNotifications();
-    setItems(res.items);
-    setUnread(res.unread);
-    // Native pop-up for anything brand new after the first load.
-    for (const n of res.items) {
-      if (!seen.current.has(n.id)) {
-        if (!first.current && !n.isRead) {
-          pushLocalNotification(n.title, n.body);
-          playNotification();
+    try {
+      const res =
+        audience === "clinic"
+          ? clinicId
+            ? await listClinicNotifications(clinicId)
+            : { items: [], unread: 0 }
+          : await listPatientNotifications();
+      setItems(res.items);
+      setUnread(res.unread);
+      pullErrorNotified.current = false;
+      // Native pop-up for anything brand new after the first load.
+      for (const n of res.items) {
+        if (!seen.current.has(n.id)) {
+          if (!first.current && !n.isRead) {
+            pushLocalNotification(n.title, n.body);
+            playNotification();
+          }
+          seen.current.add(n.id);
         }
-        seen.current.add(n.id);
       }
+      first.current = false;
+    } catch (error) {
+      console.error("[NotificationsBell] Failed to load notifications:", error);
+      if (!pullErrorNotified.current) toast.error("تعذّر تحميل الإشعارات");
+      pullErrorNotified.current = true;
     }
-    first.current = false;
   }, [audience, clinicId]);
 
   useEffect(() => {
@@ -78,10 +87,15 @@ export function NotificationsBell({
   const openPanel = async () => {
     setOpen(true);
     if (unread) {
-      if (audience === "clinic" && clinicId) await markClinicNotificationsRead(clinicId);
-      else if (audience === "patient") await markPatientNotificationsRead();
-      setUnread(0);
-      setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      try {
+        if (audience === "clinic" && clinicId) await markClinicNotificationsRead(clinicId);
+        else if (audience === "patient") await markPatientNotificationsRead();
+        setUnread(0);
+        setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      } catch (error) {
+        console.error("[NotificationsBell] Failed to mark notifications read:", error);
+        toast.error("تعذّر تحديث حالة الإشعارات");
+      }
     }
   };
 

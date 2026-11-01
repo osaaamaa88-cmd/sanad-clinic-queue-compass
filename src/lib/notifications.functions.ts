@@ -12,14 +12,18 @@ export const svrListPatientNotifications = createServerFn({ method: "POST" })
     ).deviceIdentity(data.recipientKey);
     if (!data.recipientKey) return { items: [], unread: 0 };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows } = await supabaseAdmin
+    const { data: rows, error } = await supabaseAdmin
       .from("notifications")
       .select("id, title, body, url, kind, is_read, created_at")
       .eq("audience", "patient")
       .eq("recipient_key", data.recipientKey)
       .order("created_at", { ascending: false })
       .limit(40);
-    const items = rows ?? [];
+    if (error) {
+      console.error("[svrListPatientNotifications] query failed:", error.message);
+      throw new Error("NOTIFICATIONS_LOAD_FAILED");
+    }
+    const items = rows;
     return {
       items: items.map((n) => ({
         id: n.id,
@@ -45,14 +49,18 @@ export const svrListClinicNotifications = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
-    const { data: rows } = await supabaseAdmin
+    const { data: rows, error } = await supabaseAdmin
       .from("notifications")
       .select("id, title, body, url, kind, is_read, created_at")
       .eq("audience", "clinic")
       .eq("clinic_id", data.clinicId)
       .order("created_at", { ascending: false })
       .limit(40);
-    const items = rows ?? [];
+    if (error) {
+      console.error("[svrListClinicNotifications] query failed:", error.message);
+      throw new Error("NOTIFICATIONS_LOAD_FAILED");
+    }
+    const items = rows;
     return {
       items: items.map((n) => ({
         id: n.id,
@@ -78,12 +86,16 @@ export const svrMarkPatientNotificationsRead = createServerFn({ method: "POST" }
     ).deviceIdentity(data.recipientKey);
     if (!data.recipientKey) return { ok: true as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("notifications")
       .update({ is_read: true })
       .eq("audience", "patient")
       .eq("recipient_key", data.recipientKey)
       .eq("is_read", false);
+    if (error) {
+      console.error("[svrMarkPatientNotificationsRead] update failed:", error.message);
+      throw new Error("NOTIFICATIONS_UPDATE_FAILED");
+    }
     return { ok: true as const };
   });
 
@@ -98,12 +110,16 @@ export const svrMarkClinicNotificationsRead = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("notifications")
       .update({ is_read: true })
       .eq("audience", "clinic")
       .eq("clinic_id", data.clinicId)
       .eq("is_read", false);
+    if (error) {
+      console.error("[svrMarkClinicNotificationsRead] update failed:", error.message);
+      throw new Error("NOTIFICATIONS_UPDATE_FAILED");
+    }
     return { ok: true as const };
   });
 
