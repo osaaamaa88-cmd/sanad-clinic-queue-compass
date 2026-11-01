@@ -56,7 +56,8 @@ export async function checkQueueProximity(clinicId: string, queueNumber: number)
     return await svrCheckQueueProximity({
       data: { clinicId, recipientKey: getFollowerKey(), queueNumber },
     });
-  } catch {
+  } catch (error) {
+    console.error("[checkQueueProximity] Queue proximity check failed:", error);
     return { notified: false, ahead: null as number | null };
   }
 }

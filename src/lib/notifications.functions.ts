@@ -156,17 +156,22 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
     }
     if (!bookings?.length) return { notified: false, ahead: null };
 
-    const { data: clinic } = await supabaseAdmin
+    const { data: clinic, error: clinicError } = await supabaseAdmin
       .from("clinics")
       .select("doctor, now_serving")
       .eq("id", data.clinicId)
       .maybeSingle();
+    if (clinicError) {
+      console.error("[svrCheckQueueProximity] clinic lookup failed:", clinicError.message);
+      throw new Error("CLINIC_LOOKUP_FAILED");
+    }
     if (!clinic) return { notified: false, ahead: null };
     const ahead = Math.max(0, data.queueNumber - (clinic.now_serving ?? 0) - 1);
     if (ahead > 2) return { notified: false, ahead };
 
     const title = ahead === 0 ? "دورك دلوقتي! 🎉" : `تبقى ${ahead} مرضى على دورك ⏳`;
-    const { data: existing } = await supabaseAdmin
+    const body = `عيادة ${clinic.doctor ?? ""} — رقم دورك ${data.queueNumber}`;
+    const { data: existing, error: existingError } = await supabaseAdmin
       .from("notifications")
       .select("id")
       .eq("audience", "patient")
@@ -174,17 +179,26 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
       .eq("clinic_id", data.clinicId)
       .eq("kind", "queue")
       .eq("title", title)
+      .eq("body", body)
       .limit(1);
+    if (existingError) {
+      console.error("[svrCheckQueueProximity] notification lookup failed:", existingError.message);
+      throw new Error("NOTIFICATION_LOOKUP_FAILED");
+    }
     if (existing && existing.length) return { notified: false, ahead };
 
-    await supabaseAdmin.from("notifications").insert({
+    const { error: insertError } = await supabaseAdmin.from("notifications").insert({
       audience: "patient",
       recipient_key: data.recipientKey,
       clinic_id: data.clinicId,
       title,
-      body: `عيادة ${clinic.doctor ?? ""} — رقم دورك ${data.queueNumber}`,
+      body,
       url: `/patient/queue/${data.clinicId}`,
       kind: "queue",
     });
+    if (insertError) {
+      console.error("[svrCheckQueueProximity] notification insert failed:", insertError.message);
+      throw new Error("NOTIFICATION_INSERT_FAILED");
+    }
     return { notified: true, ahead };
   });
