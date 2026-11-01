@@ -223,6 +223,18 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
     }
     if (existing && existing.length) return { notified: false, ahead };
 
+    const { checkRateLimit } = await import("@/lib/rate-limit.server");
+    const notificationKey = [
+      "queue-notification",
+      data.recipientKey,
+      data.clinicId,
+      data.queueNumber,
+      ahead,
+    ].join(":");
+    if (!(await checkRateLimit(notificationKey, 1, 10))) {
+      return { notified: false, ahead };
+    }
+
     const { error: insertError } = await supabaseAdmin.from("notifications").insert({
       audience: "patient",
       recipient_key: data.recipientKey,
