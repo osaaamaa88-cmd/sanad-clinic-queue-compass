@@ -1,16 +1,32 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
+}
+
+async function assertNotificationRateLimit(scope: string, identity?: string, limit = 60) {
+  const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
+  await assertRateLimit(`notifications:${scope}:ip:${await clientIp()}`, limit, 60);
+  if (identity) {
+    await assertRateLimit(`notifications:${scope}:identity:${identity}`, limit, 60);
+  }
+}
+
 /** Public: notifications for one patient device key. */
 export const svrListPatientNotifications = createServerFn({ method: "POST" })
   .inputValidator((data: { recipientKey: string }) => ({
     recipientKey: String(data?.recipientKey ?? "").slice(0, 80),
   }))
   .handler(async ({ data }) => {
+    await assertNotificationRateLimit("patient-list");
     data.recipientKey = await (
       await import("@/lib/device-key.server")
     ).deviceIdentity(data.recipientKey);
     if (!data.recipientKey) return { items: [], unread: 0 };
+    await assertNotificationRateLimit("patient-list-device", data.recipientKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("notifications")
@@ -42,10 +58,13 @@ export const svrListPatientNotifications = createServerFn({ method: "POST" })
 export const svrListClinicNotifications = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { clinicId: string }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+    if (!data || typeof data.clinicId !== "string" || !isUuid(data.clinicId)) {
+      throw new Error("Invalid input");
+    }
     return { clinicId: data.clinicId };
   })
   .handler(async ({ data, context }) => {
+    await assertNotificationRateLimit("clinic-list", context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
@@ -81,10 +100,12 @@ export const svrMarkPatientNotificationsRead = createServerFn({ method: "POST" }
     recipientKey: String(data?.recipientKey ?? "").slice(0, 80),
   }))
   .handler(async ({ data }) => {
+    await assertNotificationRateLimit("patient-read");
     data.recipientKey = await (
       await import("@/lib/device-key.server")
     ).deviceIdentity(data.recipientKey);
     if (!data.recipientKey) return { ok: true as const };
+    await assertNotificationRateLimit("patient-read-device", data.recipientKey);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("notifications")
@@ -103,10 +124,13 @@ export const svrMarkPatientNotificationsRead = createServerFn({ method: "POST" }
 export const svrMarkClinicNotificationsRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { clinicId: string }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+    if (!data || typeof data.clinicId !== "string" || !isUuid(data.clinicId)) {
+      throw new Error("Invalid input");
+    }
     return { clinicId: data.clinicId };
   })
   .handler(async ({ data, context }) => {
+    await assertNotificationRateLimit("clinic-read", context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { assertClinicManager } = await import("@/lib/clinic-access.server");
     await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
@@ -133,9 +157,7 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
     if (
       !data ||
       typeof data.clinicId !== "string" ||
-      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        data.clinicId,
-      ) ||
+      !isUuid(data.clinicId) ||
       typeof data.recipientKey !== "string" ||
       data.recipientKey.length > 80 ||
       !Number.isSafeInteger(data.queueNumber) ||
@@ -150,9 +172,7 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data, context }) => {
-    const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
-    await assertRateLimit(`queue-proximity:ip:${await clientIp()}`, 30, 60);
-    await assertRateLimit(`queue-proximity:user:${context.userId}`, 30, 60);
+    await assertNotificationRateLimit("queue-proximity", context.userId, 30);
     data.recipientKey = await (
       await import("@/lib/device-key.server")
     ).deviceIdentity(data.recipientKey);
