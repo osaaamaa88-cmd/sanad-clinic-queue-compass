@@ -319,12 +319,11 @@ function Landing() {
             <Link
               to="/developer"
               className="text-xs font-bold text-muted-foreground underline"
-              dir="ltr"
             >
-              About the Developer
+              عن المطوّر
             </Link>
           </div>
-          <p className="text-[10px] font-bold text-muted-foreground" dir="ltr">
+          <p className="text-xs font-bold text-muted-foreground" dir="ltr">
             SANAD {APP_VERSION_LABEL}
           </p>
         </footer>
