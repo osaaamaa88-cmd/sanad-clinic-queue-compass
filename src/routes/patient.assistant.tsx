@@ -108,6 +108,7 @@ type SpeechRecognitionLike = {
   lang: string;
   interimResults: boolean;
   continuous: boolean;
+  maxAlternatives?: number;
   onresult:
     | ((e: {
         results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }>;
@@ -608,16 +609,39 @@ function Assistant() {
       recognition.lang = "ar-EG";
       recognition.interimResults = true;
       recognition.continuous = false;
+      recognition.maxAlternatives = 1;
       let finalText = "";
+      let interimText = "";
+      let silenceTimer: ReturnType<typeof setTimeout> | null = null;
+      const clearSilence = () => {
+        if (silenceTimer) clearTimeout(silenceTimer);
+        silenceTimer = null;
+      };
       recognition.onresult = (event) => {
         if (recogRef.current !== recognition) return;
         finalText = finalNemoTranscript(event.results);
-        setNeed(finalText);
-        if (finalText.length >= 3) recognition.stop();
+        interimText = Array.from(event.results)
+          .filter((r) => !r.isFinal)
+          .map((r) => r[0]?.transcript ?? "")
+          .join(" ")
+          .trim();
+        // Live transcript so the patient sees what Nemo hears.
+        setNeed([finalText, interimText].filter(Boolean).join(" "));
+        // Wait for a natural pause instead of cutting the sentence early.
+        clearSilence();
+        silenceTimer = setTimeout(() => {
+          if (recogRef.current !== recognition) return;
+          try {
+            recognition.stop();
+          } catch {
+            /* already stopped */
+          }
+        }, 1600);
       };
       recognition.onerror = (event) => {
         if (recogRef.current !== recognition) return;
         if (event.error === "no-speech") return;
+        clearSilence();
         disableHandsFree();
         if (event.error === "not-allowed" || event.error === "service-not-allowed") {
           toast.error("المايكروفون مرفوض — اسمح بالوصول للمايك من إعدادات المتصفح");
@@ -626,12 +650,14 @@ function Assistant() {
         }
       };
       recognition.onend = () => {
+        clearSilence();
         if (recogRef.current !== recognition || !mountedRef.current) return;
         setListening(false);
         recogRef.current = null;
-        if (finalText.length >= 3) {
-          setNeed(finalText);
-          void submitRef.current(finalText);
+        const heard = (finalText || interimText).replace(/\s+/g, " ").trim();
+        if (heard.length >= 2) {
+          setNeed(heard);
+          void submitRef.current(heard);
         }
       };
       recogRef.current = recognition;
