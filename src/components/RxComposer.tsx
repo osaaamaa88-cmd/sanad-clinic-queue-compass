@@ -68,13 +68,13 @@ ul{position:relative;list-style:none;padding:0;margin:0}
 .dn{display:flex;align-items:center;gap:8px}
 .num{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#fff;font-size: 12px;font-weight:800;flex:none}
 .name{font-family:'Open Sans',Arial,sans-serif;font-weight:800;font-size:15.5px;color:#222}
-.sig{direction:rtl;font-size:13px;font-weight:600;color:#7a5f33;text-align:right;max-width:55%}.sig small{display:block;font-weight:400;color:#666;font-size:11.5px}
+.sig{direction:rtl;font-size:13px;font-weight:600;color:#7a5f33;text-align:right;max-width:55%}.sig small{display:block;font-weight:400;color:#666;font-size:12px}
 .box{position:relative;margin-top:8px;padding:6px 10px;border-right:3px solid var(--gold);background:#faf7f1;font-size:12.5px}.box b{color:#7a5f33}
 .f{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 22px;font-size:12px}
 .f .addr b{display:block;font-size:14px;color:var(--ink)}.f .ph{direction:ltr;font-family:'Open Sans',sans-serif;font-weight:800;color:var(--gold);font-size:14px;text-align:left}
 .f .ph small{display:block;font-family:Cairo;font-weight:400;color:#666;font-size: 12px}
 .f .hrs{margin-top:4px}.f .hrs b{display:inline;font-size:12.5px;margin-left:4px}
-.sanad{text-align:center;font-size:10.5px;color:#8a8a8a;padding:0 0 8px}.sanad b{color:var(--gold)}
+.sanad{text-align:center;font-size:12px;color:#8a8a8a;padding:0 0 8px}.sanad b{color:var(--gold)}
 ${page}</style></head><body><div class="sheet">
 <div class="h"><div><h1>${esc(doc)}</h1>${rx.specialty ? `<p class="sp">${esc(rx.specialty)}</p>` : ""}</div>
 <div class="logo"><svg viewBox="0 0 100 100">${icon}</svg><div class="t">${en}</div></div></div>
