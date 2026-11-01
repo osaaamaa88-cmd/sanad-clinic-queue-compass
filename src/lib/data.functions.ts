@@ -104,6 +104,33 @@ export const svrListBookingsForClinic = createServerFn({ method: "POST" })
     return { rows: rows ?? [] };
   });
 
+export const svrGetPatientBookingStatuses = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { codes: string[] }) => {
+    if (
+      !Array.isArray(data?.codes) ||
+      data.codes.length > 10 ||
+      data.codes.some((code) => typeof code !== "string" || !/^SND-[A-Z2-9]{8}$/.test(code))
+    ) {
+      throw new Error("Invalid booking codes");
+    }
+    return { codes: [...new Set(data.codes)] };
+  })
+  .handler(async ({ data, context }) => {
+    if (!data.codes.length) return { rows: [] };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("bookings")
+      .select("code, status")
+      .eq("patient_user_id", context.userId)
+      .in("code", data.codes);
+    if (error) {
+      console.error("[svrGetPatientBookingStatuses]", error.message);
+      throw new Error("LOAD_FAILED");
+    }
+    return { rows: (rows ?? []).map(({ code, status }) => ({ code, status })) };
+  });
+
 export const svrUpdateBookingStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { id: string; status: string }) => {

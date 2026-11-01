@@ -160,14 +160,6 @@ function DoctorHome() {
       </div>
       {/* Floating Quick Bar (Executive) */}
       <div className="fixed bottom-20 right-4 z-[70] flex flex-col gap-2 print:hidden">
-        <button
-          type="button"
-          onClick={() => setRxOpen(true)}
-          aria-label="الروشتة الذكية"
-          className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition active:scale-95 hover:brightness-110"
-        >
-          <Pill className="h-5 w-5" />
-        </button>
         <Link
           to="/patient/health"
           aria-label="الملف الطبي والمجسم"

@@ -1,5 +1,5 @@
 // Free, offline rule-based triage for Egyptian colloquial Arabic.
-import { getSpecialty } from "./mock-data";
+import { specialties } from "./specialties.ts";
 
 export type TriageResult = {
   specialtyIds: string[];
@@ -7,6 +7,8 @@ export type TriageResult = {
   summary: string;
   advice: string;
 };
+
+const getSpecialty = (id: string) => specialties.find((specialty) => specialty.id === id);
 
 const norm = (s: string) =>
   s
@@ -16,10 +18,88 @@ const norm = (s: string) =>
     .replace(/ة/g, "ه")
     .toLowerCase();
 
+const words = (s: string) => norm(s).match(/[\p{L}\p{N}]+/gu) ?? [];
+
+function containsPhrase(text: string, phrase: string): boolean {
+  const haystack = words(text);
+  const needle = words(phrase);
+  if (!needle.length || needle.length > haystack.length) return false;
+  return haystack.some((_, index) =>
+    needle.every((word, offset) => haystack[index + offset] === word),
+  );
+}
+
+const selfHarmPhrases = [
+  "عايز انتحر",
+  "عايزه انتحر",
+  "هنتحر",
+  "بفكر انتحر",
+  "بفكر في الانتحار",
+  "افكر في الانتحار",
+  "بفكر بالانتحار",
+  "فكرت في الانتحار",
+  "افكر في ايذاء نفسي",
+  "بفكر في ايذاء نفسي",
+  "عايز اموت",
+  "عايزه اموت",
+  "عاوز انتحر",
+  "عاوزة انتحر",
+  "مش عايز اعيش",
+  "مش عايزه اعيش",
+  "هأذي نفسي",
+  "هاذي نفسي",
+  "هأذي نفسي",
+  "أذي نفسي",
+  "أقتل نفسي",
+  "اقتل نفسي",
+  "انهي حياتي",
+  "انهاء حياتي",
+  "نفسي اموت",
+  "عايز اخلص من حياتي",
+];
+
+export function hasSelfHarmIntent(text: string): boolean {
+  const tokens = words(text);
+  return selfHarmPhrases.some((phrase) => {
+    const needle = words(phrase);
+    return tokens.some((_, index) => {
+      if (!needle.every((word, offset) => tokens[index + offset] === word)) return false;
+      const previous = tokens[index - 1];
+      const previousTwo = tokens[index - 2];
+      const negated =
+        (previous === "مش" &&
+          needle[0] !== undefined &&
+          ["بفكر", "افكر", "عايز", "عايزه", "ناوي", "ناويه", "هنتحر"].includes(needle[0])) ||
+        (previousTwo === "مش" && ["عايز", "عايزه", "ناوي", "ناويه"].includes(previous));
+      if (negated) return false;
+      return true;
+    });
+  });
+}
+
+export function replyMentionsEmergency(text: string): boolean {
+  return /123|١٢٣|۱۲۳|طوارئ|إسعاف|اسعاف|ضيق(?:\s+في)?\s+التنفس|نزيف|جلطة/.test(text);
+}
+
 const rules: { id: string; words: string[]; advice: string }[] = [
   {
     id: "dental",
-    words: ["سنان", "سنه", "ضرس", "ضروس", "لثه", "تسوس", "حشو", "تقويم", "عصب", "خلع", "فك"],
+    words: [
+      "اسنان",
+      "سنان",
+      "سناني",
+      "ضرس",
+      "ضروسي",
+      "ضروس",
+      "لثه",
+      "تسوس",
+      "حشو",
+      "تقويم",
+      "عصب",
+      "خلع",
+      "فك",
+      "فكي",
+    ],
     advice: "اغسل بمية دافية وملح، وابعد عن الحاجات الساقعة والسخنة جداً.",
   },
   {
@@ -148,9 +228,46 @@ const rules: { id: string; words: string[]; advice: string }[] = [
 const emergencyWords = [
   "وجع صدر شديد",
   "الم صدر شديد",
+  "الم في صدري",
+  "ألم في صدري",
+  "صدري بيوجعني",
+  "صدري يوجعني",
+  "صدري واجعني",
+  "قلبي واجعني",
+  "قلبي بيوجعني",
+  "وجع في القلب",
+  "الم في القلب",
   "الم في الصدر",
   "وجع في صدري",
+  "ألم يمتد للذراع",
+  "الم ممتد للذراع",
+  "الالم ممتد للذراع",
+  "الألم ممتد للذراع",
+  "وجع ممتد للذراع",
+  "وجع يمتد للذراع",
+  "الم ممتد للذراع",
+  "ألم يمتد للفك",
+  "الم ممتد للفك",
+  "الالم ممتد للفك",
+  "الألم ممتد للفك",
+  "وجع ممتد للفك",
+  "وجع يمتد للفك",
+  "الم ممتد للفك",
   "ضغط على صدري",
+  "ضيق في التنفس",
+  "ضيق بالتنفس",
+  "ضيق تنفس",
+  "صعوبة في التنفس",
+  "صعوبة التنفس",
+  "مش عارف أتنفس",
+  "مش عارف اتنفس",
+  "مش قادر أتنفس",
+  "مش قادر اتنفس",
+  "مش عارفة أتنفس",
+  "مش عارفه اتنفس",
+  "نفسي مقطوع",
+  "مش قادر آخد نفسي",
+  "مش قادرة اخد نفسي",
   "مش قادر اتنفس",
   "صعوبه تنفس",
   "بتخنق",
@@ -165,7 +282,26 @@ const emergencyWords = [
   "اغماء",
   "اغمي",
   "فقد الوعي",
+  "نزيف شديد",
+  "الدم مش بيقف",
+  "الدم لا يتوقف",
+  "نزيف مش بيقف",
+  "نزيف لا يتوقف",
   "مش بيفوق",
+  "الطفل مش بيفوق",
+  "طفلي مش بيفوق",
+  "الرضيع مش بيفوق",
+  "مش قادر اصحيه",
+  "مش عارفه اصحيه",
+  "رضيع مش بيرضع",
+  "البيبي مش بيرضع",
+  "الرضيع مش بيرضع",
+  "رضيع نفسه مكتوم",
+  "البيبي مش عارف يتنفس",
+  "رضيع حرارته عاليه",
+  "رضيع سخن",
+  "تشنجات طفل",
+  "تشنجات رضيع",
   "تشنجات",
   "تشنج",
   "حادثه",
@@ -180,9 +316,6 @@ const emergencyWords = [
   "لساني تقيل",
   "مش قادر احرك",
   "تنميل نص",
-  "عايز انتحر",
-  "انتحار",
-  "اموت نفسي",
   "حساسيه شديده",
   "ورم في الزور",
   "لدغه",
@@ -197,31 +330,22 @@ const emergencyWords = [
   "مايه سخنه",
   "زيت سخن",
 ];
-// Words that contain an emergency keyword but describe non-emergency symptoms (e.g. burning urination).
-const benignPhrases = [
-  "حرقان",
-  "حرقه",
-  "حموضه",
-  "بلع الاكل",
-  "صعوبه في البلع",
-  "نار في المعده",
-  "نار في البول",
-];
 const soonWords = ["شديد", "جامد", "مش قادر", "من امبارح", "ورم", "وارم", "سخونيه عاليه", "مستمر"];
 
 export function runLocalTriage(need: string): TriageResult {
   const t = norm(need);
   const scores = rules
-    .map((r) => ({ r, s: r.words.filter((w) => t.includes(norm(w))).length }))
+    .map((r) => ({ r, s: r.words.filter((w) => containsPhrase(t, w)).length }))
     .filter((x) => x.s > 0)
     .sort((a, b) => b.s - a.s);
   const picked = scores.slice(0, 2).map((x) => x.r);
-  const tSafe = benignPhrases.reduce((acc, w) => acc.split(norm(w)).join(" "), t);
-  const urgency = emergencyWords.some((w) => tSafe.includes(norm(w)))
-    ? "emergency"
-    : soonWords.some((w) => t.includes(norm(w)))
-      ? "soon"
-      : "routine";
+  const selfHarm = hasSelfHarmIntent(need);
+  const urgency =
+    selfHarm || emergencyWords.some((w) => containsPhrase(t, w))
+      ? "emergency"
+      : soonWords.some((w) => containsPhrase(t, w))
+        ? "soon"
+        : "routine";
   if (!picked.length) {
     return {
       specialtyIds: ["family-medicine"],
@@ -240,6 +364,9 @@ export function runLocalTriage(need: string): TriageResult {
 }
 
 export function getLocalNemoReply(text: string, triage: TriageResult): string {
+  if (hasSelfHarmIntent(text)) {
+    return "أنا آسف إنك بتمر بالوجع ده، ومش لوحدك. كلم شخصاً تثق به الآن وخليه يفضل جنبك. لو في خطر مباشر اتصل بالإسعاف 123 أو اذهب للطوارئ.";
+  }
   if (triage.urgency === "emergency") {
     return "ألف سلامة عليك، الأعراض دي محتاجة مساعدة عاجلة. اتصل بالإسعاف 123 أو توجّه لأقرب طوارئ الآن.";
   }

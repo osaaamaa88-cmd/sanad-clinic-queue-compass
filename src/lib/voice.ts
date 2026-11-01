@@ -1,4 +1,23 @@
+import { Capacitor } from "@capacitor/core";
+
 export const VOICE_KEY = "voice_accessibility_enabled";
+const VOICE_SESSION_KEY = "sanad.voice.session";
+const VOICE_MUTED_KEY = "sanad:voice-muted";
+
+export function getVoiceSessionKey(): string {
+  if (typeof window === "undefined") throw new Error("Voice session key unavailable");
+  try {
+    const saved = window.localStorage.getItem(VOICE_SESSION_KEY);
+    if (saved && saved.length >= 24) return saved;
+    const bytes = crypto.getRandomValues(new Uint8Array(24));
+    const created = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    window.localStorage.setItem(VOICE_SESSION_KEY, created);
+    return created;
+  } catch (error) {
+    console.error("[NemoVoice] Could not access the device session key", error);
+    throw new Error("VOICE_SESSION_KEY_UNAVAILABLE");
+  }
+}
 
 export function isVoiceModeOn() {
   try {
@@ -6,6 +25,23 @@ export function isVoiceModeOn() {
   } catch {
     return false;
   }
+}
+
+export function isVoiceMuted() {
+  try {
+    return localStorage.getItem(VOICE_MUTED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setVoiceMuted(muted: boolean) {
+  try {
+    localStorage.setItem(VOICE_MUTED_KEY, muted ? "true" : "false");
+  } catch (error) {
+    console.error("[NemoVoice] Could not save voice mute preference", error);
+  }
+  window.dispatchEvent(new Event("sanad:voice-mute"));
 }
 
 const DISCLAIMER_SEEN_KEY = "voice_disclaimer_seen";
@@ -67,7 +103,8 @@ export const FEMALE_PITCH = 1.1;
 export function cleanForSpeech(text: string) {
   return text
     .replace(/https?:\/\/\S+/g, "")
-    .replace(/[*_#`~>|[]{}()<>"“”]/g, " ")
+    .replace(/[*_#`~>|]/g, " ")
+    .replace(/\[|]|[{}()<>"“”]/g, " ")
     .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, "")
     .replace(/^\s*[-•\d]+[.)-]?\s+/gm, "")
     .replace(/\s*\n+\s*/g, "، ")
@@ -115,7 +152,7 @@ export function applyFemaleVoice(u: SpeechSynthesisUtterance) {
 }
 
 /** Apply Nemo's calm, unhurried Arabic speaking style. */
-export function applyBaymaxVoice(u: SpeechSynthesisUtterance) {
+export function applyNemoVoice(u: SpeechSynthesisUtterance) {
   applyFemaleVoice(u);
   u.pitch = 1;
   // Senior mode speaks slower so older users can follow every word.
@@ -123,7 +160,59 @@ export function applyBaymaxVoice(u: SpeechSynthesisUtterance) {
 }
 
 export function speak(text: string, onEnd?: (success: boolean) => void) {
-  if (typeof window === "undefined" || !window.speechSynthesis) {
+  if (isVoiceMuted()) {
+    onEnd?.(true);
+    return () => {};
+  }
+  if (typeof window === "undefined") {
+    onEnd?.(false);
+    return () => {};
+  }
+  if (Capacitor.isNativePlatform()) {
+    let cancelled = false;
+    let nativeTts: typeof import("@capacitor-community/text-to-speech").TextToSpeech | null = null;
+    void (async () => {
+      try {
+        const { TextToSpeech } = await import("@capacitor-community/text-to-speech");
+        nativeTts = TextToSpeech;
+        const { languages } = await TextToSpeech.getSupportedLanguages();
+        const language =
+          languages.find((item) => item.toLowerCase() === "ar-eg") ??
+          languages.find((item) => item.toLowerCase().startsWith("ar"));
+        if (!language) {
+          if (!cancelled) onEnd?.(false);
+          return;
+        }
+        if (cancelled) return;
+        await TextToSpeech.speak({
+          text: cleanForSpeech(text),
+          lang: language,
+          pitch: 1,
+          rate: isSeniorModeOn() ? 0.72 : 0.82,
+          volume: 1,
+        });
+        if (!cancelled) onEnd?.(true);
+      } catch (error) {
+        if (!cancelled) {
+          console.error("[NemoVoice] Native Arabic speech failed", error);
+          onEnd?.(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (nativeTts) {
+        void nativeTts.stop().catch((error: unknown) => {
+          console.warn("[NemoVoice] Could not stop native speech", error);
+        });
+      }
+    };
+  }
+  if (!getBestFemaleArabicVoice()) {
+    onEnd?.(false);
+    return () => {};
+  }
+  if (!window.speechSynthesis) {
     onEnd?.(false);
     return () => {};
   }
@@ -163,15 +252,19 @@ type Rec = {
   lang: string;
   interimResults: boolean;
   continuous: boolean;
-  onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
-  onerror: (e: { error: string }) => void;
-  onend: () => void;
+  onresult:
+    | ((e: {
+        results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal?: boolean }>;
+      }) => void)
+    | null;
+  onerror: ((e: { error: string }) => void) | null;
+  onend: (() => void) | null;
   start: () => void;
   stop: () => void;
   abort?: () => void;
 };
 
-export function createRecognizer(): Rec | null {
+function createBrowserRecognizer(): Rec | null {
   if (typeof window === "undefined") return null;
   const C =
     (
@@ -187,4 +280,218 @@ export function createRecognizer(): Rec | null {
   r.interimResults = false;
   r.continuous = false;
   return r;
+}
+
+function createRecorderRecognizer(): Rec | null {
+  if (
+    typeof window === "undefined" ||
+    !navigator.mediaDevices?.getUserMedia ||
+    typeof MediaRecorder === "undefined"
+  ) {
+    return null;
+  }
+  let recorder: MediaRecorder | null = null;
+  let stream: MediaStream | null = null;
+  let chunks: BlobPart[] = [];
+  let stopTimer: number | undefined;
+  let stopped = false;
+  const recognizer: Rec = {
+    lang: "ar-EG",
+    interimResults: false,
+    continuous: false,
+    onresult: () => {},
+    onerror: () => {},
+    onend: () => {},
+    start() {
+      void (async () => {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const mimeType = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((type) =>
+            MediaRecorder.isTypeSupported(type),
+          );
+          recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+          chunks = [];
+          stopped = false;
+          recorder.ondataavailable = (event) => {
+            if (event.data.size) chunks.push(event.data);
+          };
+          recorder.onerror = () => {
+            recognizer.onerror?.({ error: "audio-capture" });
+            stopTracks();
+          };
+          recorder.onstop = () => {
+            void transcribe();
+          };
+          recorder.start(500);
+          stopTimer = window.setTimeout(() => recognizer.stop(), 10_000);
+        } catch (error) {
+          console.error("[NemoVoice] Could not record speech", error);
+          recognizer.onerror?.({ error: "not-allowed" });
+          recognizer.onend?.();
+        }
+      })();
+    },
+    stop() {
+      if (recorder?.state === "recording") recorder.stop();
+    },
+    abort() {
+      stopped = true;
+      window.clearTimeout(stopTimer);
+      if (recorder?.state === "recording") recorder.stop();
+      stopTracks();
+    },
+  };
+
+  function stopTracks() {
+    window.clearTimeout(stopTimer);
+    stream?.getTracks().forEach((track) => track.stop());
+    stream = null;
+  }
+
+  async function transcribe() {
+    if (stopped) {
+      stopTracks();
+      return;
+    }
+    try {
+      const blob = new Blob(chunks, { type: recorder?.mimeType || "audio/webm" });
+      if (!blob.size) throw new Error("EMPTY_AUDIO");
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      }
+      const { voiceTranscribe } = await import("@/lib/voice-assist.functions");
+      const { text } = await voiceTranscribe({
+        data: {
+          audio: btoa(binary),
+          mime: (blob.type || "audio/webm").split(";")[0],
+          sessionKey: getVoiceSessionKey(),
+        },
+      });
+      const transcript = text.trim();
+      if (!transcript) throw new Error("EMPTY_TRANSCRIPT");
+      recognizer.onresult?.({
+        results: [[{ transcript, isFinal: true }]],
+      });
+      recognizer.onend?.();
+    } catch (error) {
+      console.error("[NemoVoice] Speech transcription failed", error);
+      recognizer.onerror?.({ error: "network" });
+      recognizer.onend?.();
+    } finally {
+      stopTracks();
+    }
+  }
+
+  return recognizer;
+}
+
+function createNativeRecognizer(): Rec {
+  let latest = "";
+  let ready = false;
+  let stopped = false;
+  let plugin: typeof import("@capacitor-community/speech-recognition").SpeechRecognition | null =
+    null;
+  let listenerHandles: Array<{ remove: () => Promise<void> }> = [];
+  const recognizer: Rec = {
+    lang: "ar-EG",
+    interimResults: true,
+    continuous: false,
+    onresult: () => {},
+    onerror: () => {},
+    onend: () => {},
+    start() {
+      stopped = false;
+      latest = "";
+      void (async () => {
+        try {
+          const module = await import("@capacitor-community/speech-recognition");
+          plugin = module.SpeechRecognition;
+          const { available } = await plugin.available();
+          if (!available) throw new Error("speech-recognition-unavailable");
+          const permission = await plugin.checkPermissions();
+          if (permission.speechRecognition !== "granted") {
+            const requested = await plugin.requestPermissions();
+            if (requested.speechRecognition !== "granted") {
+              throw new Error("not-allowed");
+            }
+          }
+          listenerHandles = [
+            await plugin.addListener("partialResults", ({ matches }) => {
+              latest = matches?.[0]?.trim() ?? latest;
+              if (!latest || stopped) return;
+              recognizer.onresult?.({
+                results: [[{ transcript: latest, isFinal: false }]],
+              });
+            }),
+            await plugin.addListener("listeningState", ({ status }) => {
+              if (status === "stopped" && ready) finish();
+            }),
+          ];
+          await plugin.start({
+            language: "ar-EG",
+            maxResults: 1,
+            partialResults: true,
+            popup: false,
+          });
+          ready = true;
+        } catch (error) {
+          console.error("[NemoVoice] Native speech recognition unavailable", error);
+          cleanup();
+          const fallback = createBrowserRecognizer() ?? createRecorderRecognizer();
+          if (fallback) {
+            recognizer.onresult = (event) => recognizerResult(event);
+            fallback.onresult = recognizer.onresult;
+            fallback.onerror = (event) => recognizer.onerror?.(event);
+            fallback.onend = () => recognizer.onend?.();
+            recognizer.stop = () => fallback.stop();
+            recognizer.abort = () => fallback.abort?.();
+            fallback.start();
+          } else {
+            recognizer.onerror?.({
+              error: /not-allowed/.test(String(error)) ? "not-allowed" : "unsupported",
+            });
+            recognizer.onend?.();
+          }
+        }
+      })();
+    },
+    stop() {
+      if (!plugin || stopped) return;
+      void plugin.stop().finally(finish);
+    },
+    abort() {
+      stopped = true;
+      if (plugin) void plugin.stop().finally(cleanup);
+      else cleanup();
+    },
+  };
+
+  function recognizerResult(event: Parameters<NonNullable<Rec["onresult"]>>[0]) {
+    recognizer.onresult?.(event);
+  }
+  function finish() {
+    if (stopped) return;
+    stopped = true;
+    if (latest) {
+      recognizer.onresult?.({ results: [[{ transcript: latest, isFinal: true }]] });
+    }
+    recognizer.onend?.();
+    cleanup();
+  }
+  function cleanup() {
+    ready = false;
+    const handles = listenerHandles;
+    listenerHandles = [];
+    for (const handle of handles) void handle.remove();
+  }
+
+  return recognizer;
+}
+
+export function createRecognizer(): Rec | null {
+  if (typeof window === "undefined") return null;
+  if (Capacitor.isNativePlatform()) return createNativeRecognizer();
+  return createBrowserRecognizer() ?? createRecorderRecognizer();
 }

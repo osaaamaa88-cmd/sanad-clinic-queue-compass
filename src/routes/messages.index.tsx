@@ -107,10 +107,11 @@ function Inbox() {
                   params={{ id: c.id }}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/60"
                 >
-                  <img src={avatar || (amPatient ? defaultDoctorAvatar(name) : DEFAULT_PATIENT_AVATAR)}
-                      alt=""
-                      className="h-12 w-12 shrink-0 rounded-full object-cover"
-                    />
+                  <img
+                    src={avatar || (amPatient ? defaultDoctorAvatar() : DEFAULT_PATIENT_AVATAR)}
+                    alt=""
+                    className="h-12 w-12 shrink-0 rounded-full object-cover"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate font-extrabold">{name}</p>

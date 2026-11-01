@@ -192,9 +192,44 @@ function RootComponent() {
   }, []);
 
   useEffect(() => {
-    // عند التنقل بين الشاشات: ارجع لأعلى فوراً وأعِد حساب مقاسات Lenis
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    const root = document.documentElement;
+    const device = navigator as Navigator & { deviceMemory?: number };
+    const lowEnd =
+      (typeof device.deviceMemory === "number" && device.deviceMemory <= 2) ||
+      navigator.hardwareConcurrency <= 4;
+    root.dataset.lowMotion = String(lowEnd);
+
+    const selector = ".holo-laser, .animate-ping, .animate-pulse, .border-beam";
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+              entry.target.toggleAttribute("data-motion-offscreen", !entry.isIntersecting);
+            }
+          });
+    const scan = (node: Node) => {
+      if (!(node instanceof Element)) return;
+      if (node.matches(selector)) observer?.observe(node);
+      node.querySelectorAll(selector).forEach((element) => observer?.observe(element));
+    };
+    scan(document.body);
+    const changes = new MutationObserver((records) => {
+      for (const record of records) {
+        record.addedNodes.forEach(scan);
+      }
+    });
+    changes.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer?.disconnect();
+      changes.disconnect();
+      delete root.dataset.lowMotion;
+      document.querySelectorAll("[data-motion-offscreen]").forEach((element) => {
+        element.removeAttribute("data-motion-offscreen");
+      });
+    };
+  }, []);
 
   useEffect(() => {
     installGlobalSounds(toast);

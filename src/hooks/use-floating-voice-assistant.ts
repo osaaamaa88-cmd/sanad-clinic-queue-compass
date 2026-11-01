@@ -1,13 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { createRecognizer, isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
+import { getVoiceSessionKey, isVoiceMuted, isVoiceModeOn, setVoiceMode, speak } from "@/lib/voice";
 import { voiceAssist } from "@/lib/voice-assist.functions";
 import { getPatientLocation } from "@/lib/patient-location";
 import { getLocalNemoReply, runLocalTriage } from "@/lib/triage-local";
+import { useAiConsent } from "@/components/AiConsentDialog";
+import { useNemoSpeechInput } from "@/hooks/use-nemo-speech-input";
 
 export type VoiceAssistantState = "listening" | "speaking" | "thinking" | "paused" | "error";
 
 export function useFloatingVoiceAssistant(allowed = true) {
+  const consent = useAiConsent();
+  const speechHandlersRef = useRef<{
+    onText: (text: string) => void;
+    onEmpty: () => void;
+    onError: (error: string) => void;
+  }>({
+    onText: () => {},
+    onEmpty: () => {},
+    onError: () => {},
+  });
+  const speechInput = useNemoSpeechInput({
+    onFinal: (text) => {
+      if (text) speechHandlersRef.current.onText(text);
+      else speechHandlersRef.current.onEmpty();
+    },
+    onError: (error) => speechHandlersRef.current.onError(error),
+  });
+  const askConsent = consent.ask;
+  const startSpeechInput = speechInput.start;
+  const stopSpeechInput = speechInput.stop;
   const [enabled, setEnabled] = useState(false);
   const [state, setState] = useState<VoiceAssistantState>("paused");
   const [message, setMessage] = useState("");
@@ -30,7 +52,6 @@ export function useFloatingVoiceAssistant(allowed = true) {
     let blocked = false;
     let generation = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let recognition: ReturnType<typeof createRecognizer> = null;
     let cancelSpeech = () => {};
     let hospital: Awaited<ReturnType<typeof voiceAssist>>["hospital"] = null;
     let pendingCall = false;
@@ -38,18 +59,7 @@ export function useFloatingVoiceAssistant(allowed = true) {
 
     const stopMedia = () => {
       clearTimeout(timer);
-      if (recognition) {
-        recognition.onend = () => {};
-        recognition.onresult = () => {};
-        recognition.onerror = () => {};
-        try {
-          if (recognition.abort) recognition.abort();
-          else recognition.stop();
-        } catch (error) {
-          console.warn("[voice-assistant] Could not stop speech recognition", error);
-        }
-        recognition = null;
-      }
+      stopSpeechInput();
       cancelSpeech();
     };
     const fail = (text: string) => {
@@ -68,14 +78,19 @@ export function useFloatingVoiceAssistant(allowed = true) {
     const say = (text: string, after?: () => void) => {
       if (!active || blocked || document.hidden) return;
       setMessage(text);
+      if (isVoiceMuted()) {
+        if (after) after();
+        else scheduleListen();
+        return;
+      }
       setState("speaking");
       cancelSpeech = speak(text, (success) => {
         if (!active || blocked || document.hidden) return;
         if (!success) {
           setMessage(
-            "الصوت التلقائي غير متاح، لكن يمكنك التحدث معي. اسمح بالميكروفون إذا طُلب منك.",
+            "نطق العربية تلقائياً غير متاح؛ يمكنك قراءة الرد أو التحدث معي. اسمح بالميكروفون إذا طُلب منك.",
           );
-          toast.warning("الصوت التلقائي غير متاح؛ سيظل المساعد يستمع لك.");
+          toast.warning("نطق العربية تلقائياً غير متاح؛ سيظل المساعد يستمع لك.");
           scheduleListen();
           return;
         }
@@ -120,13 +135,27 @@ export function useFloatingVoiceAssistant(allowed = true) {
         return;
       }
       const request = ++generation;
+      const localTriage = runLocalTriage(text);
+      if (localTriage.urgency === "emergency") {
+        say(getLocalNemoReply(text, localTriage));
+        return;
+      }
+      if (!(await askConsent())) {
+        setVoiceMode(false);
+        return;
+      }
       setState("thinking");
       setMessage("بفكر في كلامك…");
       try {
         const loc = getPatientLocation();
         const context = lastExchange ? `${lastExchange}\nمتابعة المستخدم: ${text}` : text;
         const result = await voiceAssist({
-          data: { text: context.slice(-500), lat: loc.lat, lng: loc.lng },
+          data: {
+            text: context.slice(-500),
+            lat: loc.lat,
+            lng: loc.lng,
+            sessionKey: getVoiceSessionKey(),
+          },
         });
         if (!active || blocked || request !== generation || document.hidden) return;
         hospital = result.hospital;
@@ -143,85 +172,42 @@ export function useFloatingVoiceAssistant(allowed = true) {
             assistantError,
           );
           toast.warning("تعذر الاتصال بالمساعد الذكي الآن، أقدّم لك توجيهاً أولياً حسب الأعراض.");
-          say(getLocalNemoReply(text, runLocalTriage(text)));
+          say(getLocalNemoReply(text, localTriage));
         }
+      }
+    };
+    speechHandlersRef.current.onText = (text) => void handle(text);
+    speechHandlersRef.current.onEmpty = () => scheduleListen();
+    speechHandlersRef.current.onError = (error) => {
+      if (error === "unsupported") {
+        fail("الميكروفون غير مدعوم أو التسجيل الصوتي غير متاح على هذا الجهاز.");
+      } else if (error === "not-allowed" || error === "service-not-allowed") {
+        fail("اسمح بالميكروفون من إعدادات الجهاز، ثم اضغط الفقاعة للاستئناف.");
+      } else if (error !== "aborted") {
+        fail("الإدخال الصوتي توقف؛ تأكد من الاتصال ثم اضغط الفقاعة للاستئناف.");
       }
     };
     const quickPain = (event: Event) => {
       const level = (event as CustomEvent<number>).detail;
       if (!Number.isInteger(level) || level < 1 || level > 10 || !active || blocked) return;
       cancelSpeech();
-      if (recognition) {
-        recognition.onend = () => {};
-        try {
-          if (recognition.abort) recognition.abort();
-          else recognition.stop();
-        } catch (error) {
-          console.warn("[voice-assistant] Could not stop speech recognition", error);
-        }
-        recognition = null;
-      }
+      stopSpeechInput();
       void handle(`مستوى الألم عندي ${level} من 10`);
     };
     const finishSession = () => {
       if (!active || blocked) return;
       pendingCall = false;
       cancelSpeech();
-      if (recognition) {
-        recognition.onend = () => {};
-        try {
-          if (recognition.abort) recognition.abort();
-          else recognition.stop();
-        } catch (error) {
-          console.warn("[voice-assistant] Could not stop speech recognition", error);
-        }
-        recognition = null;
-      }
+      stopSpeechInput();
       say("شكراً لثقتك في نيمو. أتمنى لك دوام الصحة والعافية.", () => setVoiceMode(false));
     };
     window.addEventListener("sanad:voice-pain", quickPain);
     window.addEventListener("sanad:voice-finish", finishSession);
     function listen() {
       if (!active || blocked || document.hidden) return;
-      const r = createRecognizer();
-      if (!r) {
-        fail("الميكروفون غير مدعوم في المتصفح ده؛ جرّب متصفح يدعم الإدخال الصوتي.");
-        return;
-      }
-      recognition = r;
-      let gotResult = false;
       setState("listening");
       setMessage("أنا سامعاك، اتفضل اتكلم.");
-      r.onresult = (event) => {
-        if (!active || blocked || gotResult) return;
-        const text = event.results[0]?.[0]?.transcript?.trim();
-        if (!text) return;
-        gotResult = true;
-        r.onend = () => {};
-        r.stop();
-        recognition = null;
-        void handle(text);
-      };
-      r.onerror = ({ error }) => {
-        if (!active || blocked) return;
-        if (error === "no-speech") return;
-        fail(
-          error === "not-allowed" || error === "service-not-allowed"
-            ? "اسمح بالميكروفون من إعدادات المتصفح، ثم اضغط الفقاعة للاستئناف."
-            : error === "audio-capture"
-              ? "الميكروفون غير متاح؛ تأكد إنه متصل ومش مستخدم في مكالمة."
-              : "الإدخال الصوتي توقف؛ تأكد من الإنترنت ثم اضغط الفقاعة للاستئناف.",
-        );
-      };
-      r.onend = () => {
-        if (recognition === r) recognition = null;
-        if (!gotResult) scheduleListen();
-      };
-      try {
-        r.start();
-      } catch {
-        fail("المتصفح محتاج تفعيل الميكروفون؛ اضغط الفقاعة للاستئناف.");
-      }
+      startSpeechInput();
     }
     const visibility = () => {
       generation++;
@@ -245,12 +231,17 @@ export function useFloatingVoiceAssistant(allowed = true) {
     window.addEventListener("online", goOnline);
     if (!navigator.onLine) {
       goOffline();
-    } else if (!createRecognizer()) {
-      fail("الميكروفون غير مدعوم في المتصفح ده؛ جرّب متصفح يدعم الإدخال الصوتي.");
     } else {
-      say(
-        "أهلاً بك في سند، أنا هنا لمساعدتك. احكيلي إيه اللي تعبك، وهنلاقي المساعدة المناسبة سوا.",
-      );
+      void askConsent().then((allowed) => {
+        if (!active) return;
+        if (!allowed) {
+          setVoiceMode(false);
+          return;
+        }
+        say(
+          "أهلاً بك في سند، أنا هنا لمساعدتك. احكيلي إيه اللي تعبك، وهنلاقي المساعدة المناسبة سوا.",
+        );
+      });
     }
     return () => {
       active = false;
@@ -265,12 +256,13 @@ export function useFloatingVoiceAssistant(allowed = true) {
       setMessage("");
       setState("paused");
     };
-  }, [enabled, restart]);
+  }, [askConsent, enabled, restart, startSpeechInput, stopSpeechInput]);
 
   return {
     enabled,
     state,
     message,
+    consentDialog: consent.dialog,
     resume: () => setRestart((v) => v + 1),
     stop: () => setVoiceMode(false),
   };

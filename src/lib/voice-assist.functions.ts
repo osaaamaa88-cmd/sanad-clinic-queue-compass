@@ -2,16 +2,31 @@ import { createServerFn } from "@tanstack/react-start";
 import { redact } from "@/lib/redact";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { getLocalNemoReply, runLocalTriage } from "@/lib/triage-local";
+import { getLocalNemoReply, replyMentionsEmergency, runLocalTriage } from "@/lib/triage-local";
 import { z } from "zod";
 
-type ChatHistoryMessage = { role: "user" | "assistant"; content: string };
+type ChatHistoryMessage = { role: "user"; content: string };
 
 type ChatCompletionResponse = {
   choices?: Array<{ message?: { content?: string } }>;
 };
 
-const SYSTEM = `أنت "نيمو" (Nemo)، رفيق سند الصحي الذكي، بشخصية مستوحاة من Baymax: دافئ ومتزن وهادئ. تحدث بعربية مصرية بيضاء بسيطة ومهذبة، وردودك الصوتية مقتضبة وسلسة في حدود جملتين أو ثلاث (أقل من أربعين كلمة) بفواصل طبيعية. لا تذكر أسماء علامات الترقيم لفظياً ولا تكتبها ككلمات منطوقة، ولا تنادِ المستخدم باسم "نيمو"؛ هذا اسمك أنت.
+type NearbyHospital = {
+  name: string;
+  phone: string;
+  address: string;
+  km: number;
+  approx: boolean;
+  lat: number;
+  lng: number;
+};
+
+const nearbyHospitalCache = new Map<
+  string,
+  { expiresAt: number; hospital: NearbyHospital | null }
+>();
+
+const SYSTEM = `أنت "نيمو" (Nemo)، رفيق سند الصحي الذكي. استخدم شخصية محايدة ودافئة ومتزنة. تحدث بعربية مصرية بيضاء بسيطة ومهذبة، وردودك الصوتية مقتضبة وسلسة في حدود جملتين أو ثلاث (أقل من أربعين كلمة) بفواصل طبيعية. لا تذكر أسماء علامات الترقيم لفظياً ولا تكتبها ككلمات منطوقة، ولا تنادِ المستخدم باسم "نيمو"؛ هذا اسمك أنت.
 أسلوب الكلام: ابدأ بتعاطف قصير يعكس كلام المريض، ثم خطوة واحدة واضحة، ثم سؤال واحد فقط. تكلم بهدوء كإنسان واقف بجانب المريض مثل "سلامتك" و"خليني أفهم منك". تجنب القوائم والرموز والإيموجي.
 الفاصل السريري (Clinical Fail-Safe): افترض دائماً أن أي كلام غامض أو غير واضح هو حالة صحية تستوجب الرعاية — مثل "تعبان" أو "مش عارف مالي" أو "الدنيا بتلف بيا" — فطمئن المستخدم واسأله بلطف عن الأعراض، ولا ترفضه ولا تحوّله لموضوع آخر ولا تسأله عن نوع السؤال. حظر أي كلام مسموح فقط عندما يكون الطلب خارج الطب تماماً بصورة صريحة لا تحتمل التأويل (دراسة، برمجة، رياضة، تاريخ، مواضيع عامة) — وعندها رد بلطف ودفء دون إحراج المستخدم وأعد الحوار للصحة حرفياً: "أنا رفيقك الصحي في سند، كل تركيزي واهتمامي بصحتك وسلامتك يا غالي. طمني بتشتكي من أي تعب أو محتاج مساعدة في دواء أو استشارة عيادة؟"
 القواعد الطبية:
@@ -27,8 +42,6 @@ const SYSTEM = `أنت "نيمو" (Nemo)، رفيق سند الصحي الذكي
 
 const OFF_TOPIC_REPLY =
   "أنا رفيقك الصحي في سند، كل تركيزي واهتمامي بصحتك وسلامتك يا غالي. طمني بتشتكي من أي تعب أو محتاج مساعدة في دواء أو استشارة عيادة؟";
-
-const DOSAGE_WARNING = "تنبيه: الجرعات الدوائية يحددها الطبيب المعالج أو الصيدلي حصراً.";
 
 // Stage 3 (Conditional Context): inject the nearest hospital only when the message has
 // clinical context (pain, discomfort, or an emergency request). Vague phrases count as health.
@@ -117,10 +130,9 @@ const hasClinicalContext = (text: string) => {
   return CLINICAL_HINTS.some((hint) => normalized.includes(hint.toLowerCase()));
 };
 
-// Stage 4 (Output Safety Guardrail): flag explicit numeric medication dosing the model
-// may have produced despite instructions (mg, ملغ, tablets-per-time, etc.).
+// Detect numeric medication dosage instructions, which should never be generated.
 const DOSAGE_PATTERN =
-  /(\b\d+\s*(?:mg|milligram|ملغ|مجم|مِلغ)\b)|(\d+\s*(?:قرص|قرصين|أقراص|اقراص|حبة|حبتين|حبوب|علبة|ملى|مل|ml)\s*(?:كل|بعد|يومياً|يوميا|في اليوم|مرات|مرة))/i;
+  /([\d٠-٩۰-۹]+\s*(?:mg|milligram|ملغ|مجم|مِلغ)\b)|([\d٠-٩۰-۹]+\s*(?:قرص|قرصين|أقراص|اقراص|حبة|حبتين|حبوب|علبة|ملى|مل|ml)\s*(?:كل|بعد|يومياً|يوميا|في اليوم|مرات|مرة))|((?:خذ|خد|تناول|اشرب)\s+\d)/i;
 
 /** Truncate at the nearest natural stop (sentence end) so the voice reply stays ≤ maxWords. */
 function clipToSpeech(s: string, maxWords = 40): string {
@@ -146,10 +158,11 @@ function guardReply(raw: string): string {
     .replace(/\s+/g, " ")
     .trim();
   if (!reply) return "";
-  reply = clipToSpeech(reply);
   if (DOSAGE_PATTERN.test(reply)) {
-    reply = `${reply} ${DOSAGE_WARNING}`;
+    return "ما أقدرش أحدد جرعة دواء أو عدد أقراص. الجرعة يحددها الطبيب أو الصيدلي حسب حالتك.";
   }
+  if (/123|١٢٣|۱۲۳|طوارئ|اسعاف|إسعاف/.test(reply)) return reply;
+  reply = clipToSpeech(reply);
   return reply;
 }
 
@@ -215,19 +228,27 @@ const sanitize = (s: unknown) =>
 
 export const voiceAssist = createServerFn({ method: "POST" })
   .inputValidator(
-    (d: { text: string; lat?: number; lng?: number; history?: ChatHistoryMessage[] }) => ({
+    (d: {
+      text: string;
+      lat?: number;
+      lng?: number;
+      sessionKey: string;
+      history?: ChatHistoryMessage[];
+    }) => ({
       text: sanitize(d?.text),
-      lat: Number.isFinite(d?.lat) ? Math.max(-90, Math.min(90, Number(d.lat))) : 30.0444,
-      lng: Number.isFinite(d?.lng) ? Math.max(-180, Math.min(180, Number(d.lng))) : 31.2357,
+      lat: Number.isFinite(d?.lat)
+        ? Math.round(Math.max(-90, Math.min(90, Number(d.lat))) * 100) / 100
+        : 30.04,
+      lng: Number.isFinite(d?.lng)
+        ? Math.round(Math.max(-180, Math.min(180, Number(d.lng))) * 100) / 100
+        : 31.24,
+      sessionKey: String(d?.sessionKey ?? "").trim(),
       history: Array.isArray(d?.history)
         ? d.history
             .slice(-6)
-            .filter(
-              (message): message is ChatHistoryMessage =>
-                message?.role === "user" || message?.role === "assistant",
-            )
+            .filter((message): message is ChatHistoryMessage => message?.role === "user")
             .map((message) => ({
-              role: message.role,
+              role: "user" as const,
               content: sanitize(message.content).slice(0, 240),
             }))
         : [],
@@ -238,13 +259,30 @@ export const voiceAssist = createServerFn({ method: "POST" })
     const ip =
       getRequestHeader("cf-connecting-ip") ||
       getRequestHeader("x-forwarded-for")?.split(",")[0] ||
-      "anon";
+      "ip-unavailable";
     const { checkRateLimit } = await import("@/lib/rate-limit.server");
-    if (!(await checkRateLimit(`ai:voiceAssist:ip:${ip.trim().slice(0, 64)}`, 10, 60))) {
+    const { deviceIdentity } = await import("@/lib/device-key.server");
+    const deviceId = await deviceIdentity(data.sessionKey);
+    if (!deviceId) throw new Error("INVALID_SESSION_KEY");
+    const localTriage = runLocalTriage(data.text);
+    if (localTriage.urgency === "emergency") {
+      return {
+        reply: guardReply(getLocalNemoReply(data.text, localTriage)),
+        hospital: null,
+        ai: false,
+        urgency: "emergency" as const,
+      };
+    }
+    const scopedIp = ip.trim().slice(0, 64);
+    if (
+      !(await checkRateLimit(`ai:voiceAssist:device:${deviceId}`, 10, 60)) ||
+      !(await checkRateLimit(`ai:voiceAssist:device-ip:${deviceId}:${scopedIp}`, 10, 60))
+    ) {
       return {
         reply: "طلبات كتير ورا بعض، استنى دقيقة وجرب تاني. لو الحالة طارئة اتصل بالإسعاف 123.",
         hospital: null,
         ai: false,
+        urgency: localTriage.urgency,
       };
     }
     const sb = createClient<Database>(
@@ -252,26 +290,54 @@ export const voiceAssist = createServerFn({ method: "POST" })
       process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"]!,
       { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
     );
-    const { data: rows } = await sb
-      .from("governmental_hospitals")
-      .select(
-        "name,phone,emergency_phone,address,district,governorate,lat,lng,emergency_24h,location_verified",
-      );
-    const list = (rows ?? []).map((h) => ({ ...h, km: dist(data, h) })).sort((a, b) => a.km - b.km);
-    const h = list.find((x) => x.emergency_24h) ?? list[0] ?? null;
-    const hospital = h
-      ? {
-          name: h.name,
-          phone: h.phone || h.emergency_phone || "123",
-          address: [h.address, h.district, h.governorate].filter(Boolean).join("، "),
-          km: Math.round(h.km * 10) / 10,
-          approx: !h.location_verified,
-          lat: h.lat,
-          lng: h.lng,
+    const latRange = 0.75;
+    const lngRange = Math.min(3, 0.75 / Math.max(0.25, Math.cos((data.lat * Math.PI) / 180)));
+    const queryHospitals = () =>
+      sb
+        .from("governmental_hospitals")
+        .select(
+          "name,phone,emergency_phone,address,district,governorate,lat,lng,emergency_24h,location_verified",
+        )
+        .gte("lat", data.lat - latRange)
+        .lte("lat", data.lat + latRange)
+        .gte("lng", data.lng - lngRange)
+        .lte("lng", data.lng + lngRange)
+        .limit(100);
+    const cacheKey = `${Math.round(data.lat * 10) / 10}:${Math.round(data.lng * 10) / 10}`;
+    const cached = nearbyHospitalCache.get(cacheKey);
+    let hospital = cached && cached.expiresAt > Date.now() ? cached.hospital : null;
+    if (!cached || cached.expiresAt <= Date.now()) {
+      if (cached) nearbyHospitalCache.delete(cacheKey);
+      const { data: rows, error: hospitalError } = await queryHospitals();
+      if (hospitalError) {
+        console.error("[Nemo] Hospital lookup failed", hospitalError.message);
+      } else {
+        const list = (rows ?? [])
+          .map((row) => ({ ...row, km: dist(data, row) }))
+          .sort((a, b) => a.km - b.km);
+        const nearest = list.find((row) => row.emergency_24h) ?? list[0] ?? null;
+        hospital = nearest
+          ? {
+              name: nearest.name,
+              phone: nearest.phone || nearest.emergency_phone || "123",
+              address: [nearest.address, nearest.district, nearest.governorate]
+                .filter(Boolean)
+                .join("، "),
+              km: Math.round(nearest.km * 10) / 10,
+              approx: !nearest.location_verified,
+              lat: nearest.lat,
+              lng: nearest.lng,
+            }
+          : null;
+        if (nearbyHospitalCache.size >= 200) {
+          const oldestKey = nearbyHospitalCache.keys().next().value;
+          if (oldestKey) nearbyHospitalCache.delete(oldestKey);
         }
-      : null;
+        nearbyHospitalCache.set(cacheKey, { expiresAt: Date.now() + 10 * 60_000, hospital });
+      }
+    }
 
-    const fallback = getLocalNemoReply(data.text, runLocalTriage(data.text));
+    const fallback = getLocalNemoReply(data.text, localTriage);
 
     const { writeAudit } = await import("@/lib/audit.functions");
     await writeAudit("medical_query", null, "voice");
@@ -313,7 +379,12 @@ export const voiceAssist = createServerFn({ method: "POST" })
             data.history,
           ),
         );
-        return { reply, hospital, ai: true };
+        return {
+          reply,
+          hospital,
+          ai: true,
+          urgency: replyMentionsEmergency(reply) ? "emergency" : localTriage.urgency,
+        };
       } catch (providerError) {
         providerFailed = true;
         console.warn(
@@ -324,7 +395,76 @@ export const voiceAssist = createServerFn({ method: "POST" })
     }
     if (providerFailed) console.error("[Nemo] No configured AI provider returned a reply");
     // Stage 4 also guards the local fallback before it reaches the patient.
-    return { reply: guardReply(fallback), hospital, ai: false };
+    const reply = guardReply(fallback);
+    return {
+      reply,
+      hospital,
+      ai: false,
+      urgency: replyMentionsEmergency(reply) ? "emergency" : localTriage.urgency,
+    };
+  });
+
+export const voiceTranscribe = createServerFn({ method: "POST" })
+  .inputValidator((d: { audio: string; mime: string; sessionKey: string }) => {
+    const mime = String(d?.mime ?? "");
+    if (
+      typeof d?.audio !== "string" ||
+      d.audio.length < 16 ||
+      d.audio.length > 7_000_000 ||
+      !["audio/webm", "audio/mp4", "audio/ogg", "audio/wav", "audio/aac"].includes(mime)
+    ) {
+      throw new Error("INVALID_AUDIO");
+    }
+    return {
+      audio: d.audio,
+      mime,
+      sessionKey: String(d?.sessionKey ?? "").trim(),
+    };
+  })
+  .handler(async ({ data }) => {
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+    const ip =
+      getRequestHeader("cf-connecting-ip") ||
+      getRequestHeader("x-forwarded-for")?.split(",")[0] ||
+      "ip-unavailable";
+    const { deviceIdentity } = await import("@/lib/device-key.server");
+    const deviceId = await deviceIdentity(data.sessionKey);
+    if (!deviceId) throw new Error("INVALID_SESSION_KEY");
+    const { checkRateLimit } = await import("@/lib/rate-limit.server");
+    if (
+      !(await checkRateLimit(`ai:voiceTranscribe:device:${deviceId}`, 6, 60)) ||
+      !(await checkRateLimit(
+        `ai:voiceTranscribe:device-ip:${deviceId}:${ip.trim().slice(0, 64)}`,
+        6,
+        60,
+      ))
+    ) {
+      throw new Error("RATE_LIMITED: حاول تسجيل الصوت مرة أخرى بعد دقيقة.");
+    }
+    const key = process.env.GROQ_API_KEY;
+    if (!key) throw new Error("VOICE_STT_UNAVAILABLE");
+    const binary = atob(data.audio);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    const extension = data.mime === "audio/mp4" ? "m4a" : data.mime.split("/")[1];
+    const form = new FormData();
+    form.append("file", new Blob([bytes], { type: data.mime }), `recording.${extension}`);
+    form.append("model", "whisper-large-v3-turbo");
+    form.append("language", "ar");
+    const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (!response.ok) {
+      console.error("[Nemo] Speech transcription failed", response.status);
+      throw new Error("VOICE_STT_FAILED");
+    }
+    const payload = (await response.json()) as { text?: string };
+    const text = sanitize(payload.text).slice(0, 1000);
+    if (!text) throw new Error("EMPTY_TRANSCRIPT");
+    return { text };
   });
 
 const clip = (s: unknown, n: number) =>

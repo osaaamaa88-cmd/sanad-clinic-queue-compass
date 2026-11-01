@@ -39,6 +39,8 @@ import { getClinicStories, type StoryItem } from "@/lib/stories";
 import { Button } from "@/components/ui/button";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { getPatientSession, getSavedBookings } from "@/lib/patient-session";
+import { updateSavedBookingStatuses, type SavedBooking } from "@/lib/patient-session";
+import { svrGetPatientBookingStatuses } from "@/lib/data.functions";
 import { getCachedProfile } from "@/lib/user-profile-cache";
 import { bpStatus, parseReadings, READINGS_KEY, sugarStatus } from "@/lib/organ-insights";
 import {
@@ -48,6 +50,7 @@ import {
   savePatientLocation,
   type PatientLocation,
 } from "@/lib/patient-location";
+import { toast } from "sonner";
 
 const HYDRATION_KEY = "sanad.patient.hydration";
 
@@ -118,6 +121,7 @@ function PatientHome() {
   const [breathPhase, setBreathPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [hydration, setHydration] = useState(0);
   const [hydrationReady, setHydrationReady] = useState(false);
+  const [upcomingBooking, setUpcomingBooking] = useState<SavedBooking | null>(null);
   const featuredClinicsRef = useRef<HTMLElement | null>(null);
   const queryClient = useQueryClient();
   useEffect(() => {
@@ -131,6 +135,51 @@ function PatientHome() {
     return () => {
       window.removeEventListener("focus", refreshReadings);
       window.removeEventListener("storage", refreshReadings);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const refreshUpcomingBooking = async () => {
+      const saved = getSavedBookings().filter((booking) => (booking.queueNumber ?? 0) > 0);
+      if (!saved.length) {
+        if (active) setUpcomingBooking(null);
+        return;
+      }
+      try {
+        const { rows } = await svrGetPatientBookingStatuses({
+          data: { codes: saved.map((booking) => booking.code) },
+        });
+        if (!active) return;
+        const statuses = rows.flatMap((row) =>
+          ["waiting", "in", "done", "cancelled"].includes(row.status)
+            ? [{ code: row.code, status: row.status as SavedBooking["status"] }]
+            : [],
+        );
+        updateSavedBookingStatuses(statuses);
+        const current = new Map(statuses.map((row) => [row.code, row.status]));
+        setUpcomingBooking(
+          saved.find((booking) => {
+            const status = current.get(booking.code);
+            return status === "waiting" || status === "in";
+          }) ?? null,
+        );
+      } catch (error) {
+        console.error("[PatientHome] Could not refresh booking status", error);
+        toast.error("تعذّر تحديث حالة حجزك. تحقق من اتصالك بالإنترنت.");
+        if (active) {
+          setUpcomingBooking(
+            saved.find((booking) => booking.status === "waiting" || booking.status === "in") ??
+              null,
+          );
+        }
+      }
+    };
+    void refreshUpcomingBooking();
+    window.addEventListener("focus", refreshUpcomingBooking);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", refreshUpcomingBooking);
     };
   }, []);
 
@@ -188,7 +237,7 @@ function PatientHome() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [queryClient]);
 
   const active = useMemo(
     () => clinics.filter((clinic) => clinic.availableNow).slice(0, 10),
@@ -204,11 +253,6 @@ function PatientHome() {
   );
   const selectedSpecialtyData = specialties.find((item) => item.id === selectedSpecialty);
   // أقرب حجز قادم على هذا الجهاز — لعرض رقم الدور في كارت البطل
-  const upcomingBooking = useMemo(() => {
-    const bookings = getSavedBookings().filter((b) => (b.queueNumber ?? 0) > 0);
-    return bookings[0] ?? null;
-  }, []);
-
   const handleOpenQuickBooking = useCallback((clinic: Clinic) => {
     setSelectedClinicForBooking(clinic);
     setBookingDrawerOpen(true);
@@ -263,7 +307,7 @@ function PatientHome() {
     >
       {/* ===== كارت البطل المتوهج (Hero Aurora Status Card) =====
         الصورة الرمزية + الاسم أعلى الكارت، وكبسولة الموقع جهة اليسار */}
-      <section className="aurora-medical-card rounded-3xl p-5 mb-5">
+      <section className="glass-liquid aurora-medical-card mb-5 rounded-3xl p-5">
         {/* توهجات أورورا خلفية */}
         <div
           aria-hidden="true"
@@ -363,7 +407,7 @@ function PatientHome() {
           </div>
         </div>
       </section>
-      {upcomingBooking && <QueueTrackerCard />}
+      {upcomingBooking && <QueueTrackerCard key={upcomingBooking.code} />}
       <Link
         to="/patient/search"
         className="mt-4 flex min-h-11 items-center gap-3 rounded-full border border-border/50 bg-card px-4 py-3.5 shadow-soft transition-all duration-200 active:scale-[0.97] hover:border-primary/50"
@@ -380,7 +424,7 @@ function PatientHome() {
         {/* الكارت الطولي الأيمن — مجسم الهولوجرام والملف الطبي الذكي */}
         <Link
           to="/patient/health"
-          className="glass-liquid spotlight-card group relative col-start-1 row-span-2 flex flex-col justify-between overflow-visible rounded-3xl p-4 text-right transition hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
+          className="spotlight-card group relative col-start-1 row-span-2 flex flex-col justify-between overflow-visible rounded-3xl border border-border bg-card p-4 text-right shadow-soft transition hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
           onPointerMove={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
             event.currentTarget.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
@@ -417,7 +461,7 @@ function PatientHome() {
         {/* الكارت العلوي الأيسر — طوارئ 123 الإسعافية */}
         <Link
           to="/patient/emergency"
-          className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-right shadow-soft backdrop-blur-xl transition hover:border-destructive active:scale-[0.97]"
+          className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-right shadow-soft transition hover:border-destructive active:scale-[0.97]"
         >
           <span className="relative grid h-10 w-10 place-items-center rounded-xl bg-destructive/15 text-destructive">
             <span className="absolute inset-0 animate-ping rounded-xl bg-destructive/20" />
@@ -434,7 +478,7 @@ function PatientHome() {
         {/* الكارت السفلي الأيسر — فحص الروشتة والتحاليل MedScan */}
         <Link
           to="/patient/drug-scan"
-          className="glass-liquid flex flex-col justify-between overflow-hidden rounded-2xl p-3.5 text-right shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.97]"
+          className="flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-3.5 text-right shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.97]"
         >
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-success/15 text-success">
             <ClipboardList className="h-5 w-5" />
@@ -493,7 +537,7 @@ function PatientHome() {
                 >
                   <span className="grid h-full w-full place-items-center overflow-hidden rounded-full border-[3px] border-background bg-card text-2xl">
                     <img
-                      src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)}
+                      src={profile?.avatarUrl || defaultDoctorAvatar()}
                       alt={clinic.doctor}
                       className="h-full w-full object-cover"
                     />
@@ -949,7 +993,7 @@ function ClinicCapsule({
   const specialty = specialties.find((item) => item.id === clinic.specialtyId);
   const rating = profile?.reviewsCount ? profile.ratingAvg : clinic.rating;
   return (
-    <article className="glass-liquid group flex w-64 shrink-0 snap-start flex-col rounded-2xl p-3 text-right transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg">
+    <article className="group flex w-64 shrink-0 snap-start flex-col rounded-2xl border border-border bg-card p-3 text-right shadow-soft transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg">
       <Link
         to="/patient/clinic/$id"
         params={{ id: clinic.id }}
@@ -957,7 +1001,7 @@ function ClinicCapsule({
       >
         <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary-soft text-primary">
           <img
-            src={profile?.avatarUrl || defaultDoctorAvatar(clinic.doctor)}
+            src={profile?.avatarUrl || defaultDoctorAvatar()}
             alt={clinic.doctor}
             className="h-full w-full object-cover"
           />

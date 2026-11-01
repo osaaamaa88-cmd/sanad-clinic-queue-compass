@@ -107,6 +107,7 @@ export type SavedBooking = {
   slot: string;
   /** Queue number returned at booking time; absent on bookings saved before this field existed. */
   queueNumber?: number;
+  status?: "waiting" | "in" | "done" | "cancelled";
   savedAt: number;
 };
 
@@ -127,5 +128,21 @@ export function saveBookingLocally(b: Omit<SavedBooking, "savedAt">) {
     window.localStorage.setItem(BOOKINGS_KEY, JSON.stringify(list.slice(0, 10)));
   } catch {
     // ignore
+  }
+}
+
+export function updateSavedBookingStatuses(
+  statuses: Array<{ code: string; status: SavedBooking["status"] }>,
+) {
+  if (typeof window === "undefined" || statuses.length === 0) return;
+  try {
+    const statusByCode = new Map(statuses.map((item) => [item.code, item.status]));
+    const updated = getSavedBookings().map((booking) => {
+      const status = statusByCode.get(booking.code);
+      return status ? { ...booking, status } : booking;
+    });
+    window.localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
+  } catch (error) {
+    console.error("[PatientSession] Failed to update saved booking statuses:", error);
   }
 }

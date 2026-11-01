@@ -1,5 +1,5 @@
 ALTER TABLE public.bookings
-  ADD COLUMN IF NOT EXISTS patient_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL;
+  ADD COLUMN IF NOT EXISTS patient_user_id uuid;
 
 CREATE INDEX IF NOT EXISTS bookings_patient_user_id_idx
   ON public.bookings (patient_user_id)
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS public.patient_calls (
   booking_id uuid NOT NULL REFERENCES public.bookings(id) ON DELETE CASCADE,
   booking_code text NOT NULL,
   clinic_id uuid NOT NULL REFERENCES public.clinics(id) ON DELETE CASCADE,
-  patient_user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  patient_user_id uuid NOT NULL,
   room text DEFAULT 'غرفة الكشف الرئيسية',
   created_at timestamptz NOT NULL DEFAULT now()
 );

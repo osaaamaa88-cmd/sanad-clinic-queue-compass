@@ -21,10 +21,10 @@ export function shouldResumeNemo(state: {
 }
 
 export function finalNemoTranscript(
-  results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }>,
+  results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal?: boolean }>,
 ): string {
   return Array.from(results)
-    .filter((result) => result.isFinal)
+    .filter((result) => result.isFinal === true)
     .map((result) => result[0]?.transcript ?? "")
     .join(" ")
     .trim();

@@ -337,7 +337,11 @@ function ChatScreen() {
         >
           <ArrowRight className="h-5 w-5" />
         </Link>
-        <img src={peer.avatar || (amClinic ? DEFAULT_PATIENT_AVATAR : defaultDoctorAvatar(peer.name))} alt="" className="h-10 w-10 rounded-full object-cover" />
+        <img
+          src={peer.avatar || (amClinic ? DEFAULT_PATIENT_AVATAR : defaultDoctorAvatar())}
+          alt=""
+          className="h-10 w-10 rounded-full object-cover"
+        />
         <div className="min-w-0 flex-1">
           <p className="truncate font-extrabold">{peer.name || "…"}</p>
           <p className="text-[11px] text-muted-foreground">بترد عادةً خلال ساعات العمل</p>

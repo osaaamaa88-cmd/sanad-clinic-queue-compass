@@ -54,7 +54,14 @@ function ResumeCard() {
       to={t.to}
       className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-soft"
     >
-      <img src={profile.avatar || (profile.role === "patient" ? DEFAULT_PATIENT_AVATAR : defaultDoctorAvatar(profile.name))} alt="" className="h-12 w-12 rounded-full object-cover" />
+      <img
+        src={
+          profile.avatar ||
+          (profile.role === "patient" ? DEFAULT_PATIENT_AVATAR : defaultDoctorAvatar())
+        }
+        alt=""
+        className="h-12 w-12 rounded-full object-cover"
+      />
       <div className="min-w-0 flex-1">
         <div className="truncate font-bold">مرحباً بك مجدداً {name}</div>
         <div className="text-sm text-primary">{t.label}</div>

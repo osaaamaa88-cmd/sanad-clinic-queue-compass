@@ -17,7 +17,10 @@ type Mood = "normal" | "surprised" | "sleepy" | "happy";
 function clampPosition(position: Position): Position {
   return {
     x: Math.max(VIEWPORT_GAP, Math.min(position.x, window.innerWidth - BUTTON_SIZE - VIEWPORT_GAP)),
-    y: Math.max(VIEWPORT_GAP, Math.min(position.y, window.innerHeight - BUTTON_SIZE - VIEWPORT_GAP)),
+    y: Math.max(
+      VIEWPORT_GAP,
+      Math.min(position.y, window.innerHeight - BUTTON_SIZE - VIEWPORT_GAP),
+    ),
   };
 }
 
@@ -74,6 +77,7 @@ export function FloatingVoiceAssistant() {
   const [mood, setMood] = useState<Mood>("normal");
   const [look, setLook] = useState({ x: 0, y: 0 });
   const [bubbleOpen, setBubbleOpen] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(false);
 
   useEffect(() => {
     const initialPosition = getInitialPosition();
@@ -202,7 +206,19 @@ export function FloatingVoiceAssistant() {
     setBubbleOpen(false);
   }, [pathname]);
 
-  if (!mounted || pathname === "/patient/assistant") return null;
+  useEffect(() => {
+    const update = () => {
+      setOverlayOpen(
+        document.querySelector('[role="dialog"][aria-modal="true"], [data-vaul-drawer]') !== null,
+      );
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+    return () => observer.disconnect();
+  }, []);
+
+  if (!mounted || pathname === "/patient/assistant" || pathname === "/doctor") return null;
 
   const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) return;
@@ -248,83 +264,92 @@ export function FloatingVoiceAssistant() {
     void navigate({ to: "/patient/assistant" });
   };
 
-  const onLeft = position.x + BUTTON_SIZE / 2 < (typeof window !== "undefined" ? window.innerWidth / 2 : 0);
+  const onLeft =
+    position.x + BUTTON_SIZE / 2 < (typeof window !== "undefined" ? window.innerWidth / 2 : 0);
   const faceMood = mood === "happy" ? "normal" : mood;
 
   return (
-    <div
-      ref={wrapRef}
-      dir="rtl"
-      className="fixed z-[99999]"
-      style={{
-        left: position.x,
-        top: position.y,
-        width: BUTTON_SIZE,
-        height: BUTTON_SIZE,
-        transition: dragging ? "none" : `left 520ms ${SPRING}, top 520ms ${SPRING}`,
-      }}
-    >
-      {bubbleOpen && (
-        <div
-          role="dialog"
-          aria-label="نيمو"
-          className={`nemo-bubble-in absolute bottom-[calc(100%+10px)] w-56 rounded-2xl border border-border/60 bg-card p-3 text-right text-card-foreground shadow-soft backdrop-blur-xl ${onLeft ? "left-0" : "right-0"}`}
-        >
-          <p className="text-sm font-bold leading-relaxed">
-            أنا معاك يا بطل.. تحب تسألني عن حاجة أو تدردش بصوتك؟
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={talk}
-              className="rounded-xl bg-primary px-2 py-2 text-xs font-extrabold text-primary-foreground transition active:scale-95"
-            >
-              🎙️ تكلّم
-            </button>
-            <button
-              type="button"
-              onClick={openChat}
-              className="rounded-xl border border-border bg-background/70 px-2 py-2 text-xs font-extrabold transition active:scale-95"
-            >
-              💬 المحادثة
-            </button>
-          </div>
-        </div>
-      )}
-      <button
-        type="button"
-        onPointerDown={onPointerDown}
-        onClick={onClick}
-        aria-label={voice.enabled ? "نيمو، استئناف المساعد الصوتي" : "نيمو، رفيقك الصحي"}
-        aria-expanded={bubbleOpen}
-        title={voice.enabled ? voice.message || "نيمو | المساعد الصوتي" : "نيمو | رفيق الرعاية الصحية"}
-        className="group relative grid h-full w-full touch-none place-items-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    <>
+      {voice.consentDialog}
+      <div
+        ref={wrapRef}
+        dir="rtl"
+        className={`fixed z-40 ${overlayOpen ? "hidden" : ""}`}
+        style={{
+          left: position.x,
+          top: position.y,
+          width: BUTTON_SIZE,
+          height: BUTTON_SIZE,
+          transition: dragging ? "none" : `left 520ms ${SPRING}, top 520ms ${SPRING}`,
+        }}
       >
-        <span className="sr-only" role="status" aria-live="polite">
-          {voice.enabled ? voice.message : ""}
-        </span>
-        <span
-          ref={bodyRef}
-          className="relative grid h-full w-full place-items-center rounded-full border border-border/50 bg-card shadow-soft"
-          style={{ transition: dragging ? "transform 60ms linear" : `transform 420ms ${SPRING}` }}
+        {bubbleOpen && (
+          <div
+            role="dialog"
+            aria-label="نيمو"
+            className={`nemo-bubble-in absolute bottom-[calc(100%+10px)] w-56 rounded-2xl border border-border/60 bg-card p-3 text-right text-card-foreground shadow-soft backdrop-blur-xl ${onLeft ? "left-0" : "right-0"}`}
+          >
+            <p className="text-sm font-bold leading-relaxed">
+              أنا معاك يا بطل.. تحب تسألني عن حاجة أو تدردش بصوتك؟
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={talk}
+                className="min-h-11 rounded-xl bg-primary px-2 py-2 text-xs font-extrabold text-primary-foreground transition active:scale-95"
+              >
+                🎙️ تكلّم
+              </button>
+              <button
+                type="button"
+                onClick={openChat}
+                className="min-h-11 rounded-xl border border-border bg-background/70 px-2 py-2 text-xs font-extrabold transition active:scale-95"
+              >
+                💬 المحادثة
+              </button>
+            </div>
+          </div>
+        )}
+        <button
+          type="button"
+          onPointerDown={onPointerDown}
+          onClick={onClick}
+          aria-label={voice.enabled ? "نيمو، استئناف المساعد الصوتي" : "نيمو، رفيقك الصحي"}
+          aria-expanded={bubbleOpen}
+          title={
+            voice.enabled ? voice.message || "نيمو | المساعد الصوتي" : "نيمو | رفيق الرعاية الصحية"
+          }
+          className="group relative grid h-full w-full touch-none place-items-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
+          <span className="sr-only" role="status" aria-live="polite">
+            {voice.enabled ? voice.message : ""}
+          </span>
           <span
-            aria-hidden="true"
-            className={`pointer-events-none absolute inset-1 rounded-full bg-primary-soft/70 ${mood === "sleepy" ? "" : "motion-safe:animate-pulse"}`}
-          />
-          <NemoFaceSvg
-            happy={mood === "happy"}
-            mood={faceMood}
-            look={mood === "sleepy" ? { x: 0, y: 0.4 } : look}
-            className={`relative z-10 h-10 w-11 ${mood === "sleepy" ? "nemo-sleep" : "nemo-breathe"}`}
-          />
-          {mood === "sleepy" && (
-            <span aria-hidden="true" className="nemo-zzz absolute -top-2 left-0 text-xs font-extrabold text-primary">
-              z
-            </span>
-          )}
-        </span>
-      </button>
-    </div>
+            ref={bodyRef}
+            className="relative grid h-full w-full place-items-center rounded-full border border-border/50 bg-card shadow-soft"
+            style={{ transition: dragging ? "transform 60ms linear" : `transform 420ms ${SPRING}` }}
+          >
+            <span
+              aria-hidden="true"
+              className={`pointer-events-none absolute inset-1 rounded-full bg-primary-soft/70 ${mood === "sleepy" ? "" : "motion-safe:animate-pulse"}`}
+            />
+            <NemoFaceSvg
+              happy={mood === "happy"}
+              mood={faceMood}
+              look={mood === "sleepy" ? { x: 0, y: 0.4 } : look}
+              className={`relative z-10 h-10 w-11 ${mood === "sleepy" ? "nemo-sleep" : "nemo-breathe"}`}
+            />
+            {mood === "sleepy" && (
+              <span
+                aria-hidden="true"
+                className="nemo-zzz absolute -top-2 left-0 text-xs font-extrabold text-primary"
+              >
+                z
+              </span>
+            )}
+          </span>
+        </button>
+      </div>
+    </>
   );
 }

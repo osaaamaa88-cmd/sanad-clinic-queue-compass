@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { isVoiceModeOn, setVoiceMode, VOICE_KEY } from "../voice.ts";
+import { cleanForSpeech, isVoiceModeOn, setVoiceMode, VOICE_KEY } from "../voice.ts";
+
+it("cleans bracketed text before speech synthesis", () => {
+  assert.equal(cleanForSpeech("نتيجة [123]"), "نتيجة 123");
+});
 
 it("voice settings persist enable and disable and notify the mounted assistant", () => {
   const values = new Map<string, string>([["voice_disclaimer_seen", "true"]]);

@@ -16,17 +16,20 @@ const KEY = "sanad_ai_consent_v1";
 export function useAiConsent() {
   const [open, setOpen] = useState(false);
   const resolver = useRef<(v: boolean) => void>(undefined);
+  const pending = useRef<Promise<boolean> | null>(null);
 
   const ask = useCallback((): Promise<boolean> => {
+    if (pending.current) return pending.current;
     try {
       if (localStorage.getItem(KEY) === "yes") return Promise.resolve(true);
     } catch {
       /* ignore */
     }
     setOpen(true);
-    return new Promise((r) => {
+    pending.current = new Promise((r) => {
       resolver.current = r;
     });
+    return pending.current;
   }, []);
 
   const finish = (ok: boolean) => {
@@ -40,6 +43,7 @@ export function useAiConsent() {
     setOpen(false);
     resolver.current?.(ok);
     resolver.current = undefined;
+    pending.current = null;
   };
 
   const dialog = (
@@ -51,11 +55,12 @@ export function useAiConsent() {
     >
       <AlertDialogContent dir="rtl">
         <AlertDialogHeader>
-          <AlertDialogTitle>قبل أول فحص بالذكاء الاصطناعي</AlertDialogTitle>
+          <AlertDialogTitle>قبل أول استخدام لمساعد نيمو</AlertDialogTitle>
           <AlertDialogDescription className="text-right leading-7">
-            الصورة أو النص اللي هتبعته هيتبعت لخدمة Google Gemini عشان يتحلل ويطلعلك النتيجة.
-            مبنبعتش اسمك ولا رقمك معاها. ماتصوّرش بيانات شخصية مش محتاجها، والنتيجة استرشادية ومش
-            بديل عن الطبيب.
+            عند إرسال رسالة، قد يُرسل نصها أو تفريغها الصوتي والموقع التقريبي إلى Groq أو Google
+            لمعالجتها. إذا تعذّر التعرف الصوتي على جهازك، قد يُرسل التسجيل الصوتي إلى Groq لتفريغه،
+            وقد تُرسل الصور إلى Google للتحليل. لا نرسل اسمك أو رقمك مع الطلب. لا تكتب معلومات شخصية
+            غير لازمة، ويمكنك رفض الإرسال. الردود إرشادية ولا تغني عن الطبيب.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2">

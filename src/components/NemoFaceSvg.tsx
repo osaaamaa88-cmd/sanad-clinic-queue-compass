@@ -8,7 +8,7 @@ type NemoFaceSvgProps = {
 };
 
 /**
- * Nemo's vector face — a calm, Baymax-inspired healthcare companion.
+ * Nemo's simple vector face for the health assistant.
  * Keeps the shared `nemo-eye` blink animation hooks so existing CSS
  * (styles.css) drives blinking and reduced-motion behavior.
  */
