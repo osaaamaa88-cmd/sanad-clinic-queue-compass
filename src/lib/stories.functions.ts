@@ -11,6 +11,12 @@ export const svrGetClinicStories = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: clinic } = await supabaseAdmin
+      .from("clinics")
+      .select("id, is_disabled")
+      .eq("id", data.clinicId)
+      .maybeSingle();
+    if (!clinic || clinic.is_disabled) return { stories: [], highlights: [] };
 
     const { data: highlights } = await supabaseAdmin
       .from("clinic_highlights")
@@ -277,6 +283,8 @@ export const svrViewStory = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
+    await assertRateLimit(`story-view:${data.storyId}:${await clientIp()}`, 1, 60);
     const { data: row } = await supabaseAdmin
       .from("clinic_stories")
       .select("views_count")

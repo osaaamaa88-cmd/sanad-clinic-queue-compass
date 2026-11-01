@@ -96,8 +96,8 @@ export const ownerAiChat = createServerFn({ method: "POST" })
     if (!d || !Array.isArray(d.messages)) throw new Error("Invalid input");
     const messages = d.messages
       .slice(-12)
-      .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.text === "string")
-      .map((m) => ({ role: m.role, text: m.text.slice(0, 4000) }));
+      .filter((m) => m?.role === "user" && typeof m.text === "string")
+      .map((m) => ({ role: "user" as const, text: m.text.slice(0, 4000) }));
     if (!messages.length) throw new Error("Invalid input");
     return { messages };
   })
@@ -114,7 +114,7 @@ export const ownerAiChat = createServerFn({ method: "POST" })
         ],
       },
       contents: data.messages.map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
+        role: "user",
         parts: [{ text: m.text }],
       })),
     });

@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const clip = (s: unknown, n: number) =>
-  String(s ?? "")
-    .replace(/[\u0000-\u001f]/g, " ")
+  Array.from(String(s ?? ""), (character) => (character.charCodeAt(0) < 0x20 ? " " : character))
+    .join("")
     .slice(0, n);
 
 // Public: any screen can report a failed save. Inputs are clipped; nothing is returned.
@@ -13,20 +13,14 @@ export const reportSaveFailure = createServerFn({ method: "POST" })
     path: clip(d?.path, 120),
   }))
   .handler(async ({ data }) => {
+    const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
+    await assertRateLimit(`reportSaveFailure:${await clientIp()}`, 10, 60);
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      // simple flood guard: max 30 reports per minute overall
-      const since = new Date(Date.now() - 60_000).toISOString();
-      const { count } = await supabaseAdmin
-        .from("save_failures")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", since);
-      if ((count ?? 0) < 30) {
-        await supabaseAdmin.from("save_failures").insert(data);
-        await supabaseAdmin
-          .from("app_error_logs")
-          .insert({ screen: data.path || null, message: `${data.action}: ${data.message}` });
-      }
+      await supabaseAdmin.from("save_failures").insert(data);
+      await supabaseAdmin
+        .from("app_error_logs")
+        .insert({ screen: data.path || null, message: `${data.action}: ${data.message}` });
     } catch {
       /* never break the caller */
     }

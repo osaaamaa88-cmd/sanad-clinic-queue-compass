@@ -31,10 +31,33 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
       if (medicalLicense.length < 4 || medicalLicense.length > 15)
         throw new Error("INVALID_LICENSE");
       if (syndicateNo.length < 3 || syndicateNo.length > 15) throw new Error("INVALID_SYNDICATE");
-      const redirectTo =
-        typeof data?.redirectTo === "string" && /^https:\/\/[^\s]+$/.test(data.redirectTo)
-          ? data.redirectTo.slice(0, 300)
-          : undefined;
+      const rawRedirect = typeof data?.redirectTo === "string" ? data.redirectTo.trim() : "";
+      let redirectTo: string | undefined;
+      const hasControlCharacter = Array.from(rawRedirect).some(
+        (character) => character.charCodeAt(0) < 0x20 || character.charCodeAt(0) === 0x7f,
+      );
+      if (
+        rawRedirect.length <= 300 &&
+        rawRedirect &&
+        !rawRedirect.includes("\\") &&
+        !hasControlCharacter
+      ) {
+        if (rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")) {
+          redirectTo = rawRedirect;
+        } else {
+          try {
+            const url = new URL(rawRedirect);
+            const trustedHost =
+              (url.protocol === "https:" &&
+                url.hostname === "sanad-your-clinic-buddy.lovable.app" &&
+                !url.port) ||
+              (url.protocol === "http:" && url.hostname === "localhost");
+            if (trustedHost && !url.username && !url.password) redirectTo = rawRedirect;
+          } catch {
+            redirectTo = undefined;
+          }
+        }
+      }
       return {
         email,
         password,

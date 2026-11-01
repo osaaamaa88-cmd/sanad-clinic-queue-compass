@@ -16,17 +16,27 @@ const PROMPT = `أنت أخصائي تغذية مصري. حلّل الطعام (
 {"name":"اسم الطبق بالعربي","calories":0,"protein":0,"carbs":0,"fat":0,"fiber":0,"items":[{"name":"المكون","amount":"الكمية التقريبية","calories":0}],"advice":"نصيحة غذائية قصيرة بالعربية المصرية"}
 الأرقام بالجرام وبالسعر الحراري، أعداد صحيحة. لو مفيش أكل في الصورة اجعل calories = 0 و name = "لا يوجد طعام".`;
 
+async function assertNutritionRateLimit(scope: string, sessionKey: string) {
+  const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
+  await assertRateLimit(`ai:${scope}:ip:${await clientIp()}`, 10, 60);
+  if (sessionKey) {
+    const { deviceIdentity } = await import("@/lib/device-key.server");
+    const sessionId = await deviceIdentity(sessionKey);
+    if (sessionId) await assertRateLimit(`ai:${scope}:session:${sessionId}`, 10, 60);
+  }
+}
+
 export const analyzeFood = createServerFn({ method: "POST" })
-  .inputValidator((d: { image?: string; mime?: string; text?: string }) => {
+  .inputValidator((d: { image?: string; mime?: string; text?: string; sessionKey?: string }) => {
     const image = typeof d?.image === "string" ? d.image : undefined;
     const text = typeof d?.text === "string" ? d.text.trim().slice(0, 500) : undefined;
     if (!image && !text) throw new Error("ارفع صورة أو اكتب اسم الأكل");
     if (image && image.length > 6_000_000) throw new Error("الصورة كبيرة جداً");
     const mime = d?.mime && /^image\/(jpeg|png|webp)$/.test(d.mime) ? d.mime : "image/jpeg";
-    return { image, mime, text };
+    return { image, mime, text, sessionKey: String(d?.sessionKey ?? "").slice(0, 80) };
   })
   .handler(async ({ data }): Promise<FoodAnalysis> => {
-    await (await import("@/lib/rate-limit.server")).assertAiRateLimit("analyzeFood");
+    await assertNutritionRateLimit("analyzeFood", data.sessionKey);
     const key = process.env.GEMINI_API_KEY;
     if (!key) throw new Error("خدمة التحليل غير مضبوطة");
     const parts: any[] = [{ text: PROMPT }];
@@ -90,7 +100,14 @@ export type Alternative = {
 
 export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
   .inputValidator(
-    (d: { query: string; goal: string; target: number; eaten: number; recent: string[] }) => ({
+    (d: {
+      query: string;
+      goal: string;
+      target: number;
+      eaten: number;
+      recent: string[];
+      sessionKey?: string;
+    }) => ({
       query: String(d?.query ?? "")
         .trim()
         .slice(0, 200),
@@ -100,12 +117,11 @@ export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
       recent: (Array.isArray(d?.recent) ? d.recent : [])
         .slice(0, 15)
         .map((s) => String(s).slice(0, 60)),
+      sessionKey: String(d?.sessionKey ?? "").slice(0, 80),
     }),
   )
   .handler(async ({ data }): Promise<{ alternatives: Alternative[]; error?: string }> => {
-    await (
-      await import("@/lib/rate-limit.server")
-    ).assertAiRateLimit("suggestEgyptianAlternatives");
+    await assertNutritionRateLimit("suggestEgyptianAlternatives", data.sessionKey);
     if (!data.query) return { alternatives: [], error: "اكتب الوجبة أو هدفك" };
     const key = process.env.GEMINI_API_KEY;
     if (!key) return { alternatives: [], error: "الخدمة غير مضبوطة" };

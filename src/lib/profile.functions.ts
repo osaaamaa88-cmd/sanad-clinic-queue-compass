@@ -12,9 +12,21 @@ export const svrGetClinicProfile = createServerFn({ method: "POST" })
 
     const { data: clinic } = await supabaseAdmin
       .from("clinics")
-      .select("avatar_url, cover_url, bio")
+      .select("avatar_url, cover_url, bio, is_disabled")
       .eq("id", data.clinicId)
       .maybeSingle();
+    if (!clinic || clinic.is_disabled) {
+      return {
+        bio: "",
+        avatarUrl: "",
+        coverUrl: "",
+        posts: [],
+        postsCount: 0,
+        followers: 0,
+        ratingAvg: 0,
+        reviewsCount: 0,
+      };
+    }
 
     const { data: posts } = await supabaseAdmin
       .from("clinic_posts")

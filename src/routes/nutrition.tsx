@@ -10,6 +10,7 @@ import {
   type Alternative,
   type FoodAnalysis,
 } from "@/lib/nutrition.functions";
+import { getFollowerKey } from "@/lib/clinic-profile";
 
 export const Route = createFileRoute("/nutrition")({
   staticData: { sitemap: true },
@@ -157,7 +158,7 @@ function Nutrition() {
     setBusy(true);
     setResult(null);
     try {
-      setResult(await analyzeFood({ data: input }));
+      setResult(await analyzeFood({ data: { ...input, sessionKey: getFollowerKey() } }));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "حصلت مشكلة");
     } finally {
@@ -185,6 +186,7 @@ function Nutrition() {
           target,
           eaten,
           recent: log.slice(0, 15).map((e) => e.name),
+          sessionKey: getFollowerKey(),
         },
       });
       if (r.error) toast.error(r.error);

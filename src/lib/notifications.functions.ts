@@ -112,6 +112,7 @@ export const svrMarkClinicNotificationsRead = createServerFn({ method: "POST" })
  * per (device, clinic, queue number, threshold) so the patient is warned in time.
  */
 export const svrCheckQueueProximity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { clinicId: string; recipientKey: string; queueNumber: number }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
     return {
@@ -120,7 +121,10 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
       queueNumber: Math.max(0, Math.floor(Number(data.queueNumber) || 0)),
     };
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
+    await assertRateLimit(`queue-proximity:ip:${await clientIp()}`, 30, 60);
+    await assertRateLimit(`queue-proximity:user:${context.userId}`, 30, 60);
     data.recipientKey = await (
       await import("@/lib/device-key.server")
     ).deviceIdentity(data.recipientKey);
@@ -131,6 +135,7 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
       .select("id")
       .eq("clinic_id", data.clinicId)
       .eq("queue_number", data.queueNumber)
+      .eq("patient_user_id", context.userId)
       .neq("status", "cancelled")
       .limit(1);
     if (bookingError) {
