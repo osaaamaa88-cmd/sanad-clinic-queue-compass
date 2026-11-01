@@ -114,11 +114,23 @@ export const svrMarkClinicNotificationsRead = createServerFn({ method: "POST" })
 export const svrCheckQueueProximity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { clinicId: string; recipientKey: string; queueNumber: number }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
+    if (
+      !data ||
+      typeof data.clinicId !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        data.clinicId,
+      ) ||
+      typeof data.recipientKey !== "string" ||
+      data.recipientKey.length > 80 ||
+      !Number.isSafeInteger(data.queueNumber) ||
+      data.queueNumber < 1
+    ) {
+      throw new Error("Invalid input");
+    }
     return {
       clinicId: data.clinicId,
-      recipientKey: String(data.recipientKey ?? "").slice(0, 80),
-      queueNumber: Math.max(0, Math.floor(Number(data.queueNumber) || 0)),
+      recipientKey: data.recipientKey,
+      queueNumber: data.queueNumber,
     };
   })
   .handler(async ({ data, context }) => {
@@ -136,7 +148,7 @@ export const svrCheckQueueProximity = createServerFn({ method: "POST" })
       .eq("clinic_id", data.clinicId)
       .eq("queue_number", data.queueNumber)
       .eq("patient_user_id", context.userId)
-      .neq("status", "cancelled")
+      .eq("status", "waiting")
       .limit(1);
     if (bookingError) {
       console.error("[svrCheckQueueProximity] booking lookup failed:", bookingError.message);
