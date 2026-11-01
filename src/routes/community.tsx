@@ -461,7 +461,11 @@ function CommunityPage() {
           type="button"
           aria-pressed={noReplyOnly}
           onClick={() => setNoReplyOnly((current) => !current)}
-          className={`min-h-11 rounded-full border px-4 text-xs font-bold ${noReplyOnly ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"}`}
+          className={`min-h-11 rounded-full border px-4 text-xs font-bold transition-all duration-200 active:scale-95 ${
+            noReplyOnly
+              ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+              : "border-border/80 bg-card text-foreground shadow-xs hover:border-primary/40 hover:bg-muted/50"
+          }`}
         >
           بدون رد
         </button>
@@ -683,7 +687,11 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-11 shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"}`}
+      className={`min-h-11 shrink-0 rounded-full border px-4 py-1.5 text-xs font-bold transition-all duration-200 active:scale-95 ${
+        active
+          ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+          : "border-border/80 bg-card text-foreground shadow-xs hover:border-primary/40 hover:bg-muted/50"
+      }`}
     >
       {children}
     </button>

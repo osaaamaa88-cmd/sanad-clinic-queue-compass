@@ -66,7 +66,13 @@ export function PatientBottomNav() {
               className={`group relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 text-xs font-bold transition-all duration-200 active:scale-90 ${emergency ? "text-destructive" : active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
               <span
-                className={`grid h-9 w-14 place-items-center rounded-full transition-all duration-300 ${emergency && active ? "bg-destructive/10 shadow-soft" : active ? "bg-primary-soft shadow-soft" : "bg-transparent group-hover:bg-secondary"}`}
+                className={`grid h-9 w-14 place-items-center rounded-full transition-all duration-300 ${
+                  emergency && active
+                    ? "bg-destructive/10 text-destructive shadow-xs"
+                    : active
+                      ? "bg-primary-soft text-primary shadow-xs ring-1 ring-primary/10"
+                      : "bg-transparent group-hover:bg-secondary"
+                }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.6 : 2} />
               </span>
