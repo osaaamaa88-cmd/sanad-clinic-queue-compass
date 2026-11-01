@@ -139,22 +139,12 @@ function Reception() {
   const callPatient = useCallback(
     async (r: Booking) => {
       if (!clinic) return;
-      const payload = {
-        bookingId: r.id,
-        code: r.code,
-        patientName: r.patientName,
-        queueNumber: r.queueNumber,
-        doctorName: clinic.doctor,
-        room: "غرفة الكشف الرئيسية",
-        clinicId: clinic.id,
-      };
-      const ch = supabase.channel(`clinic-call-${clinic.id}`);
-      ch.subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          void ch.send({ type: "broadcast", event: "patient-called", payload });
-          window.setTimeout(() => void supabase.removeChannel(ch), 1000);
-        }
-      });
+      const updated = await updateBookingStatus(r.id, "in");
+      if (!updated) {
+        toast.error("تعذر إرسال النداء. حاول مرة أخرى.");
+        return;
+      }
+      await refresh(clinic.id);
       playNotification();
       toast.success("تم توجيه النداء للمريض 🔔");
       setRecentlyCalledIds((prev) => {
@@ -170,7 +160,7 @@ function Reception() {
         });
       }, 4000);
     },
-    [clinic],
+    [clinic, refresh],
   );
 
   const ops = async (patch: {
@@ -187,7 +177,10 @@ function Reception() {
   const setStatus = async (b: Booking, status: Booking["status"]) => {
     if (!clinic) return;
     if (status === "cancelled" && !confirm(`إلغاء حجز ${b.patientName}؟`)) return;
-    await updateBookingStatus(b.id, status);
+    if (!(await updateBookingStatus(b.id, status))) {
+      toast.error("تعذر تحديث حالة الحجز. حاول مرة أخرى.");
+      return;
+    }
     await refresh(clinic.id);
   };
 
@@ -310,9 +303,7 @@ function Reception() {
         <div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-secondary text-muted-foreground">
           <Hourglass className="h-5 w-5" />
         </div>
-        <p className="mt-2 text-sm font-extrabold">
-          الطابور المباشر وشاشة صالة الانتظار
-        </p>
+        <p className="mt-2 text-sm font-extrabold">الطابور المباشر وشاشة صالة الانتظار</p>
         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
           حالياً الدفتر للمرضى الحاضرين في العيادة فقط — سجّلهم يدوي واطبع كشف اليوم.
         </p>

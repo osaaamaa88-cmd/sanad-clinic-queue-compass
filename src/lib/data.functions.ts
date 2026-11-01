@@ -22,6 +22,7 @@ const uuid = (v: unknown) => {
 };
 
 export const svrCreateBooking = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(
     (data: {
       clinicId: string;
@@ -41,7 +42,7 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
       };
     },
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { assertRateLimit, clientIp } = await import("@/lib/rate-limit.server");
     await assertRateLimit(`booking:ip:${await clientIp()}`, 10, 60);
     await assertRateLimit(`booking:phone:${data.patientPhone}`, 5, 3600);
@@ -56,7 +57,7 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
     if (clinic.bookings_closed) throw new Error("Bookings closed");
 
     const code = `SND-${(await import("@/lib/device-key.server")).randomCode(8)}`;
-    const { data: rows, error } = await supabaseAdmin.rpc("create_booking", {
+    const { data: rows, error } = await supabaseAdmin.rpc("create_patient_booking", {
       p_clinic_id: data.clinicId,
       p_code: code,
       p_patient_name: data.patientName,
@@ -64,6 +65,7 @@ export const svrCreateBooking = createServerFn({ method: "POST" })
       p_day_label: data.dayLabel,
       p_slot: data.slot,
       p_visit_type: data.visitType,
+      p_patient_user_id: context.userId,
     });
     const row = Array.isArray(rows) ? rows[0] : rows;
     if (error || !row) {

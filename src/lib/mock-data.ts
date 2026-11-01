@@ -610,11 +610,12 @@ export async function listBookingsForClinic(clinicId: string): Promise<Booking[]
   }
 }
 
-export async function updateBookingStatus(id: string, status: Booking["status"]) {
+export async function updateBookingStatus(id: string, status: Booking["status"]): Promise<boolean> {
   try {
     await svrUpdateBookingStatus({ data: { id, status } });
+    return true;
   } catch {
-    // ignore
+    return false;
   }
 }
 

@@ -19,6 +19,7 @@ import { BroadcastBanner } from "../components/BroadcastBanner";
 import { AlarmStopper } from "../components/SoundControls";
 import { FloatingVoiceAssistant } from "../components/FloatingVoiceWidget";
 import { IdleLogout } from "../components/IdleLogout";
+import { PatientCallListener } from "../components/PatientCallListener";
 import { installGlobalSounds } from "../lib/sounds";
 import { installAndroidBack, installGlobalHaptics, setupStatusBar } from "../lib/native";
 import { useTheme } from "../lib/theme";
@@ -211,6 +212,7 @@ function RootComponent() {
       <NetworkStatus />
       <BroadcastBanner />
       <AlarmStopper />
+      <PatientCallListener />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <div key={pathname} className="page-enter">
         <Outlet />

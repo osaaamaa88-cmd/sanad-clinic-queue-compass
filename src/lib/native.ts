@@ -16,6 +16,44 @@ export async function hapticLight() {
   }
 }
 
+export async function vibrateForPatientCall() {
+  if (isNative()) {
+    const { Haptics } = await import("@capacitor/haptics");
+    await Haptics.vibrate({ duration: 600 });
+    return;
+  }
+  if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+    navigator.vibrate?.([300, 120, 300]);
+  }
+}
+
+export async function notifyPatientCall(title: string, body: string) {
+  if (isNative()) {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const permission = await LocalNotifications.checkPermissions();
+    const result =
+      permission.display === "granted" ? permission : await LocalNotifications.requestPermissions();
+    if (result.display !== "granted") return false;
+
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: hashId(`patient-call-${Date.now()}`),
+          title,
+          body,
+          schedule: { at: new Date(Date.now() + 250) },
+        },
+      ],
+    });
+    return true;
+  }
+
+  if (typeof window === "undefined" || !("Notification" in window)) return false;
+  if (Notification.permission !== "granted") return false;
+  new Notification(title, { body, icon: "/favicon.ico" });
+  return true;
+}
+
 export async function setupStatusBar() {
   if (!isNative()) return;
   try {

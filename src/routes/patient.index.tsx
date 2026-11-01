@@ -25,10 +25,7 @@ import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
 import { QueueTrackerCard } from "@/components/QueueTrackerCard";
 import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
-import { PatientCallModal } from "@/components/PatientCallModal";
 import { QuickBookingDrawer } from "@/components/booking/QuickBookingDrawer";
-import { supabase } from "@/integrations/supabase/client";
-import { playNotification } from "@/lib/sounds";
 import hologramFigure from "@/assets/hologram-figure.png";
 import { specialties, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -131,12 +128,6 @@ function PatientHome() {
   const [healthSnapshot, setHealthSnapshot] = useState(() =>
     typeof window === "undefined" ? {} : parseReadings(window.localStorage.getItem(READINGS_KEY)),
   );
-  const [callData, setCallData] = useState<{
-    patientName: string;
-    doctorName: string;
-    queueNumber: number;
-    room?: string;
-  } | null>(null);
   const [selectedClinicForBooking, setSelectedClinicForBooking] = useState<Clinic | null>(null);
   const [bookingDrawerOpen, setBookingDrawerOpen] = useState(false);
   const [breathingActive, setBreathingActive] = useState(false);
@@ -226,52 +217,6 @@ function PatientHome() {
     return () => window.clearInterval(interval);
   }, [breathingActive]);
 
-  useEffect(() => {
-    if (!upcomingBooking?.clinicId) return;
-    const booking = upcomingBooking;
-    const session = getPatientSession();
-    const myName = (session?.name || patientName || "").trim();
-    const myCode = booking.code;
-    const myQueue = booking.queueNumber ?? 0;
-
-    const ch = supabase
-      .channel(`clinic-call-${booking.clinicId}`)
-      .on("broadcast", { event: "patient-called" }, (payload) => {
-        const p = (payload?.payload ?? {}) as {
-          patientName?: string;
-          code?: string;
-          queueNumber?: number;
-          doctorName?: string;
-          room?: string;
-        };
-        const matches =
-          (p.code && p.code === myCode) ||
-          (p.patientName && myName && p.patientName.trim() === myName) ||
-          (typeof p.queueNumber === "number" && p.queueNumber === myQueue && myQueue > 0);
-        if (!matches) return;
-        try {
-          playNotification();
-        } catch {
-          /* ignore */
-        }
-        try {
-          navigator.vibrate?.([200, 100, 200]);
-        } catch {
-          /* ignore */
-        }
-        setCallData({
-          patientName: p.patientName || myName || "مريض",
-          doctorName: p.doctorName || "طبيب",
-          queueNumber: p.queueNumber ?? myQueue,
-          room: p.room,
-        });
-      })
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(ch);
-    };
-  }, [upcomingBooking, patientName]);
   const recommended = useMemo(
     () =>
       clinics
@@ -335,7 +280,7 @@ function PatientHome() {
               <div className="min-w-0">
                 <p className="truncate text-base font-extrabold">
                   {patientName ? patientName.split(" ")[0] : "يا بطل"}
-                </p>
+                  </p>
                 <p className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground">
                   <Sparkles className="h-3 w-3 text-primary" />
                 </p>
@@ -369,7 +314,7 @@ function PatientHome() {
                           bpStatus(healthSnapshot.bp)
                         ]
                       : "لا توجد قراءة"}
-                  </p>
+                </p>
                   <p>
                     السكر:{" "}
                     {healthSnapshot.sugar
@@ -793,15 +738,6 @@ function PatientHome() {
             onClose={() => setViewer(null)}
           />
         </Suspense>
-      )}
-      {callData && (
-        <PatientCallModal
-          patientName={callData.patientName}
-          doctorName={callData.doctorName}
-          queueNumber={callData.queueNumber}
-          room={callData.room}
-          onAcknowledge={() => setCallData(null)}
-        />
       )}
       <QuickBookingDrawer
         clinic={selectedClinicForBooking}

@@ -13,14 +13,12 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { days, getSpecialty, timeSlots, type Clinic, createBooking } from "@/lib/mock-data";
 import {
-  days,
-  getSpecialty,
-  timeSlots,
-  type Clinic,
-  createBooking,
-} from "@/lib/mock-data";
-import { getPatientSession, saveBookingLocally } from "@/lib/patient-session";
+  ensurePatientAuthIdentity,
+  getPatientSession,
+  saveBookingLocally,
+} from "@/lib/patient-session";
 import { PatientAuthModal } from "@/components/PatientAuthModal";
 
 export type QuickBookingDrawerProps = {
@@ -59,28 +57,35 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
       return;
     }
     setSubmitting(true);
-    const dayLabel = `${days[dayIdx].label} — ${days[dayIdx].date}`;
-    const b = await createBooking({
-      clinicId: clinic.id,
-      patientName: who.name,
-      patientPhone: who.phone,
-      dayLabel,
-      slot,
-    });
-    setSubmitting(false);
-    if (b) {
-      saveBookingLocally({
-        code: b.code,
+    try {
+      await ensurePatientAuthIdentity();
+      const dayLabel = `${days[dayIdx].label} — ${days[dayIdx].date}`;
+      const b = await createBooking({
         clinicId: clinic.id,
-        clinicName: clinic.doctor,
+        patientName: who.name,
+        patientPhone: who.phone,
         dayLabel,
         slot,
-        queueNumber: b.queueNumber,
       });
-      setBookedCode(b.code);
-      toast.success("تم تأكيد الحجز ✅");
-    } else {
-      toast.error("تعذر تأكيد الحجز، حاول مرة أخرى");
+      if (b) {
+        saveBookingLocally({
+          code: b.code,
+          clinicId: clinic.id,
+          clinicName: clinic.doctor,
+          dayLabel,
+          slot,
+          queueNumber: b.queueNumber,
+        });
+        setBookedCode(b.code);
+        toast.success("تم تأكيد الحجز ✅");
+      } else {
+        toast.error("تعذر تأكيد الحجز، حاول مرة أخرى");
+      }
+    } catch (error) {
+      console.error("[QuickBookingDrawer] Booking failed:", error);
+      toast.error("تعذر بدء جلسة آمنة للحجز. فعّل اتصالك وحاول مرة أخرى.");
+    } finally {
+      setSubmitting(false);
     }
   }, [clinic, dayIdx, slot, submitting]);
 
@@ -98,9 +103,7 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
                     {specialty?.emoji ?? "🩺"}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <DrawerTitle className="truncate text-right">
-                      {clinic.doctor}
-                    </DrawerTitle>
+                    <DrawerTitle className="truncate text-right">{clinic.doctor}</DrawerTitle>
                     <DrawerDescription className="text-right">
                       {specialty?.name ?? "تخصص"} • {clinic.area}
                     </DrawerDescription>
@@ -133,16 +136,11 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
               {bookedCode ? (
                 <div className="rounded-2xl border border-success/30 bg-success/10 p-4 text-center">
                   <CheckCircle2 className="mx-auto h-8 w-8 text-success" />
-                  <p className="mt-2 text-sm font-extrabold text-foreground">
-                    تم حجز دورك بنجاح
-                  </p>
+                  <p className="mt-2 text-sm font-extrabold text-foreground">تم حجز دورك بنجاح</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     رمز الحجز: <span className="font-bold text-primary">{bookedCode}</span>
                   </p>
-                  <Button
-                    className="mt-3 w-full"
-                    onClick={() => onOpenChange(false)}
-                  >
+                  <Button className="mt-3 w-full" onClick={() => onOpenChange(false)}>
                     تم
                   </Button>
                 </div>

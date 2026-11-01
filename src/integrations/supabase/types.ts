@@ -105,6 +105,7 @@ export type Database = {
           created_at: string
           day_label: string
           id: string
+          patient_user_id: string | null
           patient_name: string
           patient_phone: string
           queue_number: number
@@ -118,6 +119,7 @@ export type Database = {
           created_at?: string
           day_label?: string
           id?: string
+          patient_user_id?: string | null
           patient_name: string
           patient_phone?: string
           queue_number?: number
@@ -131,6 +133,7 @@ export type Database = {
           created_at?: string
           day_label?: string
           id?: string
+          patient_user_id?: string | null
           patient_name?: string
           patient_phone?: string
           queue_number?: number
@@ -141,6 +144,51 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "bookings_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_calls: {
+        Row: {
+          booking_code: string
+          booking_id: string
+          clinic_id: string
+          created_at: string
+          id: string
+          patient_user_id: string
+          room: string | null
+        }
+        Insert: {
+          booking_code: string
+          booking_id: string
+          clinic_id: string
+          created_at?: string
+          id?: string
+          patient_user_id: string
+          room?: string | null
+        }
+        Update: {
+          booking_code?: string
+          booking_id?: string
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          patient_user_id?: string
+          room?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_calls_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_calls_clinic_id_fkey"
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
@@ -1128,6 +1176,23 @@ export type Database = {
           p_day_label: string
           p_patient_name: string
           p_patient_phone: string
+          p_slot: string
+          p_visit_type: string
+        }
+        Returns: {
+          code: string
+          id: string
+          queue_number: number
+        }[]
+      }
+      create_patient_booking: {
+        Args: {
+          p_clinic_id: string
+          p_code: string
+          p_day_label: string
+          p_patient_name: string
+          p_patient_phone: string
+          p_patient_user_id: string
           p_slot: string
           p_visit_type: string
         }

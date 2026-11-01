@@ -66,6 +66,17 @@ export function clearPatientSession() {
   }
 }
 
+export async function ensurePatientAuthIdentity(): Promise<string> {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (sessionData.session?.user.id) return sessionData.session.user.id;
+
+  const { data, error } = await supabase.auth.signInAnonymously();
+  if (error) throw error;
+  if (!data.user?.id) throw new Error("ANONYMOUS_AUTH_FAILED");
+  return data.user.id;
+}
+
 /** Pull name/phone from a Google session when available and persist it locally. */
 export async function syncPatientSessionFromAuth(): Promise<PatientSession | null> {
   const { data } = await supabase.auth.getUser();
