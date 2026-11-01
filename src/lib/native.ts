@@ -27,7 +27,7 @@ export async function vibrateForPatientCall() {
   }
 }
 
-export async function notifyPatientCall(title: string, body: string) {
+export async function notifyLocal(title: string, body: string) {
   if (isNative()) {
     const { LocalNotifications } = await import("@capacitor/local-notifications");
     const permission = await LocalNotifications.checkPermissions();
@@ -52,6 +52,10 @@ export async function notifyPatientCall(title: string, body: string) {
   if (Notification.permission !== "granted") return false;
   new Notification(title, { body, icon: "/favicon.ico" });
   return true;
+}
+
+export async function notifyPatientCall(title: string, body: string) {
+  return notifyLocal(title, body);
 }
 
 export async function setupStatusBar(mode: "dark" | "light" = "dark") {

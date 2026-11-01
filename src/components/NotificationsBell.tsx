@@ -63,8 +63,13 @@ export function NotificationsBell({
       for (const n of res.items) {
         if (!seen.current.has(n.id)) {
           if (!first.current && !n.isRead) {
-            pushLocalNotification(n.title, n.body);
-            playNotification();
+            void pushLocalNotification(n.title, n.body)
+              .then((shown) => {
+                if (shown) playNotification();
+              })
+              .catch((error) => {
+                console.error("[NotificationsBell] Failed to deliver local notification:", error);
+              });
           }
           seen.current.add(n.id);
         }
