@@ -8,8 +8,6 @@ import {
   Star,
   MessageCircle,
   Users,
-  Check,
-  Banknote,
   BadgeCheck,
   CalendarPlus,
   Navigation,
@@ -61,9 +59,9 @@ import {
 import { clinicShareUrl, loadPostsSocial, shareLink, type PostSocial } from "@/lib/post-social";
 import { listClinicReviews, submitVerifiedReview, type ClinicReview } from "@/lib/reviews";
 import { PatientAuthModal } from "@/components/PatientAuthModal";
+import { QuickBookingDrawer } from "@/components/booking/QuickBookingDrawer";
 import {
   getPatientSession,
-  saveBookingLocally,
   syncPatientSessionFromAuth,
   type PatientSession,
 } from "@/lib/patient-session";
@@ -74,10 +72,7 @@ import {
   getSpecialty,
   specialties,
   subscribeClinic,
-  timeSlots,
-  days,
   whatsappLink,
-  createBooking,
   signOutStaff,
   type Clinic,
 } from "@/lib/mock-data";
@@ -239,12 +234,8 @@ function ClinicDetail() {
     }
   };
 
-  const [dayIdx, setDayIdx] = useState(0);
-  const [slot, setSlot] = useState<string | null>(null);
-  const [booked, setBooked] = useState(false);
-  const [bookingCode, setBookingCode] = useState<string>("");
-  const [submitting, setSubmitting] = useState(false);
-  const [tab, setTab] = useState<"posts" | "reels" | "info" | "reviews" | "book">("posts");
+  const [tab, setTab] = useState<"posts" | "reels" | "info" | "reviews">("posts");
+  const [bookingOpen, setBookingOpen] = useState(false);
   const [patient, setPatient] = useState<PatientSession | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const pendingAction = useRef<((s: PatientSession) => void) | null>(null);
@@ -263,46 +254,6 @@ function ClinicDetail() {
     });
   }, []);
 
-  const doBooking = async (who: PatientSession) => {
-    if (!clinic || !slot || submitting) return;
-    setSubmitting(true);
-    const dayLabel = `${days[dayIdx].label} — ${days[dayIdx].date}`;
-    const b = await createBooking({
-      clinicId: clinic.id,
-      patientName: who.name,
-      patientPhone: who.phone,
-      dayLabel,
-      slot,
-    });
-    setSubmitting(false);
-    if (b) {
-      saveBookingLocally({
-        code: b.code,
-        clinicId: clinic.id,
-        clinicName: clinic.doctor,
-        dayLabel,
-        slot,
-        queueNumber: b.queueNumber,
-      });
-      setBookingCode(b.code);
-      setBooked(true);
-    }
-  };
-
-  const confirmBooking = async () => {
-    if (!clinic || !slot || submitting) return;
-    if (clinic.isDemo) {
-      toast.error("هذه عيادة ببيانات تجريبية، ولا يمكن الحجز فيها.");
-      return;
-    }
-    const who = patient ?? getPatientSession();
-    if (!who) {
-      setAuthOpen(true);
-      return;
-    }
-    await doBooking(who);
-  };
-
   const backTarget = isOwner ? "/doctor" : "/patient/search";
   if (!loaded)
     return (
@@ -320,60 +271,6 @@ function ClinicDetail() {
     );
   }
   const spec = getSpecialty(clinic.specialtyId);
-
-  if (booked) {
-    const msg = `أهلاً، حجزت عند ${clinic.doctor} يوم ${days[dayIdx].date} الساعة ${slot}.\nكود الحجز: ${bookingCode}\nالدفع نقداً في العيادة.\nالعنوان: ${clinic.address} — ${clinic.area}.`;
-    return (
-      <AppShell title="تم الحجز" backTo="/patient" tone="primary">
-        <div className="-mt-6 rounded-3xl bg-card p-6 text-center shadow-soft">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-success text-success-foreground">
-            <Check className="h-8 w-8" />
-          </div>
-          <h2 className="mt-4 text-xl font-extrabold">تم تأكيد حجزك 🎉</h2>
-          <p className="mt-1 text-sm text-muted-foreground">احتفظ بكود الحجز واعرضه في العيادة</p>
-          <div className="mt-4 rounded-2xl border-2 border-dashed border-primary bg-primary-soft p-4 text-center">
-            <p className="text-xs font-bold text-primary">كود الحجز</p>
-            <p className="mt-1 text-2xl font-extrabold tracking-widest text-primary">
-              {bookingCode}
-            </p>
-          </div>
-          <div className="mt-3 flex items-center gap-3 rounded-2xl bg-success/10 p-3 text-right">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success/20 text-success">
-              <Banknote className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-foreground">الدفع نقداً في العيادة</p>
-              <p className="text-xs text-muted-foreground">مفيش أي رسوم على الحجز عبر سند</p>
-            </div>
-          </div>
-          <div className="mt-5 space-y-2 rounded-2xl bg-secondary p-4 text-right">
-            <Row label="كود الحجز" value={bookingCode} />
-            <Row label="الطبيب" value={clinic.doctor} />
-            <Row label="التخصص" value={spec?.name ?? ""} />
-            <Row label="اليوم" value={`${days[dayIdx].label} — ${days[dayIdx].date}`} />
-            <Row label="الساعة" value={slot ?? ""} />
-            <Row label="العنوان" value={`${clinic.address} — ${clinic.area}`} />
-            <Row label="سعر الكشف" value={`${clinic.price} جنيه — يُدفع نقداً`} />
-          </div>
-          <a
-            href={whatsappLink(clinic.phone, msg)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-success py-4 text-base font-extrabold text-success-foreground"
-          >
-            <MessageCircle className="h-5 w-5" /> تواصل مع العيادة على واتساب
-          </a>
-          <Link
-            to="/patient/queue/$id"
-            params={{ id: clinic.id }}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft"
-          >
-            <Users className="h-5 w-5" /> شوف دورك في العيادة
-          </Link>
-        </div>
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell title={clinic.doctor} subtitle={spec?.name} backTo={backTarget}>
@@ -461,8 +358,16 @@ function ClinicDetail() {
             <Stat value={String(extras?.postsCount ?? 0)} label="منشور" />
             <Stat value={String(extras?.followers ?? 0)} label="متابع" />
             <Stat
-              value={clinic.isDemo ? "تجريبي" : String(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)}
-              label={clinic.isDemo ? "بيانات تجريبية" : `${extras?.reviewsCount ?? clinic.reviews ?? 0} تقييم`}
+              value={
+                clinic.isDemo
+                  ? "تجريبي"
+                  : String(extras?.reviewsCount ? extras.ratingAvg : clinic.rating || 0)
+              }
+              label={
+                clinic.isDemo
+                  ? "بيانات تجريبية"
+                  : `${extras?.reviewsCount ?? clinic.reviews ?? 0} تقييم`
+              }
             />
           </div>
         </div>
@@ -617,7 +522,7 @@ function ClinicDetail() {
                 else setFollowing(!next);
               })
             }
-            className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-extrabold ${
+            className={`flex min-h-11 items-center justify-center gap-1 rounded-lg py-2 text-xs font-extrabold ${
               following ? "bg-secondary text-foreground" : "bg-primary text-primary-foreground"
             }`}
           >
@@ -636,54 +541,49 @@ function ClinicDetail() {
                   }
                 })
               }
-              className="flex items-center justify-center gap-1 rounded-lg bg-primary/15 py-2 text-xs font-extrabold text-primary"
+              className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-primary/15 py-2 text-xs font-extrabold text-primary"
             >
               <MessagesSquare className="h-4 w-4" /> مراسلة
             </button>
           )}
-          <button
-            onClick={() =>
-              requirePatient(() =>
-                window.open(
-                  whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`),
-                  "_blank",
-                  "noopener",
-                ),
-              )
-            }
-            className="flex items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
-          >
-            <MessageCircle className="h-4 w-4 text-success" /> واتساب
-          </button>
-          <button
-            onClick={() =>
-              requirePatient(() => {
-                if (clinic.phone) window.location.href = `tel:${clinic.phone}`;
-              })
-            }
-            className="flex items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
-          >
-            <Phone className="h-4 w-4 text-primary" /> اتصال
-          </button>
+          {clinic.phone && (
+            <>
+              <a
+                href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
+              >
+                <MessageCircle className="h-4 w-4 text-success" /> واتساب
+              </a>
+              <a
+                href={`tel:${clinic.phone}`}
+                className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
+              >
+                <Phone className="h-4 w-4 text-primary" /> اتصال
+              </a>
+            </>
+          )}
           <a
             href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}
-            className="flex items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
+            className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
           >
             <Navigation className="h-4 w-4 text-primary" /> اتجاهات
           </a>
           <button
             onClick={shareProfile}
-            className="flex items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
+            className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-secondary py-2 text-xs font-extrabold text-foreground"
           >
             <Share2 className="h-4 w-4" /> مشاركة
           </button>
           <button
             type="button"
-            onClick={() => setTab("book")}
+            onClick={() => setBookingOpen(true)}
             disabled={clinic.bookingsClosed || clinic.isDemo}
-            className="flex items-center justify-center gap-1 rounded-lg bg-primary py-2 text-[11px] font-extrabold text-primary-foreground transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-11 items-center justify-center gap-1 rounded-lg bg-primary py-2 text-xs font-extrabold text-primary-foreground transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <CalendarPlus className="h-4 w-4" /> {clinic.isDemo ? "بيانات تجريبية" : clinic.bookingsClosed ? "الحجز مقفول" : "احجز دورك"}
+            <CalendarPlus className="h-4 w-4" />{" "}
+            {clinic.isDemo ? "بيانات تجريبية" : clinic.bookingsClosed ? "الحجز مقفول" : "احجز دورك"}
           </button>
         </div>
 
@@ -1033,8 +933,8 @@ function ClinicDetail() {
                   {clinic.isDemo
                     ? "العيادة تجريبية ولا تملك تقييماً حقيقياً"
                     : (extras?.reviewsCount ?? 0) > 0
-                    ? `${extras?.reviewsCount} تقييم من المرضى`
-                    : "لسه مفيش تقييمات"}
+                      ? `${extras?.reviewsCount} تقييم من المرضى`
+                      : "لسه مفيش تقييمات"}
                 </p>
               </div>
             </div>
@@ -1150,78 +1050,9 @@ function ClinicDetail() {
         </div>
       )}
 
-      {tab === "book" && (
-        <>
-          {/* Day picker */}
-          <div className="mt-4">
-            <div className="mb-3 flex items-center gap-2 rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground">
-              <Clock3 className="h-4 w-4 text-primary" /> مواعيد الكشف المتاحة — اختار اليوم
-              والساعة.
-            </div>
-            <h3 className="text-base font-bold">اختار اليوم</h3>
-            <div className="-mx-5 mt-3 overflow-x-auto px-5">
-              <div className="flex gap-2">
-                {days.map((d, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setDayIdx(i)}
-                    className={`shrink-0 rounded-2xl border px-4 py-3 text-center ${
-                      dayIdx === i
-                        ? "gradient-primary border-transparent text-white shadow-soft"
-                        : "border-border bg-card text-foreground"
-                    }`}
-                  >
-                    <div className="text-xs opacity-80">{d.label}</div>
-                    <div className="mt-0.5 text-sm font-bold">{d.date}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Time picker */}
-          <div className="mt-6">
-            <h3 className="text-base font-bold">اختار الساعة</h3>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {timeSlots.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setSlot(t)}
-                  className={`rounded-xl border py-2.5 text-sm font-bold ${
-                    slot === t
-                      ? "gradient-primary border-transparent text-white"
-                      : "border-border bg-card text-foreground"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Confirm */}
-          <div className="fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[85] mx-auto max-w-md px-4">
-            <button
-              type="button"
-              onClick={() => void confirmBooking()}
-              disabled={!slot || submitting || clinic.bookingsClosed}
-              className="w-full rounded-2xl gradient-primary py-4 text-base font-extrabold text-primary-foreground shadow-soft transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {clinic.bookingsClosed
-                ? "الحجز مقفول دلوقتي — كلّم العيادة"
-                : submitting
-                  ? "جاري تأكيد الحجز…"
-                  : slot
-                    ? `أكّد الحجز — ${slot}`
-                    : "اختار الساعة الأول"}
-            </button>
-          </div>
-        </>
-      )}
-
       {authOpen && (
         <PatientAuthModal
-          title={pendingAction.current ? undefined : "بياناتك لتأكيد الدور"}
+          title={pendingAction.current ? undefined : "بياناتك للمتابعة"}
           onClose={() => {
             pendingAction.current = null;
             setAuthOpen(false);
@@ -1232,7 +1063,6 @@ function ClinicDetail() {
             const act = pendingAction.current;
             pendingAction.current = null;
             if (act) act(s);
-            else void doBooking(s);
           }}
         />
       )}
@@ -1684,6 +1514,7 @@ function ClinicDetail() {
           </div>
         </div>
       )}
+      <QuickBookingDrawer clinic={clinic} isOpen={bookingOpen} onOpenChange={setBookingOpen} />
     </AppShell>
   );
 }

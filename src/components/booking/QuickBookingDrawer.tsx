@@ -1,7 +1,17 @@
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CalendarPlus, Clock, Star, Banknote, Loader2, CheckCircle2 } from "lucide-react";
+import {
+  CalendarPlus,
+  Clock,
+  Star,
+  Banknote,
+  Loader2,
+  CheckCircle2,
+  MessageCircle,
+  Users,
+} from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,11 +23,19 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { days, getSpecialty, timeSlots, type Clinic, createBooking } from "@/lib/mock-data";
+import {
+  days,
+  getSpecialty,
+  timeSlots,
+  type Clinic,
+  createBooking,
+  whatsappLink,
+} from "@/lib/mock-data";
 import {
   ensurePatientAuthIdentity,
   getPatientSession,
   saveBookingLocally,
+  type PatientSession,
 } from "@/lib/patient-session";
 import { PatientAuthModal } from "@/components/PatientAuthModal";
 
@@ -42,52 +60,55 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
     }
   }, [isOpen, clinic?.id]);
 
-  const confirm = useCallback(async () => {
-    if (!clinic || !slot || submitting) return;
+  const confirm = useCallback(
+    async (patientOverride?: PatientSession) => {
+      if (!clinic || !slot || submitting) return;
 
-    // التحقق إذا كانت العيادة تجريبية
-    if (clinic.isDemo) {
-      toast.error("لا يمكن حجز العيادات التجريبية");
-      return;
-    }
+      // التحقق إذا كانت العيادة تجريبية
+      if (clinic.isDemo) {
+        toast.error("لا يمكن حجز العيادات التجريبية");
+        return;
+      }
 
-    const who = getPatientSession();
-    if (!who) {
-      setAuthOpen(true);
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await ensurePatientAuthIdentity();
-      const dayLabel = `${days[dayIdx].label} — ${days[dayIdx].date}`;
-      const b = await createBooking({
-        clinicId: clinic.id,
-        patientName: who.name,
-        patientPhone: who.phone,
-        dayLabel,
-        slot,
-      });
-      if (b) {
-        saveBookingLocally({
-          code: b.code,
+      const who = patientOverride ?? getPatientSession();
+      if (!who) {
+        setAuthOpen(true);
+        return;
+      }
+      setSubmitting(true);
+      try {
+        await ensurePatientAuthIdentity();
+        const dayLabel = `${days[dayIdx].label} — ${days[dayIdx].date}`;
+        const b = await createBooking({
           clinicId: clinic.id,
-          clinicName: clinic.doctor,
+          patientName: who.name,
+          patientPhone: who.phone,
           dayLabel,
           slot,
-          queueNumber: b.queueNumber,
         });
-        setBookedCode(b.code);
-        toast.success("تم تأكيد الحجز ✅");
-      } else {
-        toast.error("تعذر تأكيد الحجز، حاول مرة أخرى");
+        if (b) {
+          saveBookingLocally({
+            code: b.code,
+            clinicId: clinic.id,
+            clinicName: clinic.doctor,
+            dayLabel,
+            slot,
+            queueNumber: b.queueNumber,
+          });
+          setBookedCode(b.code);
+          toast.success("تم تأكيد الحجز ✅");
+        } else {
+          toast.error("تعذر تأكيد الحجز، حاول مرة أخرى");
+        }
+      } catch (error) {
+        console.error("[QuickBookingDrawer] Booking failed:", error);
+        toast.error("تعذر بدء جلسة آمنة للحجز. فعّل اتصالك وحاول مرة أخرى.");
+      } finally {
+        setSubmitting(false);
       }
-    } catch (error) {
-      console.error("[QuickBookingDrawer] Booking failed:", error);
-      toast.error("تعذر بدء جلسة آمنة للحجز. فعّل اتصالك وحاول مرة أخرى.");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [clinic, dayIdx, slot, submitting]);
+    },
+    [clinic, dayIdx, slot, submitting],
+  );
 
   const specialty = clinic ? getSpecialty(clinic.specialtyId) : undefined;
 
@@ -140,8 +161,34 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
                   <p className="mt-1 text-xs text-muted-foreground">
                     رمز الحجز: <span className="font-bold text-primary">{bookedCode}</span>
                   </p>
-                  <Button className="mt-3 w-full" onClick={() => onOpenChange(false)}>
-                    تم
+                  <Link
+                    to="/patient/queue/$id"
+                    params={{ id: clinic.id }}
+                    className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl gradient-primary px-4 py-3 text-sm font-extrabold text-primary-foreground"
+                  >
+                    <Users className="h-4 w-4" />
+                    تابع دورك
+                  </Link>
+                  {clinic.phone && (
+                    <a
+                      href={whatsappLink(
+                        clinic.phone,
+                        `أهلاً، حجزت عند ${clinic.doctor} يوم ${days[dayIdx].date} الساعة ${slot}. كود الحجز: ${bookedCode}.`,
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-success px-4 py-3 text-sm font-extrabold text-success-foreground"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      تواصل عبر واتساب
+                    </a>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="mt-2 min-h-12 w-full"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    إغلاق
                   </Button>
                 </div>
               ) : (
@@ -230,9 +277,9 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
         <PatientAuthModal
           title="بياناتك لتأكيد الدور"
           onClose={() => setAuthOpen(false)}
-          onDone={(s) => {
+          onDone={(patientSession) => {
             setAuthOpen(false);
-            void confirm();
+            void confirm(patientSession);
           }}
         />
       )}
