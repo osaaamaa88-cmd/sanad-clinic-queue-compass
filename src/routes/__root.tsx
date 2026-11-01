@@ -21,7 +21,7 @@ import { FloatingVoiceAssistant } from "../components/FloatingVoiceWidget";
 import { IdleLogout } from "../components/IdleLogout";
 import { PatientCallListener } from "../components/PatientCallListener";
 import { installGlobalSounds } from "../lib/sounds";
-import { installAndroidBack, installGlobalHaptics, setupStatusBar } from "../lib/native";
+import { installAndroidBack, installGlobalHaptics } from "../lib/native";
 import { useTheme } from "../lib/theme";
 import { useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -249,7 +249,6 @@ function RootComponent() {
 
   useEffect(() => {
     installGlobalSounds(toast);
-    void setupStatusBar();
     const offBack = installAndroidBack(toast);
     const offHaptics = installGlobalHaptics();
     return () => {

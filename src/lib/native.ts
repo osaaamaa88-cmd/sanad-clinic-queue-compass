@@ -54,12 +54,13 @@ export async function notifyPatientCall(title: string, body: string) {
   return true;
 }
 
-export async function setupStatusBar() {
+export async function setupStatusBar(mode: "dark" | "light" = "dark") {
   if (!isNative()) return;
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
-    await StatusBar.setBackgroundColor({ color: "#0F172A" });
-    await StatusBar.setStyle({ style: Style.Dark });
+    const isLight = mode === "light";
+    await StatusBar.setBackgroundColor({ color: isLight ? "#F8FAF9" : "#0F172A" });
+    await StatusBar.setStyle({ style: isLight ? Style.Light : Style.Dark });
     await StatusBar.setOverlaysWebView({ overlay: false });
   } catch {
     /* ignore */

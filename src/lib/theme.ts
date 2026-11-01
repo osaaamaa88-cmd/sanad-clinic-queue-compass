@@ -7,6 +7,16 @@ const LEGACY_KEY = "sandi.theme.v1";
 export function applyTheme(mode: ThemeMode) {
   if (typeof document === "undefined") return;
   document.documentElement.classList.toggle("light", mode === "light");
+
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("name", "theme-color");
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content", mode === "light" ? "#F8FAF9" : "#0F172A");
+
+  void import("./native").then(({ setupStatusBar }) => setupStatusBar(mode));
 }
 
 export function useTheme() {

@@ -145,6 +145,11 @@
   --accent-foreground: oklch(0.22 0.03 260);
   --success: oklch(0.62 0.14 155); /* #10B981 Vibrant health success */
   --success-foreground: oklch(1 0 0);
+  --chart-1: oklch(0.52 0.115 165); /* Deep Mint */
+  --chart-2: oklch(0.62 0.14 155); /* Emerald */
+  --chart-3: oklch(0.65 0.12 210); /* Soft Teal */
+  --chart-4: oklch(0.72 0.14 72); /* Warm Amber */
+  --chart-5: oklch(0.60 0.15 25); /* Alert Coral */
   --warning: oklch(0.78 0.15 75);
   --warning-foreground: oklch(0.22 0.05 60);
   --destructive: oklch(0.6 0.22 22);
@@ -588,6 +593,10 @@
 
 .sanad-dark-tiles {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.4);
+}
+
+.light .sanad-dark-tiles {
+  filter: saturate(0.85) contrast(1.02);
 }
 
 .sanad-marker {
