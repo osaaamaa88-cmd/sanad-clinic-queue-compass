@@ -108,6 +108,7 @@ type SpeechRecognitionLike = {
   lang: string;
   interimResults: boolean;
   continuous: boolean;
+  maxAlternatives?: number;
   onresult:
     | ((e: {
         results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }>;
