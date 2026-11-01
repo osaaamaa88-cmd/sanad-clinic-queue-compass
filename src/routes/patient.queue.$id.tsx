@@ -3,11 +3,7 @@ import { useEffect, useState } from "react";
 import { Users, Clock, Bell, MapPin } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import {
-  checkQueueProximity,
-  ensureNotificationPermission,
-  pushLocalNotification,
-} from "@/lib/notifications";
+import { checkQueueProximity } from "@/lib/notifications";
 import { getVerifiedClinic, type Clinic } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/patient/queue/$id")({
@@ -38,29 +34,15 @@ function Queue() {
   const yourNumber = clinic?.yourNumber ?? 0;
   const ahead = Math.max(0, yourNumber - current - 1);
 
-  useEffect(() => {
-    ensureNotificationPermission();
-  }, []);
-
-  // Live turn watcher: refresh the served number and warn when the turn is close.
+  // Persist proximity alerts; NotificationsBell owns local notification delivery.
   useEffect(() => {
     if (!yourNumber) return;
     let cancelled = false;
-    let lastAlert = "";
     const tick = async () => {
       const c = await getVerifiedClinic(id);
       if (cancelled) return;
       if (c) setCurrent(c.nowServing);
-      const res = await checkQueueProximity(id, yourNumber);
-      if (cancelled || res.ahead === null) return;
-      const key = `ahead-${res.ahead}`;
-      if (res.ahead <= 2 && key !== lastAlert) {
-        lastAlert = key;
-        pushLocalNotification(
-          res.ahead === 0 ? "دورك دلوقتي! 🎉" : `تبقى ${res.ahead} مرضى على دورك ⏳`,
-          c ? `عيادة ${c.doctor}` : "",
-        );
-      }
+      await checkQueueProximity(id, yourNumber);
     };
     tick();
     const t = window.setInterval(tick, 20000);
