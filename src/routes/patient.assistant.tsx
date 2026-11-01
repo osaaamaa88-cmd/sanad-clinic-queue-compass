@@ -29,6 +29,7 @@ import { applyBaymaxVoice, cleanForSpeech, isSeniorModeOn, setSeniorMode } from 
 import { AppShell } from "@/components/AppShell";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
 import { NemoFaceSvg } from "@/components/NemoFaceSvg";
+import { NemoBreathingCard } from "@/components/NemoBreathingCard";
 import {
   getPatientLocation,
   savePatientLocation,
@@ -107,6 +108,7 @@ type SpeechRecognitionLike = {
   lang: string;
   interimResults: boolean;
   continuous: boolean;
+  maxAlternatives?: number;
   onresult:
     | ((e: {
         results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }>;
@@ -146,40 +148,74 @@ function speakArabic(text: string, onEnd: (success: boolean) => void): () => voi
 
   const synthesis = window.speechSynthesis;
   if (synthesis.speaking || synthesis.pending) synthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(spokenText);
-  applyBaymaxVoice(utterance);
-  utterance.volume = 1;
+
+  // Chrome/Android silently drop long utterances (~15s) and speech issued
+  // right after cancel(), so speak sentence-sized chunks after a short delay.
+  const chunks = (spokenText.match(/[^.!؟?،,\n]{1,160}[.!؟?،,\n]?/g) ?? [spokenText])
+    .map((c) => c.trim())
+    .filter(Boolean);
 
   let cancelled = false;
   let started = false;
   let completed = false;
+  let index = 0;
+  let keepAlive = 0;
   const finish = (success: boolean) => {
     if (cancelled || completed) return;
     completed = true;
     window.clearTimeout(startTimer);
+    window.clearInterval(keepAlive);
     onEnd(success);
+  };
+  const speakNext = () => {
+    if (cancelled || completed) return;
+    if (index >= chunks.length) return finish(true);
+    const utterance = new SpeechSynthesisUtterance(chunks[index++]);
+    applyBaymaxVoice(utterance);
+    utterance.volume = 1;
+    utterance.onstart = () => {
+      started = true;
+      window.clearTimeout(startTimer);
+    };
+    utterance.onend = speakNext;
+    utterance.onerror = (event) => {
+      if (cancelled || completed) return;
+      if (event.error === "interrupted" || event.error === "canceled") return;
+      console.warn("[Nemo] Browser speech error:", event.error);
+      finish(false);
+    };
+    synthesis.speak(utterance);
+    if (synthesis.paused) synthesis.resume();
   };
   const startTimer = window.setTimeout(() => {
     if (started || cancelled || completed) return;
     synthesis.cancel();
-    console.warn("[Nemo] Speech playback delayed or blocked by browser autoplay policy");
+    console.warn("[Nemo] Speech playback blocked by browser");
+    toast.info("اضغط على زر السماعة جنب الرسالة عشان تسمع نيمو", { id: "nemo-audio" });
     finish(false);
-  }, 5000);
-  utterance.onstart = () => {
-    started = true;
-    window.clearTimeout(startTimer);
-  };
-  utterance.onend = () => finish(true);
-  utterance.onerror = (event) => {
-    if (cancelled || completed) return;
-    console.error("[Nemo] Browser speech failed", event.error);
-    console.warn("[Nemo] Browser speech error:", event.error);
-    finish(false);
-  };
-  synthesis.speak(utterance);
+  }, 6000);
+  // Keep Chrome's speech engine from pausing itself mid-reply.
+  keepAlive = window.setInterval(() => {
+    if (synthesis.speaking && synthesis.paused) synthesis.resume();
+  }, 4000);
+
+  const begin = () => window.setTimeout(speakNext, 120);
+  if (synthesis.getVoices().length) begin();
+  else {
+    let launched = false;
+    const go = () => {
+      if (launched) return;
+      launched = true;
+      synthesis.removeEventListener("voiceschanged", go);
+      begin();
+    };
+    synthesis.addEventListener("voiceschanged", go);
+    window.setTimeout(go, 800);
+  }
   return () => {
     cancelled = true;
     window.clearTimeout(startTimer);
+    window.clearInterval(keepAlive);
     synthesis.cancel();
   };
 }
@@ -573,16 +609,39 @@ function Assistant() {
       recognition.lang = "ar-EG";
       recognition.interimResults = true;
       recognition.continuous = false;
+      recognition.maxAlternatives = 1;
       let finalText = "";
+      let interimText = "";
+      let silenceTimer: ReturnType<typeof setTimeout> | null = null;
+      const clearSilence = () => {
+        if (silenceTimer) clearTimeout(silenceTimer);
+        silenceTimer = null;
+      };
       recognition.onresult = (event) => {
         if (recogRef.current !== recognition) return;
         finalText = finalNemoTranscript(event.results);
-        setNeed(finalText);
-        if (finalText.length >= 3) recognition.stop();
+        interimText = Array.from(event.results)
+          .filter((r) => !r.isFinal)
+          .map((r) => r[0]?.transcript ?? "")
+          .join(" ")
+          .trim();
+        // Live transcript so the patient sees what Nemo hears.
+        setNeed([finalText, interimText].filter(Boolean).join(" "));
+        // Wait for a natural pause instead of cutting the sentence early.
+        clearSilence();
+        silenceTimer = setTimeout(() => {
+          if (recogRef.current !== recognition) return;
+          try {
+            recognition.stop();
+          } catch {
+            /* already stopped */
+          }
+        }, 1600);
       };
       recognition.onerror = (event) => {
         if (recogRef.current !== recognition) return;
         if (event.error === "no-speech") return;
+        clearSilence();
         disableHandsFree();
         if (event.error === "not-allowed" || event.error === "service-not-allowed") {
           toast.error("المايكروفون مرفوض — اسمح بالوصول للمايك من إعدادات المتصفح");
@@ -591,12 +650,14 @@ function Assistant() {
         }
       };
       recognition.onend = () => {
+        clearSilence();
         if (recogRef.current !== recognition || !mountedRef.current) return;
         setListening(false);
         recogRef.current = null;
-        if (finalText.length >= 3) {
-          setNeed(finalText);
-          void submitRef.current(finalText);
+        const heard = (finalText || interimText).replace(/\s+/g, " ").trim();
+        if (heard.length >= 2) {
+          setNeed(heard);
+          void submitRef.current(heard);
         }
       };
       recogRef.current = recognition;
@@ -1183,6 +1244,8 @@ function Assistant() {
             )}
           </section>
         )}
+
+        {!urgent && <NemoBreathingCard />}
 
         {(urgent || (painLevel !== null && painLevel >= 8)) && (
           <section
