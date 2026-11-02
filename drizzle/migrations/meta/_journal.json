@@ -36,6 +36,13 @@
       "when": 1793233820450,
       "tag": "0004_seed_demo_clinics",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793579003956,
+      "tag": "0005_add_is_demo_flag_to_clinics",
+      "breakpoints": true
     }
   ]
 }
