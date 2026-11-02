@@ -287,68 +287,16 @@ function ClinicDetail() {
             setBusy(null);
           }}
         />
-        <div className="pt-1">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-base font-black text-foreground">{clinic.doctor}</h2>
-            {clinic.isVerified && !clinic.isDemo && (
-              <BadgeCheck className="h-5 w-5 shrink-0 text-primary" aria-label="موثّق" />
-            )}
-          </div>
-          <p className="text-xs font-bold text-muted-foreground">{spec?.name || "تخصص طبي"}</p>
-          <button
-            type="button"
-            onClick={() => setTab("reviews")}
-            className="mt-1 flex min-h-11 flex-wrap items-center gap-1.5 text-xs font-bold"
-            aria-label="عرض تقييمات العيادة"
-          >
-            {clinic.isDemo ? (
-              <span className="rounded-full bg-warning/10 px-2.5 py-1 text-warning">
-                بيانات تجريبية
-              </span>
-            ) : realReviewsCount > 0 ? (
-              <>
-                <span className="flex items-center gap-0.5" aria-label={`${realRating} من 5`}>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <Star
-                      key={n}
-                      className={`h-4 w-4 ${
-                        n <= Math.round(realRating)
-                          ? "fill-warning text-warning"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  ))}
-                </span>
-                <span>
-                  {realRating.toFixed(1)} ({realReviewsCount} تقييم)
-                </span>
-              </>
-            ) : (
-              <span className="text-muted-foreground">جديد</span>
-            )}
-          </button>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-bold">
-            {clinic.availableNow ? (
-              <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-success">
-                مفتوح دلوقتي
-              </span>
-            ) : (
-              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-muted-foreground">
-                مغلق دلوقتي
-              </span>
-            )}
-            <span className="rounded-full bg-secondary px-2.5 py-0.5 text-foreground">
-              {clinic.price ? `الكشف ${clinic.price} ج` : "السعر غير محدد"}
-            </span>
-            <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-primary">
-              {clinic.nowServing > 0
-                ? `بيكشف دلوقتي على #${clinic.nowServing}`
-                : "لم يبدأ الكشف بعد"}
-            </span>
+        {/* 🌟 1. Luxury Cover Banner & Floating Overlap */}
+        <div className="relative -mx-4 -mt-2 overflow-hidden sm:-mx-5">
+          <div className="h-28 w-full bg-gradient-to-l from-primary/20 via-primary/10 to-primary-soft/40 dark:from-primary/10 dark:via-background dark:to-card">
+            <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] opacity-25 [background-size:16px_16px]" />
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-5">
-          <div className="shrink-0">
+
+        {/* 🌟 2. Avatar & Identity Header */}
+        <div className="relative -mt-14 px-1">
+          <div className="flex items-end justify-between gap-3">
             <div className="relative">
               <button
                 type="button"
@@ -358,12 +306,14 @@ function ClinicDetail() {
                     setStoryView({ items: stories.stories, title: clinic.doctor });
                 }}
                 aria-label={stories.stories.length ? "مشاهدة ستوري العيادة" : "صورة العيادة"}
-                className={`relative block aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full p-[3px] shadow-soft ${
-                  stories.stories.length ? "gradient-story" : "bg-border"
+                className={`relative block aspect-square h-24 w-24 shrink-0 overflow-hidden rounded-full p-[3px] shadow-lg transition active:scale-95 ${
+                  stories.stories.length
+                    ? "gradient-story ring-4 ring-background"
+                    : "border-4 border-background bg-card"
                 }`}
               >
                 {extras?.avatarUrl ? (
-                  <span className="relative block h-full w-full overflow-hidden rounded-full border-2 border-background bg-card">
+                  <span className="relative block h-full w-full overflow-hidden rounded-full bg-card">
                     <img
                       src={extras.avatarUrl}
                       alt={`صورة ${clinic.doctor}`}
@@ -372,7 +322,7 @@ function ClinicDetail() {
                     />
                   </span>
                 ) : (
-                  <span className="grid h-full w-full place-items-center rounded-full border-2 border-background bg-primary/10 text-3xl font-black text-primary">
+                  <span className="grid h-full w-full place-items-center rounded-full bg-primary-soft text-3xl font-black text-primary">
                     {(clinic.doctor || "د")
                       .replace(/^(د\.?|دكتور|دكتورة)\s*/, "")
                       .trim()
@@ -388,7 +338,7 @@ function ClinicDetail() {
                     storyInputRef.current?.click();
                   }}
                   aria-label="إضافة ستوري جديدة"
-                  className="absolute -right-1 bottom-1 grid h-11 w-11 place-items-center rounded-full border-2 border-background gradient-gold text-gold-foreground"
+                  className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full border-2 border-background gradient-gold text-gold-foreground shadow-md transition active:scale-90"
                 >
                   {busy === "story" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -398,10 +348,97 @@ function ClinicDetail() {
                 </button>
               )}
             </div>
+
+            {/* Live Status Pill & Follow Action */}
+            <div className="flex items-center gap-2 pb-1">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black shadow-xs ${
+                  clinic.availableNow
+                    ? "border border-success/30 bg-success/15 text-success"
+                    : "border border-border bg-secondary text-muted-foreground"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    clinic.availableNow ? "animate-pulse bg-success" : "bg-muted-foreground/60"
+                  }`}
+                />
+                {clinic.availableNow ? "مفتوح دلوقتي" : "مغلق الآن"}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  requirePatient(async () => {
+                    const next = !following;
+                    setFollowing(next);
+                    const res = await toggleFollowClinic(id, next);
+                    if (res)
+                      setExtras((prev) => (prev ? { ...prev, followers: res.followers } : prev));
+                    else setFollowing(!next);
+                  })
+                }
+                className="flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-bold shadow-xs transition active:scale-95"
+              >
+                {following ? (
+                  <UserCheck className="h-3.5 w-3.5 text-primary" />
+                ) : (
+                  <UserPlus className="h-3.5 w-3.5" />
+                )}
+                {following ? "مُتابع" : "متابعة"}
+              </button>
+            </div>
           </div>
-          <div className="grid flex-1 grid-cols-2 text-center">
-            <Stat value={String(extras?.postsCount ?? 0)} label="منشور" />
-            <Stat value={String(extras?.followers ?? 0)} label="متابع" />
+
+          {/* Doctor Name & Title */}
+          <div className="mt-3">
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-xl font-black text-foreground">{clinic.doctor}</h2>
+              {clinic.isVerified && !clinic.isDemo && (
+                <BadgeCheck
+                  className="h-5 w-5 shrink-0 fill-primary/10 text-primary"
+                  aria-label="طبيب موثّق"
+                />
+              )}
+            </div>
+            <p className="mt-0.5 text-xs font-bold text-muted-foreground">
+              {spec?.name || "استشاري وأخصائي"}
+            </p>
+          </div>
+        </div>
+
+        {/* 🌟 3. Trust Metrics Ribbon */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => setTab("reviews")}
+            aria-label="عرض تقييمات العيادة"
+            className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm transition active:scale-95"
+          >
+            <div className="flex items-center gap-1 text-warning">
+              <Star className="h-4 w-4 fill-warning" />
+              <span className="text-sm font-black text-foreground">
+                {realReviewsCount > 0 ? realRating.toFixed(1) : "جديد"}
+              </span>
+            </div>
+            <span className="mt-0.5 text-[11px] font-bold text-muted-foreground">
+              {realReviewsCount > 0 ? `${realReviewsCount} تقييم` : "تقييم العيادة"}
+            </span>
+          </button>
+
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm">
+            <span className="text-sm font-black text-primary">
+              {clinic.nowServing > 0 ? `#${clinic.nowServing}` : "جاهز"}
+            </span>
+            <span className="mt-0.5 text-[11px] font-bold text-muted-foreground">
+              {clinic.nowServing > 0 ? "بيكشف عليه" : "طابور الكشف"}
+            </span>
+          </div>
+
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm">
+            <span className="text-sm font-black text-foreground">
+              {clinic.price ? `${clinic.price} ج` : "غير محدد"}
+            </span>
+            <span className="mt-0.5 text-[11px] font-bold text-muted-foreground">قيمة الكشف</span>
           </div>
         </div>
 
@@ -495,63 +532,56 @@ function ClinicDetail() {
             )}
           </div>
         ) : null}
+        {/* 🌟 4. Primary Hero Booking Button */}
         <button
           type="button"
           onClick={() => setBookingOpen(true)}
           disabled={clinic.bookingsClosed || clinic.isDemo}
-          className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl bg-primary px-5 py-3.5 text-sm font-black text-primary-foreground shadow-md shadow-primary/20 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <CalendarPlus className="h-5 w-5" />
-          {clinic.isDemo
-            ? "بيانات تجريبية — الحجز غير متاح"
-            : clinic.bookingsClosed
-              ? "الحجز مقفول"
-              : "احجز دورك"}
+          <span>
+            {clinic.isDemo
+              ? "بيانات تجريبية — الحجز غير متاح"
+              : clinic.bookingsClosed
+                ? "الحجز مقفول مؤقتاً"
+                : "احجز كشفك الآن"}
+          </span>
         </button>
-        <div className="mt-2 grid grid-cols-3 gap-2">
+
+        {/* 🌟 5. Unified 4-Action Capsule Bar */}
+        <div className="mt-2.5 grid grid-cols-4 gap-2">
           {clinic.phone && (
-            <>
-              <a
-                href={whatsappLink(clinic.phone, `أهلاً، عايز أستفسر عن مواعيد ${clinic.doctor}.`)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold text-foreground"
-              >
-                <MessageCircle className="h-4 w-4 text-success" /> واتساب
-              </a>
-              <a
-                href={`tel:${clinic.phone}`}
-                className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold text-foreground"
-              >
-                <Phone className="h-4 w-4 text-primary" /> اتصال
-              </a>
-            </>
+            <a
+              href={whatsappLink(
+                clinic.phone,
+                `أهلاً دكتور، عايز أستفسر بخصوص عيادة ${clinic.doctor}.`,
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+            >
+              <MessageCircle className="h-4 w-4 text-success" />
+              <span className="text-[11px] font-bold text-foreground">واتساب</span>
+            </a>
+          )}
+          {clinic.phone && (
+            <a
+              href={`tel:${clinic.phone}`}
+              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+            >
+              <Phone className="h-4 w-4 text-primary" />
+              <span className="text-[11px] font-bold text-foreground">اتصال</span>
+            </a>
           )}
           <a
             href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}
-            className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold text-foreground"
+            className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
           >
-            <Navigation className="h-4 w-4 text-primary" /> اتجاهات
+            <Navigation className="h-4 w-4 text-primary" />
+            <span className="text-[11px] font-bold text-foreground">اللوكيشن</span>
           </a>
-        </div>
-        <div className="mt-2 grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() =>
-              requirePatient(async () => {
-                const next = !following;
-                setFollowing(next);
-                const res = await toggleFollowClinic(id, next);
-                if (res) setExtras((prev) => (prev ? { ...prev, followers: res.followers } : prev));
-                else setFollowing(!next);
-              })
-            }
-            className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold"
-          >
-            {following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-            {following ? "بتتابعه" : "متابعة"}
-          </button>
-          {!isOwner && (
+          {!isOwner ? (
             <button
               type="button"
               onClick={() =>
@@ -564,18 +594,21 @@ function ClinicDetail() {
                   }
                 })
               }
-              className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold"
+              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
             >
-              <MessagesSquare className="h-4 w-4" /> مراسلة
+              <MessagesSquare className="h-4 w-4 text-foreground" />
+              <span className="text-[11px] font-bold text-foreground">مراسلة</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={shareProfile}
+              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+            >
+              <Share2 className="h-4 w-4 text-foreground" />
+              <span className="text-[11px] font-bold text-foreground">مشاركة</span>
             </button>
           )}
-          <button
-            type="button"
-            onClick={shareProfile}
-            className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-xs font-extrabold"
-          >
-            <Share2 className="h-4 w-4" /> مشاركة
-          </button>
         </div>
         <div className="mt-2 flex min-h-11 items-center justify-end">
           <NotificationsBell
@@ -1759,15 +1792,6 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex items-start justify-between gap-3 text-sm">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-left font-bold">{value}</span>
-    </div>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="px-1">
-      <p className="text-base font-black text-foreground">{value}</p>
-      <p className="text-xs font-bold text-muted-foreground">{label}</p>
     </div>
   );
 }

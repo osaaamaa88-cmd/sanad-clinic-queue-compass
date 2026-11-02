@@ -116,10 +116,42 @@ function DoctorHome() {
   return (
     <AppShell title="لوحة الطبيب" backTo="/">
       <div className="space-y-4 pb-28">
-        <div className="rounded-3xl bg-primary p-5 text-primary-foreground shadow-soft">
-          <p className="text-xs opacity-80">أهلاً دكتور</p>
-          <h2 className="mt-1 text-xl font-extrabold">{String(c.doctor ?? c.name ?? "")}</h2>
-          <p className="text-sm opacity-90">{String(c.name ?? "")}</p>
+        {/* 🌟 Executive Clinic Cockpit */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-emerald-800 p-6 text-primary-foreground shadow-lg shadow-primary/20">
+          <div className="absolute -left-10 -top-10 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
+          <div className="relative z-10 flex items-start justify-between gap-3">
+            <div>
+              <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur-xs">
+                لوحة إدارة العيادة 🩺
+              </span>
+              <h2 className="mt-2 text-2xl font-black tracking-tight">
+                {String(c.doctor ?? c.name ?? "")}
+              </h2>
+              <p className="mt-0.5 text-xs font-semibold opacity-85">
+                {String(c.name ?? "العيادة الرئيسية")}
+              </p>
+            </div>
+
+            <Link
+              to="/patient/clinic/$id"
+              params={{ id: clinic.id }}
+              className="flex min-h-11 items-center gap-1.5 rounded-2xl bg-white/20 px-3.5 text-xs font-black text-white shadow-xs backdrop-blur-md transition hover:bg-white/30 active:scale-95"
+            >
+              <Eye className="h-4 w-4" />
+              <span>عرض البروفايل</span>
+            </Link>
+          </div>
+
+          {/* Quick Status Line */}
+          <div className="mt-5 grid grid-cols-2 gap-2 border-t border-white/15 pt-4">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-300" />
+              <span className="text-xs font-bold opacity-95">العيادة جاهزة لاستقبال المرضى</span>
+            </div>
+            <div className="text-left text-xs font-bold opacity-80">
+              الدور الحالي: {Number(c.now_serving ?? 0) > 0 ? `#${c.now_serving}` : "لم يبدأ"}
+            </div>
+          </div>
         </div>
         <ModeSwitch current="doctor" />
         <div className="grid grid-cols-2 gap-3">
@@ -134,7 +166,7 @@ function DoctorHome() {
               </>
             );
             const cls =
-              "rounded-2xl border border-border bg-card p-4 text-right shadow-soft transition active:scale-95";
+              "group relative flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-5 text-right shadow-xs transition duration-200 active:scale-[0.97] hover:border-primary/40 hover:shadow-soft";
             return t.to ? (
               <Link key={t.label} to={t.to} className={cls}>
                 {inner}
@@ -148,7 +180,7 @@ function DoctorHome() {
           <Link
             to="/patient/clinic/$id"
             params={{ id: clinic.id }}
-            className="rounded-2xl border border-border bg-card p-4 text-right shadow-soft transition active:scale-95"
+            className="group relative flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-5 text-right shadow-xs transition duration-200 active:scale-[0.97] hover:border-primary/40 hover:shadow-soft"
           >
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-soft text-primary">
               <Eye className="h-5 w-5" />
