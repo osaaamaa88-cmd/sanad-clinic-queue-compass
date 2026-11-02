@@ -21,6 +21,7 @@ CREATE UNIQUE INDEX community_reports_comment_reporter_idx
 ALTER TABLE public.community_reports ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.community_reports FROM PUBLIC, anon, authenticated;
 GRANT INSERT ON public.community_reports TO authenticated;
+GRANT ALL ON public.community_reports TO service_role;
 
 CREATE POLICY community_reports_visible_target_insert
   ON public.community_reports
