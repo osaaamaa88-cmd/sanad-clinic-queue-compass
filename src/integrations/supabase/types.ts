@@ -107,6 +107,7 @@ export type Database = {
           id: string
           patient_name: string
           patient_phone: string
+          patient_user_id: string | null
           queue_number: number
           slot: string
           status: string
@@ -120,6 +121,7 @@ export type Database = {
           id?: string
           patient_name: string
           patient_phone?: string
+          patient_user_id?: string | null
           queue_number?: number
           slot?: string
           status?: string
@@ -133,6 +135,7 @@ export type Database = {
           id?: string
           patient_name?: string
           patient_phone?: string
+          patient_user_id?: string | null
           queue_number?: number
           slot?: string
           status?: string
@@ -807,6 +810,58 @@ export type Database = {
           },
         ]
       }
+      community_reports: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          details: string
+          id: string
+          post_id: string | null
+          reason: string
+          reporter_id: string
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          details?: string
+          id?: string
+          post_id?: string | null
+          reason: string
+          reporter_id?: string
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          details?: string
+          id?: string
+          post_id?: string | null
+          reason?: string
+          reporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deletion_requests: {
         Row: {
           created_at: string
@@ -989,6 +1044,51 @@ export type Database = {
           },
         ]
       }
+      patient_calls: {
+        Row: {
+          booking_code: string
+          booking_id: string
+          clinic_id: string
+          created_at: string
+          id: string
+          patient_user_id: string
+          room: string | null
+        }
+        Insert: {
+          booking_code: string
+          booking_id: string
+          clinic_id: string
+          created_at?: string
+          id?: string
+          patient_user_id: string
+          room?: string | null
+        }
+        Update: {
+          booking_code?: string
+          booking_id?: string
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          patient_user_id?: string
+          room?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_calls_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_calls_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           created_at: string
@@ -1131,6 +1231,23 @@ export type Database = {
           p_day_label: string
           p_patient_name: string
           p_patient_phone: string
+          p_slot: string
+          p_visit_type: string
+        }
+        Returns: {
+          code: string
+          id: string
+          queue_number: number
+        }[]
+      }
+      create_patient_booking: {
+        Args: {
+          p_clinic_id: string
+          p_code: string
+          p_day_label: string
+          p_patient_name: string
+          p_patient_phone: string
+          p_patient_user_id: string
           p_slot: string
           p_visit_type: string
         }
