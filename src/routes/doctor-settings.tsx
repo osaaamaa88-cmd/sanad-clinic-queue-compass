@@ -110,6 +110,7 @@ function DoctorSettings() {
   const [clinicId, setClinicId] = useState<string | undefined>(undefined);
   const [isVerified, setIsVerified] = useState(false);
   const [kycFile, setKycFile] = useState<File | null>(null);
+  const [hasLicenseDoc, setHasLicenseDoc] = useState(false);
   const [uploadingKyc, setUploadingKyc] = useState(false);
   const [kycAiConsent, setKycAiConsent] = useState(false);
   const [scanningKyc, setScanningKyc] = useState(false);
@@ -181,6 +182,9 @@ function DoctorSettings() {
     const membership = await getMyClinicMembership();
     setRole(membership.role);
     if (membership.clinic) hydrate(membership.clinic);
+    if (membership.medicalLicense) setMedicalLicense(membership.medicalLicense);
+    if (membership.syndicateNo) setSyndicateNo(membership.syndicateNo);
+    if (membership.licenseDocPath) setHasLicenseDoc(true);
     if (membership.role === "doctor") await loadSecretaries();
     setLoading(false);
   }, [loadSecretaries]);
@@ -327,6 +331,7 @@ function DoctorSettings() {
     try {
       const result = await uploadMedia({ clinicId, kind: "kyc", file: kycFile });
       if (result.ok) {
+        setHasLicenseDoc(true);
         setKycFile(null);
         setKycScan(null);
         setKycScanError("");
@@ -456,7 +461,7 @@ function DoctorSettings() {
                     onChange={(e) => setPass(e.target.value)}
                     type="password"
                     dir="ltr"
-                    placeholder="٦ حروف أو أرقام على الأقل"
+                    placeholder="٨ حروف أو أرقام على الأقل"
                     className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
                   />
                 </div>
@@ -610,6 +615,22 @@ function DoctorSettings() {
             ارفع صورة واضحة أو ملف PDF للترخيص. يُحفظ المستند في مساحة خاصة ولا يطّلع عليه إلا فريق
             التوثيق عبر رابط مؤقت.
           </p>
+          {hasLicenseDoc ? (
+            <div className="mt-3 flex items-center justify-between rounded-xl border border-success/30 bg-success/10 p-3 text-xs font-bold text-success">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>تم استلام مستند التوثيق وهو قيد التدقيق لدى فريق سند</span>
+              </div>
+              <span className="text-[11px] font-normal text-muted-foreground">
+                يمكنك رفع بديل أدناه
+              </span>
+            </div>
+          ) : (
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs font-bold text-warning">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span>لم يتم رفع مستند التوثيق بعد — ارفع صورة الكارنيه لبدء المراجعة.</span>
+            </div>
+          )}
           <label className="mt-3 flex items-start gap-2 rounded-xl border border-border bg-secondary/50 p-3 text-xs leading-relaxed text-muted-foreground">
             <input
               type="checkbox"

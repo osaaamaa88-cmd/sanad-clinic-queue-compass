@@ -428,6 +428,10 @@ export async function getCurrentSession() {
 export type ClinicMembership = {
   clinic: Clinic | undefined;
   role: "doctor" | "secretary" | null;
+  medicalLicense?: string;
+  syndicateNo?: string;
+  licenseDocPath?: string;
+  verificationStatus?: string;
 };
 
 /** The clinic of the signed-in doctor/secretary (server-verified). */
@@ -439,6 +443,10 @@ export async function getMyClinicMembership(): Promise<ClinicMembership> {
     return {
       clinic: res.row ? rowToClinic(res.row as unknown as Row) : undefined,
       role: (res.role as "doctor" | "secretary" | null) ?? null,
+      medicalLicense: res.medicalLicense,
+      syndicateNo: res.syndicateNo,
+      licenseDocPath: res.licenseDocPath,
+      verificationStatus: res.verificationStatus,
     };
   } catch {
     return { clinic: undefined, role: null };

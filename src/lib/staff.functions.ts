@@ -149,7 +149,7 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-/** The clinic the signed-in user manages (as owner or as staff), plus their role. */
+/** The clinic the signed-in user manages (as owner or as staff), plus their role and KYC metadata. */
 export const svrMyClinic = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -159,21 +159,55 @@ export const svrMyClinic = createServerFn({ method: "POST" })
       .select("*")
       .eq("owner_id", context.userId)
       .maybeSingle();
-    if (owned) return { row: owned, role: "doctor" as const };
+
+    const { data: userData } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    const appMeta = (userData?.user?.app_metadata ?? {}) as Record<string, unknown>;
+    const legacyMeta = (userData?.user?.user_metadata ?? {}) as Record<string, unknown>;
+    const medicalLicense = String(appMeta.medical_license ?? legacyMeta.medical_license ?? "");
+    const syndicateNo = String(appMeta.syndicate_no ?? legacyMeta.syndicate_no ?? "");
+    const licenseDocPath = String(appMeta.license_doc_path ?? "");
+    const verificationStatus = String(appMeta.verification_status ?? "");
+
+    if (owned) {
+      return {
+        row: owned,
+        role: "doctor" as const,
+        medicalLicense,
+        syndicateNo,
+        licenseDocPath,
+        verificationStatus,
+      };
+    }
 
     const { data: staff } = await supabaseAdmin
       .from("clinic_staff")
       .select("clinic_id, role")
       .eq("user_id", context.userId)
       .maybeSingle();
-    if (!staff) return { row: null, role: null };
+    if (!staff) {
+      return {
+        row: null,
+        role: null,
+        medicalLicense,
+        syndicateNo,
+        licenseDocPath,
+        verificationStatus,
+      };
+    }
 
     const { data: row } = await supabaseAdmin
       .from("clinics")
       .select("*")
       .eq("id", staff.clinic_id)
       .maybeSingle();
-    return { row: row ?? null, role: (staff.role as "doctor" | "secretary") ?? "secretary" };
+    return {
+      row: row ?? null,
+      role: (staff.role as "doctor" | "secretary") ?? "secretary",
+      medicalLicense,
+      syndicateNo,
+      licenseDocPath,
+      verificationStatus,
+    };
   });
 
 /** Doctor creates a secretary login for their own clinic. */

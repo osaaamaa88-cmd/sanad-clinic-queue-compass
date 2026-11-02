@@ -95,8 +95,8 @@ function DoctorEntry() {
       return;
     }
     if (membership.clinic) {
-      // Doctor's default dashboard = the new interactive profile
-      navigate({ to: "/patient/clinic/$id", params: { id: membership.clinic.id }, replace: true });
+      // توجيه الطبيب إلى لوحة التحكم الرئيسية الخاصة به
+      navigate({ to: "/doctor", replace: true });
       return;
     }
     setNoClinic(true);
@@ -120,12 +120,18 @@ function DoctorEntry() {
     if (syndicateDigits.length < 3)
       return setSignupError("من فضلك اكتب رقم القيد بنقابة الأطباء (٣ أرقام على الأقل)");
     setCreating(true);
+    const cleanPhone = phone.trim().replace(/\D/g, "");
+    const formattedPhone = cleanPhone.startsWith("20")
+      ? cleanPhone
+      : cleanPhone.startsWith("0")
+        ? "20" + cleanPhone.slice(1)
+        : "20" + cleanPhone;
     const res = await registerDoctorAccount({
       email: email.trim(),
       password: pass,
       doctor: name.trim(),
       specialtyId: spec,
-      phone: phone.trim().replace(/^0/, "20"),
+      phone: formattedPhone,
       medicalLicense: licenseDigits,
       syndicateNo: syndicateDigits,
     });
@@ -316,7 +322,7 @@ function DoctorEntry() {
                   onChange={(e) => setPass(e.target.value)}
                   type="password"
                   dir="ltr"
-                  placeholder="٦ حروف أو أرقام على الأقل"
+                  placeholder="٨ حروف أو أرقام على الأقل"
                   className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
                 />
               </div>
