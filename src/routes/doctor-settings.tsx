@@ -2,6 +2,7 @@ import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   MapPin,
   Save,
@@ -73,6 +74,7 @@ function DoctorSettings() {
   const [price, setPrice] = useState("");
   const [available, setAvailable] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [justSubmitted, setJustSubmitted] = useState(false);
 
   // signup fields
@@ -134,7 +136,8 @@ function DoctorSettings() {
   }, [refresh]);
 
   const save = async () => {
-    if (!name.trim() || !phone.trim()) return;
+    if (!name.trim() || !phone.trim()) return toast.error("اكتب اسم الطبيب ورقم الموبايل الأول");
+    setSaving(true);
     let targetId = clinicId;
     if (!targetId) {
       try {
@@ -145,6 +148,8 @@ function DoctorSettings() {
         setClinicId(targetId);
         resetDoctorModeCache();
       } catch {
+        setSaving(false);
+        toast.error("تعذر إنشاء العيادة، حاول تاني");
         return;
       }
     }
@@ -167,8 +172,14 @@ function DoctorSettings() {
       lat: 30.0444,
       lng: 31.2357,
     });
-    if (!updated) return;
+    if (!updated) {
+      setSaving(false);
+      toast.error("تعذر حفظ التعديلات، حاول تاني");
+      return;
+    }
     setIsVerified(updated.isVerified);
+    setSaving(false);
+    toast.success("تم حفظ بيانات عيادتك ✅");
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -555,7 +566,14 @@ function DoctorSettings() {
           </p>
         </div>
         <button
-          onClick={() => setAvailable((v) => !v)}
+          onClick={() => {
+            setAvailable((v) => !v);
+            toast.info(
+              available
+                ? "العيادة هتتبقى مقفولة بعد الحفظ"
+                : "فعّلت الإتاحة — اضغط «حفظ التعديلات» عشان تظهر للمرضى",
+            );
+          }}
           aria-label="تبديل حالة الإتاحة"
           className={`relative h-7 w-12 shrink-0 rounded-full transition ${
             available ? "bg-white/30" : "bg-secondary"
@@ -735,9 +753,10 @@ function DoctorSettings() {
 
       <button
         onClick={save}
-        className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft"
+        disabled={saving}
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-60"
       >
-        <Save className="h-5 w-5" /> {saved ? "تم الحفظ ✓" : "حفظ التعديلات"}
+        <Save className="h-5 w-5" /> {saving ? "جاري الحفظ…" : saved ? "تم الحفظ ✓" : "حفظ التعديلات"}
       </button>
 
       {justSubmitted && !isVerified && (
