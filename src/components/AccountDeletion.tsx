@@ -96,12 +96,33 @@ export function AccountDeletion() {
     }
   };
 
-  const clearDevice = () => {
+  const clearAllDeviceData = async () => {
     if (
-      window.confirm("مسح بيانات هذا الجهاز؟ هيتشيل حجزك المحفوظ وجلسة المريض من الجهاز ده بس.")
+      !window.confirm(
+        "مسح بيانات هذا الجهاز وتسجيل الخروج؟ سيتم حذف الأدوية والقياسات والبيانات الصحية والحجوزات المحفوظة محلياً على هذا الجهاز فقط.",
+      )
     ) {
-      for (const k of LOCAL_PATIENT_KEYS) window.localStorage.removeItem(k);
-      setNote("تم مسح بيانات هذا الجهاز.");
+      return;
+    }
+    setBusy(true);
+    setNote(null);
+    try {
+      for (const key of LOCAL_PATIENT_KEYS) window.localStorage.removeItem(key);
+      window.sessionStorage.removeItem("sanad_nemo_prefill");
+    } catch (error) {
+      console.error("[AccountDeletion] Failed to clear local device data", error);
+      setNote("تعذر مسح بعض البيانات المحلية. حاول مرة أخرى.");
+      setBusy(false);
+      return;
+    }
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      window.location.assign("/patient/login");
+    } catch (error) {
+      console.error("[AccountDeletion] Failed to sign out after local data was cleared", error);
+      setNote("تم مسح البيانات المحلية، لكن تعذر تسجيل الخروج. سجّل الخروج يدوياً.");
+      setBusy(false);
     }
   };
 
@@ -137,14 +158,15 @@ export function AccountDeletion() {
             انت مش مسجل دخول على الجهاز ده. سجّل دخولك عشان تقدر تطلب حذف حسابك كامل، أو امسح بيانات
             الجهاز المحلي.
           </p>
-          <button
-            onClick={clearDevice}
-            className="w-full rounded-xl border border-border bg-secondary px-3 py-2 text-sm font-bold"
-          >
-            مسح بيانات هذا الجهاز
-          </button>
         </div>
       )}
+      <button
+        onClick={() => void clearAllDeviceData()}
+        disabled={busy}
+        className="mt-3 w-full rounded-xl border border-border bg-secondary px-3 py-2 text-sm font-bold disabled:opacity-60"
+      >
+        {busy ? "جاري مسح البيانات..." : "مسح البيانات الصحية من هذا الجهاز وتسجيل الخروج"}
+      </button>
 
       {userId && request?.status === "pending" && (
         <div className="mt-3 space-y-2">

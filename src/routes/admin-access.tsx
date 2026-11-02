@@ -21,6 +21,7 @@ import {
   ShieldX,
   ExternalLink,
   FileText,
+  LogOut,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { UsersTab, LiveBookingsTab, MediaTab, SystemTab } from "@/components/admin/GodModePanel";
@@ -46,8 +47,8 @@ import {
   adminRejectDoctorKyc,
   type DoctorKycRow,
 } from "@/lib/admin.functions";
-import { checkAdminUnlocked, unlockAdmin } from "@/lib/admin-gate.functions";
-import { saveAdminToken } from "@/lib/admin-token";
+import { checkAdminUnlocked, lockAdmin, unlockAdmin } from "@/lib/admin-gate.functions";
+import { clearAdminToken, saveAdminToken } from "@/lib/admin-token";
 
 export const Route = createFileRoute("/admin-access")({
   staticData: { sitemap: false },
@@ -92,7 +93,10 @@ function AdminGate({ onUnlock }: { onUnlock: () => void }) {
     try {
       const res = await unlock({ data: { password } });
       if (res.ok) {
-        saveAdminToken(res.token);
+        if (!saveAdminToken(res.token)) {
+          setError("تعذر حفظ جلسة الإدارة على هذا الجهاز. فعّل تخزين الجلسة وحاول تاني.");
+          return;
+        }
         onUnlock();
       } else setError("كلمة السر غير صحيحة، غير مصرح لك بالدخول");
     } catch {
@@ -200,6 +204,7 @@ function Admin() {
   const [editing, setEditing] = useState<ClinicRow | null>(null);
 
   const check = useServerFn(checkAdminUnlocked);
+  const lock = useServerFn(lockAdmin);
   const list = useServerFn(adminListClinics);
   const verify = useServerFn(adminVerifyClinic);
   const remove = useServerFn(adminDeleteClinic);
@@ -265,6 +270,17 @@ function Admin() {
       setBookings((b.rows as BookingRow[]) ?? []);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await lock();
+    } catch (error) {
+      console.error("[Admin] Failed to clear server session", error);
+    } finally {
+      clearAdminToken();
+      setAuthed(false);
     }
   };
 
@@ -349,6 +365,14 @@ function Admin() {
 
   return (
     <AppShell title="لوحة تحكم الأدمن" subtitle="سند — الإدارة" backTo="/" tone="primary">
+      <button
+        type="button"
+        onClick={() => void logout()}
+        className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-bold"
+      >
+        <LogOut className="h-4 w-4" />
+        تسجيل الخروج من لوحة الإدارة
+      </button>
       {/* KPI */}
       <div className="-mt-6 grid grid-cols-2 gap-3">
         <KPI

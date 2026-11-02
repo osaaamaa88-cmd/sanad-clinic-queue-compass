@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { getRequestHeader } from "@tanstack/react-start/server";
 
-const TTL_MS = 8 * 60 * 60 * 1000;
+const TOKEN_VERSION = 2;
+const TTL_MS = 30 * 60 * 1000;
 
 function key() {
   const k = process.env.ADMIN_TOKEN_KEY || process.env.ADMIN_SESSION_KEY;
@@ -13,7 +14,7 @@ export function sessionConfig() {
   return {
     password: key(),
     name: "sanad-admin-gate",
-    maxAge: 60 * 60 * 8,
+    maxAge: 60 * 30,
     cookie: { httpOnly: true, secure: true, sameSite: "none" as const, path: "/" },
   };
 }
@@ -23,20 +24,29 @@ function sign(payload: string) {
 }
 
 export function issueAdminToken(): string {
-  const payload = Buffer.from(JSON.stringify({ exp: Date.now() + TTL_MS })).toString("base64url");
+  const payload = Buffer.from(
+    JSON.stringify({ exp: Date.now() + TTL_MS, version: TOKEN_VERSION }),
+  ).toString("base64url");
   return `${payload}.${sign(payload)}`;
 }
 
 export function verifyAdminToken(token: string | undefined | null): boolean {
   if (!token || token.length > 500) return false;
-  const [payload, sig] = token.split(".");
+  const parts = token.split(".");
+  if (parts.length !== 2) return false;
+  const [payload, sig] = parts;
   if (!payload || !sig) return false;
   const a = Buffer.from(sig);
   const b = Buffer.from(sign(payload));
   if (a.length !== b.length || !timingSafeEqual(a, b)) return false;
   try {
-    const { exp } = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
-    return typeof exp === "number" && exp > Date.now();
+    const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+      exp?: unknown;
+      version?: unknown;
+    };
+    return (
+      claims.version === TOKEN_VERSION && typeof claims.exp === "number" && claims.exp > Date.now()
+    );
   } catch {
     return false;
   }

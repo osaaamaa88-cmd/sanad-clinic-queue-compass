@@ -122,7 +122,8 @@ function PatientLogin() {
           <div className="min-w-0">
             <h2 className="text-lg font-extrabold">حسابك في سند</h2>
             <p className="text-xs text-muted-foreground">
-              حجوزاتك ومؤشراتك الصحية محفوظة مع حسابك على الجهاز.
+              بياناتك الصحية محفوظة محلياً على هذا الجهاز، وتبقى بعد تسجيل الخروج ولا تتزامن مع
+              أجهزتك الأخرى. على جهاز مشترك، امسح بيانات الجهاز قبل تسليمه لشخص آخر.
             </p>
           </div>
         </div>

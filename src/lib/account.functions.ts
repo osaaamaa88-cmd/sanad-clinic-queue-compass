@@ -6,12 +6,24 @@ async function assertAdmin() {
   await assertAdminRequest();
 }
 
-/** Files the user's own device stores — cleared locally on account deletion. */
+/** Patient and health records stored on this device — cleared by the device-wipe action. */
 export const LOCAL_PATIENT_KEYS = [
+  "sanad.user.profile",
   "sanad.patient.session",
   "sanad.patient.bookings",
   "sanady.patient.session",
   "sanady.patient.bookings",
+  "sanad_patient_session",
+  "sanad_meds_v1",
+  "sandi_meds_v1",
+  "sanad_meds_taken_v1",
+  "sanad_nutrition_log_v1",
+  "sanad_nutrition_profile_v1",
+  "sanad_health_readings_v1",
+  "sandi_health_readings_v1",
+  "sanad_medical_id_v1",
+  "sanad.patient.hydration",
+  "sanad-rx-favorites",
 ];
 
 export const svrRequestAccountDeletion = createServerFn({ method: "POST" })
