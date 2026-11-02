@@ -23,6 +23,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { svrAddSecretary, svrCreateMyClinic, svrListSecretaries } from "@/lib/staff.functions";
 import { resetDoctorModeCache } from "@/lib/use-doctor-mode";
 import { uploadMedia } from "@/lib/media-upload";
+import { useServerFn } from "@tanstack/react-start";
+import { scanDoctorKyc, type KycScan } from "@/lib/kyc-scan.functions";
+import { compareName, compareNumber, onlyDigits, type KycCheck } from "@/lib/kyc-match";
 import {
   specialties,
   upsertClinic,
@@ -62,6 +65,9 @@ function DoctorSettings() {
   const [clinicId, setClinicId] = useState<string | undefined>(undefined);
   const [isVerified, setIsVerified] = useState(false);
   const [kycFile, setKycFile] = useState<File | null>(null);
+  const [kycScan, setKycScan] = useState<KycScan | null>(null);
+  const [scanningKyc, setScanningKyc] = useState(false);
+  const scanKyc = useServerFn(scanDoctorKyc);
   const [uploadingKyc, setUploadingKyc] = useState(false);
   const kycFileInput = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
@@ -231,6 +237,31 @@ function DoctorSettings() {
       setSecError(authErrorMessage((e as Error)?.message));
     }
     setSecBusy(false);
+  };
+
+  const scanKycFile = async (file: File) => {
+    setKycScan(null);
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return;
+    setScanningKyc(true);
+    try {
+      const image = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
+        r.onerror = () => reject(new Error("read"));
+        r.readAsDataURL(file);
+      });
+      const res = await scanKyc({ data: { image, mime: file.type } });
+      setKycScan(res);
+      if (!res.found) toast.error("الصورة لا تبدو كارنيه نقابة أو ترخيص مزاولة مهنة.");
+      else {
+        if (!syndicateNo && res.syndicateNo) setSyndicateNo(onlyDigits(res.syndicateNo));
+        if (!medicalLicense && res.licenseNo) setMedicalLicense(onlyDigits(res.licenseNo));
+      }
+    } catch (e) {
+      toast.error((e as Error).message || "تعذّرت قراءة المستند");
+    } finally {
+      setScanningKyc(false);
+    }
   };
 
   const uploadKycDocument = async () => {
