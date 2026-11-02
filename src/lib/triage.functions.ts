@@ -52,17 +52,22 @@ export const aiTriage = createServerFn({ method: "POST" })
           if (res.status === 429 || res.status >= 500) continue;
           return null;
         }
-        const json: any = await res.json().catch(() => ({}));
-        const raw = (json?.candidates?.[0]?.content?.parts ?? [])
-          .map((p: any) => p.text ?? "")
-          .join("");
-        const o = JSON.parse(raw.replace(/```json|```/g, "").trim());
+        const json = (await res.json().catch(() => ({}))) as {
+          candidates?: { content?: { parts?: { text?: string }[] } }[];
+        };
+        const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
+        const o = JSON.parse(raw.replace(/```json|```/g, "").trim()) as {
+          specialtyIds?: unknown;
+          urgency?: unknown;
+          summary?: unknown;
+          advice?: unknown;
+        };
         const valid = (Array.isArray(o?.specialtyIds) ? o.specialtyIds : [])
-          .filter((id: string) => ids.includes(id))
+          .filter((id) => typeof id === "string" && ids.includes(id))
           .slice(0, 2);
         if (!valid.length) return null;
-        const urgency = ["emergency", "soon", "routine"].includes(o?.urgency)
-          ? o.urgency
+        const urgency = ["emergency", "soon", "routine"].includes(o?.urgency as string)
+          ? (o.urgency as "emergency" | "soon" | "routine")
           : "routine";
         return {
           specialtyIds: valid,

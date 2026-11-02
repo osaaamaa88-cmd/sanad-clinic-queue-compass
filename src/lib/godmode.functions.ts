@@ -84,8 +84,8 @@ export const godListUsers = createServerFn({ method: "GET" })
         ? sb.from("clinic_staff").select("user_id, role").in("user_id", ids)
         : Promise.resolve({ data: [] }),
     ]);
-    const ownerMap = new Map((owners.data ?? []).map((o: any) => [o.owner_id, o.doctor]));
-    const staffMap = new Map((staff.data ?? []).map((s: any) => [s.user_id, s.role]));
+    const ownerMap = new Map((owners.data ?? []).map((o) => [o.owner_id, o.doctor] as const));
+    const staffMap = new Map((staff.data ?? []).map((s) => [s.user_id, s.role] as const));
     const q = data.q.toLowerCase();
     const rows = users
       .map((u) => ({
@@ -96,7 +96,8 @@ export const godListUsers = createServerFn({ method: "GET" })
         createdAt: u.created_at,
         lastSignIn: u.last_sign_in_at ?? null,
         banned:
-          !!(u as any).banned_until && new Date((u as any).banned_until).getTime() > Date.now(),
+          !!(u as { banned_until?: string }).banned_until &&
+          new Date((u as { banned_until?: string }).banned_until ?? 0).getTime() > Date.now(),
         role: ownerMap.has(u.id) ? "doctor" : staffMap.has(u.id) ? "secretary" : "patient",
         clinic: ownerMap.get(u.id) ?? "",
       }))
@@ -201,7 +202,7 @@ export const godListMedia = createServerFn({ method: "GET" })
         .order("updated_at", { ascending: false })
         .range(from, to);
       return {
-        rows: (rows ?? []).map((r: any) => ({
+        rows: (rows ?? []).map((r) => ({
           id: r.id,
           clinicId: r.id,
           doctor: r.doctor,
@@ -223,10 +224,10 @@ export const godListMedia = createServerFn({ method: "GET" })
     const { signMediaRefs } = await import("@/lib/media-sign.server");
     const signed = await signMediaRefs(
       sb,
-      (rows ?? []).map((r: any) => r.media_url),
+      (rows ?? []).map((r) => r.media_url),
     );
     return {
-      rows: (rows ?? []).map((r: any) => ({
+      rows: (rows ?? []).map((r) => ({
         id: r.id,
         clinicId: r.clinic_id,
         doctor: r.clinics?.doctor ?? "",
@@ -256,7 +257,7 @@ export const godDeleteMedia = createServerFn({ method: "POST" })
     const { data: row } = await sb.from(table).select("media_url").eq("id", data.id).maybeSingle();
     const { error } = await sb.from(table).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
-    const ref = (row as any)?.media_url as string | undefined;
+    const ref = (row as { media_url?: string } | null)?.media_url;
     if (ref && !ref.startsWith("http")) {
       if (ref.startsWith("avatars:")) await sb.storage.from("avatars").remove([ref.slice(8)]);
       else await sb.storage.from("clinic-media").remove([ref]);

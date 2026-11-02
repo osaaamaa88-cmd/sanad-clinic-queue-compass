@@ -11,6 +11,10 @@ export type FoodAnalysis = {
   advice: string;
 };
 
+type GeminiParts = {
+  candidates?: { content?: { parts?: { text?: string }[] } }[];
+};
+
 const PROMPT = `أنت أخصائي تغذية مصري. حلّل الطعام (صورة أو وصف) وقدّر الكميات بواقعية مع مراعاة الأكلات المصرية والعربية.
 أعد JSON فقط بهذا الشكل بدون أي نص آخر:
 {"name":"اسم الطبق بالعربي","calories":0,"protein":0,"carbs":0,"fat":0,"fiber":0,"items":[{"name":"المكون","amount":"الكمية التقريبية","calories":0}],"advice":"نصيحة غذائية قصيرة بالعربية المصرية"}
@@ -39,7 +43,9 @@ export const analyzeFood = createServerFn({ method: "POST" })
     await assertNutritionRateLimit("analyzeFood", data.sessionKey);
     const key = process.env.GEMINI_API_KEY;
     if (!key) throw new Error("خدمة التحليل غير مضبوطة");
-    const parts: any[] = [{ text: PROMPT }];
+    const parts: ({ text: string } | { inline_data: { mime_type: string; data: string } })[] = [
+      { text: PROMPT },
+    ];
     if (data.text) parts.push({ text: `الوصف: ${data.text}` });
     if (data.image) parts.push({ inline_data: { mime_type: data.mime, data: data.image } });
     const res = await fetch(
@@ -56,15 +62,13 @@ export const analyzeFood = createServerFn({ method: "POST" })
         }),
       },
     );
-    const json: any = await res.json().catch(() => ({}));
+    const json = (await res.json().catch(() => ({}))) as GeminiParts;
     if (!res.ok) {
       if (res.status === 429) throw new Error("ضغط كبير على الخدمة، جرّب بعد دقيقة.");
       throw new Error("تعذر تحليل الأكل دلوقتي");
     }
-    const raw = (json?.candidates?.[0]?.content?.parts ?? [])
-      .map((p: any) => p.text ?? "")
-      .join("");
-    let o: any;
+    const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
+    let o: Record<string, unknown>;
     try {
       o = JSON.parse(raw.replace(/```json|```/g, "").trim());
     } catch {
@@ -78,7 +82,7 @@ export const analyzeFood = createServerFn({ method: "POST" })
       carbs: n(o.carbs),
       fat: n(o.fat),
       fiber: n(o.fiber),
-      items: (Array.isArray(o.items) ? o.items : []).slice(0, 12).map((i: any) => ({
+      items: (Array.isArray(o.items) ? o.items : []).slice(0, 12).map((i) => ({
         name: String(i?.name ?? "").slice(0, 60),
         amount: String(i?.amount ?? "").slice(0, 40),
         calories: n(i?.calories),
@@ -150,35 +154,38 @@ export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
           }),
         },
       );
-      const json: any = await res.json().catch(() => ({}));
+      const json = (await res.json().catch(() => ({}))) as GeminiParts;
       if (!res.ok) {
         console.error("suggest alternatives failed", res.status);
         if (res.status === 429)
           return { alternatives: [], error: "ضغط كبير على الخدمة، جرّب بعد دقيقة." };
         return { alternatives: [], error: "تعذر اقتراح بدائل دلوقتي" };
       }
-      const raw = (json?.candidates?.[0]?.content?.parts ?? [])
-        .map((p: any) => p.text ?? "")
-        .join("");
-      const o = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
+      const o = JSON.parse(raw.replace(/```json|```/g, "").trim()) as {
+        alternatives?: unknown;
+      };
       const n = (v: unknown) => Math.max(0, Math.round(Number(v) || 0));
       const s = (v: unknown, m: number) => String(v ?? "").slice(0, m);
       return {
         alternatives: (Array.isArray(o?.alternatives) ? o.alternatives : [])
           .slice(0, 4)
-          .map((a: any) => ({
-            name: s(a?.name, 80),
-            amount: s(a?.amount, 60),
-            calories: n(a?.calories),
-            protein: n(a?.protein),
-            carbs: n(a?.carbs),
-            fat: n(a?.fat),
-            saving: s(a?.saving, 160),
-            tip: s(a?.tip, 240),
-          })),
+          .map((a) => {
+            const item = a as Record<string, unknown>;
+            return {
+              name: s(item?.name, 80),
+              amount: s(item?.amount, 60),
+              calories: n(item?.calories),
+              protein: n(item?.protein),
+              carbs: n(item?.carbs),
+              fat: n(item?.fat),
+              saving: s(item?.saving, 160),
+              tip: s(item?.tip, 240),
+            };
+          }),
       };
-    } catch (e: any) {
-      console.error("suggest alternatives failed", e?.message);
+    } catch (e) {
+      console.error("suggest alternatives failed", e instanceof Error ? e.message : e);
       return { alternatives: [], error: "تعذر اقتراح بدائل دلوقتي" };
     }
   });

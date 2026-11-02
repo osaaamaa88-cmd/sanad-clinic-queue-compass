@@ -16,16 +16,21 @@ import {
   BookOpen,
   Loader2,
   FileText,
+  ShieldCheck,
+  AlertTriangle,
+  Check,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { svrAddSecretary, svrCreateMyClinic, svrListSecretaries } from "@/lib/staff.functions";
 import { resetDoctorModeCache } from "@/lib/use-doctor-mode";
-import { uploadMedia } from "@/lib/media-upload";
+import { compressImage, uploadMedia } from "@/lib/media-upload";
 import { useServerFn } from "@tanstack/react-start";
-import { scanDoctorKyc, type KycScan } from "@/lib/kyc-scan.functions";
+import { KYC_DOCUMENT_LIMIT } from "@/lib/kyc-document";
 import { compareName, compareNumber, onlyDigits, type KycCheck } from "@/lib/kyc-match";
+import type { KycScanResult } from "@/lib/kyc-scan";
+import { scanDoctorKyc } from "@/lib/kyc-scan.functions";
 import {
   specialties,
   upsertClinic,
@@ -55,6 +60,46 @@ export const Route = createFileRoute("/doctor-settings")({
 
 type Mode = "login" | "signup";
 
+function readFileAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        reject(new Error("تعذر قراءة الصورة"));
+        return;
+      }
+      const base64 = reader.result.split(",")[1];
+      if (!base64) {
+        reject(new Error("تعذر قراءة الصورة"));
+        return;
+      }
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("تعذر قراءة الصورة"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function KycMatchBadge({ result }: { result: KycCheck }) {
+  if (result === "match") {
+    return (
+      <span className="flex shrink-0 items-center gap-1 font-bold text-success">
+        <Check className="h-3.5 w-3.5" /> مطابق
+      </span>
+    );
+  }
+  if (result === "mismatch") {
+    return (
+      <span className="flex shrink-0 items-center gap-1 font-bold text-warning">
+        <AlertTriangle className="h-3.5 w-3.5" /> راجع البيانات
+      </span>
+    );
+  }
+  return (
+    <span className="shrink-0 text-[10px] text-muted-foreground">لا توجد بيانات للمقارنة</span>
+  );
+}
+
 function DoctorSettings() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -65,11 +110,14 @@ function DoctorSettings() {
   const [clinicId, setClinicId] = useState<string | undefined>(undefined);
   const [isVerified, setIsVerified] = useState(false);
   const [kycFile, setKycFile] = useState<File | null>(null);
-  const [kycScan, setKycScan] = useState<KycScan | null>(null);
-  const [scanningKyc, setScanningKyc] = useState(false);
-  const scanKyc = useServerFn(scanDoctorKyc);
   const [uploadingKyc, setUploadingKyc] = useState(false);
+  const [kycAiConsent, setKycAiConsent] = useState(false);
+  const [scanningKyc, setScanningKyc] = useState(false);
+  const [kycScan, setKycScan] = useState<KycScanResult | null>(null);
+  const [kycScanError, setKycScanError] = useState("");
   const kycFileInput = useRef<HTMLInputElement>(null);
+  const kycScanSequence = useRef(0);
+  const scanKyc = useServerFn(scanDoctorKyc);
   const [name, setName] = useState("");
   const [spec, setSpec] = useState(specialties[0].id);
   const [street, setStreet] = useState("");
@@ -240,27 +288,36 @@ function DoctorSettings() {
   };
 
   const scanKycFile = async (file: File) => {
-    setKycScan(null);
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return;
+    if (!clinicId || !kycAiConsent || !file.type.startsWith("image/")) return;
+    const sequence = ++kycScanSequence.current;
     setScanningKyc(true);
+    setKycScan(null);
+    setKycScanError("");
     try {
-      const image = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
-        r.onerror = () => reject(new Error("read"));
-        r.readAsDataURL(file);
-      });
-      const res = await scanKyc({ data: { image, mime: file.type } });
-      setKycScan(res);
-      if (!res.found) toast.error("الصورة لا تبدو كارنيه نقابة أو ترخيص مزاولة مهنة.");
-      else {
-        if (!syndicateNo && res.syndicateNo) setSyndicateNo(onlyDigits(res.syndicateNo));
-        if (!medicalLicense && res.licenseNo) setMedicalLicense(onlyDigits(res.licenseNo));
+      const compressed = await compressImage(file, 1440, 0.82);
+      if (!["image/jpeg", "image/png", "image/webp"].includes(compressed.type)) {
+        throw new Error("صيغة الصورة غير مدعومة للفحص الآلي");
       }
-    } catch (e) {
-      toast.error((e as Error).message || "تعذّرت قراءة المستند");
+      const result = await scanKyc({
+        data: {
+          clinicId,
+          image: await readFileAsBase64(compressed),
+          mime: compressed.type as "image/jpeg" | "image/png" | "image/webp",
+          consent: kycAiConsent,
+        },
+      });
+      if (sequence === kycScanSequence.current) setKycScan(result);
+    } catch (error) {
+      if (sequence === kycScanSequence.current) {
+        const message = error instanceof Error ? error.message : "";
+        setKycScanError(
+          message.includes("RATE_LIMITED")
+            ? "تم الوصول لحد الفحوصات المؤقت، حاول بعد دقيقة."
+            : "تعذر قراءة المستند حالياً. يمكنك رفعه ليتمكن فريق التوثيق من مراجعته يدوياً.",
+        );
+      }
     } finally {
-      setScanningKyc(false);
+      if (sequence === kycScanSequence.current) setScanningKyc(false);
     }
   };
 
@@ -271,6 +328,8 @@ function DoctorSettings() {
       const result = await uploadMedia({ clinicId, kind: "kyc", file: kycFile });
       if (result.ok) {
         setKycFile(null);
+        setKycScan(null);
+        setKycScanError("");
         if (kycFileInput.current) kycFileInput.current.value = "";
       }
     } finally {
@@ -551,20 +610,75 @@ function DoctorSettings() {
             ارفع صورة واضحة أو ملف PDF للترخيص. يُحفظ المستند في مساحة خاصة ولا يطّلع عليه إلا فريق
             التوثيق عبر رابط مؤقت.
           </p>
+          <label className="mt-3 flex items-start gap-2 rounded-xl border border-border bg-secondary/50 p-3 text-xs leading-relaxed text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={kycAiConsent}
+              onChange={(event) => {
+                const consented = event.target.checked;
+                setKycAiConsent(consented);
+                setKycScan(null);
+                setKycScanError(
+                  consented && kycFile?.type.startsWith("image/")
+                    ? "أعد اختيار الصورة لبدء الفحص بعد الموافقة."
+                    : !consented && kycFile?.type.startsWith("image/")
+                      ? "يمكنك رفع الصورة للمراجعة اليدوية. الفحص الآلي متوقف دون موافقتك."
+                      : kycFile?.type === "application/pdf"
+                        ? "ملف PDF لا يُفحص آلياً؛ ارفعه ليتمكن فريق التوثيق من مراجعته."
+                        : "",
+                );
+              }}
+              disabled={scanningKyc}
+              className="mt-0.5 accent-primary"
+            />
+            <span>
+              أوافق على إرسال صورة المستند إلى Google Gemini عبر خادم سند لاستخراج البيانات الظاهرة
+              فقط. القراءة مبدئية ولا تثبت الأصالة أو التوثيق؛ فريق سند يراجع المستند قبل منح
+              الشارة. ملفات PDF لا تُرسل للفحص الآلي.
+            </span>
+          </label>
           <input
             ref={kycFileInput}
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
-            onChange={(event) => setKycFile(event.target.files?.[0] ?? null)}
+            disabled={scanningKyc || uploadingKyc}
+            onChange={(event) => {
+              const file = event.target.files?.[0] ?? null;
+              setKycFile(file);
+              setKycScan(null);
+              setKycScanError("");
+              if (!file) return;
+              if (file.size > KYC_DOCUMENT_LIMIT) {
+                setKycFile(null);
+                event.target.value = "";
+                toast.error("حجم المستند أكبر من الحد المسموح");
+                return;
+              }
+              if (file.type.startsWith("image/")) {
+                if (kycAiConsent) {
+                  void scanKycFile(file);
+                } else {
+                  setKycScanError(
+                    "يمكنك رفع الصورة للمراجعة اليدوية. للفحص الآلي، وافق أولاً ثم أعد اختيارها.",
+                  );
+                }
+              } else {
+                setKycScanError("ملف PDF لا يُفحص آلياً؛ ارفعه ليتمكن فريق التوثيق من مراجعته.");
+              }
+            }}
             className="mt-3 w-full text-xs text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-xs file:font-bold"
           />
-          {kycFile && (
-            <p className="mt-2 truncate text-xs text-muted-foreground">{kycFile.name}</p>
+          {!kycAiConsent && (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              الفحص الآلي اختياري؛ بعد الموافقة أعد اختيار الصورة لبدء القراءة. يمكنك رفع المستند
+              للمراجعة اليدوية دون إرسال الصورة إلى خدمة الذكاء الاصطناعي.
+            </p>
           )}
+          {kycFile && <p className="mt-2 truncate text-xs text-muted-foreground">{kycFile.name}</p>}
           <button
             type="button"
             onClick={uploadKycDocument}
-            disabled={!kycFile || uploadingKyc}
+            disabled={!kycFile || uploadingKyc || scanningKyc}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl gradient-primary py-3 text-sm font-extrabold text-white disabled:opacity-60"
           >
             {uploadingKyc ? (
@@ -574,6 +688,117 @@ function DoctorSettings() {
             )}
             {uploadingKyc ? "جاري رفع المستند..." : "رفع مستند التوثيق"}
           </button>
+          {scanningKyc && (
+            <div className="mt-3 flex items-center gap-3 rounded-xl border border-primary/30 bg-primary-soft/50 p-3 text-xs font-bold text-primary">
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+              <span>جاري قراءة البيانات الظاهرة في المستند آلياً...</span>
+            </div>
+          )}
+          {kycScanError && (
+            <p className="mt-3 rounded-xl border border-warning/40 bg-warning/10 p-3 text-xs font-bold text-warning">
+              {kycScanError}
+            </p>
+          )}
+          {kycScan?.found && (
+            <div className="mt-4 space-y-3 rounded-xl border border-border bg-secondary/50 p-3.5 text-xs">
+              <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-2">
+                <div className="flex items-center gap-1.5 font-black">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span>قراءة أولية للمستند</span>
+                </div>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                  {kycScan.docType === "syndicate_card"
+                    ? "كارنيه نقابة الأطباء"
+                    : kycScan.docType === "practice_license"
+                      ? "ترخيص مزاولة المهنة"
+                      : kycScan.docType === "national_id"
+                        ? "بطاقة رقم قومي"
+                        : "مستند مهني"}
+                </span>
+              </div>
+              <div className="flex items-start gap-2 rounded-lg bg-primary/5 p-2 text-muted-foreground">
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>
+                  هذه قراءة آلية للمساعدة فقط؛ لا تتحقق من الأختام أو السجلات الرسمية ولا تمنح شارة
+                  التوثيق. القرار النهائي لفريق سند.
+                </span>
+              </div>
+              {kycScan.imageQuality !== "clear" && (
+                <div className="flex items-start gap-2 rounded-lg bg-warning/10 p-2 font-bold text-warning">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    {kycScan.imageQuality === "blurry"
+                      ? "الصورة قد تكون غير واضحة؛ جرّب تصوير المستند بإضاءة أفضل."
+                      : kycScan.imageQuality === "cropped"
+                        ? "قد تكون بعض أطراف المستند غير ظاهرة؛ جرّب صورة كاملة."
+                        : kycScan.imageQuality === "glare"
+                          ? "قد يوجد انعكاس ضوئي؛ جرّب التصوير دون فلاش."
+                          : kycScan.imageQuality === "unreadable"
+                            ? "تعذرت قراءة الصورة بوضوح؛ جرّب صورة أوضح."
+                            : "لم يتسنّ تقييم وضوح الصورة آلياً."}
+                  </span>
+                </div>
+              )}
+              {kycScan.fullName && (
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-card p-2">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-medium text-muted-foreground">الاسم المستخرج</p>
+                    <p className="break-words font-black text-foreground">{kycScan.fullName}</p>
+                  </div>
+                  <KycMatchBadge result={compareName(name, kycScan.fullName)} />
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                {kycScan.syndicateNo && (
+                  <div className="space-y-1 rounded-lg border border-border/50 bg-card p-2">
+                    <p className="text-[10px] text-muted-foreground">رقم القيد المستخرج</p>
+                    <p className="font-mono font-black text-foreground" dir="ltr">
+                      {kycScan.syndicateNo}
+                    </p>
+                    <KycMatchBadge result={compareNumber(syndicateNo, kycScan.syndicateNo)} />
+                  </div>
+                )}
+                {kycScan.licenseNo && (
+                  <div className="space-y-1 rounded-lg border border-border/50 bg-card p-2">
+                    <p className="text-[10px] text-muted-foreground">رقم الترخيص المستخرج</p>
+                    <p className="font-mono font-black text-foreground" dir="ltr">
+                      {kycScan.licenseNo}
+                    </p>
+                    <KycMatchBadge result={compareNumber(medicalLicense, kycScan.licenseNo)} />
+                  </div>
+                )}
+              </div>
+              {kycScan.nationalIdMasked && (
+                <div className="rounded-lg border border-border/50 bg-card p-2">
+                  <p className="text-[10px] text-muted-foreground">
+                    الرقم القومي (مع إخفاء معظم الأرقام)
+                  </p>
+                  <p className="font-mono font-black text-foreground" dir="ltr">
+                    {kycScan.nationalIdMasked}
+                  </p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    {kycScan.nationalIdFormatValid
+                      ? "التنسيق وتاريخ الميلاد الظاهران صالحان مبدئياً، وهذا لا يثبت صحة الرقم أو الهوية."
+                      : "تعذر تأكيد التنسيق أو تاريخ الميلاد الظاهر؛ راجع البطاقة يدوياً."}
+                  </p>
+                </div>
+              )}
+              {(kycScan.grade || kycScan.specialty || kycScan.branch) && (
+                <div className="rounded-lg border border-border/50 bg-card p-2 text-[11px] text-muted-foreground">
+                  {kycScan.grade && (
+                    <span className="font-bold text-foreground">الدرجة: {kycScan.grade} </span>
+                  )}
+                  {kycScan.specialty && <span>• التخصص: {kycScan.specialty} </span>}
+                  {kycScan.branch && <span>• نقابة {kycScan.branch}</span>}
+                </div>
+              )}
+            </div>
+          )}
+          {kycScan && !kycScan.found && (
+            <p className="mt-3 rounded-xl border border-warning/40 bg-warning/10 p-3 text-xs font-bold text-warning">
+              لم يُتعرّف على مستند مهني بوضوح. يمكنك رفعه ليُراجع يدوياً.
+            </p>
+          )}
         </section>
       )}
 
@@ -787,7 +1012,8 @@ function DoctorSettings() {
         disabled={saving}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary py-4 text-base font-extrabold text-white shadow-soft disabled:opacity-60"
       >
-        <Save className="h-5 w-5" /> {saving ? "جاري الحفظ…" : saved ? "تم الحفظ ✓" : "حفظ التعديلات"}
+        <Save className="h-5 w-5" />{" "}
+        {saving ? "جاري الحفظ…" : saved ? "تم الحفظ ✓" : "حفظ التعديلات"}
       </button>
 
       {justSubmitted && !isVerified && (

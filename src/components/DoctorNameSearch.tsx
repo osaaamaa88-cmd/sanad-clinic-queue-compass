@@ -36,11 +36,12 @@ function Avatar({
       style={{ width: size, height: size }}
     >
       <span className="grid h-full w-full place-items-center overflow-hidden rounded-full border-2 border-background bg-secondary">
-        <img src={d.avatarUrl || defaultDoctorAvatar()}
-            alt={d.doctor}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
+        <img
+          src={d.avatarUrl || defaultDoctorAvatar()}
+          alt={d.doctor}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
       </span>
     </span>
   );

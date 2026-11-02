@@ -45,7 +45,12 @@ export function NemoBreathingCard() {
           <h2 className="text-sm font-bold text-foreground">خد نفس مع نيمو</h2>
         </div>
         {running && (
-          <button type="button" onClick={stop} aria-label="إيقاف التمرين" className="rounded-full p-1.5 text-muted-foreground hover:bg-muted">
+          <button
+            type="button"
+            onClick={stop}
+            aria-label="إيقاف التمرين"
+            className="rounded-full p-1.5 text-muted-foreground hover:bg-muted"
+          >
             <X className="h-4 w-4" />
           </button>
         )}
@@ -56,13 +61,18 @@ export function NemoBreathingCard() {
           <div className="grid h-36 w-36 place-items-center">
             <div
               className="grid h-36 w-36 place-items-center rounded-full bg-primary/15 ring-8 ring-primary/10"
-              style={{ transform: `scale(${scale})`, transition: `transform ${duration}s ease-in-out` }}
+              style={{
+                transform: `scale(${scale})`,
+                transition: `transform ${duration}s ease-in-out`,
+              }}
             >
               <span className="text-3xl font-bold text-primary">{remaining}</span>
             </div>
           </div>
           <p className="text-base font-semibold text-foreground">{phase.label}</p>
-          <p className="text-xs text-muted-foreground">الدورة {cycle + 1} — كمّل 4 دورات وهتحس براحة</p>
+          <p className="text-xs text-muted-foreground">
+            الدورة {cycle + 1} — كمّل 4 دورات وهتحس براحة
+          </p>
         </div>
       ) : (
         <div className="mt-2 flex items-center justify-between gap-3">

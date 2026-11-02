@@ -18,7 +18,14 @@ export function SanadLogo({ className = "", size = 36, showText = false }: Sanad
         aria-label="شعار سند"
       >
         <defs>
-          <linearGradient id="sanad-gradient" x1="10" y1="10" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="sanad-gradient"
+            x1="10"
+            y1="10"
+            x2="90"
+            y2="90"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0%" stopColor="#93c5fd" />
             <stop offset="45%" stopColor="#38bdf8" />
             <stop offset="75%" stopColor="#2dd4bf" />

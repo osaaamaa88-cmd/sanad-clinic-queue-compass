@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Patients can read queue numbers and book, but never mutate clinic operations.
  */
 export async function assertClinicManager(
-  admin: SupabaseClient<any, any, any>,
+  admin: SupabaseClient,
   clinicId: string,
   userId: string,
 ): Promise<void> {

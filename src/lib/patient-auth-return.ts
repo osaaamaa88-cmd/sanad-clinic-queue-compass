@@ -4,6 +4,7 @@ export function safePatientReturnPath(value: unknown): string | undefined {
     typeof value !== "string" ||
     !value.startsWith("/") ||
     value.startsWith("//") ||
+    // eslint-disable-next-line no-control-regex -- the null byte and control chars are exactly what we reject
     /[\\\u0000-\u0020]/.test(value)
   )
     return undefined;

@@ -10,12 +10,17 @@ export const BREATH_PATTERN: BreathPhase[] = [
 export const BREATH_CYCLE_SECONDS = BREATH_PATTERN.reduce((s, p) => s + p.seconds, 0);
 
 /** Returns the phase and remaining seconds for an elapsed time (seconds). */
-export function breathPhaseAt(elapsed: number): { phase: BreathPhase; remaining: number; cycle: number } {
+export function breathPhaseAt(elapsed: number): {
+  phase: BreathPhase;
+  remaining: number;
+  cycle: number;
+} {
   const t = Math.max(0, elapsed);
   const cycle = Math.floor(t / BREATH_CYCLE_SECONDS);
   let within = t % BREATH_CYCLE_SECONDS;
   for (const phase of BREATH_PATTERN) {
-    if (within < phase.seconds) return { phase, remaining: Math.ceil(phase.seconds - within), cycle };
+    if (within < phase.seconds)
+      return { phase, remaining: Math.ceil(phase.seconds - within), cycle };
     within -= phase.seconds;
   }
   return { phase: BREATH_PATTERN[0], remaining: BREATH_PATTERN[0].seconds, cycle };

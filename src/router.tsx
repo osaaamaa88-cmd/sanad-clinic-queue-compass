@@ -12,7 +12,9 @@ function reloadOnceForStaleChunk() {
     const last = Number(sessionStorage.getItem("sanad:chunk-reload") || 0);
     if (Date.now() - last < 10000) return;
     sessionStorage.setItem("sanad:chunk-reload", String(Date.now()));
-  } catch {}
+  } catch {
+    // sessionStorage unavailable; reload regardless.
+  }
   window.location.reload();
 }
 if (typeof window !== "undefined") {

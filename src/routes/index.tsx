@@ -316,10 +316,7 @@ function Landing() {
               سياسة الخصوصية
             </Link>
             <span className="text-xs text-muted-foreground">·</span>
-            <Link
-              to="/developer"
-              className="text-xs font-bold text-muted-foreground underline"
-            >
+            <Link to="/developer" className="text-xs font-bold text-muted-foreground underline">
               عن المطوّر
             </Link>
           </div>

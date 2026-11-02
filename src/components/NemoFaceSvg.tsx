@@ -18,13 +18,7 @@ export function NemoFaceSvg({ happy = false, className, look, mood = "normal" }:
   const eyeRy = mood === "surprised" ? 9 : mood === "sleepy" ? 1.5 : 7;
   const eyeRx = mood === "surprised" ? 6 : 5;
   return (
-    <svg
-      viewBox="0 0 120 92"
-      role="img"
-      aria-hidden="true"
-      className={className}
-      focusable="false"
-    >
+    <svg viewBox="0 0 120 92" role="img" aria-hidden="true" className={className} focusable="false">
       <defs>
         <linearGradient id="nemo-face-fill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#ffffff" />
@@ -50,14 +44,7 @@ export function NemoFaceSvg({ happy = false, className, look, mood = "normal" }:
         strokeWidth="1.5"
       />
       {/* Forehead shine */}
-      <rect
-        x="40"
-        y="3"
-        width="40"
-        height="10"
-        rx="5"
-        fill="url(#nemo-face-shine)"
-      />
+      <rect x="40" y="3" width="40" height="10" rx="5" fill="url(#nemo-face-shine)" />
       {/* Cheek pads */}
       <ellipse cx="16" cy="48" rx="5" ry="9" fill="#cffafe" opacity="0.85" />
       <ellipse cx="104" cy="48" rx="5" ry="9" fill="#cffafe" opacity="0.85" />
@@ -88,8 +75,24 @@ export function NemoFaceSvg({ happy = false, className, look, mood = "normal" }:
           </>
         ) : (
           <>
-            <ellipse className="nemo-eye" cx="42" cy="42" rx={eyeRx} ry={eyeRy} fill="#1e293b" style={{ transition: "ry 200ms ease, rx 200ms ease" }} />
-            <ellipse className="nemo-eye" cx="78" cy="42" rx={eyeRx} ry={eyeRy} fill="#1e293b" style={{ transition: "ry 200ms ease, rx 200ms ease" }} />
+            <ellipse
+              className="nemo-eye"
+              cx="42"
+              cy="42"
+              rx={eyeRx}
+              ry={eyeRy}
+              fill="#1e293b"
+              style={{ transition: "ry 200ms ease, rx 200ms ease" }}
+            />
+            <ellipse
+              className="nemo-eye"
+              cx="78"
+              cy="42"
+              rx={eyeRx}
+              ry={eyeRy}
+              fill="#1e293b"
+              style={{ transition: "ry 200ms ease, rx 200ms ease" }}
+            />
           </>
         )}
       </g>

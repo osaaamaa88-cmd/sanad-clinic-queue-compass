@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export const AVATAR_PREFIX = "avatars:";
 
 export async function signMediaRefs(
-  admin: SupabaseClient<any, any, any>,
+  admin: SupabaseClient,
   refs: string[],
   ttl = 60 * 60 * 6,
 ): Promise<Map<string, string>> {

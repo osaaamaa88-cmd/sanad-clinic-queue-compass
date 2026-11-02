@@ -54,7 +54,9 @@ export async function listEmergencyFacilities(): Promise<EmergencyFacility[]> {
   }));
   try {
     localStorage.setItem(FAC_KEY, JSON.stringify(list));
-  } catch {}
+  } catch {
+    // localStorage unavailable; the fetch result is still returned.
+  }
   return list;
 }
 

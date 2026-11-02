@@ -1,6 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+
+type BookingRow = {
+  id: string;
+  patient_name: string | null;
+  day_label: string | null;
+  slot: string | null;
+  queue_number: number | null;
+  status: string | null;
+  clinics?: { doctor: string | null } | null;
+};
+type MediaRow = {
+  id: string;
+  clinicId: string;
+  doctor: string;
+  url: string;
+  mediaType: string;
+  caption: string;
+  createdAt: string;
+};
 import {
   Ban,
   Trash2,
@@ -203,7 +222,10 @@ export function LiveBookingsTab() {
   const update = useServerFn(godUpdateBooking);
   const [page, setPage] = useState(0);
   const [q, setQ] = useState("");
-  const [data, setData] = useState<{ rows: any[]; hasMore: boolean }>({ rows: [], hasMore: false });
+  const [data, setData] = useState<{ rows: BookingRow[]; hasMore: boolean }>({
+    rows: [],
+    hasMore: false,
+  });
   const load = useCallback(
     () =>
       list({ data: { page, q } })
@@ -252,9 +274,9 @@ export function LiveBookingsTab() {
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               onClick={async () => {
-                const day = prompt("اليوم الجديد", b.day_label);
+                const day = prompt("اليوم الجديد", b.day_label ?? "");
                 if (day === null) return;
-                const slot = prompt("الميعاد الجديد", b.slot);
+                const slot = prompt("الميعاد الجديد", b.slot ?? "");
                 if (slot === null) return;
                 if (
                   await run(
@@ -295,7 +317,10 @@ export function MediaTab() {
   const del = useServerFn(godDeleteMedia);
   const [kind, setKind] = useState<"posts" | "stories" | "youtube">("posts");
   const [page, setPage] = useState(0);
-  const [data, setData] = useState<{ rows: any[]; hasMore: boolean }>({ rows: [], hasMore: false });
+  const [data, setData] = useState<{ rows: MediaRow[]; hasMore: boolean }>({
+    rows: [],
+    hasMore: false,
+  });
   const load = useCallback(
     () =>
       list({ data: { page, kind } })

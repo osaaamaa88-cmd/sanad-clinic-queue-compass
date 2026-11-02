@@ -280,9 +280,7 @@ export function StoryViewer({
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-extrabold text-white">{title}</p>
-                <p className="text-xs font-medium text-white/70">
-                  {timeAgo(current.createdAt)}
-                </p>
+                <p className="text-xs font-medium text-white/70">{timeAgo(current.createdAt)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
