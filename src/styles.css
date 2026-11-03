@@ -127,50 +127,50 @@
 }
 
 .light {
-  /* Light mode — Royal Medical Emerald (#0D7557) */
-  --background: oklch(0.985 0.005 160); /* أرضية هادئة ناصعة مائلة لراحة العين */
-  --foreground: oklch(0.18 0.035 170); /* خط داكن شديد الوضوح */
-  --card: oklch(1 0 0); /* كروت بيضاء نقية بارزة */
-  --card-foreground: oklch(0.18 0.035 170);
+  /* Light mode — Sanad Aurora Medical (مطابق لأيقونة التطبيق: تركواز سماوي + لافندر + كحلي داكن) */
+  --background: oklch(0.985 0.005 210); /* أرضية بيضاء ثلجية مائلة للتركواز الناعم لراحة العين */
+  --foreground: oklch(0.18 0.035 255); /* خط كحلي داكن شديد الوضوح مطابق للون نبض القلب في الأيقونة */
+  --card: oklch(1 0 0); /* كروت بيضاء نقية وبارزة */
+  --card-foreground: oklch(0.18 0.035 255);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.035 170);
-  --primary: oklch(0.48 0.13 162); /* أخضر زمردي عميق وفاخر للقوائم والأزرار الكبيرة */
-  --primary-foreground: oklch(0.99 0 0); /* نصوص بيضاء ناصعة فوق الأخضر */
-  --primary-soft: oklch(0.95 0.035 162); /* خلفيات خضراء ناعمة ومريحة للقوائم الثانوية */
-  --secondary: oklch(0.96 0.01 160);
-  --secondary-foreground: oklch(0.20 0.035 170);
-  --muted: oklch(0.96 0.01 160);
-  --muted-foreground: oklch(0.46 0.025 170);
-  --accent: oklch(0.935 0.04 162); /* تفاعل اللمس للشاشات الكبيرة */
-  --accent-foreground: oklch(0.18 0.035 170);
-  --success: oklch(0.58 0.16 150); /* علامات النجاح والصحة */
+  --popover-foreground: oklch(0.18 0.035 255);
+  --primary: oklch(0.50 0.135 210); /* تركواز سماوي طبي عميق مطابق لقلب الأيقونة وواضح فوق الأبيض */
+  --primary-foreground: oklch(0.99 0 0); /* نصوص بيضاء ناصعة على القوائم والأزرار */
+  --primary-soft: oklch(0.94 0.035 210); /* خلفية مائية ناعمة للبطاقات والأزرار الثانوية */
+  --secondary: oklch(0.96 0.012 210);
+  --secondary-foreground: oklch(0.20 0.035 255);
+  --muted: oklch(0.96 0.012 210);
+  --muted-foreground: oklch(0.46 0.025 240);
+  --accent: oklch(0.935 0.045 285); /* لمسة لافندر شفقية ناعمة مستوحاة من أطراف الأيقونة */
+  --accent-foreground: oklch(0.20 0.04 285);
+  --success: oklch(0.58 0.15 160);
   --success-foreground: oklch(1 0 0);
-  --chart-1: oklch(0.48 0.13 162);
-  --chart-2: oklch(0.58 0.16 150);
-  --chart-3: oklch(0.65 0.12 185);
+  --chart-1: oklch(0.50 0.135 210);
+  --chart-2: oklch(0.60 0.14 185);
+  --chart-3: oklch(0.65 0.12 285);
   --chart-4: oklch(0.72 0.14 75);
   --chart-5: oklch(0.60 0.18 25);
   --warning: oklch(0.78 0.15 75);
   --warning-foreground: oklch(0.22 0.05 60);
   --destructive: oklch(0.60 0.22 22);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.91 0.015 162); /* حواف خضراء ثلجية رقيقة */
-  --input: oklch(0.91 0.015 162);
-  --ring: oklch(0.48 0.13 162);
+  --border: oklch(0.91 0.015 210); /* حواف ثلجية مائية رقيقة */
+  --input: oklch(0.91 0.015 210);
+  --ring: oklch(0.50 0.135 210);
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.18 0.035 170);
-  --sidebar-primary: oklch(0.48 0.13 162);
+  --sidebar-foreground: oklch(0.18 0.035 255);
+  --sidebar-primary: oklch(0.50 0.135 210);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0.035 162);
-  --sidebar-accent-foreground: oklch(0.18 0.035 170);
-  --sidebar-border: oklch(0.91 0.015 162);
-  --sidebar-ring: oklch(0.48 0.13 162);
-  --gradient-primary: linear-gradient(135deg, oklch(0.52 0.14 158), oklch(0.42 0.13 168));
-  --shadow-soft: 0 14px 34px -16px oklch(0.48 0.13 162 / 0.24);
+  --sidebar-accent: oklch(0.94 0.035 210);
+  --sidebar-accent-foreground: oklch(0.18 0.035 255);
+  --sidebar-border: oklch(0.91 0.015 210);
+  --sidebar-ring: oklch(0.50 0.135 210);
+  --gradient-primary: linear-gradient(135deg, oklch(0.55 0.14 200), oklch(0.46 0.13 225)); /* تدرج الشفق الطبي المائي */
+  --shadow-soft: 0 14px 34px -16px oklch(0.50 0.135 210 / 0.22);
   --gold: oklch(0.72 0.14 72);
   --gold-foreground: oklch(1 0 0);
   --gold-soft: oklch(0.95 0.05 85);
-  --surface-deep: oklch(0.975 0.008 162);
+  --surface-deep: oklch(0.975 0.008 210);
   --gradient-gold: linear-gradient(135deg, oklch(0.80 0.13 88), oklch(0.68 0.15 65));
   --shadow-gold: 0 18px 44px -22px oklch(0.72 0.14 72 / 0.35);
 }
