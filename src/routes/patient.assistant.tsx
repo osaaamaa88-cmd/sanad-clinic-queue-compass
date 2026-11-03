@@ -601,6 +601,7 @@ function Assistant() {
   async function submit(text: string) {
     const query = text.trim();
     if (query.length < 3 || loading) return;
+    void import("@/lib/analytics").then((m) => m.track("nemo_message_sent"));
     if (isNemoSessionComplete(query)) {
       addChatMessage("patient", query);
       finishSession();
