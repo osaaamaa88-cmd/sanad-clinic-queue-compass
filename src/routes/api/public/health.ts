@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 // Public uptime check for monitors (UptimeRobot / Better Stack). Returns no private data.
 export const Route = createFileRoute("/api/public/health")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       GET: async () => {
