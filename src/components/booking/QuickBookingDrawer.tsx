@@ -97,6 +97,7 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
           });
           setBookedCode(b.code);
           toast.success("تم تأكيد الحجز ✅");
+          void import("@/lib/analytics").then((m) => m.track("booking_confirmed"));
         } else {
           toast.error("تعذر تأكيد الحجز، حاول مرة أخرى");
         }
