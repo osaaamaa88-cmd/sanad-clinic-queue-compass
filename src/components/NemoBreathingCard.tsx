@@ -3,8 +3,8 @@ import { Wind, X } from "lucide-react";
 import { breathPhaseAt } from "@/lib/breathing";
 import { isSoundOn, playClick } from "@/lib/sounds";
 
-/** Nemo calm mode: guided 4-7-8 breathing with soft haptics. */
-export function NemoBreathingCard() {
+/** Nemo calm mode: guided 4-7-8 breathing with soft haptics. Shared across home and Nemo. */
+export function NemoBreathingCard({ forceOpen = false }: { forceOpen?: boolean } = {}) {
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const lastPhase = useRef<string>("");
@@ -31,13 +31,19 @@ export function NemoBreathingCard() {
     lastPhase.current = "";
   };
 
+  useEffect(() => {
+    if (!forceOpen) return;
+    setRunning(true);
+    return () => setRunning(false);
+  }, [forceOpen]);
+
   const scale = !running ? 0.7 : phase.key === "inhale" ? 1 : phase.key === "hold" ? 1 : 0.6;
   const duration = phase.key === "inhale" ? 4 : phase.key === "exhale" ? 8 : 0.3;
 
   return (
     <section
       aria-label="تمرين التهدئة مع نيمو"
-      className="order-4 rounded-3xl border border-border/40 bg-card/80 p-4 shadow-sm backdrop-blur-xl"
+      className="card-medical-mint order-4 p-4"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">

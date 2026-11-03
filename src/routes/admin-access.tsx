@@ -24,7 +24,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { UsersTab, LiveBookingsTab, MediaTab, SystemTab } from "@/components/admin/GodModePanel";
+import { UsersTab, LiveBookingsTab, MediaTab, SystemTab, ReportsModerationTab } from "@/components/admin/GodModePanel";
 import { godSetFeatured } from "@/lib/godmode.functions";
 import { DbHealthTab } from "@/components/admin/DbHealthTab";
 import { HospitalLocationsTab } from "@/components/admin/HospitalLocationsTab";
@@ -402,6 +402,7 @@ function Admin() {
             ["users", "الحسابات"],
             ["live", "حجوزات مباشرة"],
             ["media", "الوسائط"],
+            ["reports", "البلاغات"],
             ["system", "الطوارئ"],
             ["health", "صحة النظام"],
             ["hospitals", "مواقع المستشفيات"],
@@ -426,6 +427,7 @@ function Admin() {
       {tab === "users" && <UsersTab />}
       {tab === "live" && <LiveBookingsTab />}
       {tab === "media" && <MediaTab />}
+      {tab === "reports" && <ReportsModerationTab />}
       {tab === "system" && <SystemTab />}
       {tab === "health" && <DbHealthTab />}
       {tab === "hospitals" && <HospitalLocationsTab />}

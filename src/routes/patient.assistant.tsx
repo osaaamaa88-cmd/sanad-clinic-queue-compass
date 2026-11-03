@@ -25,8 +25,7 @@ import {
   Volume2,
   VolumeX,
   Wind,
-  ThumbsDown,
-  ThumbsUp,
+  HeartHandshake,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -55,6 +54,7 @@ import { getVerifiedClinics, getSpecialty, type Clinic } from "@/lib/mock-data";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import {
   getLocalNemoReply,
+  hasSelfHarmIntent,
   mergeTriageUrgency,
   replyMentionsEmergency,
   runLocalTriage,
@@ -73,6 +73,11 @@ import { useAiConsent, aiErrorMessage } from "@/components/AiConsentDialog";
 import { readLab, scanDrug } from "@/lib/medscan.functions";
 import { imageToBase64 } from "@/lib/image-to-base64";
 import { isNemoSessionComplete, shouldResumeNemo } from "@/lib/nemo-conversation";
+import {
+  AMBULANCE_LINE,
+  MENTAL_HEALTH_PORTAL_URL,
+  PSYCH_SUPPORT_LINE,
+} from "@/lib/crisis-support";
 import { useNemoSpeechInput } from "@/hooks/use-nemo-speech-input";
 import {
   listHospitals,
@@ -112,8 +117,6 @@ function nemoSpeechText(text: string) {
     .replace(/\s{2,}/g, " ")
     .trim();
 }
-
-const BREATH_CYCLE_SECONDS = 19;
 
 type ChatMessage = { id: number; role: "patient" | "nemo"; text: string; image?: string };
 
@@ -312,13 +315,11 @@ function Assistant() {
   const [painLevel, setPainLevel] = useState<number | null>(null);
   const [painScaleDismissed, setPainScaleDismissed] = useState(false);
   const [happy, setHappy] = useState(false);
-  const [rating, setRating] = useState<"positive" | "negative" | null>(null);
   const [muted, setMuted] = useState(isVoiceMuted());
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { id: 1, role: "nemo", text: GREETING_DISPLAY },
   ]);
-  const [breathing, setBreathing] = useState(false);
-  const [breathElapsed, setBreathElapsed] = useState(0);
+  const [selfHarmFlag, setSelfHarmFlag] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const stopSpeechRef = useRef<(() => void) | null>(null);
@@ -409,15 +410,6 @@ function Assistant() {
     const messages = container?.querySelectorAll(".nemo-chat-message");
     messages?.item(messages.length - 1)?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [chatMessages]);
-
-  useEffect(() => {
-    if (!breathing) return;
-    const timer = window.setInterval(
-      () => setBreathElapsed((elapsed) => (elapsed + 1) % BREATH_CYCLE_SECONDS),
-      1000,
-    );
-    return () => window.clearInterval(timer);
-  }, [breathing]);
 
   useEffect(() => {
     setLoc(getPatientLocation());
@@ -619,6 +611,7 @@ function Assistant() {
       addChatMessage("patient", query);
       setResult(localTriage);
       setImageUrgent(false);
+      setSelfHarmFlag(hasSelfHarmIntent(query));
       addChatMessage("nemo", getLocalNemoReply(query, localTriage));
       setNeed("");
       return;
@@ -633,7 +626,6 @@ function Assistant() {
     setLoading(true);
     setImageUrgent(false);
     setNeed("");
-    setBreathing(false);
     setPainLevel(null);
     setPainScaleDismissed(false);
     addChatMessage("patient", query);
@@ -705,7 +697,6 @@ function Assistant() {
     disableHandsFree();
     requestRef.current += 1;
     setLoading(false);
-    setBreathing(false);
     setHappy(true);
     addChatMessage("nemo", CLOSING_MESSAGE);
   }
@@ -779,13 +770,6 @@ function Assistant() {
   const nearestClinic = matches[0];
   const relevantHospital = hospitalMatches[0] ?? nearestHospital;
 
-  const breathPhase = breathElapsed < 4 ? "inhale" : breathElapsed < 11 ? "hold" : "exhale";
-  const breathRemaining =
-    breathPhase === "inhale"
-      ? 4 - breathElapsed
-      : breathPhase === "hold"
-        ? 11 - breathElapsed
-        : BREATH_CYCLE_SECONDS - breathElapsed;
   return (
     <AppShell
       title="نيمو | رفيق الرعاية الصحية"
@@ -1190,9 +1174,52 @@ function Assistant() {
           </section>
         )}
 
-        {!urgent && <NemoBreathingCard />}
+        {!urgent && !selfHarmFlag && <NemoBreathingCard />}
 
-        {(urgent || (painLevel !== null && painLevel >= 8)) && (
+        {selfHarmFlag && (
+          <section
+            className="order-5 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4 shadow-sm"
+            role="alert"
+            aria-label="دعم نفسي"
+          >
+            <div className="flex items-start gap-3">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground">
+                <HeartHandshake className="h-6 w-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-extrabold text-foreground">مش لوحدك — في ناس جاهزة تسمعك</h3>
+                <p className="mt-1 text-xs leading-6 text-muted-foreground">
+                  اللي بتحس بيه تقيل، بس ممكن يخف. كلّم شخص قريب منك دلوقتي وخليه يفضل معاك،
+                  ومش لازم تواجه الحاجة دي لوحدك.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 space-y-2">
+              <a
+                href={`tel:${PSYCH_SUPPORT_LINE}`}
+                className="flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground transition hover:bg-primary/90"
+              >
+                <Phone className="h-4 w-4" /> خط الدعم النفسي {PSYCH_SUPPORT_LINE} (٢٤ ساعة)
+              </a>
+              <a
+                href={`tel:${AMBULANCE_LINE}`}
+                className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-extrabold text-destructive transition hover:bg-destructive/20"
+              >
+                <Siren className="h-4 w-4" /> لو في خطر مباشر — الإسعاف {AMBULANCE_LINE}
+              </a>
+              <a
+                href={MENTAL_HEALTH_PORTAL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-11 items-center justify-center rounded-2xl border border-border bg-card px-4 py-3 text-xs font-bold text-foreground transition hover:bg-secondary"
+              >
+                معلومات ودعم نفسي من وزارة الصحة
+              </a>
+            </div>
+          </section>
+        )}
+
+        {(urgent || (painLevel !== null && painLevel >= 8)) && !selfHarmFlag && (
           <section
             className="nemo-emergency order-5 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 shadow-sm"
             role="alert"
@@ -1221,46 +1248,7 @@ function Assistant() {
           </section>
         )}
 
-        {mentionsAnxiety && (
-          <section className="order-6 rounded-3xl border border-border bg-card p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h3 className="font-extrabold text-foreground">محتاج أهدى شوية؟</h3>
-                <p className="mt-1 text-xs text-muted-foreground">جرّب تمرين التنفس 4–7–8 براحتك</p>
-              </div>
-              <Wind className="h-6 w-6 text-primary" />
-            </div>
-            {breathing && (
-              <div className="my-5 flex flex-col items-center gap-3" aria-live="polite">
-                <div className="nemo-breath-halo grid h-36 w-36 place-items-center rounded-full bg-gradient-to-br from-primary/20 to-secondary">
-                  <div
-                    className={`nemo-breath-orb nemo-breath-${breathPhase} grid h-24 w-24 place-items-center rounded-full bg-card text-center shadow-soft`}
-                  >
-                    <span className="text-xs font-bold text-foreground">
-                      {breathPhase === "inhale"
-                        ? "خد شهيق"
-                        : breathPhase === "hold"
-                          ? "اثبت بهدوء"
-                          : "طلّع النفس"}
-                      <span className="mt-1 block text-lg">{breathRemaining}</span>
-                    </span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">شهيق 4 ثوانٍ • ثبات 7 • زفير 8</p>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                setBreathElapsed(0);
-                setBreathing((active) => !active);
-              }}
-              className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-bold text-foreground transition hover:bg-secondary"
-            >
-              <Wind className="h-4 w-4" /> {breathing ? "إيقاف تمرين التنفس" : "محتاج أهدى شوية 🧘"}
-            </button>
-          </section>
-        )}
+        {mentionsAnxiety && <NemoBreathingCard forceOpen />}
 
         {hasPatientMessages && (
           <div className="order-8 space-y-3">
@@ -1276,28 +1264,7 @@ function Assistant() {
             ) : (
               <div className="rounded-2xl border border-border bg-card p-4 text-center">
                 <p className="text-sm font-bold text-foreground">انتهت المحادثة</p>
-                <p className="mt-1 text-xs text-muted-foreground">هل كانت المساعدة مفيدة؟</p>
-                <div className="mt-3 flex justify-center gap-3">
-                  <button
-                    type="button"
-                    aria-label="تقييم إيجابي"
-                    aria-pressed={rating === "positive"}
-                    onClick={() => setRating("positive")}
-                    className={`grid h-11 w-11 place-items-center rounded-full border ${rating === "positive" ? "border-success bg-success/15 text-success" : "border-border text-muted-foreground"}`}
-                  >
-                    <ThumbsUp className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="تقييم سلبي"
-                    aria-pressed={rating === "negative"}
-                    onClick={() => setRating("negative")}
-                    className={`grid h-11 w-11 place-items-center rounded-full border ${rating === "negative" ? "border-destructive bg-destructive/15 text-destructive" : "border-border text-muted-foreground"}`}
-                  >
-                    <ThumbsDown className="h-5 w-5" />
-                  </button>
-                </div>
-                {rating && <p className="mt-2 text-xs text-muted-foreground">شكراً على تقييمك.</p>}
+                <p className="mt-1 text-xs text-muted-foreground">شكراً لاستخدامك نيمو.</p>
               </div>
             )}
           </div>

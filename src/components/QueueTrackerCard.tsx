@@ -53,7 +53,7 @@ export function QueueTrackerCard() {
       to="/patient/queue/$id"
       params={{ id: clinic.id }}
       aria-label={`متابعة دورك في عيادة ${clinic.doctor}`}
-      className="relative mt-3 block overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-b from-card/90 to-card/60 p-4 text-right shadow-soft backdrop-blur-xl transition active:scale-[0.98] hover:border-primary/60"
+      className="card-medical-mint relative mt-3 block overflow-hidden p-4 text-right transition active:scale-[0.98] hover:border-primary/60"
     >
       {/* الهالة الدوّارة على حواف الكارت — تعبير عن "المتابعة المباشرة" */}
       <BorderBeam size={90} duration={5} colorFrom="var(--color-primary)" colorTo="transparent" />

@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const KEY = "sanad_ai_consent_v1";
+const KEY = "sanad_ai_consent_v2";
 
 /** One-time consent before the first AI scan. `ask()` resolves true when allowed. */
 export function useAiConsent() {

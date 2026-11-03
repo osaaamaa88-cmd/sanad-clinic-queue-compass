@@ -127,51 +127,51 @@
 }
 
 .light {
-  /* Light mode — Medical Calm Mint & Soft Canvas (#F8FAF9 + #0E7A5F) */
-  --background: oklch(0.985 0.004 155); /* #F8FAF9 Soft calming ivory/mint canvas */
-  --foreground: oklch(0.22 0.03 260); /* Crisp deep slate/charcoal for optimal readability */
-  --card: oklch(1 0 0); /* #FFFFFF Pure white elevated cards */
-  --card-foreground: oklch(0.22 0.03 260);
+  /* Light mode — Royal Medical Emerald (#0D7557) */
+  --background: oklch(0.985 0.005 160); /* أرضية هادئة ناصعة مائلة لراحة العين */
+  --foreground: oklch(0.18 0.035 170); /* خط داكن شديد الوضوح */
+  --card: oklch(1 0 0); /* كروت بيضاء نقية بارزة */
+  --card-foreground: oklch(0.18 0.035 170);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 260);
-  --primary: oklch(0.52 0.115 165); /* #0E7A5F Deep clinical mint green */
-  --primary-foreground: oklch(1 0 0);
-  --primary-soft: oklch(0.955 0.03 165); /* #E6F4F0 Soft mint tint */
-  --secondary: oklch(0.96 0.008 160);
-  --secondary-foreground: oklch(0.24 0.03 260);
-  --muted: oklch(0.96 0.008 160);
-  --muted-foreground: oklch(0.5 0.02 240);
-  --accent: oklch(0.945 0.032 165); /* Interactive pill/chip hover */
-  --accent-foreground: oklch(0.22 0.03 260);
-  --success: oklch(0.62 0.14 155); /* #10B981 Vibrant health success */
+  --popover-foreground: oklch(0.18 0.035 170);
+  --primary: oklch(0.48 0.13 162); /* أخضر زمردي عميق وفاخر للقوائم والأزرار الكبيرة */
+  --primary-foreground: oklch(0.99 0 0); /* نصوص بيضاء ناصعة فوق الأخضر */
+  --primary-soft: oklch(0.95 0.035 162); /* خلفيات خضراء ناعمة ومريحة للقوائم الثانوية */
+  --secondary: oklch(0.96 0.01 160);
+  --secondary-foreground: oklch(0.20 0.035 170);
+  --muted: oklch(0.96 0.01 160);
+  --muted-foreground: oklch(0.46 0.025 170);
+  --accent: oklch(0.935 0.04 162); /* تفاعل اللمس للشاشات الكبيرة */
+  --accent-foreground: oklch(0.18 0.035 170);
+  --success: oklch(0.58 0.16 150); /* علامات النجاح والصحة */
   --success-foreground: oklch(1 0 0);
-  --chart-1: oklch(0.52 0.115 165); /* Deep Mint */
-  --chart-2: oklch(0.62 0.14 155); /* Emerald */
-  --chart-3: oklch(0.65 0.12 210); /* Soft Teal */
-  --chart-4: oklch(0.72 0.14 72); /* Warm Amber */
-  --chart-5: oklch(0.60 0.15 25); /* Alert Coral */
+  --chart-1: oklch(0.48 0.13 162);
+  --chart-2: oklch(0.58 0.16 150);
+  --chart-3: oklch(0.65 0.12 185);
+  --chart-4: oklch(0.72 0.14 75);
+  --chart-5: oklch(0.60 0.18 25);
   --warning: oklch(0.78 0.15 75);
   --warning-foreground: oklch(0.22 0.05 60);
-  --destructive: oklch(0.6 0.22 22);
+  --destructive: oklch(0.60 0.22 22);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.915 0.01 160); /* Subtle clinical border */
-  --input: oklch(0.915 0.01 160);
-  --ring: oklch(0.52 0.115 165);
+  --border: oklch(0.91 0.015 162); /* حواف خضراء ثلجية رقيقة */
+  --input: oklch(0.91 0.015 162);
+  --ring: oklch(0.48 0.13 162);
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.22 0.03 260);
-  --sidebar-primary: oklch(0.52 0.115 165);
+  --sidebar-foreground: oklch(0.18 0.035 170);
+  --sidebar-primary: oklch(0.48 0.13 162);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.955 0.03 165);
-  --sidebar-accent-foreground: oklch(0.22 0.03 260);
-  --sidebar-border: oklch(0.915 0.01 160);
-  --sidebar-ring: oklch(0.52 0.115 165);
-  --gradient-primary: linear-gradient(135deg, oklch(0.62 0.14 165), oklch(0.50 0.12 175));
-  --shadow-soft: 0 12px 32px -16px oklch(0.52 0.115 165 / 0.18);
+  --sidebar-accent: oklch(0.95 0.035 162);
+  --sidebar-accent-foreground: oklch(0.18 0.035 170);
+  --sidebar-border: oklch(0.91 0.015 162);
+  --sidebar-ring: oklch(0.48 0.13 162);
+  --gradient-primary: linear-gradient(135deg, oklch(0.52 0.14 158), oklch(0.42 0.13 168));
+  --shadow-soft: 0 14px 34px -16px oklch(0.48 0.13 162 / 0.24);
   --gold: oklch(0.72 0.14 72);
   --gold-foreground: oklch(1 0 0);
   --gold-soft: oklch(0.95 0.05 85);
-  --surface-deep: oklch(0.975 0.005 160);
-  --gradient-gold: linear-gradient(135deg, oklch(0.8 0.13 88), oklch(0.68 0.15 65));
+  --surface-deep: oklch(0.975 0.008 162);
+  --gradient-gold: linear-gradient(135deg, oklch(0.80 0.13 88), oklch(0.68 0.15 65));
   --shadow-gold: 0 18px 44px -22px oklch(0.72 0.14 72 / 0.35);
 }
 
@@ -507,6 +507,64 @@
     0 12px 32px -4px oklch(0 0 0 / 0.08);
 }
 
+/* ===== كارت المينت الطبي الفاخر للكروت الكبيرة (Medical Mint Large Card) ===== */
+@utility card-medical-mint {
+  position: relative;
+  border-radius: 1.5rem; /* rounded-3xl */
+  border: 1px solid color-mix(in oklab, var(--primary) 22%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--primary-soft) 85%, var(--card)) 0%,
+    color-mix(in oklab, var(--card) 92%, transparent) 55%,
+    color-mix(in oklab, var(--primary-soft) 40%, var(--card)) 100%
+  );
+  box-shadow: 0 12px 30px -10px color-mix(in oklab, var(--primary) 12%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .card-medical-mint {
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--card) 80%, transparent) 0%,
+    color-mix(in oklab, var(--primary) 15%, var(--card)) 100%
+  );
+  border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+  box-shadow: 0 12px 30px -10px oklch(0 0 0 / 0.4);
+}
+
+/* ===== الوضع الفاتح الملكي: البنر الرئيسي وبطاقات الفحص الكبيرة زمردي عميق ===== */
+.light .aurora-medical-card {
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  border-color: color-mix(in oklab, var(--gold) 30%, transparent);
+  box-shadow:
+    inset 0 1.5px 1px 0 oklch(1 0 0 / 0.25),
+    0 14px 34px -16px oklch(0.48 0.13 162 / 0.35);
+}
+.light .aurora-medical-card .text-muted-foreground,
+.light .aurora-medical-card .text-primary {
+  color: oklch(0.96 0.02 162);
+}
+.light .card-medical-mint {
+  background: var(--gradient-primary);
+  color: var(--primary-foreground);
+  border-color: transparent;
+  box-shadow: 0 14px 34px -16px oklch(0.48 0.13 162 / 0.35);
+}
+.light .card-medical-mint .text-muted-foreground,
+.light .card-medical-mint .text-primary {
+  color: oklch(0.96 0.02 162);
+}
+.light .card-medical-mint .bg-primary-soft,
+.light .card-medical-mint .bg-success {
+  background-color: oklch(1 0 0 / 0.18);
+}
+
+/* تأثير التلاشي السلس أسفل الشاشة لمنع تداخل المحتوى مع شريط الملاحة */
+@utility content-bottom-fade {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 6.5rem);
+}
 .dark .aurora-medical-card {
   background: linear-gradient(
     135deg,
@@ -519,10 +577,6 @@
     0 16px 40px -4px oklch(0 0 0 / 0.45);
 }
 
-/* تأثير التلاشي السلس أسفل الشاشة لمنع تداخل المحتوى مع شريط الملاحة */
-@utility content-bottom-fade {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 6.5rem);
-}
 
 /* خط الليزر الممسوح على مجسم الهولوجرام في كارت بينتو */
 @keyframes holo-laser {

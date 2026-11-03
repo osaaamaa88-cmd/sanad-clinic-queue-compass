@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
+import { NemoBreathingCard } from "@/components/NemoBreathingCard";
 import { QueueTrackerCard } from "@/components/QueueTrackerCard";
 import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
 import { QuickBookingDrawer } from "@/components/booking/QuickBookingDrawer";
@@ -117,8 +118,6 @@ function PatientHome() {
   );
   const [selectedClinicForBooking, setSelectedClinicForBooking] = useState<Clinic | null>(null);
   const [bookingDrawerOpen, setBookingDrawerOpen] = useState(false);
-  const [breathingActive, setBreathingActive] = useState(false);
-  const [breathPhase, setBreathPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [hydration, setHydration] = useState(0);
   const [hydrationReady, setHydrationReady] = useState(false);
   const [upcomingBooking, setUpcomingBooking] = useState<SavedBooking | null>(null);
@@ -257,18 +256,6 @@ function PatientHome() {
     setSelectedClinicForBooking(clinic);
     setBookingDrawerOpen(true);
   }, []);
-
-  useEffect(() => {
-    if (!breathingActive) return;
-    setBreathPhase("inhale");
-    const phases: Array<"inhale" | "hold" | "exhale"> = ["inhale", "hold", "exhale"];
-    let index = 0;
-    const interval = window.setInterval(() => {
-      index = (index + 1) % phases.length;
-      setBreathPhase(phases[index]);
-    }, 4000);
-    return () => window.clearInterval(interval);
-  }, [breathingActive]);
 
   const recommended = useMemo(
     () =>
@@ -424,7 +411,7 @@ function PatientHome() {
         {/* الكارت الطولي الأيمن — مجسم الهولوجرام والملف الطبي الذكي */}
         <Link
           to="/patient/health"
-          className="spotlight-card group relative col-start-1 row-span-2 flex flex-col justify-between overflow-visible rounded-3xl border border-border bg-card p-4 text-right shadow-soft transition hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
+          className="spotlight-card card-medical-mint group relative col-start-1 row-span-2 flex flex-col justify-between overflow-visible p-4 text-right transition duration-300 hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-xl active:scale-[0.98]"
           onPointerMove={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
             event.currentTarget.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
@@ -710,44 +697,9 @@ function PatientHome() {
 
       <HealthActivityCarousel />
       <section className="mt-6 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-3xl border border-border/60 bg-card p-4 shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-extrabold text-foreground">تمرين التنفس مع نيمو</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {breathingActive
-                  ? breathPhase === "inhale"
-                    ? "شهيق هادئ..."
-                    : breathPhase === "hold"
-                      ? "احبس النفس..."
-                      : "زفير واسترخاء"
-                  : "4 ثوانٍ • تهدئة ضربات القلب"}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setBreathingActive((v) => !v)}
-              className="min-h-11 rounded-full bg-primary px-4 py-2 text-xs font-extrabold text-primary-foreground transition active:scale-95"
-            >
-              {breathingActive ? "إيقاف" : "ابدأ"}
-            </button>
-          </div>
-          <div className="mt-4 grid place-items-center">
-            <span
-              className={`grid h-24 w-24 place-items-center rounded-full border-4 border-primary/30 bg-primary/10 text-primary transition-all duration-[4000ms] ease-in-out ${
-                breathingActive
-                  ? breathPhase === "exhale"
-                    ? "scale-100"
-                    : "scale-125"
-                  : "scale-100"
-              }`}
-            >
-              <Wind className="h-8 w-8" />
-            </span>
-          </div>
-        </div>
+        <NemoBreathingCard />
 
-        <div className="rounded-3xl border border-border/60 bg-card p-4 shadow-soft">
+        <div className="card-medical-mint p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-extrabold text-foreground">متتبع شرب الماء</h3>

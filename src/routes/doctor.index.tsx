@@ -166,7 +166,7 @@ function DoctorHome() {
               </>
             );
             const cls =
-              "group relative flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-5 text-right shadow-xs transition duration-200 active:scale-[0.97] hover:border-primary/40 hover:shadow-soft";
+              "group relative flex flex-col justify-between rounded-3xl border border-primary/20 bg-gradient-to-b from-primary-soft/50 via-card to-card p-5 text-right shadow-xs transition duration-200 active:scale-[0.97] hover:border-primary/50 hover:shadow-soft";
             return t.to ? (
               <Link key={t.label} to={t.to} className={cls}>
                 {inner}

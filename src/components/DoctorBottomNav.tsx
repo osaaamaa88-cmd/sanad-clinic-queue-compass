@@ -136,24 +136,6 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
               );
             }
             const Icon = it.icon!;
-            if ((it as { soon?: boolean }).soon) {
-              return (
-                <button
-                  key={it.key}
-                  type="button"
-                  onClick={() => alert("إدارة الطابور والحجوزات قريباً ⏳")}
-                  className="relative flex flex-col items-center justify-center gap-0.5 text-xs font-bold text-muted-foreground opacity-70"
-                >
-                  <span className="relative grid h-8 w-11 place-items-center rounded-xl">
-                    <Icon className="h-5 w-5" />
-                    <span className="absolute -top-1.5 -left-2 rounded-full bg-secondary px-1 text-xs font-extrabold text-foreground">
-                      قريباً
-                    </span>
-                  </span>
-                  {it.label}
-                </button>
-              );
-            }
             return (
               <Link
                 key={it.key}

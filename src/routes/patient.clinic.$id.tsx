@@ -269,7 +269,7 @@ function ClinicDetail() {
       <div>
         {clinic.isDemo && (
           <p className="mb-3 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-xs font-bold text-warning">
-            هذه عيادة تجريبية لعرض التطبيق فقط، وليست عيادة حقيقية أو موثقة.
+            هذه عيادة تجريبية — بيانات غير حقيقية
           </p>
         )}
         <input
@@ -412,7 +412,7 @@ function ClinicDetail() {
             type="button"
             onClick={() => setTab("reviews")}
             aria-label="عرض تقييمات العيادة"
-            className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm transition active:scale-95"
+            className="flex flex-col items-center justify-center rounded-2xl border border-primary/20 bg-gradient-to-b from-primary-soft/60 to-card p-2.5 text-center shadow-xs backdrop-blur-sm transition active:scale-95 hover:border-primary/40"
           >
             <div className="flex items-center gap-1 text-warning">
               <Star className="h-4 w-4 fill-warning" />
@@ -425,7 +425,7 @@ function ClinicDetail() {
             </span>
           </button>
 
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-primary/20 bg-gradient-to-b from-primary-soft/60 to-card p-2.5 text-center shadow-xs backdrop-blur-sm">
             <span className="text-sm font-black text-primary">
               {clinic.nowServing > 0 ? `#${clinic.nowServing}` : "جاهز"}
             </span>
@@ -434,7 +434,7 @@ function ClinicDetail() {
             </span>
           </div>
 
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-primary/20 bg-gradient-to-b from-primary-soft/60 to-card p-2.5 text-center shadow-xs backdrop-blur-sm">
             <span className="text-sm font-black text-foreground">
               {clinic.price ? `${clinic.price} ج` : "غير محدد"}
             </span>
@@ -625,7 +625,7 @@ function ClinicDetail() {
             <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-muted-foreground">
               {clinic.workingHours || "لم تُضف العيادة مواعيدها بعد — اتصل للاستفسار."}
             </p>
-            <p className="mt-3 border-t border-border pt-3 text-sm font-bold">
+            <p className="mt-3 border-t border-primary/15 pt-3 text-sm font-black text-primary">
               سعر الكشف: {clinic.price ? `${clinic.price} جنيه` : "غير محدد"}
             </p>
           </div>
@@ -639,7 +639,7 @@ function ClinicDetail() {
             </p>
             <iframe
               title="خريطة العيادة"
-              className="mt-3 h-28 w-full rounded-xl border border-border"
+              className="mt-3 h-28 w-full rounded-2xl border border-primary/20"
               loading="lazy"
               src={`https://maps.google.com/maps?q=${clinic.lat},${clinic.lng}&z=15&output=embed`}
             />

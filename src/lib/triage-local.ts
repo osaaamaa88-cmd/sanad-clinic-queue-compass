@@ -340,6 +340,14 @@ export function runLocalTriage(need: string): TriageResult {
     .sort((a, b) => b.s - a.s);
   const picked = scores.slice(0, 2).map((x) => x.r);
   const selfHarm = hasSelfHarmIntent(need);
+  if (selfHarm) {
+    return {
+      specialtyIds: [],
+      urgency: "emergency",
+      summary: "مش لوحدك — في ناس جاهزة تسمعك.",
+      advice: SELF_HARM_LOCAL_REPLY,
+    };
+  }
   const urgency =
     selfHarm || emergencyWords.some((w) => containsPhrase(t, w))
       ? "emergency"
@@ -363,9 +371,11 @@ export function runLocalTriage(need: string): TriageResult {
   };
 }
 
+import { SELF_HARM_LOCAL_REPLY } from "./crisis-support.ts";
+
 export function getLocalNemoReply(text: string, triage: TriageResult): string {
   if (hasSelfHarmIntent(text)) {
-    return "أنا آسف إنك بتمر بالوجع ده، ومش لوحدك. كلم شخصاً تثق به الآن وخليه يفضل جنبك. لو في خطر مباشر اتصل بالإسعاف 123 أو اذهب للطوارئ.";
+    return SELF_HARM_LOCAL_REPLY;
   }
   if (triage.urgency === "emergency") {
     return "ألف سلامة عليك، الأعراض دي محتاجة مساعدة عاجلة. اتصل بالإسعاف 123 أو توجّه لأقرب طوارئ الآن.";
