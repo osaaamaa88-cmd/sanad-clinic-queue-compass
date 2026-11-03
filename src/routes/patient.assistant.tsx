@@ -320,6 +320,11 @@ function Assistant() {
     { id: 1, role: "nemo", text: GREETING_DISPLAY },
   ]);
   const [selfHarmFlag, setSelfHarmFlag] = useState(false);
+  /**
+   * Self-harm support card should stay visible for the whole conversation once it
+   * appears — clearing it on the next message removes crisis support mid-chat.
+   */
+  const raiseSelfHarmFlag = () => setSelfHarmFlag(true);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const stopSpeechRef = useRef<(() => void) | null>(null);
@@ -612,7 +617,7 @@ function Assistant() {
       addChatMessage("patient", query);
       setResult(localTriage);
       setImageUrgent(false);
-      setSelfHarmFlag(hasSelfHarmIntent(query));
+      if (hasSelfHarmIntent(query)) raiseSelfHarmFlag();
       addChatMessage("nemo", getLocalNemoReply(query, localTriage));
       setNeed("");
       return;
@@ -1175,7 +1180,7 @@ function Assistant() {
           </section>
         )}
 
-        {!urgent && !selfHarmFlag && <NemoBreathingCard />}
+        {!urgent && !selfHarmFlag && !mentionsAnxiety && <NemoBreathingCard />}
 
         {selfHarmFlag && (
           <section

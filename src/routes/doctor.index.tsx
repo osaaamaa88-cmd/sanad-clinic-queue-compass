@@ -117,7 +117,7 @@ function DoctorHome() {
     <AppShell title="لوحة الطبيب" backTo="/">
       <div className="space-y-4 pb-28">
         {/* 🌟 Executive Clinic Cockpit */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-emerald-800 p-6 text-primary-foreground shadow-lg shadow-primary/20">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary p-6 text-primary-foreground shadow-lg shadow-primary/20">
           <div className="absolute -left-10 -top-10 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
           <div className="relative z-10 flex items-start justify-between gap-3">
             <div>
@@ -142,11 +142,20 @@ function DoctorHome() {
             </Link>
           </div>
 
-          {/* Quick Status Line */}
+          {/* Quick Status Line — مربوطة بالحالة الفعلية للعيادة */}
           <div className="mt-5 grid grid-cols-2 gap-2 border-t border-white/15 pt-4">
             <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-300" />
-              <span className="text-xs font-bold opacity-95">العيادة جاهزة لاستقبال المرضى</span>
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${
+                  clinic.availableNow
+                    ? "animate-pulse bg-white"
+                    : "bg-white/40"
+                }`}
+                aria-hidden="true"
+              />
+              <span className="text-xs font-bold opacity-95">
+                {clinic.availableNow ? "العيادة مفتوحة دلوقتي" : "العيادة مقفولة حالياً"}
+              </span>
             </div>
             <div className="text-left text-xs font-bold opacity-80">
               الدور الحالي: {Number(c.now_serving ?? 0) > 0 ? `#${c.now_serving}` : "لم يبدأ"}

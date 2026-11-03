@@ -290,7 +290,7 @@ function ClinicDetail() {
         {/* 🌟 1. Luxury Cover Banner & Floating Overlap */}
         <div className="relative -mx-4 -mt-2 overflow-hidden sm:-mx-5">
           <div className="h-28 w-full bg-gradient-to-l from-primary/20 via-primary/10 to-primary-soft/40 dark:from-primary/10 dark:via-background dark:to-card">
-            <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] opacity-25 [background-size:16px_16px]" />
+            <div className="absolute inset-0 bg-[radial-gradient(var(--color-primary)_1px,transparent_1px)] opacity-25 [background-size:16px_16px]" />
           </div>
         </div>
 
@@ -420,7 +420,7 @@ function ClinicDetail() {
                 {realReviewsCount > 0 ? realRating.toFixed(1) : "جديد"}
               </span>
             </div>
-            <span className="mt-0.5 text-[11px] font-bold text-muted-foreground">
+            <span className="mt-0.5 text-xs font-bold text-muted-foreground">
               {realReviewsCount > 0 ? `${realReviewsCount} تقييم` : "تقييم العيادة"}
             </span>
           </button>
@@ -429,7 +429,7 @@ function ClinicDetail() {
             <span className="text-sm font-black text-primary">
               {clinic.nowServing > 0 ? `#${clinic.nowServing}` : "جاهز"}
             </span>
-            <span className="mt-0.5 text-[11px] font-bold text-muted-foreground">
+            <span className="mt-0.5 text-xs font-bold text-muted-foreground">
               {clinic.nowServing > 0 ? "بيكشف عليه" : "طابور الكشف"}
             </span>
           </div>
@@ -438,7 +438,7 @@ function ClinicDetail() {
             <span className="text-sm font-black text-foreground">
               {clinic.price ? `${clinic.price} ج` : "غير محدد"}
             </span>
-            <span className="mt-0.5 text-[11px] font-bold text-muted-foreground">قيمة الكشف</span>
+            <span className="mt-0.5 text-xs font-bold text-muted-foreground">قيمة الكشف</span>
           </div>
         </div>
 
@@ -477,6 +477,16 @@ function ClinicDetail() {
                   role="menu"
                   className="absolute left-1.5 top-11 z-50 w-56 overflow-hidden rounded-2xl border border-border bg-card py-1 text-sm font-bold shadow-xl"
                 >
+                  <button
+                    role="menuitem"
+                    onClick={() => {
+                      setOwnerMenu(false);
+                      void shareProfile();
+                    }}
+                    className="flex min-h-11 w-full items-center gap-2 px-4 py-2.5 text-right hover:bg-secondary"
+                  >
+                    <Share2 className="h-4 w-4 text-primary" /> مشاركة البروفايل
+                  </button>
                   <button
                     role="menuitem"
                     onClick={() => {
@@ -550,36 +560,45 @@ function ClinicDetail() {
         </button>
 
         {/* 🌟 5. Unified 4-Action Capsule Bar */}
-        <div className="mt-2.5 grid grid-cols-4 gap-2">
-          {clinic.phone && (
-            <a
-              href={whatsappLink(
-                clinic.phone,
-                `أهلاً دكتور، عايز أستفسر بخصوص عيادة ${clinic.doctor}.`,
+        <div
+          className={`mt-2.5 grid gap-2 ${
+            clinic.isDemo ? "grid-cols-3" : clinic.phone ? "grid-cols-4" : "grid-cols-2"
+          }`}
+        >
+          {/* العيادة التجريبية: بياناتها محاكية — نمنع الاتصال والواتساب عشان ميتواصلش أرقام وهمية */}
+          {clinic.isDemo ? null : (
+            <>
+              {clinic.phone && (
+                <a
+                  href={whatsappLink(
+                    clinic.phone,
+                    `أهلاً دكتور، عايز أستفسر بخصوص عيادة ${clinic.doctor}.`,
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+                >
+                  <MessageCircle className="h-4 w-4 text-success" />
+                  <span className="text-xs font-bold text-foreground">واتساب</span>
+                </a>
               )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
-            >
-              <MessageCircle className="h-4 w-4 text-success" />
-              <span className="text-[11px] font-bold text-foreground">واتساب</span>
-            </a>
-          )}
-          {clinic.phone && (
-            <a
-              href={`tel:${clinic.phone}`}
-              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
-            >
-              <Phone className="h-4 w-4 text-primary" />
-              <span className="text-[11px] font-bold text-foreground">اتصال</span>
-            </a>
+              {clinic.phone && (
+                <a
+                  href={`tel:${clinic.phone}`}
+                  className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+                >
+                  <Phone className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-bold text-foreground">اتصال</span>
+                </a>
+              )}
+            </>
           )}
           <a
             href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}
             className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
           >
             <Navigation className="h-4 w-4 text-primary" />
-            <span className="text-[11px] font-bold text-foreground">اللوكيشن</span>
+            <span className="text-xs font-bold text-foreground">اللوكيشن</span>
           </a>
           {!isOwner ? (
             <button
@@ -597,18 +616,9 @@ function ClinicDetail() {
               className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
             >
               <MessagesSquare className="h-4 w-4 text-foreground" />
-              <span className="text-[11px] font-bold text-foreground">مراسلة</span>
+              <span className="text-xs font-bold text-foreground">مراسلة</span>
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={shareProfile}
-              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
-            >
-              <Share2 className="h-4 w-4 text-foreground" />
-              <span className="text-[11px] font-bold text-foreground">مشاركة</span>
-            </button>
-          )}
+          ) : null}
         </div>
         <div className="mt-2 flex min-h-11 items-center justify-end">
           <NotificationsBell
