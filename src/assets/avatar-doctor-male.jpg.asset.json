@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "e00c5c94-59c8-4b8e-8775-1b8553c74c34",
-  "project_id": "0cafc9fd-4280-4fe9-891a-1437a00e26b6",
-  "url": "/__l5e/assets-v1/e00c5c94-59c8-4b8e-8775-1b8553c74c34/avatar-doctor-male.jpg",
-  "r2_key": "a/v1/0cafc9fd-4280-4fe9-891a-1437a00e26b6/e00c5c94-59c8-4b8e-8775-1b8553c74c34/avatar-doctor-male.jpg",
-  "original_filename": "avatar-doctor-male.jpg",
-  "size": 18397,
   "content_type": "image/jpeg",
-  "created_at": "2026-10-31T02:42:22Z"
+  "created_at": "2026-10-31T02:42:22Z",
+  "original_filename": "avatar-doctor-male.jpg",
+  "project_id": "073f4edf-762c-46e1-9d95-f1ee17d80fc6",
+  "r2_key": "a/v1/073f4edf-762c-46e1-9d95-f1ee17d80fc6/e00c5c94-59c8-4b8e-8775-1b8553c74c34/avatar-doctor-male.jpg",
+  "size": 18397,
+  "url": "/__l5e/assets-v1/e00c5c94-59c8-4b8e-8775-1b8553c74c34/avatar-doctor-male.jpg",
+  "version": 1
 }
