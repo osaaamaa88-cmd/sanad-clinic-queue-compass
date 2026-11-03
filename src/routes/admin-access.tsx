@@ -193,6 +193,7 @@ function Admin() {
     | "users"
     | "live"
     | "media"
+    | "reports"
     | "system"
     | "health"
     | "hospitals"
