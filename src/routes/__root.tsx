@@ -181,6 +181,14 @@ function RootComponent() {
     void import("@/lib/sentry").then((m) => m.initSentry());
   }, []);
 
+  // PostHog analytics: one page view per route change (IDs scrubbed).
+  useEffect(() => {
+    void import("@/lib/analytics").then(async (m) => {
+      await m.initAnalytics();
+      m.trackPage(pathname);
+    });
+  }, [pathname]);
+
   // ===== Lenis: تنعيم حركة التمرير في الشاشات الطويلة =====
   // نثبت جلسة واحدة عند الإقلاع، ونحدّث المقاس عند تغيير المسار أو تغيّر المحتوى.
   useEffect(() => {
