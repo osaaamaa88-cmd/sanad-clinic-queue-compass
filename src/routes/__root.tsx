@@ -53,6 +53,9 @@ function ErrorComponent({ error, reset }: import("@tanstack/react-router").Error
   console.error(redact(error instanceof Error ? `${error.name}: ${error.message}` : error));
   const router = useRouter();
   useEffect(() => {
+    void import("@/lib/sentry").then((m) => m.captureToSentry(error));
+  }, [error]);
+  useEffect(() => {
     const msg = error instanceof Error ? error.message : String(error);
     if (
       /Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module|evaluating 'e\[t\?\?|reading 'default'|\['default'\]/i.test(
@@ -172,6 +175,11 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   // Apply the saved light/dark mode on every page, not only where a toggle is mounted.
   useTheme();
+
+  // Sentry crash monitoring (loaded after hydration, personal data scrubbed).
+  useEffect(() => {
+    void import("@/lib/sentry").then((m) => m.initSentry());
+  }, []);
 
   // ===== Lenis: تنعيم حركة التمرير في الشاشات الطويلة =====
   // نثبت جلسة واحدة عند الإقلاع، ونحدّث المقاس عند تغيير المسار أو تغيّر المحتوى.
