@@ -14,7 +14,6 @@ export async function initSentry() {
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: location.hostname.includes("id-preview") ? "preview" : "production",
-    sendDefaultPii: false,
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({ maskAllText: true, maskAllInputs: true, blockAllMedia: true }),
