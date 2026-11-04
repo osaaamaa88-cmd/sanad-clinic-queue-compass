@@ -1395,3 +1395,32 @@ html[data-low-motion="true"] .community-tab-indicator,
 html[data-low-motion="true"] .community-pop,
 html[data-low-motion="true"] .community-reveal,
 html[data-low-motion="true"] .community-skeleton { animation: none !important; transition: none !important; }
+
+/* Story onboarding */
+.story-shade {
+  background:
+    linear-gradient(to bottom, color-mix(in oklab, var(--surface-deep) 55%, transparent) 0%, transparent 22%),
+    linear-gradient(to top, var(--surface-deep) 8%, color-mix(in oklab, var(--surface-deep) 75%, transparent) 38%, transparent 68%);
+}
+.story-grain {
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+  background-image: radial-gradient(circle at 20% 30%, var(--gold-soft) 0 1px, transparent 1px),
+    radial-gradient(circle at 70% 60%, var(--gold-soft) 0 1px, transparent 1px);
+  background-size: 7px 7px, 11px 11px;
+}
+@keyframes story-kenburns {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to { transform: scale(1.16) translate3d(-2%, -2%, 0); }
+}
+.story-kenburns { animation: story-kenburns 9s ease-out forwards; transform-origin: center; }
+@keyframes story-progress { from { width: 0; } to { width: 100%; } }
+.story-progress { animation-name: story-progress; animation-timing-function: linear; animation-fill-mode: forwards; }
+@keyframes story-line {
+  from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.story-line { opacity: 0; animation: story-line 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .story-kenburns, .story-line { animation: none; opacity: 1; }
+}
