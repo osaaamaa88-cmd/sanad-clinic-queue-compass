@@ -828,6 +828,7 @@ function DoctorSettings() {
       )}
 
       {/* Availability */}
+      <h2 className="mb-3 mt-2 text-base font-bold">حالة العيادة</h2>
       <div
         className={`flex items-center gap-3 rounded-2xl p-4 shadow-soft sm:gap-4 ${
           available ? "gradient-primary text-white" : "border border-border bg-card"
@@ -868,19 +869,6 @@ function DoctorSettings() {
         </button>
       </div>
 
-      {/* Quick link to the booking sheet */}
-      <Link
-        to="/reception"
-        className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 text-sm font-extrabold"
-      >
-        <BookOpen className="h-4 w-4 text-primary" /> افتح دفتر الحجز
-      </Link>
-      <Link
-        to="/doctor/stories"
-        className="mt-3 flex items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 text-sm font-extrabold"
-      >
-        <Sparkles className="h-4 w-4 text-primary" /> إدارة القصص والهايلايت
-      </Link>
 
       {/* Profile form */}
       <div className="mt-6 flex items-center justify-between gap-2">
@@ -969,7 +957,7 @@ function DoctorSettings() {
       </div>
 
       {/* Secretary accounts */}
-      <h2 className="mt-6 text-base font-bold">حسابات السكرتير</h2>
+      <h2 className="mt-6 text-base font-bold">فريق العمل — حسابات السكرتير</h2>
       <p className="mt-1 text-xs text-muted-foreground">
         السكرتير بيدخل بالبريد وكلمة السر ويقدر يفتح دفتر الحجز ويعدّل رقم الدور — المرضى مش
         بيقدروا.
@@ -1061,6 +1049,8 @@ function DoctorQuickTools({ clinicId }: { clinicId: string }) {
         <LinkRow icon={ClipboardList} to="/reception" title="الاستقبال" hint="طابور اليوم" />
         <LinkRow icon={Tv} to="/tv/$id" params={{ id: clinicId }} title="شاشة الانتظار" hint="للتلفزيون" />
         <LinkRow icon={MessagesSquare} to="/messages" title="الرسائل" hint="محادثات المرضى" />
+        <LinkRow icon={Sparkles} to="/doctor/stories" title="قصص العيادة" hint="ستوري وهايلايت" />
+        <LinkRow icon={BookOpen} to="/reception" title="دفتر الحجز" hint="مواعيد المرضى" />
         <LinkRow icon={Eye} to="/patient/clinic/$id" params={{ id: clinicId }} title="صفحتي للمرضى" hint="معاينة البروفايل" />
       </div>
     </SettingsSection>
