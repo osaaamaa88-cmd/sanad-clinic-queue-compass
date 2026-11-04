@@ -1451,3 +1451,10 @@ html[data-low-motion="true"] .community-skeleton { animation: none !important; t
 @media (prefers-reduced-motion: reduce) {
   .story-radar-ring, .story-radar-sweep, .story-pin, .story-punch { animation: none; opacity: 1; }
 }
+
+@keyframes sanad-float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(4deg); }
+}
+.sanad-float { animation: sanad-float 4.5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .sanad-float { animation: none; } }

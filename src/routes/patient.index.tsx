@@ -374,14 +374,14 @@ function PatientHome() {
       <h2 className="mb-3 text-lg font-black">خطتك</h2>
       <section aria-label="خطتك" className="mb-6 grid grid-cols-2 gap-3">
         <Link
-          to={upcomingBooking ? "/patient/bookings" : "/patient/search"}
+          to="/patient/search"
           className="relative row-span-2 flex min-h-64 flex-col overflow-visible rounded-3xl bg-gold-soft p-4 text-foreground active:scale-[0.98] transition"
         >
           <span className="text-xs font-bold text-muted-foreground">
             {upcomingBooking ? "موعدك" : "احجز"}
           </span>
           <span className="mt-1 text-lg font-black leading-6">
-            {upcomingBooking ? upcomingBooking.clinicName ?? "عيادتك" : "عيادة قريبة"}
+            {upcomingBooking ? upcomingBooking.clinicName : "عيادة قريبة"}
           </span>
           <span className="mt-1 text-xs font-bold text-muted-foreground">
             {upcomingBooking ? `دورك ${upcomingBooking.code}` : "بدون طابور"}
