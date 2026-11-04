@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { readPrefs } from "@/lib/app-prefs";
 import { AlertTriangle, ImagePlus, Lock, Phone, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { specialties } from "@/lib/mock-data";
@@ -55,6 +56,7 @@ export function ComposerSheet({
 
   useEffect(() => {
     try {
+      if (readPrefs().anonymousDefault) setAnon(true);
       const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null") as Draft | null;
       if (d && d.body) {
         if (initialType === "card" ? d.type === "card" : d.type !== "card") setType(d.type);
