@@ -6,6 +6,8 @@ import scene2 from "@/assets/story/scene-2-grandpa.jpg";
 import scene3 from "@/assets/story/scene-3-queue.jpg";
 import scene4 from "@/assets/story/scene-4-family.jpg";
 import { ENTRY_KEY } from "@/components/WelcomeGate";
+import useEmblaCarousel from "embla-carousel-react";
+import { celebrate } from "@/lib/confetti";
 
 export const STORY_SEEN_KEY = "sanad_story_seen_v1";
 
@@ -42,8 +44,9 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
   const navigate = useNavigate();
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
-  const touchX = useRef<number | null>(null);
   const last = i === scenes.length - 1;
+  const [emblaRef, embla] = useEmblaCarousel({ direction: "rtl", duration: 28, dragFree: false });
+  const celebrated = useRef(false);
 
   const finish = useCallback(() => {
     try {
@@ -54,13 +57,44 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
     onDone();
   }, [onDone]);
 
-  const go = useCallback((n: number) => setI(Math.max(0, Math.min(scenes.length - 1, n))), []);
+  const go = useCallback(
+    (n: number) => {
+      const t = Math.max(0, Math.min(scenes.length - 1, n));
+      if (embla) embla.scrollTo(t);
+      else setI(t);
+    },
+    [embla],
+  );
+
+  useEffect(() => {
+    if (!embla) return;
+    const onSelect = () => {
+      setI(embla.selectedScrollSnap());
+      try {
+        navigator.vibrate?.(8);
+      } catch {
+        /* ignore */
+      }
+    };
+    embla.on("select", onSelect);
+    return () => {
+      embla.off("select", onSelect);
+    };
+  }, [embla]);
+
+  useEffect(() => {
+    if (last && !celebrated.current) {
+      celebrated.current = true;
+      const t = window.setTimeout(() => void celebrate(), 700);
+      return () => window.clearTimeout(t);
+    }
+  }, [last]);
 
   useEffect(() => {
     if (paused || last) return;
-    const t = window.setTimeout(() => setI((v) => v + 1), SCENE_MS);
+    const t = window.setTimeout(() => go(i + 1), SCENE_MS);
     return () => window.clearTimeout(t);
-  }, [i, paused, last]);
+  }, [i, paused, last, go]);
 
   const choose = (v: string, to: "/patient/login" | "/doctor/login" | null) => {
     try {
@@ -79,33 +113,25 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
       onPointerDown={() => setPaused(true)}
       onPointerUp={() => setPaused(false)}
       onPointerCancel={() => setPaused(false)}
-      onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
-      onTouchEnd={(e) => {
-        if (touchX.current === null) return;
-        const dx = e.changedTouches[0].clientX - touchX.current;
-        touchX.current = null;
-        // RTL: swipe left = next
-        if (dx < -50) go(i + 1);
-        else if (dx > 50) go(i - 1);
-      }}
     >
-      {scenes.map((s, idx) => (
-        <div
-          key={idx}
-          aria-hidden={idx !== i}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-out ${idx === i ? "opacity-100" : "opacity-0"}`}
-        >
-          <img
-            src={s.img}
-            alt=""
-            width={768}
-            height={960}
-            loading={idx === 0 ? "eager" : "lazy"}
-            className={`h-full w-full object-cover ${idx === i ? "story-kenburns" : ""}`}
-            style={{ animationPlayState: paused ? "paused" : "running" }}
-          />
+      <div ref={emblaRef} className="absolute inset-0 overflow-hidden">
+        <div className="flex h-full">
+          {scenes.map((s, idx) => (
+            <div key={idx} aria-hidden={idx !== i} className="relative h-full min-w-0 flex-[0_0_100%] overflow-hidden">
+              <img
+                src={s.img}
+                alt=""
+                width={768}
+                height={960}
+                loading={idx === 0 ? "eager" : "lazy"}
+                draggable={false}
+                className={`h-full w-full select-none object-cover ${idx === i ? "story-kenburns" : ""}`}
+                style={{ animationPlayState: paused ? "paused" : "running" }}
+              />
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
       <div className="story-shade pointer-events-none absolute inset-0" />
       <div className="story-grain pointer-events-none absolute inset-0" />
 
@@ -142,12 +168,8 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
         )}
       </div>
 
-      {/* tap zones */}
-      <button aria-label="المشهد السابق" className="absolute inset-y-24 right-0 z-[5] w-1/3" onClick={() => go(i - 1)} />
-      <button aria-label="المشهد التالي" className="absolute inset-y-24 left-0 z-[5] w-1/3" onClick={() => go(i + 1)} />
-
       {/* caption */}
-      <div className="absolute inset-x-0 bottom-0 z-10 mx-auto max-w-md px-6 pb-[max(env(safe-area-inset-bottom),24px)]">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 mx-auto max-w-md px-6 pb-[max(env(safe-area-inset-bottom),24px)]">
         <div key={i} className="story-caption">
           <p className="story-line text-sm font-bold text-story-glow" style={{ animationDelay: "150ms" }}>
             {scenes[i].kicker}
@@ -167,7 +189,7 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
         </div>
 
         {last ? (
-          <div className="story-line mt-6 space-y-2.5" style={{ animationDelay: "850ms" }}>
+          <div className="story-line pointer-events-auto mt-6 space-y-2.5" style={{ animationDelay: "850ms" }}>
             <button
               onClick={() => choose("patient", "/patient/login")}
               className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-story-glow text-base font-extrabold text-story-night shadow-gold transition active:scale-[0.97]"
@@ -191,7 +213,7 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
         ) : (
           <button
             onClick={() => go(i + 1)}
-            className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-story-ink/20 text-sm font-extrabold text-story-ink backdrop-blur-sm transition active:scale-[0.97]"
+            className="pointer-events-auto mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-story-ink/20 text-sm font-extrabold text-story-ink backdrop-blur-sm transition active:scale-[0.97]"
           >
             التالي <ArrowLeft className="h-4 w-4" />
           </button>
