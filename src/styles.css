@@ -1458,3 +1458,35 @@ html[data-low-motion="true"] .community-skeleton { animation: none !important; t
 }
 .sanad-float { animation: sanad-float 4.5s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .sanad-float { animation: none; } }
+
+/* ===== 3D Bento depth — applied app-wide to card surfaces ===== */
+@layer components {
+  .bg-card.rounded-2xl,
+  .bg-card.rounded-3xl,
+  .bg-card.rounded-xl {
+    border-radius: 1.75rem;
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--foreground) 4%, transparent),
+      transparent 45%
+    );
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--background) 70%, transparent),
+      inset 0 -2px 0 color-mix(in oklab, var(--foreground) 6%, transparent),
+      0 1px 2px color-mix(in oklab, var(--foreground) 8%, transparent),
+      0 10px 24px -12px color-mix(in oklab, var(--primary) 35%, transparent);
+    transition: transform 220ms cubic-bezier(.2,.9,.3,1.3), box-shadow 220ms ease;
+  }
+  a.bg-card.rounded-2xl:active, button.bg-card.rounded-2xl:active,
+  a.bg-card.rounded-3xl:active, button.bg-card.rounded-3xl:active {
+    transform: translateY(1px) scale(0.985);
+  }
+  /* icon tiles look like raised 3D chips */
+  .grid.place-items-center.rounded-2xl.bg-primary-soft,
+  .grid.place-items-center.rounded-xl.bg-primary-soft {
+    background-image: linear-gradient(160deg, color-mix(in oklab, var(--background) 55%, transparent), transparent 60%);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--background) 80%, transparent),
+      0 6px 14px -6px color-mix(in oklab, var(--primary) 50%, transparent);
+  }
+}
