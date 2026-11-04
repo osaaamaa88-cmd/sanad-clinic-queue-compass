@@ -5,11 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { currentUserId, unreadCounts } from "@/lib/chat";
 import { RxComposer } from "@/components/RxComposer";
 import { getSpecialty } from "@/lib/mock-data";
+import { useHideOnScroll } from "@/hooks/use-hide-on-scroll";
 
 export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [unread, setUnread] = useState(0);
   const [rxOpen, setRxOpen] = useState(false);
+  const hidden = useHideOnScroll();
   const [info, setInfo] = useState({
     doctor: "",
     specialty: "",
@@ -112,10 +114,10 @@ export function DoctorBottomNav({ clinicId }: { clinicId?: string }) {
       <nav
         aria-label="تنقل الطبيب"
         data-bottom-nav
-        className="fixed inset-x-0 bottom-0 z-[80] pb-[max(0.25rem,env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-4 md:left-1/2 md:w-full md:max-w-lg md:-translate-x-1/2"
+        className={`dock-autohide fixed inset-x-0 bottom-0 z-[80] pb-[max(0.25rem,env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-4 md:left-1/2 md:w-full md:max-w-lg md:-translate-x-1/2 ${hidden ? "pointer-events-none translate-y-[140%] opacity-0" : "translate-y-0 opacity-100"}`}
       >
         <div
-          className="glass-liquid mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-3xl px-1 shadow-2xl sm:max-w-xl"
+          className="glass-liquid glass-dock mx-auto mb-2 grid h-16 max-w-md grid-cols-5 rounded-3xl px-1 sm:max-w-xl"
           style={{ marginInline: "auto", width: "calc(100% - 1rem)" }}
         >
           {items.map((it) => {
