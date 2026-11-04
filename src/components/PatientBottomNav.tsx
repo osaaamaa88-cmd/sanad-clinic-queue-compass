@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useHideOnScroll } from "@/hooks/use-hide-on-scroll";
 import { CircleUserRound, House, Search, Siren, UsersRound } from "lucide-react";
 
 const items = [
