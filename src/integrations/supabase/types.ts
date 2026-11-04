@@ -681,6 +681,7 @@ export type Database = {
           created_at: string
           id: string
           is_hidden: boolean
+          parent_id: string | null
           post_id: string
         }
         Insert: {
@@ -691,6 +692,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_hidden?: boolean
+          parent_id?: string | null
           post_id: string
         }
         Update: {
@@ -701,6 +703,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_hidden?: boolean
+          parent_id?: string | null
           post_id?: string
         }
         Relationships: [
@@ -709,6 +712,13 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
             referencedColumns: ["id"]
           },
           {
@@ -1038,6 +1048,71 @@ export type Database = {
           phone?: string
         }
         Relationships: []
+      }
+      member_stories: {
+        Row: {
+          author_id: string
+          author_name: string
+          bg_style: string
+          caption: string
+          created_at: string
+          expires_at: string
+          font_style: string
+          id: string
+          image_path: string
+        }
+        Insert: {
+          author_id: string
+          author_name?: string
+          bg_style?: string
+          caption?: string
+          created_at?: string
+          expires_at?: string
+          font_style?: string
+          id?: string
+          image_path?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          bg_style?: string
+          caption?: string
+          created_at?: string
+          expires_at?: string
+          font_style?: string
+          id?: string
+          image_path?: string
+        }
+        Relationships: []
+      }
+      member_story_views: {
+        Row: {
+          created_at: string
+          story_id: string
+          viewer_id: string
+          viewer_name: string
+        }
+        Insert: {
+          created_at?: string
+          story_id: string
+          viewer_id: string
+          viewer_name?: string
+        }
+        Update: {
+          created_at?: string
+          story_id?: string
+          viewer_id?: string
+          viewer_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "member_stories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {

@@ -312,7 +312,12 @@ function CommunityPage() {
         )}
 
         <div className="px-4 pt-3">
-          <StoriesRow isDoctor={!!doctorClinicId} onCompose={() => openComposer("card")} />
+          <StoriesRow
+            isDoctor={!!doctorClinicId}
+            userId={userId}
+            userName={userName}
+            requireAuth={requireAuth}
+          />
         </div>
 
         <div className="sticky top-0 z-20 mt-2 bg-background">

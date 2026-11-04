@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Trash2, AlertTriangle, Send, Eye } from "lucide-react";
+import { X, Trash2, AlertTriangle, Send, Eye, CalendarPlus } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { markStoryViewed, parseCardStyle, type StoryItem } from "@/lib/stories";
 
@@ -33,6 +33,8 @@ export function StoryViewer({
   phone,
   onClose,
   onDelete,
+  onView,
+  loadViewers,
 }: {
   items: StoryItem[];
   title: string;
@@ -43,6 +45,10 @@ export function StoryViewer({
   phone?: string;
   onClose: () => void;
   onDelete?: (storyId: string) => void;
+  /** Custom view tracking (member statuses); defaults to clinic story views. */
+  onView?: (storyId: string) => void;
+  /** Owner-only viewer list for member statuses. */
+  loadViewers?: (storyId: string) => Promise<{ viewer_id: string; viewer_name: string }[]>;
 }) {
   const navigate = useNavigate();
   const [index, setIndex] = useState(startIndex);
@@ -53,6 +59,7 @@ export function StoryViewer({
   const [closing, setClosing] = useState(false);
   const [msg, setMsg] = useState("");
   const [typing, setTyping] = useState(false);
+  const [viewers, setViewers] = useState<{ viewer_id: string; viewer_name: string }[] | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const press = useRef<{ x: number; y: number; t: number; timer: number } | null>(null);
   const elapsed = useRef(0);
@@ -69,8 +76,9 @@ export function StoryViewer({
   useEffect(() => {
     setProgress(0);
     elapsed.current = 0;
-    if (current && !isOwner) markStoryViewed(current.id);
-  }, [index, current, isOwner]);
+    if (current && !isOwner) (onView ?? markStoryViewed)(current.id);
+    setViewers(null);
+  }, [index, current, isOwner, onView]);
 
   // image / text timer with pause support
   useEffect(() => {
@@ -160,8 +168,8 @@ export function StoryViewer({
   };
 
   const contextText = `استفسار بخصوص الستوري${current.tag && !parseCardStyle(current.tag) ? ` (${current.tag})` : ""}${current.caption ? `: «${current.caption.slice(0, 80)}»` : ""}`;
-  const sendInquiry = (via: "chat" | "wa") => {
-    const text = `${contextText}\n${msg.trim()}`.trim();
+  const sendInquiry = (via: "chat" | "wa", extra?: string) => {
+    const text = `${contextText}\n${(extra ?? msg).trim()}`.trim();
     if (via === "wa") {
       const n = waNumber(phone ?? "");
       if (n) window.open(`https://wa.me/${n}?text=${encodeURIComponent(text)}`, "_blank");
@@ -284,10 +292,22 @@ export function StoryViewer({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {isOwner && (
+              {isOwner && !loadViewers && (
                 <span className="flex items-center gap-1 rounded-full bg-white/15 px-2 py-1 text-xs font-bold text-white">
                   <Eye className="h-3.5 w-3.5" /> {current.views ?? 0}
                 </span>
+              )}
+              {isOwner && loadViewers && (
+                <button
+                  onClick={() => {
+                    setPaused(true);
+                    void loadViewers(current.id).then(setViewers);
+                  }}
+                  aria-label="مين شاف الحالة"
+                  className="flex min-h-11 items-center gap-1 rounded-full bg-white/15 px-3 text-xs font-bold text-white"
+                >
+                  <Eye className="h-4 w-4" /> المشاهدات
+                </button>
               )}
               {isOwner && onDelete && (
                 <button
@@ -323,7 +343,53 @@ export function StoryViewer({
           {current.url && current.caption && (
             <p className="mb-3 text-sm font-bold leading-relaxed text-white">{current.caption}</p>
           )}
-          {!isOwner && (
+          {viewers && (
+            <div className="mb-3 max-h-48 overflow-y-auto rounded-2xl bg-white/10 p-3">
+              <div className="mb-2 flex items-center justify-between text-sm font-extrabold text-white">
+                <span>شاهدها {viewers.length}</span>
+                <button
+                  onClick={() => {
+                    setViewers(null);
+                    setPaused(false);
+                  }}
+                  aria-label="إغلاق المشاهدات"
+                  className="grid h-11 w-11 place-items-center text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              {viewers.length === 0 && <p className="text-xs text-white/70">لا أحد بعد</p>}
+              {viewers.map((v) => (
+                <p key={v.viewer_id} className="py-1 text-sm text-white">
+                  {v.viewer_name || "عضو"}
+                </p>
+              ))}
+            </div>
+          )}
+          {!isOwner && clinicId && (
+            <div className="mb-2 flex items-center gap-2">
+              {["❤️", "🤲", "👏", "🙏"].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => sendInquiry("chat", r)}
+                  aria-label={`تفاعل ${r}`}
+                  className="grid h-11 w-11 place-items-center rounded-full bg-white/15 text-xl"
+                >
+                  {r}
+                </button>
+              ))}
+              <button
+                onClick={() => {
+                  navigate({ to: "/patient/clinic/$id", params: { id: clinicId } });
+                  onClose();
+                }}
+                className="mr-auto inline-flex min-h-11 items-center gap-1.5 rounded-full bg-gold px-4 text-xs font-extrabold text-gold-foreground"
+              >
+                <CalendarPlus className="h-4 w-4" /> احجز كشف
+              </button>
+            </div>
+          )}
+          {!isOwner && clinicId && (
             <div className="flex items-center gap-2">
               <input
                 value={msg}

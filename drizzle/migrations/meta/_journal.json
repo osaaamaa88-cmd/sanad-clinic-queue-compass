@@ -15,6 +15,13 @@
       "when": 1793821793166,
       "tag": "0001_community_post_type",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793822737561,
+      "tag": "0002_community_replies_and_member_stories",
+      "breakpoints": true
     }
   ]
 }
