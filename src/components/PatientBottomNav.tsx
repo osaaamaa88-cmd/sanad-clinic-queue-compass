@@ -73,7 +73,7 @@ export function PatientBottomNav() {
                   emergency && active
                     ? "bg-destructive/10 text-destructive shadow-xs"
                     : active
-                      ? "bg-primary-soft text-primary shadow-xs ring-1 ring-primary/10"
+                      ? "bg-gradient-to-br from-primary to-success text-primary-foreground shadow-soft scale-105"
                       : "bg-transparent group-hover:bg-secondary"
                 }`}
               >
