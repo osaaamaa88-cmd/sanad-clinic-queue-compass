@@ -268,18 +268,20 @@ function CommunityPage() {
           >
             <Search className="h-5 w-5" />
           </button>
-          <Link
-            to="/messages"
-            aria-label="الرسائل"
-            className="relative grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground"
-          >
-            <MessageCircle className="h-5 w-5" />
-            {unreadTotal > 0 && (
-              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-xs font-black text-destructive-foreground ring-2 ring-card">
-                {unreadTotal > 9 ? "9+" : unreadTotal}
-              </span>
-            )}
-          </Link>
+          {doctorClinicId && (
+            <Link
+              to="/messages"
+              aria-label="الرسائل"
+              className="relative grid h-11 w-11 place-items-center rounded-full bg-secondary text-foreground"
+            >
+              <MessageCircle className="h-5 w-5" />
+              {unreadTotal > 0 && (
+                <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-xs font-black text-destructive-foreground ring-2 ring-card">
+                  {unreadTotal > 9 ? "9+" : unreadTotal}
+                </span>
+              )}
+            </Link>
+          )}
           {doctorClinicId ? (
             <NotificationsBell audience="clinic" clinicId={doctorClinicId} />
           ) : (
