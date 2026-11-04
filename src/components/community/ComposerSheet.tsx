@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { readPrefs } from "@/lib/app-prefs";
 import { AlertTriangle, ImagePlus, Lock, Phone, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { specialties } from "@/lib/mock-data";
