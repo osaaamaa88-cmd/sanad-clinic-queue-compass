@@ -463,13 +463,6 @@ function PatientHome() {
           </span>
         </Link>
 
-        <Link
-          to="/patient/scan"
-          className="col-span-full flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-border bg-card p-3 text-sm font-extrabold text-foreground shadow-soft active:scale-[0.97]"
-        >
-          <ScanLine className="h-5 w-5 text-primary" /> امسح كود العيادة بالكاميرا
-        </Link>
-
         {/* الكارت السفلي الأيسر — فحص الروشتة والتحاليل MedScan */}
         <Link
           to="/patient/drug-scan"
@@ -484,6 +477,14 @@ function PatientHome() {
               فحص MedScan الذكي بلمسة
             </span>
           </span>
+        </Link>
+
+        {/* شريط سفلي بعرض كامل — مسح كود العيادة */}
+        <Link
+          to="/patient/scan"
+          className="col-span-full flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-border bg-card p-3 text-sm font-extrabold text-foreground shadow-soft active:scale-[0.97]"
+        >
+          <ScanLine className="h-5 w-5 text-primary" /> امسح كود العيادة بالكاميرا
         </Link>
       </section>
 
