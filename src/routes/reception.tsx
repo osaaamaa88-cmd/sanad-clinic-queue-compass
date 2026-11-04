@@ -146,6 +146,12 @@ function Reception() {
       }
       await refresh(clinic.id);
       playNotification();
+      if (readPrefs().receptionVoiceCall && "speechSynthesis" in window) {
+        const u = new SpeechSynthesisUtterance(`الدور رقم ${r.queueNumber}، اتفضل للكشف`);
+        u.lang = "ar-EG";
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+      }
       toast.success("تم توجيه النداء للمريض 🔔");
       setRecentlyCalledIds((prev) => {
         const next = new Set(prev);
