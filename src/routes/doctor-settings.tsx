@@ -19,7 +19,14 @@ import {
   ShieldCheck,
   AlertTriangle,
   Check,
+  BellRing,
+  ClipboardList,
+  Eye,
+  Megaphone,
+  MessagesSquare,
+  Tv,
 } from "lucide-react";
+import { LinkRow, SettingsSection, SwitchRow, usePrefs } from "@/components/settings/SettingsBits";
 import { AppShell } from "@/components/AppShell";
 import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -569,10 +576,7 @@ function DoctorSettings() {
         </button>
       }
     >
-      <div className="mb-4">
-        <SoundToggle />
-        <ThemeSetting />
-      </div>
+      {clinicId && <DoctorQuickTools clinicId={clinicId} />}
       {clinicId && !isVerified && (
         <div className="mb-4 rounded-2xl border border-warning bg-warning/10 p-4">
           <div className="flex items-start gap-3">
@@ -1042,10 +1046,55 @@ function DoctorSettings() {
           تم تسجيل عيادتك بنجاح في فترة البيتا التجريبية، وحسابك قيد التفعيل من إدارة سند.
         </div>
       )}
+      <DoctorPreferences />
       <p className="mt-6 text-center text-xs text-muted-foreground" dir="ltr">
         SANAD {APP_VERSION_LABEL} · Stable
       </p>
     </AppShell>
+  );
+}
+
+function DoctorQuickTools({ clinicId }: { clinicId: string }) {
+  return (
+    <SettingsSection title="أدوات العيادة">
+      <div className="grid grid-cols-2 gap-3">
+        <LinkRow icon={ClipboardList} to="/reception" title="الاستقبال" hint="طابور اليوم" />
+        <LinkRow icon={Tv} to="/tv/$id" params={{ id: clinicId }} title="شاشة الانتظار" hint="للتلفزيون" />
+        <LinkRow icon={MessagesSquare} to="/messages" title="الرسائل" hint="محادثات المرضى" />
+        <LinkRow icon={Eye} to="/patient/clinic/$id" params={{ id: clinicId }} title="صفحتي للمرضى" hint="معاينة البروفايل" />
+      </div>
+    </SettingsSection>
+  );
+}
+
+function DoctorPreferences() {
+  const [prefs, update] = usePrefs();
+  return (
+    <div className="mt-6">
+      <SettingsSection title="التنبيهات">
+        <SwitchRow
+          icon={BellRing}
+          title="نغمة عند تسجيل مريض جديد"
+          checked={prefs.newPatientChime}
+          onChange={(v) => update("newPatientChime", v)}
+        />
+        <SwitchRow
+          icon={Megaphone}
+          title="النداء الصوتي في الاستقبال"
+          hint="ينطق رقم الدور عند «التالي»"
+          checked={prefs.receptionVoiceCall}
+          onChange={(v) => update("receptionVoiceCall", v)}
+        />
+      </SettingsSection>
+      <SettingsSection title="الصوت والمظهر">
+        <SoundToggle />
+        <ThemeSetting />
+      </SettingsSection>
+      <SettingsSection title="عن سند">
+        <LinkRow icon={ShieldCheck} to="/privacy" title="سياسة الخصوصية" />
+        <LinkRow icon={FileText} to="/terms" title="شروط الاستخدام" />
+      </SettingsSection>
+    </div>
   );
 }
 
