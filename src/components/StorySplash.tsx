@@ -17,7 +17,7 @@ import { celebrate } from "@/lib/confetti";
 export const STORY_SEEN_KEY = "sanad_story_seen_v1";
 export const DOCTOR_STORY_SEEN_KEY = "sanad_doctor_story_seen_v1";
 
-type Scene = { img: string; kicker: string; title: string; body: string; overlay?: "radar"; hook?: string };
+type Scene = { img: string; kicker: string; title: string; body: string; overlay?: "radar" | "verified"; hook?: string };
 
 const patientScenes: Scene[] = [
   {
@@ -56,7 +56,7 @@ const patientScenes: Scene[] = [
 const doctorScenes: Scene[] = [
   {
     img: doc1,
-    hook: "POV: أنت د. أسامة 👨‍⚕️",
+    hook: "POV: يوم زحمة في العيادة ⏱️",
     kicker: "قبل سند…",
     title: "ورق ضايع، زحمة، و«لسه دوري ماجاش؟»",
     body: "عيادة مليانة ودوشة، والسكرتيرة تايهة بين التليفون والدفتر.",
@@ -78,9 +78,10 @@ const doctorScenes: Scene[] = [
   {
     img: doc4,
     hook: "الـ Final form 🏆",
-    kicker: "طبيب موثّق",
-    title: "عيادتك… بقت عيادة المستقبل",
-    body: "شارة توثيق، ستوريات لعيادتك، وفريق سكرتارية تديره من موبايلك.",
+    kicker: "عيادتك موثّقة ✓",
+    title: "وليك بروفايل عيادة متكامل",
+    body: "شارة توثيق تطمّن المريض، ستوريات لعيادتك، وفريق سكرتارية تديره من موبايلك.",
+    overlay: "verified",
   },
 ];
 
@@ -215,6 +216,19 @@ export function StorySplash({ onDone, variant = "patient" }: { onDone: () => voi
       <div className="story-shade pointer-events-none absolute inset-0" />
       <div className="story-grain pointer-events-none absolute inset-0" />
       {scenes[i].overlay === "radar" && <RadarOverlay key={`radar-${i}`} />}
+      {scenes[i].overlay === "verified" && (
+        <div key={`ver-${i}`} className="pointer-events-none absolute inset-x-0 top-[34%] z-[6] flex flex-col items-center gap-2.5 px-6" aria-hidden>
+          {["✓ عيادة موثّقة", "⭐ بروفايل متكامل", "📅 حجز وطابور مباشر"].map((t, k) => (
+            <span
+              key={t}
+              className="story-pin rounded-2xl border border-story-glow/50 bg-story-night/60 px-4 py-2 text-sm font-extrabold text-story-ink shadow-gold backdrop-blur-sm"
+              style={{ animationDelay: `${500 + k * 450}ms` }}
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
       {scenes[i].hook && (
         <div key={`hook-${i}`} className="story-punch pointer-events-none absolute inset-x-0 top-[22%] z-[6] flex justify-center px-6">
           <span className="rounded-xl bg-story-ink px-4 py-2 text-lg font-extrabold text-story-night shadow-gold">{scenes[i].hook}</span>
