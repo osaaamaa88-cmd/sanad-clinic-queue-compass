@@ -9,11 +9,13 @@ export function Reveal({
   className = "",
   index = 0,
   as: Tag = "div",
+  ...rest
 }: {
   children: ReactNode;
   className?: string;
   index?: number;
   as?: ElementType;
+  [key: string]: unknown;
 }) {
   const { ref, inView } = useInView({ triggerOnce: true, rootMargin: "0px 0px -6% 0px" });
   useEffect(() => {
@@ -24,6 +26,7 @@ export function Reveal({
   }, []);
   return (
     <Tag
+      {...rest}
       ref={ref}
       data-reveal
       data-revealed={inView || undefined}
