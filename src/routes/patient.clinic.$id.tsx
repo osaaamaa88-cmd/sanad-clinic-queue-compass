@@ -288,8 +288,8 @@ function ClinicDetail() {
           }}
         />
         {/* 🌟 1. Luxury Cover Banner & Floating Overlap */}
-        <div className="relative -mx-4 -mt-2 overflow-hidden sm:-mx-5">
-          <div className="h-28 w-full bg-gradient-to-l from-primary/20 via-primary/10 to-primary-soft/40 dark:from-primary/10 dark:via-background dark:to-card">
+        <div className="relative -mx-1 -mt-1 overflow-hidden rounded-[2rem] shadow-soft">
+          <div className="h-32 w-full gradient-primary">
             <div className="absolute inset-0 bg-[radial-gradient(var(--color-primary)_1px,transparent_1px)] opacity-25 [background-size:16px_16px]" />
           </div>
         </div>
