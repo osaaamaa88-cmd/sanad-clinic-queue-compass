@@ -21,7 +21,7 @@ import { FloatingVoiceAssistant } from "../components/FloatingVoiceWidget";
 import { IdleLogout } from "../components/IdleLogout";
 import { PatientCallListener } from "../components/PatientCallListener";
 import { installGlobalSounds } from "../lib/sounds";
-import { installAndroidBack, installGlobalHaptics, installMedReminderActions } from "../lib/native";
+import { installAndroidBack, installBackgroundPause, installGlobalHaptics, installMedReminderActions } from "../lib/native";
 import { useTheme } from "../lib/theme";
 import { useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -268,8 +268,10 @@ function RootComponent() {
     const offBack = installAndroidBack(toast);
     const offHaptics = installGlobalHaptics();
     const offMedActions = installMedReminderActions(toast);
+    const offBgPause = installBackgroundPause();
     return () => {
       offMedActions();
+      offBgPause();
       offBack();
       offHaptics();
     };

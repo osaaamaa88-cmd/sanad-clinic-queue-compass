@@ -67,6 +67,11 @@ export function useNemoSpeechInput(options: SpeechInputOptions = {}) {
     }
   }, []);
 
+  useEffect(() => {
+    window.addEventListener("sanad:background", stop);
+    return () => window.removeEventListener("sanad:background", stop);
+  }, [stop]);
+
   const start = useCallback(() => {
     if (recognizerRef.current) return false;
     const recognizer = createRecognizer();

@@ -1,3 +1,4 @@
+import { normalizeEgyptianMobile } from "@/lib/input-validation";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { X, Loader2, UserRound, Phone as PhoneIcon } from "lucide-react";
@@ -47,8 +48,8 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
-  const digits = phone.replace(/\D/g, "");
-  const valid = name.trim().length >= 3 && /^01\d{9}$/.test(digits);
+  const digits = normalizeEgyptianMobile(phone) ?? "";
+  const valid = name.trim().length >= 3 && digits !== "";
 
   const submit = () => {
     if (!valid) {

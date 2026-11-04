@@ -1,3 +1,4 @@
+import { parseReading, bloodPressureError, sugarError } from "@/lib/input-validation";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Activity, Download, Droplet, Heart, Save, Siren, Trash2, QrCode } from "lucide-react";
@@ -307,13 +308,18 @@ function HealthTracker() {
     setReadings(loadReadings());
   }, []);
 
-  const sysN = Number(sys);
-  const diaN = Number(dia);
-  const bpValid = sys && dia && sysN > 0 && diaN > 0;
+  const sysP = parseReading(sys);
+  const diaP = parseReading(dia);
+  const sysN = sysP ?? 0;
+  const diaN = diaP ?? 0;
+  const bpErr = bloodPressureError(sysP, diaP);
+  const bpValid = sysP != null && diaP != null && !bpErr;
   const bp = bpValid ? evaluateBP(sysN, diaN) : null;
 
-  const sugarN = Number(sugar);
-  const sugarValid = sugar && sugarN > 0;
+  const sugarP = parseReading(sugar);
+  const sugarN = sugarP ?? 0;
+  const sugErr = sugarError(sugarP);
+  const sugarValid = sugarP != null && !sugErr;
   const sug = sugarValid ? evaluateSugar(sugarN, sugarState) : null;
 
   function saveBP() {
@@ -471,6 +477,9 @@ function HealthTracker() {
                 </label>
               </div>
 
+              {bpErr && (
+                <p role="alert" className="mt-2 text-sm font-semibold text-destructive">{bpErr}</p>
+              )}
               {bp && (
                 <div className={`mt-4 rounded-2xl border p-4 ${toneClasses[bp.tone]}`}>
                   <div className="flex items-center justify-between">
@@ -555,6 +564,9 @@ function HealthTracker() {
                 />
               </label>
 
+              {sugErr && (
+                <p role="alert" className="mt-2 text-sm font-semibold text-destructive">{sugErr}</p>
+              )}
               {sug && (
                 <div className={`mt-4 rounded-2xl border p-4 ${toneClasses[sug.tone]}`}>
                   <div className="flex items-center justify-between">
