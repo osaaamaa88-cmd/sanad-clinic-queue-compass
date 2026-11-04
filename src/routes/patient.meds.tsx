@@ -255,7 +255,7 @@ function Meds() {
       }
     >
       {/* Notification permission */}
-      <div className="-mt-8 rounded-2xl border border-border bg-card p-4 shadow-soft">
+      <div className="-mt-8 rounded-3xl tile-3d border border-border bg-card p-4 shadow-soft">
         {notifPerm === "granted" ? (
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-success/20 text-success">
@@ -292,7 +292,7 @@ function Meds() {
       </div>
 
       {/* استقبال روشتة QR — يظهر معلومة للمريض */}
-      <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-3">
+      <div className="mt-4 flex items-center gap-3 rounded-3xl tile-3d border border-primary/30 bg-primary/5 p-3">
         <ScanLine className="h-5 w-5 shrink-0 text-primary" />
         <p className="text-xs text-muted-foreground">
           عندك رمز QR من طبيبك؟ امسحه بكاميرا الهاتف وافتح الرابط — الأدوية هتتضاف هنا تلقائياً.
@@ -301,7 +301,7 @@ function Meds() {
 
       {/* Next dose */}
       {nextDose && (
-        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary-soft/40 p-4">
+        <div className="mt-4 flex items-center gap-3 rounded-3xl tile-3d border border-primary/30 bg-primary-soft/40 p-4">
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
             <Clock className="h-6 w-6" />
           </div>
@@ -318,7 +318,7 @@ function Meds() {
       {/* Add form */}
       <form
         onSubmit={addMed}
-        className="mt-5 rounded-2xl border border-border bg-card p-4 shadow-soft"
+        className="mt-5 rounded-3xl tile-3d border border-border bg-card p-4 shadow-soft"
       >
         <h2 className="mb-3 flex items-center gap-2 text-sm font-bold">
           <Plus className="h-4 w-4 text-primary" /> إضافة دواء جديد
@@ -331,7 +331,7 @@ function Meds() {
             maxLength={80}
             required
             placeholder="مثال: Panadol"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full rounded-3xl tile-3d border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </label>
         <label className="mt-3 block">
@@ -341,7 +341,7 @@ function Meds() {
             onChange={(e) => setDose(e.target.value)}
             maxLength={60}
             placeholder="مثال: قرص بعد الأكل"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full rounded-3xl tile-3d border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </label>
         <div className="mt-3">
@@ -357,7 +357,7 @@ function Meds() {
                     next[idx] = e.target.value;
                     setTimesInput(next);
                   }}
-                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="flex-1 rounded-3xl tile-3d border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 {timesInput.length > 1 && (
                   <button
@@ -388,7 +388,7 @@ function Meds() {
             maxLength={200}
             rows={2}
             placeholder="مثال: بعد الفطار مباشرة"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full rounded-3xl tile-3d border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </label>
         <button
@@ -403,13 +403,13 @@ function Meds() {
       <section className="mt-5">
         <h3 className="mb-2 text-sm font-bold">أدويتي ({meds.length})</h3>
         {meds.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
+          <div className="rounded-3xl tile-3d border-2 border-dashed border-border bg-card p-6 text-center text-xs text-muted-foreground">
             لسه ما أضفتش أدوية.
           </div>
         ) : (
           <ul className="space-y-2">
             {meds.map((m) => (
-              <li key={m.id} className="rounded-2xl border border-border bg-card p-3">
+              <li key={m.id} className="rounded-3xl tile-3d border border-border bg-card p-3">
                 <div className="flex items-start gap-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
                     <Pill className="h-5 w-5" />

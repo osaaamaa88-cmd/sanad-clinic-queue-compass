@@ -88,7 +88,7 @@ function EmergencyPage() {
     >
       <Link
         to="/hospitals"
-        className="relative z-10 -mt-6 mb-8 flex items-center justify-between rounded-2xl bg-card p-4 font-bold shadow-soft"
+        className="relative z-10 -mt-6 mb-8 flex items-center justify-between rounded-3xl tile-3d bg-card p-4 font-bold shadow-soft"
       >
         <span className="flex items-center gap-2">
           <Hospital className="h-5 w-5 text-primary" /> دليل المستشفيات الحكومية في كل المحافظات
@@ -112,7 +112,7 @@ function EmergencyPage() {
             <a
               key={h.id}
               href={`tel:${h.phone}`}
-              className="flex items-center gap-2 rounded-2xl border border-border bg-secondary p-3"
+              className="flex items-center gap-2 rounded-3xl tile-3d border border-border bg-secondary p-3"
             >
               {(() => {
                 const I = hotlineIcons[h.id] ?? Siren;
@@ -136,7 +136,7 @@ function EmergencyPage() {
 
       <Link
         to="/patient/first-aid"
-        className="mt-4 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400"
+        className="mt-4 flex items-center gap-3 rounded-3xl tile-3d border border-rose-200 bg-rose-50 p-4 transition hover:border-rose-400"
       >
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-rose-100 text-rose-700">
           <HeartPulse className="h-6 w-6" />
@@ -200,7 +200,7 @@ function EmergencyPage() {
             المفتوح الآن
           </button>
         </div>
-        <label className="mt-2 flex items-center gap-2 rounded-xl border border-border bg-card p-3 text-sm">
+        <label className="mt-2 flex items-center gap-2 rounded-3xl tile-3d border border-border bg-card p-3 text-sm">
           <input
             type="checkbox"
             checked={only24}
@@ -214,14 +214,14 @@ function EmergencyPage() {
       {/* List */}
       <div className="mt-5 space-y-3">
         {list.length === 0 && (
-          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-3xl tile-3d border-2 border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
             لا توجد نتائج مطابقة للفلاتر الحالية.
           </div>
         )}
         {list.map((f) => {
           const meta = facilityTypeLabel[f.type];
           return (
-            <div key={f.id} className="rounded-2xl border border-border bg-card p-4">
+            <div key={f.id} className="rounded-3xl tile-3d border border-border bg-card p-4">
               <div className="flex items-start gap-3">
                 <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary-soft text-2xl">
                   {(() => {
@@ -279,7 +279,7 @@ function EmergencyPage() {
                 href={`https://maps.google.com/?q=${f.lat},${f.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 flex items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-xs font-bold"
+                className="mt-2 flex items-center justify-center gap-2 rounded-3xl tile-3d border border-border py-2.5 text-xs font-bold"
               >
                 <MapPin className="h-4 w-4 text-primary" /> فتح على الخريطة
               </a>

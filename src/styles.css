@@ -1516,3 +1516,9 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   .page-enter > * > * { animation: none; }
 }
+/* Unified spring press for interactive capsules */
+.page-enter button:not(:disabled), .page-enter a { transition: transform 200ms cubic-bezier(0.34,1.56,0.64,1); }
+.page-enter button:not(:disabled):active, .page-enter a:active { transform: scale(0.97); }
+.page-enter { animation: page-in 380ms cubic-bezier(0.22,1,0.36,1) both; }
+@keyframes page-in { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .page-enter { animation: none; } .page-enter button:active, .page-enter a:active { transform: none; } }
