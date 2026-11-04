@@ -95,7 +95,7 @@ export function StoryComposer({
                   onChange={(e) => setText(e.target.value)}
                   maxLength={280}
                   placeholder="اكتب حالتك..."
-                  className={`font-${font} h-full w-full resize-none bg-transparent p-6 text-center text-2xl font-bold leading-relaxed text-primary-foreground outline-none placeholder:text-primary-foreground/60`}
+                  className={`font-card-${font} h-full w-full resize-none bg-transparent p-6 text-center text-2xl font-bold leading-relaxed text-primary-foreground outline-none placeholder:text-primary-foreground/60`}
                   style={{ paddingTop: "30%" }}
                 />
               )}
@@ -133,7 +133,7 @@ export function StoryComposer({
                       key={f.id}
                       type="button"
                       onClick={() => setFont(f.id)}
-                      className={`font-${f.id} min-h-11 shrink-0 rounded-full px-4 text-sm font-bold ${font === f.id ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
+                      className={`font-card-${f.id} min-h-11 shrink-0 rounded-full px-4 text-sm font-bold ${font === f.id ? "bg-primary text-primary-foreground" : "bg-secondary"}`}
                     >
                       {f.label}
                     </button>
