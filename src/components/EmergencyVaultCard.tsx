@@ -45,9 +45,9 @@ export function EmergencyVaultCard() {
             <WifiOff className="h-3 w-3" /> محفوظ على موبايلك بس ويفتح من غير نت
           </p>
         </div>
-        {saved && !editing && (
+        {!editing && (
           <button onClick={() => setEditing(true)} className="min-h-11 px-3 text-xs font-bold text-primary">
-            تعديل
+            {saved ? "تعديل" : "املأ الكارت"}
           </button>
         )}
       </div>
