@@ -1,36 +1,7 @@
-# Current work
+# Roadmap
 
-- [ ] Nemo: continuous opt-in microphone conversation, calm speech, spoken satisfaction and stop/cleanup verification.
-- [x] Restore the global voice accessibility switch: simulated microphone/TTS verified startup, real reply, navigation continuity, and disable cleanup; physical audio still needs device testing.
-- [x] Preserve the page that initiated Google patient sign-in: clinic popup callback and authenticated return verified; external Google consent was not exercised.
-- [x] Floating voice accessibility: automatic loop, voice preference, no activation navigation, permission/cleanup browser checks with simulated speech; real server round trip returned directory fallback, not verified Groq analysis. Physical microphone/audio requires device testing.
-
-- [x] Map polish: clustering, compact circular medical pins, safe selection preview, GPS/auto-fit, browser checks.
-
-- [x] Replace the previous brand name across screens, metadata, sharing, and system copy.
-- [x] Update local storage, export, and session namespaces while preserving patient data.
-- [x] Update package and mobile app identity to SANAD / com.sanad.app.
-- [x] Verify database notification definitions contain no legacy brand text.
-- [x] Verify build output and mobile/desktop screens.
-- [x] Patient guest browsing + auth guard on follow/review/contact (resume action after sign-in)
-- [x] Dedicated patient login screen (/patient/login): Google + name/phone quick login, no SMS
-
-- [x] Search/map upgrade: GPS recenter, auto-fit, open-now filter, directions, book CTA
-- [x] Test the doctor search section end-to-end
-- [x] Patient bottom navigation: home, search, emergency, account
-- [x] Move health indicators and medication reminders into the patient account
-- [x] Storage: avatars bucket (5MB), clinic-media 50MB, image compression, upload progress/size errors, indexes, list caps + paging helper
-- [x] Patient home header shows only «سند | SANAD»
-- [x] Headers hide on scroll down across all pages
-- [x] Move light/dark switch into patient & doctor settings
-
-- [x] Doctor story manager page (/doctor/stories) linked from doctor settings
-- [ ] AI analysis of repeated save failures for the owner panel (paused for stories)
-- [x] Make the search map fast and smooth on phones
-
-- [x] Map micro-styling: center cluster numbers (flex, white 700/14px); remove dashed borders on pins; solid badge with dark drop shadow
-- [x] Performance: 1h data cache, offline map tiles, lazy map/story viewer
-
-- [x] Show the medical disclaimer only as a link under sign-in
-- [x] Voice assistant + admin monitor: replace unavailable Groq model with openai/gpt-oss-120b.
-- [x] Remove voice test, privacy and account data section from settings; browser verified symptom result and signed-in floating widget; replacement Groq API returned 200. Physical microphone and audio still require device testing.
+- [ ] Community v2: database (hidden flag, saves, feed page function, auto-hide)
+- [ ] Community v2: safety checks before posting (personal data, crisis, emergency) + tests
+- [ ] Community v2: split UI into components (stories, tabs, post card, composer, comments)
+- [ ] Community v2: infinite feed, optimistic helpful/save
+- [ ] Admin moderation "reject" clears reports

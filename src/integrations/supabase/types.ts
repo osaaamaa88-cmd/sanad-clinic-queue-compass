@@ -680,6 +680,7 @@ export type Database = {
           clinic_id: string | null
           created_at: string
           id: string
+          is_hidden: boolean
           post_id: string
         }
         Insert: {
@@ -689,6 +690,7 @@ export type Database = {
           clinic_id?: string | null
           created_at?: string
           id?: string
+          is_hidden?: boolean
           post_id: string
         }
         Update: {
@@ -698,6 +700,7 @@ export type Database = {
           clinic_id?: string | null
           created_at?: string
           id?: string
+          is_hidden?: boolean
           post_id?: string
         }
         Relationships: [
@@ -769,7 +772,9 @@ export type Database = {
           id: string
           image_path: string
           is_anonymous: boolean
+          is_hidden: boolean
           kind: string
+          post_type: string
           specialty_id: string
         }
         Insert: {
@@ -783,7 +788,9 @@ export type Database = {
           id?: string
           image_path?: string
           is_anonymous?: boolean
+          is_hidden?: boolean
           kind?: string
+          post_type?: string
           specialty_id?: string
         }
         Update: {
@@ -797,7 +804,9 @@ export type Database = {
           id?: string
           image_path?: string
           is_anonymous?: boolean
+          is_hidden?: boolean
           kind?: string
+          post_type?: string
           specialty_id?: string
         }
         Relationships: [
@@ -855,6 +864,39 @@ export type Database = {
           },
           {
             foreignKeyName: "community_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_saves: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_saves_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_saves_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "community_posts"
@@ -1223,6 +1265,40 @@ export type Database = {
       check_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
+      }
+      community_feed_page: {
+        Args: {
+          p_answered?: string
+          p_cursor_created_at?: string
+          p_cursor_id?: string
+          p_follower_key?: string
+          p_limit?: number
+          p_search?: string
+          p_specialty?: string
+          p_tab?: string
+        }
+        Returns: {
+          answered_by_doctor: boolean
+          author_name: string
+          bg_style: string
+          body: string
+          clinic_id: string
+          comments_count: number
+          created_at: string
+          doctor_avatar: string
+          doctor_name: string
+          font_style: string
+          id: string
+          image_path: string
+          is_anonymous: boolean
+          is_mine: boolean
+          kind: string
+          likes_count: number
+          my_liked: boolean
+          my_saved: boolean
+          specialty_id: string
+          top_doctor_comment: Json
+        }[]
       }
       create_booking: {
         Args: {
