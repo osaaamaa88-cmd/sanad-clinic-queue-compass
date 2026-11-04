@@ -21,17 +21,19 @@ export function PulseSplash({
   }, [duration, onDone]);
   return (
     <div
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background transition-opacity duration-300 ${leaving ? "opacity-0" : "opacity-100"}`}
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background transition-opacity duration-300 ${leaving ? "scale-105 opacity-0 blur-sm" : "scale-100 opacity-100"} transition-all ease-out`}
       aria-label="سند"
     >
+      <div className="pointer-events-none absolute h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
       <div className="relative grid h-28 w-28 place-items-center">
         <span className="sanad-ring absolute inset-0 rounded-full bg-primary/25" />
         <span className="sanad-ring absolute inset-0 rounded-full bg-primary/20 [animation-delay:0.5s]" />
+        <span className="sanad-ring absolute inset-0 rounded-full bg-gold/15 [animation-delay:1s]" />
         <div className="sanad-beat relative grid h-24 w-24 place-items-center rounded-[2rem] bg-surface-deep shadow-soft">
           <img src={sanadLogo} alt="" width={400} height={400} className="h-16 w-16" />
         </div>
       </div>
-      <svg viewBox="0 0 200 40" className="mt-6 h-8 w-48 text-primary" fill="none">
+      <svg viewBox="0 0 200 40" className="mt-6 h-8 w-56 text-primary drop-shadow-[0_0_6px_var(--primary)]" fill="none">
         <path
           className="sanad-ekg"
           d="M0 20 H60 L70 8 L80 32 L90 4 L100 36 L110 20 H200"
