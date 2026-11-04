@@ -6,6 +6,14 @@ import { svrFollowedStories } from "@/lib/community.functions";
 import { getFollowerKey } from "@/lib/clinic-profile";
 import { getClinicStories, type StoryItem } from "@/lib/stories";
 import sanadLogo from "@/assets/sanad-logo.png";
+import {
+  deleteMemberStory,
+  fetchMemberStories,
+  fetchStoryViewers,
+  markMemberStoryViewed,
+  type MemberStoryGroup,
+} from "./member-stories";
+import { StoryComposer } from "./StoryComposer";
 
 const TIPS: StoryItem[] = [
   { bg: "ocean", text: "🚶 30 دقيقة مشي يومياً تحمي قلبك وتحسّن مزاجك" },
@@ -54,9 +62,23 @@ function Circle({
   );
 }
 
-export function StoriesRow({ isDoctor, onCompose }: { isDoctor: boolean; onCompose: () => void }) {
+export function StoriesRow({
+  isDoctor,
+  userId,
+  userName,
+  requireAuth,
+}: {
+  isDoctor: boolean;
+  userId: string | null;
+  userName: string;
+  requireAuth: () => boolean;
+}) {
   const navigate = useNavigate();
   const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [members, setMembers] = useState<MemberStoryGroup[]>([]);
+  const [composing, setComposing] = useState(false);
+  const [member, setMember] = useState<MemberStoryGroup | null>(null);
+  const loadMembers = () => void fetchMemberStories(userId).then(setMembers);
   const [open, setOpen] = useState<{
     items: StoryItem[];
     title: string;
@@ -71,6 +93,10 @@ export function StoriesRow({ isDoctor, onCompose }: { isDoctor: boolean; onCompo
       .catch(() => {});
   }, []);
 
+  useEffect(loadMembers, [userId]);
+  const mine = members.find((g) => g.authorId === userId);
+  const others = members.filter((g) => g.authorId !== userId);
+
   const openClinic = async (c: Clinic) => {
     const s = await getClinicStories(c.id);
     if (s.stories.length)
@@ -81,13 +107,24 @@ export function StoriesRow({ isDoctor, onCompose }: { isDoctor: boolean; onCompo
   return (
     <>
       <div className="-mx-4 flex max-h-[100px] gap-3 overflow-x-auto px-4 [scrollbar-width:none]">
-        <Circle
-          label={isDoctor ? "قصة جديدة" : "قصتك"}
-          ring={false}
-          onClick={() => (isDoctor ? void navigate({ to: "/doctor/stories" }) : onCompose())}
-        >
-          <Plus className="h-6 w-6 text-primary" />
-        </Circle>
+        {isDoctor ? (
+          <Circle label="قصة العيادة" ring={false} onClick={() => void navigate({ to: "/doctor/stories" })}>
+            <Plus className="h-6 w-6 text-primary" />
+          </Circle>
+        ) : (
+          <Circle
+            label={mine ? "حالتي" : "أضف حالة"}
+            ring={!!mine}
+            onClick={() => (mine ? setMember(mine) : requireAuth() && setComposing(true))}
+          >
+            <Plus className="h-6 w-6 text-primary" />
+          </Circle>
+        )}
+        {mine && !isDoctor && (
+          <Circle label="حالة جديدة" ring={false} onClick={() => setComposing(true)}>
+            <Plus className="h-6 w-6 text-muted-foreground" />
+          </Circle>
+        )}
         <Circle label="نصائح سند" ring onClick={() => setOpen({ items: TIPS, title: "نصائح سند" })}>
           <img src={sanadLogo} alt="" className="h-10 w-10 object-contain" />
         </Circle>
@@ -102,7 +139,41 @@ export function StoriesRow({ isDoctor, onCompose }: { isDoctor: boolean; onCompo
             )}
           </Circle>
         ))}
+        {others.map((g) => (
+          <Circle key={g.authorId} label={g.authorName} ring={!g.allViewed} onClick={() => setMember(g)}>
+            <span className="text-lg font-black text-primary">{g.authorName.charAt(0)}</span>
+          </Circle>
+        ))}
       </div>
+      {composing && userId && (
+        <StoryComposer
+          userId={userId}
+          userName={userName}
+          onClose={() => setComposing(false)}
+          onDone={() => {
+            setComposing(false);
+            loadMembers();
+          }}
+        />
+      )}
+      {member && (
+        <StoryViewer
+          items={member.items}
+          title={member.authorId === userId ? "حالتي" : member.authorName}
+          isOwner={member.authorId === userId}
+          onView={(id) => userId && void markMemberStoryViewed(id, userId, userName)}
+          loadViewers={fetchStoryViewers}
+          onDelete={async (id) => {
+            await deleteMemberStory(id).catch(() => {});
+            setMember(null);
+            loadMembers();
+          }}
+          onClose={() => {
+            setMember(null);
+            loadMembers();
+          }}
+        />
+      )}
       {open && (
         <StoryViewer
           items={open.items}
