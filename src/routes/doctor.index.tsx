@@ -77,37 +77,37 @@ function DoctorHome() {
   const tools = [
     {
       label: "الروشتة الذكية",
-      desc: "اكتب واطبع روشتة",
+      desc: "",
       icon: Pill,
       onClick: () => setRxOpen(true),
     },
     {
-      label: "الاستقبال والطابور",
-      desc: "الحجوزات والدور",
+      label: "الاستقبال والدور",
+      desc: "",
       icon: ListOrdered,
       to: "/reception" as const,
     },
     {
-      label: "رسائل المرضى",
-      desc: "رد على الاستفسارات",
+      label: "الرسائل",
+      desc: "",
       icon: MessagesSquare,
       to: "/messages" as const,
     },
     {
-      label: "الستوري والتنبيهات",
-      desc: "انشر لمرضاك",
+      label: "الستوري",
+      desc: "",
       icon: Megaphone,
       to: "/doctor/stories" as const,
     },
     {
-      label: "إعدادات العيادة",
-      desc: "المواعيد والأسعار",
+      label: "الإعدادات",
+      desc: "",
       icon: Settings,
       to: "/doctor-settings" as const,
     },
     {
-      label: "التغذية والسعرات",
-      desc: "أنظمة للمرضى ولك",
+      label: "التغذية",
+      desc: "",
       icon: Utensils,
       to: "/nutrition" as const,
     },
@@ -117,7 +117,7 @@ function DoctorHome() {
     <AppShell title="لوحة الطبيب" backTo="/">
       <div className="space-y-4 pb-28">
         {/* 🌟 Executive Clinic Cockpit */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary p-6 text-primary-foreground shadow-lg shadow-primary/20">
+        <div className="relative overflow-hidden rounded-[2rem] gradient-primary p-6 text-primary-foreground shadow-soft ring-1 ring-primary-foreground/10">
           <div className="absolute -left-10 -top-10 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
           <div className="relative z-10 flex items-start justify-between gap-3">
             <div>
@@ -167,15 +167,14 @@ function DoctorHome() {
           {tools.map((t) => {
             const inner = (
               <>
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-soft text-primary">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
                   <t.icon className="h-5 w-5" />
                 </span>
                 <span className="mt-2 block text-sm font-extrabold text-foreground">{t.label}</span>
-                <span className="block text-xs text-muted-foreground">{t.desc}</span>
-              </>
+                              </>
             );
             const cls =
-              "group relative flex flex-col justify-between rounded-3xl border border-primary/20 bg-gradient-to-b from-primary-soft/50 via-card to-card p-5 text-right shadow-xs transition duration-200 active:scale-[0.97] hover:border-primary/50 hover:shadow-soft";
+              "tile-3d group flex min-h-28 flex-col justify-between rounded-3xl border border-border/60 p-4 text-right";
             return t.to ? (
               <Link key={t.label} to={t.to} className={cls}>
                 {inner}
@@ -189,14 +188,13 @@ function DoctorHome() {
           <Link
             to="/patient/clinic/$id"
             params={{ id: clinic.id }}
-            className="group relative flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-5 text-right shadow-xs transition duration-200 active:scale-[0.97] hover:border-primary/40 hover:shadow-soft"
+            className="tile-3d group flex min-h-28 flex-col justify-between rounded-3xl border border-border/60 p-4 text-right"
           >
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-primary-soft text-primary">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl gradient-primary text-primary-foreground shadow-soft">
               <Eye className="h-5 w-5" />
             </span>
             <span className="mt-2 block text-sm font-extrabold text-foreground">صفحة عيادتي</span>
-            <span className="block text-xs text-muted-foreground">زي ما المريض بيشوفها</span>
-          </Link>
+                      </Link>
         </div>
       </div>
       {/* Floating Quick Bar (Executive) */}
