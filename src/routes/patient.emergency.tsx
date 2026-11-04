@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Phone, MapPin, Clock, Filter, MessageCircle, HeartPulse } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { NearestHospitals } from "@/components/NearestHospitals";
+import { EmergencyVaultCard } from "@/components/EmergencyVaultCard";
 import {
   listEmergencyFacilities,
   emergencyHotlines,
@@ -130,6 +131,8 @@ function EmergencyPage() {
           ))}
         </div>
       </div>
+
+      <EmergencyVaultCard />
 
       <Link
         to="/patient/first-aid"

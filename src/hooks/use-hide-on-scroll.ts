@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /** يخفي العنصر عند التمرير لأسفل ويُظهره عند الصعود (مثل فيسبوك). */
-export function useHideOnScroll(threshold = 12, topOffset = 60) {
+export function useHideOnScroll(threshold = 32, topOffset = 60) {
   const [hidden, setHidden] = useState(false);
   const last = useRef(new WeakMap<object, number>());
 
