@@ -3,15 +3,17 @@ import { useEffect, useState } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { authErrorMessage } from "@/components/StaffAuth";
+import { checkPassword } from "@/lib/password-policy";
+import { PasswordStrength } from "@/components/settings/PasswordStrength";
 
 export const Route = createFileRoute("/reset-password")({
   staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "تعيين كلمة سر جديدة | سند" },
-      { name: "description", content: "تعيين كلمة سر جديدة لحسابات أطباء وطاقم سند." },
+      { name: "description", content: "تعيين كلمة سر جديدة لحسابات سند للمرضى والأطباء." },
       { property: "og:title", content: "تعيين كلمة سر جديدة | سند" },
-      { property: "og:description", content: "استعادة حساب الطبيب في سند بأمان." },
+      { property: "og:description", content: "استعادة حسابك في سند بأمان." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -28,29 +30,43 @@ function ResetPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
-    if (window.location.hash.includes("type=recovery")) setReady(true);
+    if (window.location.hash.includes("type=recovery")) {
+      setReady(true);
+      // Strip tokens from the address bar so they never leak via history/screenshots.
+      setTimeout(() => history.replaceState(null, "", window.location.pathname), 0);
+    }
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setReady(true);
     });
-    supabase.auth.getSession().then(({ data: s }) => {
-      if (s.session) setReady(true);
-    });
+    supabase.auth.getUser().then(({ data: u }) => setEmail(u.user?.email ?? ""));
     return () => data.subscription.unsubscribe();
   }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (password.length < 8) return setError("كلمة السر لازم تكون ٨ حروف على الأقل.");
+    const c = checkPassword(password, [email]);
+    if (!c.ok) return setError(c.error!);
     if (password !== confirm) return setError("كلمتا السر غير متطابقتين.");
     setBusy(true);
-    const { error: err } = await supabase.auth.updateUser({ password });
+    const { data: upd, error: err } = await supabase.auth.updateUser({ password });
+    if (err) {
+      setBusy(false);
+      return setError(authErrorMessage(err.message));
+    }
+    // Revoke every other device that may hold the old password.
+    await supabase.auth.signOut({ scope: "others" });
+    const uid = upd.user?.id;
+    const { data: member } = uid
+      ? await supabase.from("clinic_members").select("clinic_id").eq("user_id", uid).limit(1)
+      : { data: null };
     setBusy(false);
-    if (err) return setError(authErrorMessage(err.message));
     setDone(true);
-    setTimeout(() => navigate({ to: "/doctor", replace: true }), 1500);
+    const to = member && member.length ? "/doctor" : "/patient";
+    setTimeout(() => navigate({ to, replace: true }), 1500);
   };
 
   const input =
@@ -58,7 +74,7 @@ function ResetPasswordPage() {
 
   return (
     <main dir="rtl" className="mx-auto min-h-screen max-w-md px-4 py-10">
-      <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+      <div className="space-y-3 rounded-3xl tile-3d border border-border bg-card p-5">
         <div className="flex items-center gap-2">
           <KeyRound className="h-5 w-5 text-primary" />
           <h1 className="text-base font-extrabold">تعيين كلمة سر جديدة</h1>
@@ -84,6 +100,7 @@ function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className={input}
               />
+              <PasswordStrength value={password} context={[email]} />
             </div>
             <div>
               <label className="text-xs font-bold text-muted-foreground">تأكيد كلمة السر</label>

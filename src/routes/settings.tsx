@@ -1,3 +1,4 @@
+import { ChangePasswordCard } from "@/components/settings/ChangePasswordCard";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
@@ -124,6 +125,7 @@ export function SettingsPage() {
       </SettingsSection>
 
       <SettingsSection title="الحساب والبيانات">
+        <ChangePasswordCard />
         <AccountDeletion />
       </SettingsSection>
 
