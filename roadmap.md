@@ -9,3 +9,5 @@
 - [x] Slow Facebook-style dock hide + iOS water bounce on reveal
 - [x] Offline emergency card (on-device), lab image zoom, image compression, booking celebration
 - [ ] Voice silence detection, voice-note waveforms, QR scanner, offline app install (not started)
+- [x] Patient story: 5th scene — nearby doctors radar map
+- [x] Doctor story (Dr. Osama, TikTok-style) on first doctor sign-in visit

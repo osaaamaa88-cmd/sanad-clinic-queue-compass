@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Sparkles, Lock, Loader2, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { StorySplash, DOCTOR_STORY_SEEN_KEY } from "@/components/StorySplash";
 import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -52,6 +53,14 @@ function DoctorEntry() {
   const [gBusy, setGBusy] = useState(false);
   const [gErr, setGErr] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showStory, setShowStory] = useState(false);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(DOCTOR_STORY_SEEN_KEY)) setShowStory(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const route = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
@@ -168,6 +177,10 @@ function DoctorEntry() {
       setGBusy(false);
     }
   };
+
+  if (showStory && !loading && !noClinic) {
+    return <StorySplash variant="doctor" onDone={() => setShowStory(false)} />;
+  }
 
   if (loading) {
     return (
