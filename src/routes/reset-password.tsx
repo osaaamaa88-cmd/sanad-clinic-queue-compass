@@ -61,7 +61,7 @@ function ResetPasswordPage() {
     await supabase.auth.signOut({ scope: "others" });
     const uid = upd.user?.id;
     const { data: member } = uid
-      ? await supabase.from("clinic_members").select("clinic_id").eq("user_id", uid).limit(1)
+      ? await supabase.from("clinic_staff").select("clinic_id").eq("user_id", uid).limit(1)
       : { data: null };
     setBusy(false);
     setDone(true);
