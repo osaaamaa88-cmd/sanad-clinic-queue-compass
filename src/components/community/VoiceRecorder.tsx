@@ -18,7 +18,14 @@ export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChang
     return () => URL.revokeObjectURL(u);
   }, [value]);
 
-  useEffect(() => () => stop(), []);
+  useEffect(() => {
+    const onBg = () => stop();
+    window.addEventListener("sanad:background", onBg);
+    return () => {
+      window.removeEventListener("sanad:background", onBg);
+      stop();
+    };
+  }, []);
 
   function stop() {
     if (timerRef.current) window.clearInterval(timerRef.current);
