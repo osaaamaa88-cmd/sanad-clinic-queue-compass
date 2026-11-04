@@ -1,3 +1,4 @@
+import { parseReading, bloodPressureError, sugarError } from "@/lib/input-validation";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Activity, Download, Droplet, Heart, Save, Siren, Trash2, QrCode } from "lucide-react";

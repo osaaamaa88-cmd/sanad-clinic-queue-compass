@@ -1,3 +1,4 @@
+import { normalizeEgyptianMobile } from "@/lib/input-validation";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { X, Loader2, UserRound, Phone as PhoneIcon } from "lucide-react";
