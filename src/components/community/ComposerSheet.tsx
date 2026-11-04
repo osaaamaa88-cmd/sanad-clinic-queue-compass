@@ -7,6 +7,7 @@ import { compressImage } from "@/lib/media-upload";
 import { hasSelfHarmIntent, runLocalTriage } from "@/lib/triage-local";
 import { AMBULANCE_LINE, MENTAL_HEALTH_PORTAL_URL, PSYCH_SUPPORT_LINE } from "@/lib/crisis-support";
 import { detectPersonalData, PERSONAL_DATA_LABEL } from "./community-logic";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 const BGS = ["navy", "ocean", "emerald", "gold", "rose", "lavender", "sunset", "night"] as const;
 const FONTS = [
@@ -48,6 +49,7 @@ export function ComposerSheet({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [busy, setBusy] = useState(false);
+  const [voice, setVoice] = useState<Blob | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const loaded = useRef(false);
 
@@ -97,10 +99,16 @@ export function ComposerSheet({
     if (busy) return;
     if (pii.length) return void toast.error("احذف البيانات الشخصية قبل النشر");
     if (isCard && !body.trim()) return void toast.error("اكتب نص البطاقة");
-    if (!isCard && !body.trim() && !file) return void toast.error("اكتب نصاً أو أضف صورة");
+    if (!isCard && !body.trim() && !file && !voice) return void toast.error("اكتب نصاً أو أضف صورة أو تسجيلاً");
     setBusy(true);
     try {
       let image_path = "";
+      if (!isCard && !file && voice) {
+        const ext = voice.type.includes("mp4") ? "m4a" : voice.type.includes("ogg") ? "ogg" : "webm";
+        image_path = `${userId}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage.from("community").upload(image_path, voice, { contentType: voice.type });
+        if (error) throw error;
+      }
       if (!isCard && file) {
         const small = await compressImage(file, 1440, 0.8);
         const ext = small.name.split(".").pop() || "jpg";
@@ -113,7 +121,7 @@ export function ComposerSheet({
         author_name: userName,
         is_anonymous: isDoctor ? false : anon,
         clinic_id: clinicId,
-        kind: isCard ? "card" : image_path ? "image" : "text",
+        kind: isCard ? "card" : file ? "image" : voice && image_path ? "voice" : "text",
         post_type: isCard ? "experience" : type === "tip" && !isDoctor ? "question" : type,
         body: body.trim().slice(0, isCard ? 280 : 2000),
         bg_style: isCard ? bg : "",
@@ -236,6 +244,7 @@ export function ComposerSheet({
               </button>
             )}
             <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
+            {!file && <VoiceRecorder value={voice} onChange={setVoice} />}
           </div>
         )}
 

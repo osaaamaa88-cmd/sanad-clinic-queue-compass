@@ -173,7 +173,12 @@ export function PostCard({
               )}
             </div>
           )}
-          {post.image_path && (
+          {post.image_path && post.kind === "voice" && (
+            <div className="px-4 pt-2">
+              {image ? <audio src={image} controls preload="none" className="h-11 w-full" /> : <div className="community-skeleton h-11 w-full rounded-full" />}
+            </div>
+          )}
+          {post.image_path && post.kind !== "voice" && (
             <button type="button" onClick={onImageTap} className="relative mt-2 block w-full" aria-label="عرض الصورة">
               {image ? (
                 <img src={image} alt="صورة مرفقة" loading="lazy" className="max-h-[28rem] w-full bg-secondary object-contain" />
