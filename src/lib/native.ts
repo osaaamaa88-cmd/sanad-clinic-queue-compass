@@ -253,3 +253,34 @@ export async function nativeShare(opts: { title: string; text?: string; url: str
   await navigator.clipboard?.writeText(opts.url);
   return "copied" as const;
 }
+
+/** When the app goes to background: silence speech and tell listeners (mic, camera) to stop. */
+export function installBackgroundPause() {
+  const pause = () => {
+    try {
+      window.speechSynthesis?.cancel();
+    } catch {
+      /* ignore */
+    }
+    window.dispatchEvent(new CustomEvent("sanad:background"));
+  };
+  const onVis = () => {
+    if (document.visibilityState === "hidden") pause();
+  };
+  document.addEventListener("visibilitychange", onVis);
+  let remove: (() => void) | undefined;
+  if (isNative()) {
+    void import("@capacitor/app")
+      .then(async ({ App }) => {
+        const h = await App.addListener("appStateChange", ({ isActive }) => {
+          if (!isActive) pause();
+        });
+        remove = () => void h.remove();
+      })
+      .catch(() => {});
+  }
+  return () => {
+    document.removeEventListener("visibilitychange", onVis);
+    remove?.();
+  };
+}
