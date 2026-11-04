@@ -168,6 +168,51 @@ export function speak(text: string, onEnd?: (success: boolean) => void) {
     onEnd?.(false);
     return () => {};
   }
+  // Neural Arabic voice first (online); fall back to device voices on any failure.
+  if (navigator.onLine !== false) {
+    let cancelled = false;
+    let fallbackStop: (() => void) | null = null;
+    let audio: HTMLAudioElement | null = null;
+    let url: string | null = null;
+    const ctrl = new AbortController();
+    const fallback = () => {
+      if (!cancelled) fallbackStop = speakDevice(text, onEnd);
+    };
+    void (async () => {
+      try {
+        const res = await fetch("/api/public/nemo-voice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: cleanForSpeech(text), calm: isSeniorModeOn() }),
+          signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error(`tts ${res.status}`);
+        const blob = await res.blob();
+        if (cancelled) return;
+        url = URL.createObjectURL(blob);
+        audio = new Audio(url);
+        if (isSeniorModeOn()) audio.playbackRate = 0.92;
+        audio.onended = () => !cancelled && onEnd?.(true);
+        audio.onerror = () => fallback();
+        await audio.play();
+      } catch (error) {
+        if (cancelled) return;
+        console.warn("[NemoVoice] neural voice unavailable, using device voice", error);
+        fallback();
+      }
+    })();
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+      audio?.pause();
+      if (url) URL.revokeObjectURL(url);
+      fallbackStop?.();
+    };
+  }
+  return speakDevice(text, onEnd);
+}
+
+function speakDevice(text: string, onEnd?: (success: boolean) => void) {
   if (Capacitor.isNativePlatform()) {
     let cancelled = false;
     let nativeTts: typeof import("@capacitor-community/text-to-speech").TextToSpeech | null = null;
