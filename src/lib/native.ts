@@ -55,6 +55,8 @@ export async function notifyLocal(title: string, body: string) {
 }
 
 export async function notifyPatientCall(title: string, body: string) {
+  const { readPrefs } = await import("@/lib/app-prefs");
+  if (!readPrefs().queueAlerts) return false;
   return notifyLocal(title, body);
 }
 
@@ -122,7 +124,9 @@ export async function syncNativeMedReminders(meds: NativeMed[]) {
         notifications: pending.notifications.map((n) => ({ id: n.id })),
       });
     }
-    const notifications = meds.flatMap((m) =>
+    const { readPrefs } = await import("@/lib/app-prefs");
+    const enabledMeds = readPrefs().medReminders ? meds : [];
+    const notifications = enabledMeds.flatMap((m) =>
       m.times
         .filter((t) => /^\d{2}:\d{2}$/.test(t))
         .map((t) => {
