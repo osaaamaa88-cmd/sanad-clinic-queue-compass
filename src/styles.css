@@ -1434,3 +1434,20 @@ html[data-low-motion="true"] .community-skeleton { animation: none !important; t
   --color-story-ink: var(--story-ink);
   --color-story-glow: var(--story-glow);
 }
+
+/* Story: radar + floating pins + TikTok punch */
+.story-radar-ring { position: absolute; left: 50%; top: 50%; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 9999px; border: 2px solid var(--story-glow); opacity: 0; animation: story-radar 2.7s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+@keyframes story-radar { 0% { transform: scale(0.08); opacity: 0.9; } 100% { transform: scale(1); opacity: 0; } }
+.story-radar-sweep { position: absolute; left: 50%; top: 50%; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 9999px; background: conic-gradient(from 0deg, color-mix(in oklab, var(--story-glow) 45%, transparent), transparent 25%); animation: story-sweep 3.2s linear infinite; opacity: 0.55; }
+@keyframes story-sweep { to { transform: rotate(360deg); } }
+.story-pin { opacity: 0; animation: story-pin-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, story-bob 3.6s ease-in-out 1.2s infinite; }
+.story-pin-a { top: 16%; right: 6%; }
+.story-pin-b { top: 30%; left: 5%; }
+.story-pin-c { top: 47%; right: 10%; }
+@keyframes story-pin-in { from { opacity: 0; transform: translateY(18px) scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes story-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+.story-punch { animation: story-punch 0.55s cubic-bezier(0.34, 1.7, 0.64, 1) both; }
+@keyframes story-punch { 0% { opacity: 0; transform: scale(1.6) rotate(-4deg); } 60% { opacity: 1; transform: scale(0.94) rotate(1deg); } 100% { transform: scale(1) rotate(-1.5deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .story-radar-ring, .story-radar-sweep, .story-pin, .story-punch { animation: none; opacity: 1; }
+}
