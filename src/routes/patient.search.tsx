@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/motion/Reveal";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { directionsPath } from "@/lib/directions";
 import { ClientOnly } from "@tanstack/react-router";
@@ -348,13 +349,18 @@ function Search() {
               </p>
             </div>
           )}
-          {filtered.map((c) => {
-            if (c.kind === "hospital") return <HospitalCard key={c.id} c={c} />;
+          {filtered.map((c, i) => {
+            if (c.kind === "hospital")
+              return (
+                <Reveal key={c.id} index={i}>
+                  <HospitalCard c={c} />
+                </Reveal>
+              );
             const s = getSpecialty(c.specialtyId);
             const SpecIcon = (s && specialtyIcons[s.id]) || Stethoscope;
             return (
+              <Reveal key={c.id} index={i}>
               <Link
-                key={c.id}
                 to="/patient/clinic/$id"
                 params={{ id: c.id }}
                 className="block rounded-3xl tile-3d border border-border bg-card p-4 transition hover:shadow-soft"
@@ -407,6 +413,7 @@ function Search() {
                   </div>
                 </div>
               </Link>
+              </Reveal>
             );
           })}
         </div>

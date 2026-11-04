@@ -1,6 +1,7 @@
 import { QueryClient, MutationCache } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { navDirection } from "@/lib/nav-direction";
 import { reportSaveFailure } from "@/lib/health.functions";
 
 // After an app update, an open tab may request old code chunks that no longer
@@ -32,6 +33,14 @@ if (typeof window !== "undefined") {
   });
 }
 
+function viewTransitionsSupported() {
+  return (
+    typeof document !== "undefined" &&
+    "startViewTransition" in document &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export const getRouter = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -60,7 +69,21 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    defaultViewTransition: viewTransitionsSupported(),
   });
+  if (typeof window !== "undefined") {
+    if (viewTransitionsSupported()) document.documentElement.dataset.vtSupported = "true";
+    let popped = false;
+    window.addEventListener("popstate", () => (popped = true));
+    router.subscribe("onBeforeNavigate", ({ fromLocation, toLocation }) => {
+      document.documentElement.dataset.navDir = navDirection(
+        fromLocation?.pathname ?? "",
+        toLocation.pathname,
+        popped,
+      );
+      popped = false;
+    });
+  }
 
   return router;
 };

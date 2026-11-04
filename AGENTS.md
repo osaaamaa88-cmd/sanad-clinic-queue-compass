@@ -24,3 +24,5 @@
 - Voice and diagnostic Groq requests use the available replacement model with bounded request timeouts; this avoids silent fallback from an inaccessible model.
 - Community feed reads through the `community_feed` view (hides authors of anonymous posts); doctor badges come only from a DB trigger that verifies verified-clinic membership. Why: badges and anonymity cannot be spoofed from the browser.
 - Member (patient) statuses live in their own 24h table separate from clinic stories; replies to clinic stories go to clinic chat, never patient-to-patient DMs. Why: privacy between patients.
+
+- Page transitions use native View Transitions with a nav-direction attribute (tab/push/pop, `src/lib/nav-direction.ts`); never put transform/filter animations on the route wrapper, because that breaks the fixed bottom navigation.

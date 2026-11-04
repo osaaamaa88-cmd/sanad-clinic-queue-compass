@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
 import { AppShell } from "@/components/AppShell";
+import { Reveal } from "@/components/motion/Reveal";
 import { NemoBreathingCard } from "@/components/NemoBreathingCard";
 import { QueueTrackerCard } from "@/components/QueueTrackerCard";
 import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
@@ -372,7 +373,7 @@ function PatientHome() {
 
       {/* ===== خطتك ===== */}
       <h2 className="mb-3 text-lg font-black">خطتك</h2>
-      <section aria-label="خطتك" className="mb-6 grid grid-cols-2 gap-3">
+      <Reveal as="section" index={0} aria-label="خطتك" className="mb-6 grid grid-cols-2 gap-3">
         <Link
           to="/patient/search"
           className="relative row-span-2 flex min-h-64 flex-col overflow-visible rounded-3xl bg-gold-soft p-4 text-foreground active:scale-[0.98] transition"
@@ -435,7 +436,7 @@ function PatientHome() {
             </Link>
           ))}
         </div>
-      </section>
+      </Reveal>
       {upcomingBooking && <QueueTrackerCard key={upcomingBooking.code} />}
 
       {/* ===== كارت المتابعة الصحية والمجسم أُدمج في شبكة البينتو أعلاه ===== */}
@@ -451,7 +452,7 @@ function PatientHome() {
         />
       )}
 
-      <section className="mt-6">
+      <Reveal as="section" index={1} className="mt-6">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
             <h2 className="text-lg font-extrabold">عيادات نشطة الآن</h2>
@@ -504,9 +505,9 @@ function PatientHome() {
             </p>
           )}
         </div>
-      </section>
+      </Reveal>
 
-      <section className="mt-8">
+      <Reveal as="section" index={2} className="mt-8">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-extrabold">اختار التخصص</h2>
           <Button
@@ -565,7 +566,7 @@ function PatientHome() {
             </span>
           </Button>
         </div>
-      </section>
+      </Reveal>
 
       <section ref={featuredClinicsRef} className="mt-8 scroll-mt-24">
         <div className="flex items-end justify-between gap-3">
@@ -655,7 +656,7 @@ function PatientHome() {
       </section>
 
       <HealthActivityCarousel />
-      <section className="mt-6 grid gap-3 sm:grid-cols-2">
+      <Reveal as="section" index={3} className="mt-6 grid gap-3 sm:grid-cols-2">
         <NemoBreathingCard />
 
         <div className="card-medical-mint p-5">
@@ -693,7 +694,7 @@ function PatientHome() {
             إعادة تعيين
           </button>
         </div>
-      </section>
+      </Reveal>
 
       {specialtiesOpen && (
         <AllSpecialtiesSheet
