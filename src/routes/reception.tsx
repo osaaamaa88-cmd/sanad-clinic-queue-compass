@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import { readPrefs } from "@/lib/app-prefs";
 import {
   UserPlus,
   Stethoscope,
