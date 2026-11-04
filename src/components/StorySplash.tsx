@@ -1,17 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Stethoscope, Compass, HeartPulse } from "lucide-react";
+import { ArrowLeft, Stethoscope, Compass, HeartPulse, MapPin, Siren, Zap } from "lucide-react";
 import scene1 from "@/assets/story/scene-1-night.jpg";
 import scene2 from "@/assets/story/scene-2-grandpa.jpg";
 import scene3 from "@/assets/story/scene-3-queue.jpg";
 import scene4 from "@/assets/story/scene-4-family.jpg";
+import scene5 from "@/assets/story/scene-5-map.jpg";
+import doc1 from "@/assets/story/doc-1-chaos.jpg";
+import doc2 from "@/assets/story/doc-2-queue.jpg";
+import doc3 from "@/assets/story/doc-3-rx.jpg";
+import doc4 from "@/assets/story/doc-4-hero.jpg";
 import { ENTRY_KEY } from "@/components/WelcomeGate";
 import useEmblaCarousel from "embla-carousel-react";
 import { celebrate } from "@/lib/confetti";
 
 export const STORY_SEEN_KEY = "sanad_story_seen_v1";
+export const DOCTOR_STORY_SEEN_KEY = "sanad_doctor_story_seen_v1";
 
-const scenes = [
+type Scene = { img: string; kicker: string; title: string; body: string; overlay?: "radar"; hook?: string };
+
+const patientScenes: Scene[] = [
   {
     img: scene1,
     kicker: "الساعة ٢ بالليل…",
@@ -31,16 +39,88 @@ const scenes = [
     body: "تابع رقمك في الطابور مباشرة، وهيوصلك تنبيه لما دورك يقرّب.",
   },
   {
+    img: scene5,
+    kicker: "دكتورك على بُعد خطوات…",
+    title: "رادار الأطباء والطوارئ… ولا دقيقة حيرة",
+    body: "اعرف العيادات المفتوحة جنبك و١٣٦ مستشفى حكومي، بالمسافة وحالة الطابور.",
+    overlay: "radar",
+  },
+  {
     img: scene4,
     kicker: "عيلتك كلها في أمان",
     title: "سند… في ضهرك في كل خطوة",
     body: "من الصغير للكبير، ملف طبي واحد ودكتور قريب ورفيق بيسمعك.",
   },
-] as const;
+];
+
+const doctorScenes: Scene[] = [
+  {
+    img: doc1,
+    hook: "POV: أنت د. أسامة 👨‍⚕️",
+    kicker: "قبل سند…",
+    title: "ورق ضايع، زحمة، و«لسه دوري ماجاش؟»",
+    body: "عيادة مليانة ودوشة، والسكرتيرة تايهة بين التليفون والدفتر.",
+  },
+  {
+    img: doc2,
+    hook: "استنى الـ Glow up ✨",
+    kicker: "شاشة الانتظار الذكية",
+    title: "الشاشة بتنادي… والكل مرتاح",
+    body: "طابور مباشر وتنبيه للمريض على موبايله، من غير زعيق على الدور.",
+  },
+  {
+    img: doc3,
+    hook: "روشتة في ٣٠ ثانية ⚡",
+    kicker: "Rx بصوتك",
+    title: "تملي الروشتة… وتوصل بكود QR",
+    body: "روشتة إلكترونية واضحة بتتبعت للمريض فورًا وتتطبع بضغطة.",
+  },
+  {
+    img: doc4,
+    hook: "الـ Final form 🏆",
+    kicker: "طبيب موثّق",
+    title: "عيادتك… بقت عيادة المستقبل",
+    body: "شارة توثيق، ستوريات لعيادتك، وفريق سكرتارية تديره من موبايلك.",
+  },
+];
 
 const SCENE_MS = 6500;
 
-export function StorySplash({ onDone }: { onDone: () => void }) {
+function RadarOverlay() {
+  const pins = [
+    { cls: "story-pin-a", icon: <MapPin className="h-4 w-4 text-story-glow" />, label: "د. سارة • أطفال", sub: "٤٠٠ م • مفتوحة الآن" },
+    { cls: "story-pin-b", icon: <Siren className="h-4 w-4 text-story-glow" />, label: "مستشفى حكومي", sub: "طوارئ ٢٤ ساعة" },
+    { cls: "story-pin-c", icon: <Zap className="h-4 w-4 text-story-glow" />, label: "د. أحمد • باطنة", sub: "حجز فوري" },
+  ];
+  return (
+    <div className="pointer-events-none absolute inset-0 z-[5]" aria-hidden>
+      <div className="absolute left-1/2 top-[38%] -translate-x-1/2 -translate-y-1/2">
+        <span className="story-radar-ring" />
+        <span className="story-radar-ring" style={{ animationDelay: "0.9s" }} />
+        <span className="story-radar-ring" style={{ animationDelay: "1.8s" }} />
+        <span className="story-radar-sweep" />
+        <span className="relative block h-4 w-4 rounded-full bg-story-glow shadow-gold" />
+      </div>
+      {pins.map((p, k) => (
+        <div
+          key={k}
+          className={`story-pin ${p.cls} absolute flex items-center gap-2 rounded-2xl border border-story-ink/25 bg-story-night/55 px-3 py-2 backdrop-blur-sm`}
+          style={{ animationDelay: `${400 + k * 350}ms` }}
+        >
+          {p.icon}
+          <span className="leading-tight">
+            <span className="block text-xs font-extrabold text-story-ink">{p.label}</span>
+            <span className="block text-xs text-story-ink/80">{p.sub}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function StorySplash({ onDone, variant = "patient" }: { onDone: () => void; variant?: "patient" | "doctor" }) {
+  const scenes = variant === "doctor" ? doctorScenes : patientScenes;
+  const seenKey = variant === "doctor" ? DOCTOR_STORY_SEEN_KEY : STORY_SEEN_KEY;
   const navigate = useNavigate();
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -50,12 +130,12 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
 
   const finish = useCallback(() => {
     try {
-      localStorage.setItem(STORY_SEEN_KEY, "1");
+      localStorage.setItem(seenKey, "1");
     } catch {
       /* ignore */
     }
     onDone();
-  }, [onDone]);
+  }, [onDone, seenKey]);
 
   const go = useCallback(
     (n: number) => {
@@ -63,7 +143,7 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
       if (embla) embla.scrollTo(t);
       else setI(t);
     },
-    [embla],
+    [embla, scenes.length],
   );
 
   useEffect(() => {
@@ -134,6 +214,12 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
       </div>
       <div className="story-shade pointer-events-none absolute inset-0" />
       <div className="story-grain pointer-events-none absolute inset-0" />
+      {scenes[i].overlay === "radar" && <RadarOverlay key={`radar-${i}`} />}
+      {scenes[i].hook && (
+        <div key={`hook-${i}`} className="story-punch pointer-events-none absolute inset-x-0 top-[22%] z-[6] flex justify-center px-6">
+          <span className="rounded-xl bg-story-ink px-4 py-2 text-lg font-extrabold text-story-night shadow-gold">{scenes[i].hook}</span>
+        </div>
+      )}
 
       {/* progress */}
       <div className="absolute inset-x-0 top-0 z-10 flex gap-1.5 px-4 pt-[max(env(safe-area-inset-top),14px)]">
@@ -188,7 +274,16 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
           </p>
         </div>
 
-        {last ? (
+        {last && variant === "doctor" ? (
+          <div className="story-line pointer-events-auto mt-6 space-y-2.5" style={{ animationDelay: "850ms" }}>
+            <button
+              onClick={finish}
+              className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-story-glow text-base font-extrabold text-story-night shadow-gold transition active:scale-[0.97]"
+            >
+              <Stethoscope className="h-5 w-5" /> ابدأ عيادتك مع سند <ArrowLeft className="h-5 w-5" />
+            </button>
+          </div>
+        ) : last ? (
           <div className="story-line pointer-events-auto mt-6 space-y-2.5" style={{ animationDelay: "850ms" }}>
             <button
               onClick={() => choose("patient", "/patient/login")}
