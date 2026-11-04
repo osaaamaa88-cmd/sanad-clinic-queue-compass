@@ -910,7 +910,7 @@ a:active,
   }
 }
 .page-enter {
-  animation: page-slide-in 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-slide-in 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 @media (prefers-reduced-motion: reduce) {
   [class*="overflow-auto"],
@@ -1512,7 +1512,7 @@ html[data-low-motion="true"] .community-skeleton { animation: none !important; t
 html { scroll-behavior: smooth; }
 [role="dialog"], [data-vaul-drawer] { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
 @keyframes stagger-in { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
-.page-enter > * > * { animation: stagger-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.page-enter > * > * { animation: stagger-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 @media (prefers-reduced-motion: reduce) {
   .page-enter > * > * { animation: none; }
 }
