@@ -13,6 +13,7 @@ export const Route = createFileRoute("/patient/scan")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  staticData: { sitemap: false },
   component: ScanPage,
 });
 
