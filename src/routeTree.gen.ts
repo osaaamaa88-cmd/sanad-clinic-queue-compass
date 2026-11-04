@@ -46,6 +46,7 @@ import { Route as PatientScanRouteImport } from './routes/patient.scan'
 import { Route as PatientSearchRouteImport } from './routes/patient.search'
 import { Route as TvIdRouteImport } from './routes/tv.$id'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicNemoVoiceRouteImport } from './routes/api/public/nemo-voice'
 import { Route as PatientClinicIdRouteImport } from './routes/patient.clinic.$id'
 import { Route as PatientQueueIdRouteImport } from './routes/patient.queue.$id'
 
@@ -234,6 +235,11 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicNemoVoiceRoute = ApiPublicNemoVoiceRouteImport.update({
+  id: '/api/public/nemo-voice',
+  path: '/api/public/nemo-voice',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PatientClinicIdRoute = PatientClinicIdRouteImport.update({
   id: '/patient/clinic/$id',
   path: '/patient/clinic/$id',
@@ -283,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/messages/': typeof MessagesIndexRoute
   '/patient/': typeof PatientIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/nemo-voice': typeof ApiPublicNemoVoiceRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
 }
@@ -324,6 +331,7 @@ export interface FileRoutesByTo {
   '/messages': typeof MessagesIndexRoute
   '/patient': typeof PatientIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/nemo-voice': typeof ApiPublicNemoVoiceRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
 }
@@ -366,6 +374,7 @@ export interface FileRoutesById {
   '/messages/': typeof MessagesIndexRoute
   '/patient/': typeof PatientIndexRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/nemo-voice': typeof ApiPublicNemoVoiceRoute
   '/patient/clinic/$id': typeof PatientClinicIdRoute
   '/patient/queue/$id': typeof PatientQueueIdRoute
 }
@@ -409,6 +418,7 @@ export interface FileRouteTypes {
     | '/messages/'
     | '/patient/'
     | '/api/public/health'
+    | '/api/public/nemo-voice'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -450,6 +460,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/patient'
     | '/api/public/health'
+    | '/api/public/nemo-voice'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
   id:
@@ -491,6 +502,7 @@ export interface FileRouteTypes {
     | '/messages/'
     | '/patient/'
     | '/api/public/health'
+    | '/api/public/nemo-voice'
     | '/patient/clinic/$id'
     | '/patient/queue/$id'
   fileRoutesById: FileRoutesById
@@ -533,6 +545,7 @@ export interface RootRouteChildren {
   MessagesIndexRoute: typeof MessagesIndexRoute
   PatientIndexRoute: typeof PatientIndexRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicNemoVoiceRoute: typeof ApiPublicNemoVoiceRoute
   PatientClinicIdRoute: typeof PatientClinicIdRoute
   PatientQueueIdRoute: typeof PatientQueueIdRoute
 }
@@ -798,6 +811,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/nemo-voice': {
+      id: '/api/public/nemo-voice'
+      path: '/api/public/nemo-voice'
+      fullPath: '/api/public/nemo-voice'
+      preLoaderRoute: typeof ApiPublicNemoVoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/patient/clinic/$id': {
       id: '/patient/clinic/$id'
       path: '/patient/clinic/$id'
@@ -853,6 +873,7 @@ const rootRouteChildren: RootRouteChildren = {
   MessagesIndexRoute: MessagesIndexRoute,
   PatientIndexRoute: PatientIndexRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicNemoVoiceRoute: ApiPublicNemoVoiceRoute,
   PatientClinicIdRoute: PatientClinicIdRoute,
   PatientQueueIdRoute: PatientQueueIdRoute,
 }

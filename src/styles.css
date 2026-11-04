@@ -70,51 +70,51 @@
   --map-preview-offset: calc(4rem + env(safe-area-inset-bottom) + 0.75rem);
   --radius: 0.875rem;
   /* سند — Dark obsidian theme with electric turquoise + neon red emergency */
-  --background: oklch(0.196 0.037 265); /* #0F172A rich obsidian */
+  --background: oklch(0.165 0.035 255); /* #0F172A rich obsidian */
   --foreground: oklch(0.98 0.005 240); /* near-white */
-  --card: oklch(0.235 0.038 265); /* elevated surface */
+  --card: oklch(0.215 0.04 255); /* elevated surface */
   --card-foreground: oklch(0.98 0.005 240);
-  --popover: oklch(0.235 0.038 265);
+  --popover: oklch(0.215 0.04 255);
   --popover-foreground: oklch(0.98 0.005 240);
-  --primary: oklch(0.73 0.13 210); /* #06B6D4 electric turquoise */
-  --primary-foreground: oklch(0.15 0.03 265);
-  --primary-soft: oklch(0.3 0.06 210);
-  --secondary: oklch(0.28 0.03 260);
+  --primary: oklch(0.72 0.125 220); /* #06B6D4 electric turquoise */
+  --primary-foreground: oklch(0.16 0.035 255);
+  --primary-soft: oklch(0.3 0.06 220);
+  --secondary: oklch(0.26 0.035 255);
   --secondary-foreground: oklch(0.95 0.005 240);
-  --muted: oklch(0.27 0.03 260);
+  --muted: oklch(0.25 0.03 255);
   --muted-foreground: oklch(0.72 0.02 250);
-  --accent: oklch(0.35 0.07 210);
-  --accent-foreground: oklch(0.98 0.005 240);
-  --success: oklch(0.72 0.15 155);
+  --accent: oklch(0.32 0.07 165);
+  --accent-foreground: oklch(0.97 0.01 165);
+  --success: oklch(0.72 0.15 163);
   --success-foreground: oklch(0.1 0.02 240);
   --warning: oklch(0.82 0.15 80);
   --warning-foreground: oklch(0.18 0.04 60);
   --destructive: oklch(0.665 0.238 22); /* #FF4B4B neon red */
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.32 0.03 260);
-  --input: oklch(0.3 0.03 260);
-  --ring: oklch(0.73 0.13 210);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
+  --border: oklch(0.3 0.035 255);
+  --input: oklch(0.28 0.035 255);
+  --ring: oklch(0.72 0.125 220);
+  --chart-1: oklch(0.72 0.125 220);
+  --chart-2: oklch(0.72 0.15 163);
+  --chart-3: oklch(0.45 0.07 255);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.22 0.038 265);
+  --sidebar: oklch(0.19 0.035 255);
   --sidebar-foreground: oklch(0.98 0.005 240);
-  --sidebar-primary: oklch(0.73 0.13 210);
+  --sidebar-primary: oklch(0.72 0.125 220);
   --sidebar-primary-foreground: oklch(0.15 0.03 265);
-  --sidebar-accent: oklch(0.3 0.06 210);
+  --sidebar-accent: oklch(0.3 0.06 220);
   --sidebar-accent-foreground: oklch(0.98 0.005 240);
-  --sidebar-border: oklch(0.32 0.03 260);
-  --sidebar-ring: oklch(0.73 0.13 210);
-  --gradient-primary: linear-gradient(135deg, oklch(0.75 0.13 205), oklch(0.62 0.14 220));
-  --shadow-soft: 0 12px 32px -14px oklch(0.73 0.13 210 / 0.45);
+  --sidebar-border: oklch(0.3 0.035 255);
+  --sidebar-ring: oklch(0.72 0.125 220);
+  --gradient-primary: linear-gradient(135deg, oklch(0.74 0.13 215), oklch(0.7 0.15 168));
+  --shadow-soft: 0 12px 32px -14px oklch(0.72 0.125 220 / 0.45);
   --font-sans: "Alexandria", "Tajawal", "Cairo", ui-sans-serif, system-ui, sans-serif;
   /* Premium gold accents (doctor profile) */
   --gold: oklch(0.82 0.14 82);
   --gold-foreground: oklch(0.2 0.04 60);
   --gold-soft: oklch(0.34 0.06 82);
-  --surface-deep: oklch(0.145 0.02 265);
+  --surface-deep: oklch(0.13 0.03 255);
   --gradient-gold: linear-gradient(135deg, oklch(0.9 0.11 92), oklch(0.76 0.15 72));
   --gradient-story: conic-gradient(
     from 210deg,
@@ -128,27 +128,27 @@
 
 .light {
   /* Light mode — Sanad Aurora Medical (مطابق لأيقونة التطبيق: تركواز سماوي + لافندر + كحلي داكن) */
-  --background: oklch(0.985 0.005 210); /* أرضية بيضاء ثلجية مائلة للتركواز الناعم لراحة العين */
-  --foreground: oklch(0.18 0.035 255); /* خط كحلي داكن شديد الوضوح مطابق للون نبض القلب في الأيقونة */
+  --background: oklch(0.984 0.004 230); /* أرضية بيضاء ثلجية مائلة للتركواز الناعم لراحة العين */
+  --foreground: oklch(0.2 0.045 255); /* خط كحلي داكن شديد الوضوح مطابق للون نبض القلب في الأيقونة */
   --card: oklch(1 0 0); /* كروت بيضاء نقية وبارزة */
-  --card-foreground: oklch(0.18 0.035 255);
+  --card-foreground: oklch(0.2 0.045 255);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.035 255);
-  --primary: oklch(0.50 0.135 210); /* تركواز سماوي طبي عميق مطابق لقلب الأيقونة وواضح فوق الأبيض */
+  --popover-foreground: oklch(0.2 0.045 255);
+  --primary: oklch(0.52 0.12 222); /* تركواز سماوي طبي عميق مطابق لقلب الأيقونة وواضح فوق الأبيض */
   --primary-foreground: oklch(0.99 0 0); /* نصوص بيضاء ناصعة على القوائم والأزرار */
-  --primary-soft: oklch(0.94 0.035 210); /* خلفية مائية ناعمة للبطاقات والأزرار الثانوية */
-  --secondary: oklch(0.96 0.012 210);
-  --secondary-foreground: oklch(0.20 0.035 255);
-  --muted: oklch(0.96 0.012 210);
+  --primary-soft: oklch(0.94 0.035 220); /* خلفية مائية ناعمة للبطاقات والأزرار الثانوية */
+  --secondary: oklch(0.96 0.01 230);
+  --secondary-foreground: oklch(0.2 0.045 255);
+  --muted: oklch(0.96 0.01 230);
   --muted-foreground: oklch(0.46 0.025 240);
-  --accent: oklch(0.935 0.045 285); /* لمسة لافندر شفقية ناعمة مستوحاة من أطراف الأيقونة */
-  --accent-foreground: oklch(0.20 0.04 285);
+  --accent: oklch(0.94 0.05 165); /* لمسة لافندر شفقية ناعمة مستوحاة من أطراف الأيقونة */
+  --accent-foreground: oklch(0.3 0.08 165);
   /* تباين ≥ 4.5:1 على الأبيض للنصوص الصغيرة (أزرار "مفتوح دلوقتي" والشارات) */
-  --success: oklch(0.50 0.14 160);
+  --success: oklch(0.5 0.12 163);
   --success-foreground: oklch(1 0 0);
-  --chart-1: oklch(0.50 0.135 210);
-  --chart-2: oklch(0.60 0.14 185);
-  --chart-3: oklch(0.65 0.12 285);
+  --chart-1: oklch(0.52 0.12 222);
+  --chart-2: oklch(0.6 0.14 163);
+  --chart-3: oklch(0.3 0.06 255);
   --chart-4: oklch(0.72 0.14 75);
   --chart-5: oklch(0.60 0.18 25);
   --warning: oklch(0.78 0.15 75);
@@ -156,19 +156,19 @@
   /* destructive أدكن للتباين 4.5+:1 على الأبيض وخلفيته البيضاء (foreground) */
   --destructive: oklch(0.52 0.21 22);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.91 0.015 210); /* حواف ثلجية مائية رقيقة */
-  --input: oklch(0.91 0.015 210);
-  --ring: oklch(0.50 0.135 210);
+  --border: oklch(0.91 0.012 230); /* حواف ثلجية مائية رقيقة */
+  --input: oklch(0.91 0.012 230);
+  --ring: oklch(0.52 0.12 222);
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.18 0.035 255);
-  --sidebar-primary: oklch(0.50 0.135 210);
+  --sidebar-foreground: oklch(0.2 0.045 255);
+  --sidebar-primary: oklch(0.52 0.12 222);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.94 0.035 210);
-  --sidebar-accent-foreground: oklch(0.18 0.035 255);
-  --sidebar-border: oklch(0.91 0.015 210);
-  --sidebar-ring: oklch(0.50 0.135 210);
-  --gradient-primary: linear-gradient(135deg, oklch(0.55 0.14 200), oklch(0.46 0.13 225)); /* تدرج الشفق الطبي المائي */
-  --shadow-soft: 0 14px 34px -16px oklch(0.50 0.135 210 / 0.22);
+  --sidebar-accent: oklch(0.94 0.035 220);
+  --sidebar-accent-foreground: oklch(0.2 0.045 255);
+  --sidebar-border: oklch(0.91 0.012 230);
+  --sidebar-ring: oklch(0.52 0.12 222);
+  --gradient-primary: linear-gradient(135deg, oklch(0.55 0.12 220), oklch(0.55 0.13 168)); /* تدرج الشفق الطبي المائي */
+  --shadow-soft: 0 14px 34px -16px oklch(0.2 0.045 255 / 0.22);
   --gold: oklch(0.72 0.14 72);
   --gold-foreground: oklch(1 0 0);
   --gold-soft: oklch(0.95 0.05 85);
