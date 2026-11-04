@@ -55,6 +55,7 @@ export function ComposerSheet({
 
   useEffect(() => {
     try {
+      if (readPrefs().anonymousDefault) setAnon(true);
       const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null") as Draft | null;
       if (d && d.body) {
         if (initialType === "card" ? d.type === "card" : d.type !== "card") setType(d.type);
