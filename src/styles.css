@@ -432,6 +432,66 @@
     0 16px 36px -4px oklch(0 0 0 / 0.55);
 }
 
+/* حركة إخفاء/إظهار الشريط السفلي مع التمرير */
+@utility dock-autohide {
+  transition:
+    translate 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.3s ease-out;
+  will-change: translate;
+}
+
+/* زجاج سائل بأسلوب iOS: حافة ضوئية علوية ولمعة داخلية وطفو متعدد الطبقات */
+@utility glass-dock {
+  position: relative;
+  isolation: isolate;
+  backdrop-filter: blur(40px) saturate(220%) brightness(1.05);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--card) 40%, transparent) 0%,
+    transparent 55%
+  );
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.6),
+    inset 0 -1px 0 0 oklch(0 0 0 / 0.08),
+    inset 0 0 18px 0 oklch(1 0 0 / 0.12),
+    0 2px 6px -1px oklch(0 0 0 / 0.08),
+    0 18px 40px -10px oklch(0 0 0 / 0.22);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      160deg,
+      oklch(1 0 0 / 0.7),
+      oklch(1 0 0 / 0.05) 40%,
+      oklch(1 0 0 / 0.05) 60%,
+      oklch(1 0 0 / 0.35)
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+.dark .glass-dock {
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.22),
+    inset 0 -1px 0 0 oklch(0 0 0 / 0.5),
+    inset 0 0 18px 0 oklch(1 0 0 / 0.05),
+    0 18px 40px -8px oklch(0 0 0 / 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-autohide {
+    transition: opacity 0.2s linear;
+  }
+}
+
 /* زر الزجاج السائل مع الارتداد الفيزيائي المطاطي (Liquid Button) */
 @utility btn-liquid-glass {
   backdrop-filter: blur(24px) saturate(190%);
