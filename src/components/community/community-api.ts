@@ -64,6 +64,7 @@ export type CommunityComment = {
   clinic_id: string | null;
   body: string;
   created_at: string;
+  parent_id: string | null;
   is_doctor: boolean;
   doctor_name: string;
 };
@@ -73,12 +74,21 @@ export const COMMENTS_PAGE = 20;
 export async function fetchComments(postId: string, page: number): Promise<CommunityComment[]> {
   const { data, error } = await supabase
     .from("community_comments")
-    .select("id, post_id, author_id, author_name, clinic_id, body, created_at")
+    .select("id, post_id, author_id, author_name, clinic_id, body, created_at, parent_id")
     .eq("post_id", postId)
+    .is("parent_id", null)
     .order("created_at", { ascending: false })
     .range(page * COMMENTS_PAGE, page * COMMENTS_PAGE + COMMENTS_PAGE - 1);
   if (error) throw error;
-  const rows = data ?? [];
+  const top = data ?? [];
+  const { data: replies } = top.length
+    ? await supabase
+        .from("community_comments")
+        .select("id, post_id, author_id, author_name, clinic_id, body, created_at, parent_id")
+        .in("parent_id", top.map((t) => t.id))
+        .order("created_at", { ascending: true })
+    : { data: [] };
+  const rows = [...top, ...(replies ?? [])];
   const ids = [...new Set(rows.map((r) => r.clinic_id).filter(Boolean) as string[])];
   const clinics: Record<string, { doctor: string; is_verified: boolean }> = {};
   if (ids.length) {
