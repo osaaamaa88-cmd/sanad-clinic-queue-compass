@@ -1,3 +1,4 @@
+import { ChangePasswordCard } from "@/components/settings/ChangePasswordCard";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
@@ -1061,6 +1062,10 @@ function DoctorPreferences() {
   const [prefs, update] = usePrefs();
   return (
     <div className="mt-6">
+      <SettingsSection title="الأمان">
+        <ChangePasswordCard />
+      </SettingsSection>
+
       <SettingsSection title="التنبيهات">
         <SwitchRow
           icon={BellRing}
