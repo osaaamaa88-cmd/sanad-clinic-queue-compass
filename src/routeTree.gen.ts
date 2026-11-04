@@ -42,6 +42,7 @@ import { Route as PatientHealthRouteImport } from './routes/patient.health'
 import { Route as PatientLabReaderRouteImport } from './routes/patient.lab-reader'
 import { Route as PatientLoginRouteImport } from './routes/patient.login'
 import { Route as PatientMedsRouteImport } from './routes/patient.meds'
+import { Route as PatientScanRouteImport } from './routes/patient.scan'
 import { Route as PatientSearchRouteImport } from './routes/patient.search'
 import { Route as TvIdRouteImport } from './routes/tv.$id'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
@@ -213,6 +214,11 @@ const PatientMedsRoute = PatientMedsRouteImport.update({
   path: '/patient/meds',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PatientScanRoute = PatientScanRouteImport.update({
+  id: '/patient/scan',
+  path: '/patient/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PatientSearchRoute = PatientSearchRouteImport.update({
   id: '/patient/search',
   path: '/patient/search',
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/patient/lab-reader': typeof PatientLabReaderRoute
   '/patient/login': typeof PatientLoginRoute
   '/patient/meds': typeof PatientMedsRoute
+  '/patient/scan': typeof PatientScanRoute
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
   '/doctor/': typeof DoctorIndexRoute
@@ -310,6 +317,7 @@ export interface FileRoutesByTo {
   '/patient/lab-reader': typeof PatientLabReaderRoute
   '/patient/login': typeof PatientLoginRoute
   '/patient/meds': typeof PatientMedsRoute
+  '/patient/scan': typeof PatientScanRoute
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
   '/doctor': typeof DoctorIndexRoute
@@ -351,6 +359,7 @@ export interface FileRoutesById {
   '/patient/lab-reader': typeof PatientLabReaderRoute
   '/patient/login': typeof PatientLoginRoute
   '/patient/meds': typeof PatientMedsRoute
+  '/patient/scan': typeof PatientScanRoute
   '/patient/search': typeof PatientSearchRoute
   '/tv/$id': typeof TvIdRoute
   '/doctor/': typeof DoctorIndexRoute
@@ -393,6 +402,7 @@ export interface FileRouteTypes {
     | '/patient/lab-reader'
     | '/patient/login'
     | '/patient/meds'
+    | '/patient/scan'
     | '/patient/search'
     | '/tv/$id'
     | '/doctor/'
@@ -433,6 +443,7 @@ export interface FileRouteTypes {
     | '/patient/lab-reader'
     | '/patient/login'
     | '/patient/meds'
+    | '/patient/scan'
     | '/patient/search'
     | '/tv/$id'
     | '/doctor'
@@ -473,6 +484,7 @@ export interface FileRouteTypes {
     | '/patient/lab-reader'
     | '/patient/login'
     | '/patient/meds'
+    | '/patient/scan'
     | '/patient/search'
     | '/tv/$id'
     | '/doctor/'
@@ -514,6 +526,7 @@ export interface RootRouteChildren {
   PatientLabReaderRoute: typeof PatientLabReaderRoute
   PatientLoginRoute: typeof PatientLoginRoute
   PatientMedsRoute: typeof PatientMedsRoute
+  PatientScanRoute: typeof PatientScanRoute
   PatientSearchRoute: typeof PatientSearchRoute
   TvIdRoute: typeof TvIdRoute
   DoctorIndexRoute: typeof DoctorIndexRoute
@@ -757,6 +770,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PatientMedsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/patient/scan': {
+      id: '/patient/scan'
+      path: '/patient/scan'
+      fullPath: '/patient/scan'
+      preLoaderRoute: typeof PatientScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/patient/search': {
       id: '/patient/search'
       path: '/patient/search'
@@ -826,6 +846,7 @@ const rootRouteChildren: RootRouteChildren = {
   PatientLabReaderRoute: PatientLabReaderRoute,
   PatientLoginRoute: PatientLoginRoute,
   PatientMedsRoute: PatientMedsRoute,
+  PatientScanRoute: PatientScanRoute,
   PatientSearchRoute: PatientSearchRoute,
   TvIdRoute: TvIdRoute,
   DoctorIndexRoute: DoctorIndexRoute,
