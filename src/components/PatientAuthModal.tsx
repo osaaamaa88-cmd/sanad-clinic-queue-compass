@@ -2,8 +2,12 @@ import { normalizeEgyptianMobile } from "@/lib/input-validation";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { X, Loader2, UserRound, Phone as PhoneIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { savePatientSession, type PatientSession } from "@/lib/patient-session";
+import {
+  savePatientSession,
+  syncPatientSessionFromAuth,
+  type PatientSession,
+} from "@/lib/patient-session";
+import { lovable } from "@/integrations/lovable";
 import { patientOAuthCallback } from "@/lib/patient-auth-return";
 
 type Props = {
@@ -63,19 +67,21 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
     setBusy(true);
     setErr("");
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: patientOAuthCallback(
-            window.location.origin,
-            `${window.location.pathname}${window.location.search}${window.location.hash}`,
-          ),
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: patientOAuthCallback(
+          window.location.origin,
+          `${window.location.pathname}${window.location.search}${window.location.hash}`,
+        ),
       });
-      if (error) {
-        setErr(error.message);
+      if (result.error) {
+        setErr("تعذر الدخول بحساب Google دلوقتي. جرّب تاني أو ادخل باسمك ورقمك.");
         setBusy(false);
+        return;
       }
+      if (result.redirected) return;
+      const synced = await syncPatientSessionFromAuth();
+      setBusy(false);
+      if (synced) onDone(synced);
     } catch (error) {
       console.error("[PatientAuth] Google sign-in failed", error);
       setBusy(false);

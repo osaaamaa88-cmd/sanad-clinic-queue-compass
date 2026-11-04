@@ -7,6 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PulseSplash } from "@/components/PulseSplash";
+import { StorySplash, STORY_SEEN_KEY } from "@/components/StorySplash";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedProfile, type CachedProfile } from "@/lib/user-profile-cache";
 import { setVoiceMode } from "@/lib/voice";
@@ -132,8 +133,10 @@ function Landing() {
   const topSpecialties = specialties.slice(0, 8);
   const [gate, setGate] = useState<"loading" | "show" | "hide">("loading");
   const [splashDone, setSplashDone] = useState(false);
+  const [story, setStory] = useState(false);
   useEffect(() => {
     try {
+      if (!localStorage.getItem(STORY_SEEN_KEY)) setStory(true);
       if (sessionStorage.getItem("sanad_splash_seen")) setSplashDone(true);
     } catch {
       /* ignore */
@@ -158,6 +161,22 @@ function Landing() {
       setGate(data.session || getPatientSession() || choice === "guest" ? "hide" : "show");
     });
   }, []);
+  if (story)
+    return (
+      <StorySplash
+        onDone={() => {
+          setStory(false);
+          finishSplash();
+          let c: string | null = null;
+          try {
+            c = localStorage.getItem(ENTRY_KEY);
+          } catch {
+            /* ignore */
+          }
+          if (c === "guest") setGate("hide");
+        }}
+      />
+    );
   if (!splashDone) return <PulseSplash onDone={finishSplash} />;
   if (gate === "loading") return <div className="min-h-screen bg-background" />;
   if (gate === "show") return <WelcomeGate onGuest={() => setGate("hide")} />;

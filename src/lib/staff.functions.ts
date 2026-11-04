@@ -49,8 +49,9 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
             const url = new URL(rawRedirect);
             const trustedHost =
               (url.protocol === "https:" &&
-                url.hostname === "sanad-your-clinic-buddy.lovable.app" &&
-                !url.port) ||
+                !url.port &&
+                (url.hostname.endsWith(".lovable.app") ||
+                  url.hostname.endsWith(".lovableproject.com"))) ||
               (url.protocol === "http:" && url.hostname === "localhost");
             if (trustedHost && !url.username && !url.password) redirectTo = rawRedirect;
           } catch {
