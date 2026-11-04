@@ -13,6 +13,9 @@ import {
   signOutStaff,
 } from "@/lib/mock-data";
 import { getCachedProfile, saveCachedProfile } from "@/lib/user-profile-cache";
+import { normalizeEgyptianMobile } from "@/lib/input-validation";
+import { svrCreateMyClinic } from "@/lib/staff.functions";
+import { resetDoctorModeCache } from "@/lib/use-doctor-mode";
 
 export const Route = createFileRoute("/doctor/login")({
   staticData: { sitemap: false },
@@ -109,6 +112,8 @@ function DoctorEntry() {
       navigate({ to: "/doctor", replace: true });
       return;
     }
+    const fullName = typeof meta.full_name === "string" ? meta.full_name : "";
+    if (fullName) setName((n) => n || fullName);
     setNoClinic(true);
     setLoading(false);
   }, [navigate]);
@@ -193,18 +198,74 @@ function DoctorEntry() {
   }
 
   if (noClinic) {
+    const createQuickClinic = async () => {
+      setSignupError("");
+      const mobile = normalizeEgyptianMobile(phone);
+      if (name.trim().length < 3) return setSignupError("اكتب اسم الطبيب بالكامل");
+      if (!mobile) return setSignupError("اكتب رقم موبايل مصري صحيح (010/011/012/015)");
+      setCreating(true);
+      try {
+        await svrCreateMyClinic({
+          data: { doctor: name.trim(), specialtyId: spec, phone: "20" + mobile.slice(1) },
+        });
+        resetDoctorModeCache();
+        setNoClinic(false);
+        setLoading(true);
+        await route();
+      } catch {
+        setSignupError("تعذر إنشاء العيادة دلوقتي. جرّب تاني.");
+      } finally {
+        setCreating(false);
+      }
+    };
     return (
-      <AppShell title="حساب الطبيب" backTo="/">
-        <div className="rounded-2xl border border-border bg-card p-5 text-center">
-          <p className="text-sm font-bold">مفيش عيادة مربوطة بحسابك</p>
+      <AppShell title="جهّز عيادتك" backTo="/">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-base font-extrabold">خطوة واحدة وعيادتك تبقى جاهزة</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            اكمل بيانات عيادتك من صفحة الإعدادات.
+            أكّد اسمك وتخصصك ورقم الموبايل، وتقدر تكمّل باقي البروفايل والتوثيق من الإعدادات.
           </p>
+          <div className="mt-4 space-y-3">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="اسم الطبيب"
+              className="min-h-11 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none focus:border-primary"
+            />
+            <select
+              value={spec}
+              onChange={(e) => setSpec(e.target.value)}
+              className="min-h-11 w-full rounded-xl border border-border bg-background px-4 text-sm"
+            >
+              {specialties.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              inputMode="tel"
+              dir="ltr"
+              placeholder="01xxxxxxxxx"
+              className="min-h-11 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none focus:border-primary"
+            />
+            {signupError && <p className="text-xs font-bold text-destructive">{signupError}</p>}
+          </div>
+          <button
+            onClick={() => void createQuickClinic()}
+            disabled={creating}
+            className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl gradient-primary py-3 text-sm font-extrabold text-primary-foreground disabled:opacity-60"
+          >
+            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            افتح عيادتي
+          </button>
           <Link
             to="/doctor-settings"
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl gradient-primary py-3 text-sm font-extrabold text-white"
+            className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-bold"
           >
-            <BookOpen className="h-4 w-4" /> إعدادات العيادة
+            <BookOpen className="h-4 w-4" /> إعدادات كاملة
           </Link>
           <button
             onClick={async () => {
