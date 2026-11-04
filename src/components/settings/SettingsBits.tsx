@@ -34,13 +34,17 @@ export function SwitchRow({
           {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
         </span>
       </span>
-      <input
-        type="checkbox"
-        role="switch"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="h-6 w-11 shrink-0 accent-primary"
-      />
+      <span className="relative inline-flex h-7 w-12 shrink-0">
+        <input
+          type="checkbox"
+          role="switch"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          className="peer absolute inset-0 z-10 cursor-pointer opacity-0"
+        />
+        <span className="absolute inset-0 rounded-full bg-muted transition-colors peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring" />
+        <span className="absolute right-1 top-1 h-5 w-5 rounded-full bg-background shadow-soft transition-transform duration-300 peer-checked:-translate-x-5" />
+      </span>
     </label>
   );
 }
