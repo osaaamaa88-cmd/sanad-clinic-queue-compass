@@ -16,6 +16,7 @@ import {
   Sparkles,
   Star,
   Siren,
+  ScanLine,
   Users,
   Wind,
   X,
@@ -460,6 +461,13 @@ function PatientHome() {
               اتصال إسعاف فوري بلمسة
             </span>
           </span>
+        </Link>
+
+        <Link
+          to="/patient/scan"
+          className="col-span-full flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-border bg-card p-3 text-sm font-extrabold text-foreground shadow-soft active:scale-[0.97]"
+        >
+          <ScanLine className="h-5 w-5 text-primary" /> امسح كود العيادة بالكاميرا
         </Link>
 
         {/* الكارت السفلي الأيسر — فحص الروشتة والتحاليل MedScan */}
