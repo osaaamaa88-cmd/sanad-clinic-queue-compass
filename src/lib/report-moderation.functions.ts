@@ -89,6 +89,18 @@ export const godModerateContent = createServerFn({ method: "POST" })
     if (!(await isAdminRequest())) throw new Error("FORBIDDEN");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    if (data.action === "reject") {
+      // Reject = reports were unfounded: clear them and keep the content visible.
+      const col = data.postId ? "post_id" : "comment_id";
+      const id = data.postId ?? data.commentId;
+      if (!id) throw new Error("MISSING_TARGET");
+      const { error } = await supabaseAdmin.from("community_reports").delete().eq(col, id);
+      if (error) throw new Error(error.message);
+      const table = data.postId ? "community_posts" : "community_comments";
+      await supabaseAdmin.from(table).update({ is_hidden: false }).eq("id", id);
+      return { ok: true as const };
+    }
+
     if (data.postId) {
       if (data.action === "delete") {
         await supabaseAdmin.from("community_posts").delete().eq("id", data.postId);
