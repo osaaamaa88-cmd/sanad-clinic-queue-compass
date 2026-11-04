@@ -40,7 +40,7 @@ export function useTheme() {
   return { mode, toggle };
 }
 
-type VTDoc = Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void> } };
+type VTDoc = Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void>; finished: Promise<void> } };
 
 /** Runs a theme toggle with a circular reveal expanding from the tap point. */
 export function circularReveal(e: { clientX: number; clientY: number }, run: () => void) {
@@ -50,7 +50,9 @@ export function circularReveal(e: { clientX: number; clientY: number }, run: () 
   const x = e.clientX || window.innerWidth / 2;
   const y = e.clientY || window.innerHeight / 2;
   const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+  document.documentElement.dataset.vt = "theme";
   const t = doc.startViewTransition(run);
+  void t.finished.finally(() => delete document.documentElement.dataset.vt);
   void t.ready.then(() => {
     document.documentElement.animate(
       { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
