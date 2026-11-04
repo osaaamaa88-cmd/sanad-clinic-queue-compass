@@ -74,7 +74,7 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
 
   return (
     <div
-      className="story-root fixed inset-0 z-[100] overflow-hidden bg-surface-deep"
+      className="story-root fixed inset-0 z-[100] overflow-hidden bg-story-night"
       dir="rtl"
       onPointerDown={() => setPaused(true)}
       onPointerUp={() => setPaused(false)}
@@ -112,10 +112,10 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
       {/* progress */}
       <div className="absolute inset-x-0 top-0 z-10 flex gap-1.5 px-4 pt-[max(env(safe-area-inset-top),14px)]">
         {scenes.map((_, idx) => (
-          <span key={idx} className="h-1 flex-1 overflow-hidden rounded-full bg-gold-soft/30">
+          <span key={idx} className="h-1 flex-1 overflow-hidden rounded-full bg-story-ink/30">
             <span
               key={`${idx}-${i}`}
-              className={`block h-full rounded-full bg-gold ${idx < i ? "w-full" : idx === i ? "story-progress" : "w-0"}`}
+              className={`block h-full rounded-full bg-story-glow ${idx < i ? "w-full" : idx === i ? "story-progress" : "w-0"}`}
               style={{
                 animationDuration: `${SCENE_MS}ms`,
                 animationPlayState: paused ? "paused" : "running",
@@ -126,8 +126,8 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
         ))}
       </div>
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 pt-[calc(max(env(safe-area-inset-top),14px)+14px)]">
-        <span className="flex items-center gap-1.5 text-sm font-extrabold text-gold-foreground">
-          <HeartPulse className="h-4 w-4 text-gold" /> سند
+        <span className="flex items-center gap-1.5 text-sm font-extrabold text-story-ink">
+          <HeartPulse className="h-4 w-4 text-story-glow" /> سند
         </span>
         {!last && (
           <button
@@ -135,7 +135,7 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
               e.stopPropagation();
               go(scenes.length - 1);
             }}
-            className="min-h-11 rounded-full bg-surface-deep/40 px-4 text-sm font-bold text-gold-foreground backdrop-blur-sm"
+            className="min-h-11 rounded-full bg-story-night/40 px-4 text-sm font-bold text-story-ink backdrop-blur-sm"
           >
             تخطي
           </button>
@@ -149,17 +149,17 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
       {/* caption */}
       <div className="absolute inset-x-0 bottom-0 z-10 mx-auto max-w-md px-6 pb-[max(env(safe-area-inset-bottom),24px)]">
         <div key={i} className="story-caption">
-          <p className="story-line text-sm font-bold text-gold" style={{ animationDelay: "150ms" }}>
+          <p className="story-line text-sm font-bold text-story-glow" style={{ animationDelay: "150ms" }}>
             {scenes[i].kicker}
           </p>
           <h1
-            className="story-line mt-2 text-[28px] font-extrabold leading-[1.35] text-gold-foreground"
+            className="story-line mt-2 text-[28px] font-extrabold leading-[1.35] text-story-ink"
             style={{ animationDelay: "350ms" }}
           >
             {scenes[i].title}
           </h1>
           <p
-            className="story-line mt-3 text-base leading-7 text-gold-foreground/85"
+            className="story-line mt-3 text-base leading-7 text-story-ink/85"
             style={{ animationDelay: "600ms" }}
           >
             {scenes[i].body}
@@ -170,20 +170,20 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
           <div className="story-line mt-6 space-y-2.5" style={{ animationDelay: "850ms" }}>
             <button
               onClick={() => choose("patient", "/patient/login")}
-              className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gold text-base font-extrabold text-surface-deep shadow-gold transition active:scale-[0.97]"
+              className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-story-glow text-base font-extrabold text-story-night shadow-gold transition active:scale-[0.97]"
             >
               ابدأ مع عيلتك <ArrowLeft className="h-5 w-5" />
             </button>
             <button
               onClick={() => choose("guest", null)}
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-gold-soft/40 bg-surface-deep/40 text-sm font-bold text-gold-foreground backdrop-blur-sm transition active:scale-[0.97]"
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-story-ink/40 bg-story-night/40 text-sm font-bold text-story-ink backdrop-blur-sm transition active:scale-[0.97]"
             >
               <Compass className="h-4 w-4" /> اتفرّج كزائر
             </button>
             <Link
               to="/doctor/login"
               onClick={() => choose("doctor", null)}
-              className="flex min-h-11 items-center justify-center gap-1.5 text-sm font-bold text-gold-foreground/80 underline-offset-4 hover:underline"
+              className="flex min-h-11 items-center justify-center gap-1.5 text-sm font-bold text-story-ink/80 underline-offset-4 hover:underline"
             >
               <Stethoscope className="h-4 w-4" /> أنا طبيب أو عيادة
             </Link>
@@ -191,7 +191,7 @@ export function StorySplash({ onDone }: { onDone: () => void }) {
         ) : (
           <button
             onClick={() => go(i + 1)}
-            className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gold-soft/20 text-sm font-extrabold text-gold-foreground backdrop-blur-sm transition active:scale-[0.97]"
+            className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-story-ink/20 text-sm font-extrabold text-story-ink backdrop-blur-sm transition active:scale-[0.97]"
           >
             التالي <ArrowLeft className="h-4 w-4" />
           </button>

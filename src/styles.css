@@ -276,8 +276,8 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
-  --color-gold-soft: var(--gold-soft);
-  --color-surface-deep: var(--surface-deep);
+  --color-gold-soft: var(--story-ink);
+  --color-surface-deep: var(--story-night);
 }
 
 @utility gradient-primary {
@@ -298,7 +298,7 @@
 
 @utility glow-gold {
   box-shadow:
-    0 0 0 1px var(--gold-soft),
+    0 0 0 1px var(--story-ink),
     0 0 28px -6px var(--gold),
     inset 0 1px 0 0 oklch(1 0 0 / 0.06);
 }
@@ -1399,14 +1399,14 @@ html[data-low-motion="true"] .community-skeleton { animation: none !important; t
 /* Story onboarding */
 .story-shade {
   background:
-    linear-gradient(to bottom, color-mix(in oklab, var(--surface-deep) 55%, transparent) 0%, transparent 22%),
-    linear-gradient(to top, var(--surface-deep) 8%, color-mix(in oklab, var(--surface-deep) 75%, transparent) 38%, transparent 68%);
+    linear-gradient(to bottom, color-mix(in oklab, var(--story-night) 55%, transparent) 0%, transparent 22%),
+    linear-gradient(to top, var(--story-night) 8%, color-mix(in oklab, var(--story-night) 75%, transparent) 38%, transparent 68%);
 }
 .story-grain {
   opacity: 0.12;
   mix-blend-mode: overlay;
-  background-image: radial-gradient(circle at 20% 30%, var(--gold-soft) 0 1px, transparent 1px),
-    radial-gradient(circle at 70% 60%, var(--gold-soft) 0 1px, transparent 1px);
+  background-image: radial-gradient(circle at 20% 30%, var(--story-ink) 0 1px, transparent 1px),
+    radial-gradient(circle at 70% 60%, var(--story-ink) 0 1px, transparent 1px);
   background-size: 7px 7px, 11px 11px;
 }
 @keyframes story-kenburns {
@@ -1423,4 +1423,14 @@ html[data-low-motion="true"] .community-skeleton { animation: none !important; t
 .story-line { opacity: 0; animation: story-line 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 @media (prefers-reduced-motion: reduce) {
   .story-kenburns, .story-line { animation: none; opacity: 1; }
+}
+:root {
+  --story-night: oklch(0.16 0.03 250);
+  --story-ink: oklch(0.97 0.01 85);
+  --story-glow: oklch(0.83 0.14 78);
+}
+@theme inline {
+  --color-story-night: var(--story-night);
+  --color-story-ink: var(--story-ink);
+  --color-story-glow: var(--story-glow);
 }
