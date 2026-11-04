@@ -56,6 +56,26 @@ export function PatientBottomNav() {
     >
       {/* شريط التنقل السفلي — كبسولة زجاج سائل عائمة (Liquid Glass Dock) */}
       <div className={`glass-liquid glass-dock grid ${hidden ? "pointer-events-none" : "pointer-events-auto"} h-16 w-full max-w-md grid-cols-5 rounded-full px-2`}>
+        {(() => {
+          const idx = items.findIndex((it) => it.matches(pathname));
+          if (idx < 0) return null;
+          const emergency = items[idx].to === "/patient/emergency";
+          return (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-2 grid place-items-center"
+              style={{
+                width: "calc((100% - 1rem) / 5)",
+                transform: `translateX(${-idx * 100}%)`,
+                transition: "transform var(--motion-base) var(--ease-ios)",
+              }}
+            >
+              <span
+                className={`-mt-5 h-9 w-14 rounded-full shadow-soft ${emergency ? "bg-destructive/15" : "bg-gradient-to-br from-primary to-success"}`}
+              />
+            </span>
+          );
+        })()}
         {items.map((item) => {
           const active = item.matches(pathname);
           const emergency = item.to === "/patient/emergency";
@@ -66,15 +86,11 @@ export function PatientBottomNav() {
               to={item.to}
               activeOptions={{ exact: true }}
               aria-current={active ? "page" : undefined}
-              className={`group relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 text-xs font-bold transition-all duration-200 active:scale-90 ${emergency ? "text-destructive" : active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={`group relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 text-xs font-bold transition-all duration-200 active:scale-[0.94] ${emergency ? "text-destructive" : active ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
             >
               <span
-                className={`grid h-9 w-14 place-items-center rounded-full transition-all duration-300 ${
-                  emergency && active
-                    ? "bg-destructive/10 text-destructive shadow-xs"
-                    : active
-                      ? "bg-gradient-to-br from-primary to-success text-primary-foreground shadow-soft scale-105"
-                      : "bg-transparent group-hover:bg-secondary"
+                className={`relative grid h-9 w-14 place-items-center rounded-full transition-transform duration-200 ${
+                  active ? `scale-[1.08] ${emergency ? "text-destructive" : "text-primary-foreground"}` : ""
                 }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.6 : 2} />

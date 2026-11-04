@@ -900,13 +900,9 @@ a:active,
 @keyframes page-slide-in {
   from {
     opacity: 0;
-    translate: 0 10px;
-    filter: blur(2px);
   }
   to {
     opacity: 1;
-    translate: 0 0;
-    filter: none;
   }
 }
 .page-enter {
@@ -1512,13 +1508,14 @@ html[data-low-motion="true"] .community-skeleton { animation: none !important; t
 html { scroll-behavior: smooth; }
 [role="dialog"], [data-vaul-drawer] { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
 @keyframes stagger-in { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
-.page-enter > * > * { animation: stagger-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+main > * { animation: stagger-in 280ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 @media (prefers-reduced-motion: reduce) {
-  .page-enter > * > * { animation: none; }
+  main > * { animation: none; }
 }
 /* Unified spring press for interactive capsules */
 .page-enter button:not(:disabled), .page-enter a { transition: transform 200ms cubic-bezier(0.34,1.56,0.64,1); }
 .page-enter button:not(:disabled):active, .page-enter a:active { transform: scale(0.97); }
-.page-enter { animation: page-in 380ms cubic-bezier(0.22,1,0.36,1) both; }
-@keyframes page-in { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: none; } }
+/* Page wrapper animates opacity only: transform/filter here would break position:fixed for the bottom nav */
+:root { --motion-fast: 140ms; --motion-base: 240ms; --motion-page: 280ms; --ease-out: cubic-bezier(0.22,1,0.36,1); --ease-ios: cubic-bezier(0.32,0.72,0,1); --ease-spring: cubic-bezier(0.34,1.4,0.64,1); }
+.page-enter { animation: page-slide-in var(--motion-page) var(--ease-out) backwards; }
 @media (prefers-reduced-motion: reduce) { .page-enter { animation: none; } .page-enter button:active, .page-enter a:active { transform: none; } }
