@@ -27,7 +27,9 @@ import { NemoBreathingCard } from "@/components/NemoBreathingCard";
 import { QueueTrackerCard } from "@/components/QueueTrackerCard";
 import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
 import { QuickBookingDrawer } from "@/components/booking/QuickBookingDrawer";
-import hologramFigure from "@/assets/hologram-figure.png";
+import heart3d from "@/assets/3d-heart.png";
+import bell3d from "@/assets/3d-bell.png";
+import pill3d from "@/assets/3d-pill.png";
 import { specialties, type Clinic } from "@/lib/mock-data";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -293,200 +295,148 @@ function PatientHome() {
       headerClassName="backdrop-blur-md bg-background/80 border-b border-border/50"
       contentClassName="content-bottom-fade pb-32"
     >
-      {/* ===== كارت البطل المتوهج (Hero Aurora Status Card) =====
-        الصورة الرمزية + الاسم أعلى الكارت، وكبسولة الموقع جهة اليسار */}
-      <section className="glass-liquid aurora-medical-card mb-5 rounded-3xl p-5">
-        {/* توهجات أورورا خلفية */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-14 -left-8 h-40 w-40 rounded-full bg-primary/20 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-16 -right-10 h-44 w-44 rounded-full bg-success/10 blur-3xl"
-        />
-        <div className="relative">
-          {/* صف علوي مرن: الصورة الرمزية والاسم يميناً، الموقع يساراً */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-primary-soft text-lg font-extrabold text-primary shadow-soft">
-                {patientAvatar ? (
-                  <img src={patientAvatar} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  (patientName || "ز").slice(0, 1)
-                )}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-base font-extrabold">
-                  {patientName ? patientName.split(" ")[0] : "يا بطل"}
-                </p>
-                <p className="flex items-center gap-1 text-xs font-bold text-muted-foreground">
-                  <Sparkles className="h-3 w-3 text-primary" />
-                </p>
-              </div>
-            </div>
-            {/* كبسولة الموقع الجغرافي السائلة */}
+      {/* ===== MoveSync: تحية + بحث ===== */}
+      <section className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-primary-soft text-lg font-extrabold text-primary ring-2 ring-border">
+            {patientAvatar ? (
+              <img src={patientAvatar} alt="" className="h-full w-full object-cover" />
+            ) : (
+              (patientName || "س").slice(0, 1)
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-base font-black">
+              أهلاً، {patientName ? patientName.split(" ")[0] : "يا بطل"}
+            </p>
             <button
               type="button"
               onClick={() => setLocOpen(true)}
-              className="btn-liquid-glass flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-right"
-              aria-label="تغيير الموقع الجغرافي"
+              className="flex min-h-6 items-center gap-1 text-xs font-bold text-muted-foreground"
+              aria-label="تغيير الموقع"
             >
-              <MapPin className="h-4 w-4 shrink-0 text-primary" />
-              <span className="max-w-[8rem] truncate text-xs font-bold">{location.city}</span>
-              <span className="text-xs text-muted-foreground">▾</span>
+              <MapPin className="h-3 w-3 text-primary" />
+              {location.city} · {new Date().toLocaleDateString("ar-EG", { day: "numeric", month: "long" })}
             </button>
           </div>
+        </div>
+        <Link
+          to="/patient/search"
+          aria-label="بحث"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-card active:scale-95"
+        >
+          <Search className="h-5 w-5" />
+        </Link>
+      </section>
 
-          <p className="mt-3 text-lg font-black leading-7">
-            {greeting} <span className="text-muted-foreground">تابع صحتك مع سند</span>
-          </p>
+      {/* ===== كارت اليوم ===== */}
+      <Link
+        to="/patient/assistant"
+        className="relative mb-4 block overflow-visible rounded-3xl bg-primary p-5 text-primary-foreground shadow-soft active:scale-[0.98] transition"
+      >
+        <p className="max-w-[60%] text-2xl font-black leading-tight">{greeting}</p>
+        <p className="mt-1 max-w-[60%] text-xs font-bold opacity-85">اسأل نيمو عن أي عرض</p>
+        <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/20 px-3 py-1.5 text-xs font-extrabold">
+          <MessageCircleHeart className="h-4 w-4" /> كلّم نيمو
+        </span>
+        <img
+          src={heart3d}
+          alt=""
+          aria-hidden
+          width={816}
+          height={816}
+          className="sanad-float pointer-events-none absolute -top-5 left-1 h-32 w-32 object-contain drop-shadow-xl"
+        />
+      </Link>
 
-          <div className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2.5">
-            <HeartPulse className="h-5 w-5 shrink-0 text-primary" />
-            {healthSnapshot.bp || healthSnapshot.sugar ? (
-              <div className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
-                <p>
-                  الضغط:{" "}
-                  {healthSnapshot.bp
-                    ? { normal: "طبيعي", watch: "تابعه", alert: "تنبيه", unknown: "غير معروف" }[
-                        bpStatus(healthSnapshot.bp)
-                      ]
-                    : "لا توجد قراءة"}
-                </p>
-                <p>
-                  السكر:{" "}
-                  {healthSnapshot.sugar
-                    ? { normal: "طبيعي", watch: "تابعه", alert: "تنبيه", unknown: "غير معروف" }[
-                        sugarStatus(healthSnapshot.sugar)
-                      ]
-                    : "لا توجد قراءة"}
-                </p>
-              </div>
-            ) : (
-              <p className="min-w-0 flex-1 text-xs font-bold text-muted-foreground">
-                لا توجد قراءات مسجلة
-              </p>
-            )}
-            <Link
-              to="/patient/health"
-              className="flex min-h-11 shrink-0 items-center text-xs font-extrabold text-primary"
+      {/* ===== كبسولات الأسبوع ===== */}
+      <section aria-label="الأسبوع" className="mb-5 grid grid-cols-6 gap-1.5">
+        {Array.from({ length: 6 }, (_, k) => {
+          const d = new Date();
+          d.setDate(d.getDate() + k - 2);
+          const today = k === 2;
+          return (
+            <div
+              key={k}
+              className={`flex flex-col items-center gap-0.5 rounded-full border py-2.5 text-xs font-bold ${
+                today ? "border-foreground bg-foreground text-background" : "border-border bg-card"
+              }`}
             >
-              {healthSnapshot.bp || healthSnapshot.sugar ? "التفاصيل ←" : "سجّل أول قراءة"}
-            </Link>
-          </div>
+              <Star className={`h-3.5 w-3.5 ${today ? "fill-current" : "fill-foreground/80"}`} />
+              <span>{d.toLocaleDateString("ar-EG", { weekday: "short" })}</span>
+              <span className="text-sm font-black">{d.getDate()}</span>
+            </div>
+          );
+        })}
+      </section>
 
-          {/* الزرّان الزجاجيان العريضان */}
-          <div className="mt-3 grid grid-cols-2 gap-2">
+      {/* ===== خطتك ===== */}
+      <h2 className="mb-3 text-lg font-black">خطتك</h2>
+      <section aria-label="خطتك" className="mb-6 grid grid-cols-2 gap-3">
+        <Link
+          to="/patient/search"
+          className="relative row-span-2 flex min-h-64 flex-col overflow-visible rounded-3xl bg-gold-soft p-4 text-foreground active:scale-[0.98] transition"
+        >
+          <span className="text-xs font-bold text-muted-foreground">
+            {upcomingBooking ? "موعدك" : "احجز"}
+          </span>
+          <span className="mt-1 text-lg font-black leading-6">
+            {upcomingBooking ? upcomingBooking.clinicName : "عيادة قريبة"}
+          </span>
+          <span className="mt-1 text-xs font-bold text-muted-foreground">
+            {upcomingBooking ? `دورك ${upcomingBooking.code}` : "بدون طابور"}
+          </span>
+          <img
+            src={bell3d}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            width={816}
+            height={816}
+            className="sanad-float pointer-events-none absolute bottom-10 -left-3 h-28 w-28 object-contain drop-shadow-xl"
+          />
+        </Link>
+
+        <Link
+          to="/patient/health"
+          className="relative flex min-h-32 flex-col overflow-hidden rounded-3xl bg-primary-soft p-4 active:scale-[0.98] transition"
+        >
+          <span className="text-xs font-bold text-muted-foreground">صحتك</span>
+          <span className="mt-1 text-base font-black">
+            {healthSnapshot.bp || healthSnapshot.sugar ? "القياسات" : "سجّل قياس"}
+          </span>
+          <span className="mt-1 text-xs font-bold text-muted-foreground">
+            {healthSnapshot.bp ? `ضغط ${healthSnapshot.bp}` : "ضغط · سكر"}
+          </span>
+          <img
+            src={pill3d}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            width={816}
+            height={816}
+            className="pointer-events-none absolute -bottom-3 -left-3 h-20 w-20 object-contain"
+          />
+        </Link>
+
+        <div className="flex items-center justify-around rounded-3xl bg-success/20 p-2">
+          {[
+            { to: "/patient/emergency", icon: Siren, label: "طوارئ", cls: "text-destructive" },
+            { to: "/patient/drug-scan", icon: ClipboardList, label: "روشتة", cls: "" },
+            { to: "/patient/scan", icon: ScanLine, label: "مسح", cls: "" },
+          ].map(({ to, icon: Icon, label, cls }) => (
             <Link
-              to="/patient/assistant"
-              className="btn-liquid-primary flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-center text-xs font-extrabold"
+              key={to}
+              to={to}
+              aria-label={label}
+              className="grid h-11 w-11 place-items-center rounded-full bg-card shadow-soft active:scale-90"
             >
-              <MessageCircleHeart className="h-4 w-4" />
-              اسأل نيمو بصوتك
+              <Icon className={`h-5 w-5 ${cls}`} />
             </Link>
-            <Link
-              to="/patient/search"
-              className="btn-liquid-glass flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-center text-xs font-extrabold"
-            >
-              <Search className="h-4 w-4 text-primary" />
-              احجز عيادة أو دكتور
-            </Link>
-          </div>
+          ))}
         </div>
       </section>
       {upcomingBooking && <QueueTrackerCard key={upcomingBooking.code} />}
-      <Link
-        to="/patient/search"
-        className="mt-4 flex min-h-11 items-center gap-3 rounded-full border border-border/50 bg-card px-4 py-3.5 shadow-soft transition-all duration-200 active:scale-[0.97] hover:border-primary/50"
-      >
-        <Search className="h-5 w-5 shrink-0 text-primary" />
-        <span className="min-w-0 flex-1 text-sm text-muted-foreground">
-          دور على طبيب، تخصص أو عيادة…
-        </span>
-        <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
-      </Link>
-      {/* ===== شبكة بينتو الطبية الذكية (Medical Bento Grid) =====
-        كارت هولوجرام طولي (row-span-2) + طوارئ + MedScan */}
-      <section aria-label="الخدمات الطبية" className="mb-6 grid grid-cols-2 gap-3">
-        {/* الكارت الطولي الأيمن — مجسم الهولوجرام والملف الطبي الذكي */}
-        <Link
-          to="/patient/health"
-          className="spotlight-card card-medical-mint group relative col-start-1 row-span-2 flex flex-col justify-between overflow-visible p-4 text-right transition duration-300 hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-xl active:scale-[0.98]"
-          onPointerMove={(event) => {
-            const rect = event.currentTarget.getBoundingClientRect();
-            event.currentTarget.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
-            event.currentTarget.style.setProperty("--spot-y", `${event.clientY - rect.top}px`);
-          }}
-        >
-          {/* المجسم المضيء مع خط ليزر ممسوح */}
-          <div className="relative mx-auto grid h-36 w-20 place-items-center overflow-hidden">
-            <img
-              src={hologramFigure}
-              alt=""
-              aria-hidden
-              className="h-full w-auto object-contain drop-shadow-[0_0_14px_var(--color-primary)]"
-            />
-            <span aria-hidden="true" className="holo-laser" />
-          </div>
-          <div>
-            <p className="flex items-center gap-1.5 text-base font-extrabold leading-6">
-              ملفك الطبي الذكي
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-              </span>
-            </p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              نقطة نبض حية لآخر قراءات الضغط والسكر — اضغط على أي عضو
-            </p>
-            <span className="mt-2 inline-block rounded-full bg-primary-soft px-3 py-1 text-xs font-extrabold text-primary">
-              فتح الملف ←
-            </span>
-          </div>
-        </Link>
-
-        {/* الكارت العلوي الأيسر — طوارئ 123 الإسعافية */}
-        <Link
-          to="/patient/emergency"
-          className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-right shadow-soft transition hover:border-destructive active:scale-[0.97]"
-        >
-          <span className="relative grid h-10 w-10 place-items-center rounded-xl bg-destructive/15 text-destructive">
-            <span className="absolute inset-0 animate-ping rounded-xl bg-destructive/20" />
-            <Siren className="relative h-5 w-5" />
-          </span>
-          <span className="mt-2">
-            <span className="block text-[13px] font-extrabold text-destructive">طوارئ 123</span>
-            <span className="block text-xs font-medium text-muted-foreground">
-              اتصال إسعاف فوري بلمسة
-            </span>
-          </span>
-        </Link>
-
-        {/* الكارت السفلي الأيسر — فحص الروشتة والتحاليل MedScan */}
-        <Link
-          to="/patient/drug-scan"
-          className="flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-3.5 text-right shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.97]"
-        >
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-success/15 text-success">
-            <ClipboardList className="h-5 w-5" />
-          </span>
-          <span className="mt-2">
-            <span className="block text-[13px] font-extrabold">روشتة وتحاليل</span>
-            <span className="block text-xs font-medium text-muted-foreground">
-              فحص MedScan الذكي بلمسة
-            </span>
-          </span>
-        </Link>
-
-        {/* شريط سفلي بعرض كامل — مسح كود العيادة */}
-        <Link
-          to="/patient/scan"
-          className="col-span-full flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-border bg-card p-3 text-sm font-extrabold text-foreground shadow-soft active:scale-[0.97]"
-        >
-          <ScanLine className="h-5 w-5 text-primary" /> امسح كود العيادة بالكاميرا
-        </Link>
-      </section>
 
       {/* ===== كارت المتابعة الصحية والمجسم أُدمج في شبكة البينتو أعلاه ===== */}
       {locOpen && (
