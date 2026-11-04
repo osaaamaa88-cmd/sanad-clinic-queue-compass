@@ -50,8 +50,7 @@ export function CommentsSheet({
   const sorted = useMemo(() => sortComments(items.filter((c) => !c.parent_id)), [items]);
   const repliesOf = useMemo(() => {
     const m: Record<string, CommunityComment[]> = {};
-    for (const c of items)
-      if (c.parent_id) (m[c.parent_id] ??= []).push(c);
+    for (const c of items) if (c.parent_id) (m[c.parent_id] ??= []).push(c);
     for (const k in m) m[k].sort((a, b) => a.created_at.localeCompare(b.created_at));
     return m;
   }, [items]);
@@ -85,7 +84,10 @@ export function CommentsSheet({
       .single();
     setSending(false);
     if (error || !data) return void toast.error("تعذّر إرسال التعليق");
-    setItems((s) => [{ ...data, is_doctor: !!data.clinic_id, doctor_name: data.author_name }, ...s]);
+    setItems((s) => [
+      { ...data, is_doctor: !!data.clinic_id, doctor_name: data.author_name },
+      ...s,
+    ]);
     onCountChange(1);
     setText("");
     setReplyTo(null);
@@ -100,61 +102,61 @@ export function CommentsSheet({
   };
 
   const renderComment = (c: CommunityComment) => (
-              <div
-                                className={`rounded-2xl p-3 ${c.is_doctor ? "border border-gold/40 bg-gold-soft" : "bg-secondary"}`}
-              >
-                <div className="flex items-center gap-1.5 text-xs font-bold">
-                  {c.is_doctor && c.clinic_id ? (
-                    <Link to="/patient/clinic/$id" params={{ id: c.clinic_id }} className="font-extrabold">
-                      {c.doctor_name || c.author_name}
-                    </Link>
-                  ) : (
-                    <span>{c.author_name || "عضو"}</span>
-                  )}
-                  {c.is_doctor && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-xs text-success">
-                      <BadgeCheck className="h-3.5 w-3.5" /> إجابة طبيب
-                    </span>
-                  )}
-                  <span className="font-medium text-muted-foreground">· {timeAgo(c.created_at)}</span>
-                  {userId === c.author_id ? (
-                    <button
-                      type="button"
-                      onClick={() => void remove(c)}
-                      aria-label="حذف التعليق"
-                      className="mr-auto grid h-11 w-11 place-items-center text-muted-foreground"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => onReport(c.id)}
-                      aria-label="الإبلاغ عن التعليق"
-                      className="mr-auto grid h-11 w-11 place-items-center text-muted-foreground"
-                    >
-                      <Flag className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{c.body}</p>
-                <button
-                  type="button"
-                  onClick={() => startReply(c)}
-                  className="mt-1 inline-flex min-h-11 items-center gap-1 text-xs font-bold text-muted-foreground"
-                >
-                  <CornerDownLeft className="h-3.5 w-3.5" /> رد
-                </button>
-                {c.is_doctor && c.clinic_id && (
-                  <Link
-                    to="/patient/clinic/$id"
-                    params={{ id: c.clinic_id }}
-                    className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground"
-                  >
-                    <CalendarPlus className="h-4 w-4" /> احجز
-                  </Link>
-                )}
-              </div>
+    <div
+      className={`rounded-2xl p-3 ${c.is_doctor ? "border border-gold/40 bg-gold-soft" : "bg-secondary"}`}
+    >
+      <div className="flex items-center gap-1.5 text-xs font-bold">
+        {c.is_doctor && c.clinic_id ? (
+          <Link to="/patient/clinic/$id" params={{ id: c.clinic_id }} className="font-extrabold">
+            {c.doctor_name || c.author_name}
+          </Link>
+        ) : (
+          <span>{c.author_name || "عضو"}</span>
+        )}
+        {c.is_doctor && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-xs text-success">
+            <BadgeCheck className="h-3.5 w-3.5" /> إجابة طبيب
+          </span>
+        )}
+        <span className="font-medium text-muted-foreground">· {timeAgo(c.created_at)}</span>
+        {userId === c.author_id ? (
+          <button
+            type="button"
+            onClick={() => void remove(c)}
+            aria-label="حذف التعليق"
+            className="mr-auto grid h-11 w-11 place-items-center text-muted-foreground"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onReport(c.id)}
+            aria-label="الإبلاغ عن التعليق"
+            className="mr-auto grid h-11 w-11 place-items-center text-muted-foreground"
+          >
+            <Flag className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{c.body}</p>
+      <button
+        type="button"
+        onClick={() => startReply(c)}
+        className="mt-1 inline-flex min-h-11 items-center gap-1 text-xs font-bold text-muted-foreground"
+      >
+        <CornerDownLeft className="h-3.5 w-3.5" /> رد
+      </button>
+      {c.is_doctor && c.clinic_id && (
+        <Link
+          to="/patient/clinic/$id"
+          params={{ id: c.clinic_id }}
+          className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground"
+        >
+          <CalendarPlus className="h-4 w-4" /> احجز
+        </Link>
+      )}
+    </div>
   );
 
   return (
@@ -166,10 +168,14 @@ export function CommentsSheet({
           className="fixed inset-x-0 bottom-0 z-[101] flex h-[85vh] flex-col rounded-t-[28px] border-t border-border bg-card focus:outline-none"
         >
           <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-muted-foreground/30" />
-          <Drawer.Title className="px-4 py-3 text-center text-base font-extrabold">التعليقات</Drawer.Title>
+          <Drawer.Title className="px-4 py-3 text-center text-base font-extrabold">
+            التعليقات
+          </Drawer.Title>
           <div className="flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 pb-4">
             {!loading && sorted.length === 0 && (
-              <p className="py-10 text-center text-sm text-muted-foreground">لا توجد تعليقات بعد. كن أول من يرد.</p>
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                لا توجد تعليقات بعد. كن أول من يرد.
+              </p>
             )}
             {sorted.map((c) => {
               const reps = repliesOf[c.id] ?? [];
@@ -239,7 +245,9 @@ export function CommentsSheet({
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 maxLength={1000}
-                placeholder={userId ? (replyTo ? "اكتب ردك..." : "اكتب تعليقاً...") : "سجّل دخولك للتعليق"}
+                placeholder={
+                  userId ? (replyTo ? "اكتب ردك..." : "اكتب تعليقاً...") : "سجّل دخولك للتعليق"
+                }
                 onFocus={() => !userId && requireAuth()}
                 className="h-11 flex-1 rounded-full bg-secondary px-4 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
