@@ -13,7 +13,11 @@ export function useHideOnScroll(threshold = 12, topOffset = 60) {
       // تجاهل التمرير الأفقي (مثل شريط الستوري)
       if (el.scrollHeight <= el.clientHeight + 4) return;
       const y = el.scrollTop;
-      const prev = last.current.get(el) ?? y;
+      const prev = last.current.get(el);
+      if (prev === undefined) {
+        last.current.set(el, y);
+        return;
+      }
       if (y < topOffset) {
         setHidden(false);
       } else if (y - prev > threshold) {
