@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { useAiConsent, aiErrorMessage } from "@/components/AiConsentDialog";
 import { readLab, type LabReport, type LabItem } from "@/lib/medscan.functions";
 import { imageToBase64 } from "@/lib/image-to-base64";
+import { ZoomableImage } from "@/components/medical/MedicalImageViewer";
 
 export const Route = createFileRoute("/patient/lab-reader")({
   staticData: { sitemap: true },
@@ -104,7 +105,7 @@ function LabReader() {
           className="flex w-full flex-col items-center gap-2 rounded-3xl border-2 border-dashed border-primary/40 bg-primary-soft/30 p-6 font-bold text-primary transition active:scale-95"
         >
           {preview ? (
-            <img src={preview} alt="ورقة التحليل" className="max-h-56 rounded-xl" />
+            <ZoomableImage src={preview} alt="ورقة التحليل" className="max-h-56 rounded-xl" />
           ) : (
             <Camera className="h-10 w-10" />
           )}

@@ -83,9 +83,11 @@ export function ComposerSheet({
   const selfHarm = body.trim().length > 3 && hasSelfHarmIntent(body);
   const emergency = !selfHarm && body.trim().length > 3 && runLocalTriage(body).urgency === "emergency";
 
-  const pick = (f?: File) => {
-    if (!f) return;
-    if (!f.type.startsWith("image/")) return void toast.error("اختر صورة فقط");
+  const pick = async (input?: File) => {
+    if (!input) return;
+    if (!input.type.startsWith("image/")) return void toast.error("اختر صورة فقط");
+    const { compressImage } = await import("@/lib/image-compression");
+    const f = await compressImage(input);
     setFile(f);
     setPreview(URL.createObjectURL(f));
     if (isCard) setType("question");
