@@ -84,6 +84,9 @@ export function installGlobalHaptics() {
   return () => document.removeEventListener("click", onClick, { capture: true });
 }
 
+const MED_ACTION_TYPE = "sanad-med";
+const MED_TAKEN_KEY = "sanad_meds_taken_v1";
+
 type NativeMed = { id: string; name: string; dose: string; times: string[] };
 
 function hashId(s: string): number {
@@ -102,6 +105,17 @@ export async function syncNativeMedReminders(meds: NativeMed[]) {
       const r = await LocalNotifications.requestPermissions();
       if (r.display !== "granted") return;
     }
+    await LocalNotifications.registerActionTypes({
+      types: [
+        {
+          id: MED_ACTION_TYPE,
+          actions: [
+            { id: "taken", title: "أخذت الجرعة" },
+            { id: "snooze", title: "تأجيل 15 دقيقة" },
+          ],
+        },
+      ],
+    });
     const pending = await LocalNotifications.getPending();
     if (pending.notifications.length) {
       await LocalNotifications.cancel({
@@ -118,6 +132,8 @@ export async function syncNativeMedReminders(meds: NativeMed[]) {
             title: `تذكير دواء: ${m.name}`,
             body: `الجرعة: ${m.dose || "-"} — سند`,
             schedule: { on: { hour, minute }, allowWhileIdle: true },
+            actionTypeId: MED_ACTION_TYPE,
+            extra: { medId: m.id, time: t, name: m.name, dose: m.dose },
           };
         }),
     );
@@ -160,4 +176,73 @@ export function installAndroidBack(toast: (msg: string) => unknown) {
     })
     .catch(() => {});
   return () => remove?.();
+}
+
+/** Handle the "taken" / "snooze" buttons on medication notifications. */
+export function installMedReminderActions(toast: (msg: string) => unknown) {
+  if (!isNative()) return () => {};
+  let remove: (() => void) | undefined;
+  void import("@capacitor/local-notifications")
+    .then(async ({ LocalNotifications }) => {
+      const h = await LocalNotifications.addListener(
+        "localNotificationActionPerformed",
+        async ({ actionId, notification }) => {
+          const extra = (notification.extra ?? {}) as {
+            medId?: string;
+            time?: string;
+            name?: string;
+            dose?: string;
+          };
+          if (!extra.medId || !extra.time) return;
+          if (actionId === "taken") {
+            const now = new Date();
+            const day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+            try {
+              const raw = JSON.parse(localStorage.getItem(MED_TAKEN_KEY) || "{}");
+              raw[`${day}|${extra.time}|${extra.medId}`] = true;
+              localStorage.setItem(MED_TAKEN_KEY, JSON.stringify(raw));
+            } catch {
+              /* ignore */
+            }
+            toast(`تم تسجيل جرعة ${extra.name ?? ""}`);
+          } else if (actionId === "snooze") {
+            await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: hashId(`snooze-${extra.medId}-${Date.now()}`),
+                  title: `تذكير دواء: ${extra.name ?? ""}`,
+                  body: `الجرعة: ${extra.dose || "-"} — سند`,
+                  schedule: { at: new Date(Date.now() + 15 * 60_000), allowWhileIdle: true },
+                  actionTypeId: MED_ACTION_TYPE,
+                  extra,
+                },
+              ],
+            });
+            toast("هنفكرك تاني بعد 15 دقيقة");
+          }
+        },
+      );
+      remove = () => void h.remove();
+    })
+    .catch(() => {});
+  return () => remove?.();
+}
+
+/** Open the phone's own share menu (WhatsApp, Telegram…); falls back to copying the link. */
+export async function nativeShare(opts: { title: string; text?: string; url: string }) {
+  try {
+    if (isNative()) {
+      const { Share } = await import("@capacitor/share");
+      await Share.share({ ...opts, dialogTitle: "مشاركة عبر" });
+      return "shared" as const;
+    }
+    if (typeof navigator !== "undefined" && navigator.share) {
+      await navigator.share(opts);
+      return "shared" as const;
+    }
+  } catch {
+    return "cancelled" as const;
+  }
+  await navigator.clipboard?.writeText(opts.url);
+  return "copied" as const;
 }

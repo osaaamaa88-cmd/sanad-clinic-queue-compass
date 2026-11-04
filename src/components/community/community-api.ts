@@ -147,15 +147,9 @@ export function pushRecentSearch(q: string) {
 
 export async function sharePost(id: string) {
   const url = `${window.location.origin}/community#post-${id}`;
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: "مجتمع سند", url });
-      return;
-    }
-  } catch {
-    return;
-  }
-  await navigator.clipboard?.writeText(url);
+  const { nativeShare } = await import("@/lib/native");
+  const result = await nativeShare({ title: "مجتمع سند", url });
+  if (result !== "copied") return;
   const { toast } = await import("sonner");
   toast.success("تم نسخ الرابط");
 }
