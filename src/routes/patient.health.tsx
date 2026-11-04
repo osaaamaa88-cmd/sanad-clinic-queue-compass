@@ -477,6 +477,9 @@ function HealthTracker() {
                 </label>
               </div>
 
+              {bpErr && (
+                <p role="alert" className="mt-2 text-sm font-semibold text-destructive">{bpErr}</p>
+              )}
               {bp && (
                 <div className={`mt-4 rounded-2xl border p-4 ${toneClasses[bp.tone]}`}>
                   <div className="flex items-center justify-between">
@@ -561,6 +564,9 @@ function HealthTracker() {
                 />
               </label>
 
+              {sugErr && (
+                <p role="alert" className="mt-2 text-sm font-semibold text-destructive">{sugErr}</p>
+              )}
               {sug && (
                 <div className={`mt-4 rounded-2xl border p-4 ${toneClasses[sug.tone]}`}>
                   <div className="flex items-center justify-between">

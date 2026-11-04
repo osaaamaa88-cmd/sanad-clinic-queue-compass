@@ -151,11 +151,18 @@ export function installAndroidBack(toast: (msg: string) => unknown) {
   void import("@capacitor/app")
     .then(async ({ App }) => {
       const h = await App.addListener("backButton", () => {
-        const dialog = document.querySelector(
-          '[role="dialog"][data-state="open"], [role="dialog"]',
-        );
-        if (dialog) {
-          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        // Close the top-most overlay first (dialogs, sheets, drawers, lightbox, menus).
+        const overlays = Array.from(
+          document.querySelectorAll<HTMLElement>(
+            '[role="dialog"], [role="alertdialog"], [data-vaul-drawer][data-state="open"], .yarl__root, [role="menu"][data-state="open"]',
+          ),
+        ).filter((el) => el.getAttribute("data-state") !== "closed" && el.offsetParent !== null);
+        const top = overlays[overlays.length - 1];
+        if (top) {
+          const esc = { key: "Escape", code: "Escape", keyCode: 27, bubbles: true, cancelable: true };
+          top.dispatchEvent(new KeyboardEvent("keydown", esc));
+          document.dispatchEvent(new KeyboardEvent("keydown", esc));
+          window.dispatchEvent(new CustomEvent("sanad:back"));
           return;
         }
         const p = window.location.pathname;
