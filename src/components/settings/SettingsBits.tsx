@@ -26,7 +26,7 @@ export function SwitchRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex min-h-16 cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
+    <label className="flex min-h-16 cursor-pointer items-center justify-between gap-4 rounded-3xl tile-3d border border-border bg-card p-4">
       <span className="flex min-w-0 items-center gap-3">
         <Icon className="h-6 w-6 shrink-0 text-primary" />
         <span className="min-w-0">
@@ -66,7 +66,7 @@ export function LinkRow({
     <Link
       to={to as never}
       params={params as never}
-      className="flex min-h-16 items-center gap-3 rounded-2xl border border-border bg-card p-4 transition active:scale-[0.99]"
+      className="flex min-h-16 items-center gap-3 rounded-3xl tile-3d border border-border bg-card p-4 transition active:scale-[0.99]"
     >
       <Icon className="h-6 w-6 shrink-0 text-primary" />
       <span className="min-w-0 flex-1">

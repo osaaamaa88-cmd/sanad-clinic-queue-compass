@@ -167,14 +167,14 @@ function Search() {
     >
       <Link
         to="/find-doctor"
-        className="mb-3 flex items-center gap-3 rounded-2xl border border-primary/40 bg-primary/10 px-3 py-3"
+        className="mb-3 flex items-center gap-3 rounded-3xl tile-3d border border-primary/40 bg-primary/10 px-3 py-3"
       >
         <SearchIcon className="h-5 w-5 text-primary" />
         <span className="flex-1 text-sm font-bold">بحث دقيق عن طبيب</span>
         <ChevronLeft className="h-4 w-4 text-primary" />
       </Link>
       {/* Search input */}
-      <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2.5">
+      <div className="flex items-center gap-2 rounded-3xl tile-3d border border-border bg-card px-3 py-2.5">
         <SearchIcon className="h-4 w-4 text-muted-foreground" />
         <input
           value={q}
@@ -245,7 +245,7 @@ function Search() {
               <button
                 key={id ?? "all"}
                 onClick={() => setSpec(id)}
-                className={`flex w-[72px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border bg-card p-2.5 text-center transition active:scale-95 ${
+                className={`flex w-[72px] shrink-0 flex-col items-center gap-1.5 rounded-3xl tile-3d border bg-card p-2.5 text-center transition active:scale-95 ${
                   active ? "border-primary shadow-soft" : "border-border"
                 }`}
               >
@@ -304,7 +304,7 @@ function Search() {
       </div>
 
       {view === "map" && (
-        <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="mt-4 overflow-hidden rounded-3xl tile-3d border border-border bg-card">
           <ClientOnly
             fallback={
               <div className="grid h-[60vh] w-full place-items-center text-sm text-muted-foreground">
@@ -338,7 +338,7 @@ function Search() {
       {view === "list" && (
         <div className="mt-4 space-y-3">
           {filtered.length === 0 && (
-            <div className="rounded-2xl border-2 border-dashed border-border bg-card p-8 text-center">
+            <div className="rounded-3xl tile-3d border-2 border-dashed border-border bg-card p-8 text-center">
               <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary-soft text-primary">
                 <Stethoscope className="h-6 w-6" />
               </div>
@@ -357,7 +357,7 @@ function Search() {
                 key={c.id}
                 to="/patient/clinic/$id"
                 params={{ id: c.id }}
-                className="block rounded-2xl border border-border bg-card p-4 transition hover:shadow-soft"
+                className="block rounded-3xl tile-3d border border-border bg-card p-4 transition hover:shadow-soft"
               >
                 <div className="flex items-start gap-3">
                   <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary">
@@ -426,7 +426,7 @@ function Crescent({ className }: { className?: string }) {
 function HospitalCard({ c }: { c: Clinic }) {
   const dest = c.approxLocation ? encodeURIComponent(`${c.doctor} ${c.area}`) : `${c.lat},${c.lng}`;
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition hover:border-destructive/40">
+    <div className="overflow-hidden rounded-3xl tile-3d border border-border bg-card shadow-soft transition hover:border-destructive/40">
       <Link to="/hospital/$id" params={{ id: c.id }} className="block p-4">
         <div className="flex items-start gap-3">
           <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-destructive to-destructive/70 text-destructive-foreground shadow-soft">
