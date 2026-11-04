@@ -1,0 +1,2 @@
+ALTER TABLE public.community_posts ADD COLUMN IF NOT EXISTS post_type text NOT NULL DEFAULT 'question';
+ALTER TABLE public.community_posts ADD CONSTRAINT community_posts_post_type_check CHECK (post_type IN ('question','experience','tip'));

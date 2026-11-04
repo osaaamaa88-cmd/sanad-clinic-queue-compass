@@ -774,6 +774,7 @@ export type Database = {
           is_anonymous: boolean
           is_hidden: boolean
           kind: string
+          post_type: string
           specialty_id: string
         }
         Insert: {
@@ -789,6 +790,7 @@ export type Database = {
           is_anonymous?: boolean
           is_hidden?: boolean
           kind?: string
+          post_type?: string
           specialty_id?: string
         }
         Update: {
@@ -804,6 +806,7 @@ export type Database = {
           is_anonymous?: boolean
           is_hidden?: boolean
           kind?: string
+          post_type?: string
           specialty_id?: string
         }
         Relationships: [
