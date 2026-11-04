@@ -23,3 +23,4 @@
 - Patient Google OAuth returns through the public account route with a validated local returnTo destination; this preserves the initiating page without allowing external redirects.
 - Voice and diagnostic Groq requests use the available replacement model with bounded request timeouts; this avoids silent fallback from an inaccessible model.
 - Community feed reads through the `community_feed` view (hides authors of anonymous posts); doctor badges come only from a DB trigger that verifies verified-clinic membership. Why: badges and anonymity cannot be spoofed from the browser.
+- Member (patient) statuses live in their own 24h table separate from clinic stories; replies to clinic stories go to clinic chat, never patient-to-patient DMs. Why: privacy between patients.
