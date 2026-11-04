@@ -268,8 +268,10 @@ function RootComponent() {
     const offBack = installAndroidBack(toast);
     const offHaptics = installGlobalHaptics();
     const offMedActions = installMedReminderActions(toast);
+    const offBgPause = installBackgroundPause();
     return () => {
       offMedActions();
+      offBgPause();
       offBack();
       offHaptics();
     };
