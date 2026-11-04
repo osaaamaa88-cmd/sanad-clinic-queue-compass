@@ -307,13 +307,18 @@ function HealthTracker() {
     setReadings(loadReadings());
   }, []);
 
-  const sysN = Number(sys);
-  const diaN = Number(dia);
-  const bpValid = sys && dia && sysN > 0 && diaN > 0;
+  const sysP = parseReading(sys);
+  const diaP = parseReading(dia);
+  const sysN = sysP ?? 0;
+  const diaN = diaP ?? 0;
+  const bpErr = bloodPressureError(sysP, diaP);
+  const bpValid = sysP != null && diaP != null && !bpErr;
   const bp = bpValid ? evaluateBP(sysN, diaN) : null;
 
-  const sugarN = Number(sugar);
-  const sugarValid = sugar && sugarN > 0;
+  const sugarP = parseReading(sugar);
+  const sugarN = sugarP ?? 0;
+  const sugErr = sugarError(sugarP);
+  const sugarValid = sugarP != null && !sugErr;
   const sug = sugarValid ? evaluateSugar(sugarN, sugarState) : null;
 
   function saveBP() {
