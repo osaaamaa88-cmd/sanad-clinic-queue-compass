@@ -412,7 +412,7 @@ function ClinicDetail() {
             type="button"
             onClick={() => setTab("reviews")}
             aria-label="عرض تقييمات العيادة"
-            className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm transition active:scale-95"
+            className="flex flex-col items-center justify-center rounded-3xl tile-3d p-2.5 text-center"
           >
             <div className="flex items-center gap-1 text-warning">
               <Star className="h-4 w-4 fill-warning" />
@@ -425,7 +425,7 @@ function ClinicDetail() {
             </span>
           </button>
 
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm">
+          <div className="flex flex-col items-center justify-center rounded-3xl tile-3d p-2.5 text-center">
             <span className="text-sm font-black text-primary">
               {clinic.nowServing > 0 ? `#${clinic.nowServing}` : "جاهز"}
             </span>
@@ -434,7 +434,7 @@ function ClinicDetail() {
             </span>
           </div>
 
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-border/80 bg-card/70 p-2.5 text-center shadow-xs backdrop-blur-sm">
+          <div className="flex flex-col items-center justify-center rounded-3xl tile-3d p-2.5 text-center">
             <span className="text-sm font-black text-foreground">
               {clinic.price ? `${clinic.price} ج` : "غير محدد"}
             </span>
@@ -547,7 +547,7 @@ function ClinicDetail() {
           type="button"
           onClick={() => setBookingOpen(true)}
           disabled={clinic.bookingsClosed || clinic.isDemo}
-          className="mt-4 flex min-h-13 w-full items-center justify-center gap-2.5 rounded-2xl bg-primary px-5 py-3.5 text-sm font-black text-primary-foreground shadow-md shadow-primary/20 transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 flex min-h-13 w-full items-center justify-center gap-2.5 rounded-full gradient-primary px-5 py-3.5 text-sm font-black text-primary-foreground shadow-soft btn-3d disabled:cursor-not-allowed disabled:opacity-50"
         >
           <CalendarPlus className="h-5 w-5" />
           <span>
@@ -576,7 +576,7 @@ function ClinicDetail() {
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+                  className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-3xl tile-3d p-2 text-center"
                 >
                   <MessageCircle className="h-4 w-4 text-success" />
                   <span className="text-xs font-bold text-foreground">واتساب</span>
@@ -585,7 +585,7 @@ function ClinicDetail() {
               {clinic.phone && (
                 <a
                   href={`tel:${clinic.phone}`}
-                  className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+                  className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-3xl tile-3d p-2 text-center"
                 >
                   <Phone className="h-4 w-4 text-primary" />
                   <span className="text-xs font-bold text-foreground">اتصال</span>
@@ -595,7 +595,7 @@ function ClinicDetail() {
           )}
           <a
             href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}
-            className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+            className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-3xl tile-3d p-2 text-center"
           >
             <Navigation className="h-4 w-4 text-primary" />
             <span className="text-xs font-bold text-foreground">اللوكيشن</span>
@@ -613,7 +613,7 @@ function ClinicDetail() {
                   }
                 })
               }
-              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-2xl border border-border/70 bg-card p-2 text-center shadow-xs transition active:scale-95 hover:bg-secondary/60"
+              className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-3xl tile-3d p-2 text-center"
             >
               <MessagesSquare className="h-4 w-4 text-foreground" />
               <span className="text-xs font-bold text-foreground">مراسلة</span>
