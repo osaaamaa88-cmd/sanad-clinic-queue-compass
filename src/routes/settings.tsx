@@ -1,9 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Mic, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  Bell,
+  BellRing,
+  FileText,
+  HeartPulse,
+  Mic,
+  ShieldCheck,
+  UserRound,
+  VenetianMask,
+} from "lucide-react";
 import { isSeniorModeOn, isVoiceModeOn, setSeniorMode, setVoiceMode } from "@/lib/voice";
 import { ModeSwitch } from "@/components/ModeSwitch";
 import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
+import { AccountDeletion } from "@/components/AccountDeletion";
+import { LinkRow, SettingsSection, SwitchRow, usePrefs } from "@/components/settings/SettingsBits";
+import { APP_VERSION_LABEL } from "@/lib/app-version";
 
 export const Route = createFileRoute("/settings")({
   staticData: { sitemap: false },
@@ -12,10 +25,10 @@ export const Route = createFileRoute("/settings")({
       { title: "الإعدادات | سند" },
       {
         name: "description",
-        content: "إعدادات سند وتفعيل نمط المساعد الصوتي لكبار السن وفاقدي البصر.",
+        content: "إعدادات سند: الحساب والخصوصية والتنبيهات والمساعد الصوتي والمظهر.",
       },
       { property: "og:title", content: "الإعدادات | سند" },
-      { property: "og:description", content: "فعّل المساعد الصوتي في سند." },
+      { property: "og:description", content: "تحكم في حسابك وتنبيهاتك وخصوصيتك في سند." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -26,6 +39,7 @@ export const Route = createFileRoute("/settings")({
 export function SettingsPage() {
   const [on, setOn] = useState(false);
   const [senior, setSenior] = useState(false);
+  const [prefs, update] = usePrefs();
   useEffect(() => {
     const sync = () => setOn(isVoiceModeOn());
     const syncSenior = () => setSenior(isSeniorModeOn());
@@ -39,71 +53,89 @@ export function SettingsPage() {
     };
   }, []);
 
-  const toggle = () => {
-    const next = !on;
-    setOn(next);
-    setVoiceMode(next);
-  };
-
   return (
-    <main className="mx-auto min-h-screen max-w-lg bg-background p-4">
+    <main className="mx-auto min-h-screen max-w-lg bg-background p-4 pb-16">
       <header className="mb-6 flex items-center gap-3">
-        <Link to="/" aria-label="رجوع" className="rounded-full border p-2">
+        <Link
+          to="/patient/login"
+          aria-label="رجوع"
+          className="grid h-11 w-11 place-items-center rounded-full border border-border"
+        >
           <ArrowRight className="h-5 w-5" />
         </Link>
         <h1 className="text-xl font-extrabold">الإعدادات</h1>
       </header>
-      <section className="space-y-3">
-        <h2 className="text-sm font-extrabold">إمكانية الوصول</h2>
-        <label className="flex min-h-20 cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
-          <span className="flex items-center gap-3">
-            <Mic className="h-6 w-6 text-primary" />
-            <span className="font-bold">نمط المساعد الصوتي (لكبار السن وفاقدي البصر)</span>
-          </span>
-          <input
-            type="checkbox"
-            role="switch"
-            checked={on}
-            onChange={toggle}
-            className="h-6 w-11 accent-primary"
-          />
-        </label>
-        <label className="flex min-h-20 cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
-          <span className="flex items-center gap-3">
-            <UserRound className="h-6 w-6 shrink-0 text-primary" />
-            <span className="font-bold">
-              وضع كبار السن داخل نيمو — ردود صوتية تلقائية وأزرار أكبر
-            </span>
-          </span>
-          <input
-            type="checkbox"
-            role="switch"
-            checked={senior}
-            onChange={() => setSeniorMode(!senior)}
-            className="h-6 w-11 accent-primary"
-          />
-        </label>
-      </section>
-      <section className="mt-6 space-y-3">
-        <h2 className="text-sm font-extrabold">الصوت والمظهر</h2>
+
+      <SettingsSection title="حسابي">
+        <LinkRow icon={HeartPulse} to="/patient/health" title="ملفي الطبي" hint="القراءات والحساسية والأمراض" />
+        <ModeSwitch current="patient" />
+      </SettingsSection>
+
+      <SettingsSection title="التنبيهات">
+        <SwitchRow
+          icon={Bell}
+          title="تذكير مواعيد الأدوية"
+          hint="إشعار وقت كل جرعة"
+          checked={prefs.medReminders}
+          onChange={(v) => update("medReminders", v)}
+        />
+        <SwitchRow
+          icon={BellRing}
+          title="تنبيه قرب دوري في العيادة"
+          hint="صوت واهتزاز لما دورك يقرب"
+          checked={prefs.queueAlerts}
+          onChange={(v) => update("queueAlerts", v)}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="الخصوصية في المجتمع">
+        <SwitchRow
+          icon={VenetianMask}
+          title="النشر بدون اسم تلقائيًا"
+          hint="يتفعّل خيار «مجهول» في كل منشور جديد"
+          checked={prefs.anonymousDefault}
+          onChange={(v) => update("anonymousDefault", v)}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="إمكانية الوصول">
+        <SwitchRow
+          icon={Mic}
+          title="المساعد الصوتي"
+          hint="لكبار السن وفاقدي البصر"
+          checked={on}
+          onChange={(v) => {
+            setOn(v);
+            setVoiceMode(v);
+          }}
+        />
+        <SwitchRow
+          icon={UserRound}
+          title="وضع كبار السن داخل نيمو"
+          hint="ردود صوتية تلقائية وأزرار أكبر"
+          checked={senior}
+          onChange={(v) => setSeniorMode(v)}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="الصوت والمظهر">
         <SoundToggle />
         <ThemeSetting />
-      </section>
-      <section className="mt-6 space-y-3">
-        <h2 className="text-sm font-extrabold">وضع الاستخدام</h2>
-        <ModeSwitch current="patient" />
-      </section>
-      <Link
-        to="/developer"
-        className="mt-6 flex min-h-20 items-center gap-3 rounded-2xl border border-border bg-card p-4 transition active:scale-[0.99]"
-      >
-        <UserRound className="h-6 w-6 text-primary" />
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-extrabold">عن المطوّر</span>
-          <span className="block text-xs text-muted-foreground">أسامة سند — مؤسس سند</span>
-        </span>
-        <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-      </Link>
+      </SettingsSection>
+
+      <SettingsSection title="الحساب والبيانات">
+        <AccountDeletion />
+      </SettingsSection>
+
+      <SettingsSection title="عن سند">
+        <LinkRow icon={ShieldCheck} to="/privacy" title="سياسة الخصوصية" />
+        <LinkRow icon={FileText} to="/terms" title="شروط الاستخدام" />
+        <LinkRow icon={UserRound} to="/developer" title="عن المطوّر" hint="أسامة سند — مؤسس سند" />
+      </SettingsSection>
+
+      <p className="mt-6 text-center text-xs text-muted-foreground" dir="ltr">
+        SANAD {APP_VERSION_LABEL}
+      </p>
     </main>
   );
 }
