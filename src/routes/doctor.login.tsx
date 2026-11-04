@@ -4,6 +4,7 @@ import { Sparkles, Lock, Loader2, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import {
   specialties,
   getMyClinicMembership,
@@ -146,14 +147,18 @@ function DoctorEntry() {
     setGErr("");
     setGBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/doctor/login` },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/doctor/login`,
       });
-      if (error) {
-        setGErr(error.message);
+      if (result.error) {
+        setGErr("تعذر الدخول بحساب Google دلوقتي. جرّب تاني أو ادخل بالبريد وكلمة السر.");
         setGBusy(false);
+        return;
       }
+      if (result.redirected) return;
+      setGBusy(false);
+      setLoading(true);
+      await route();
     } catch (e) {
       setGErr(
         e instanceof Error
