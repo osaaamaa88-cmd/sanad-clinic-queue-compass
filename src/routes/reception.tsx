@@ -83,6 +83,7 @@ function Reception() {
   const [refreshing, setRefreshing] = useState(false);
   const [fromCache, setFromCache] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [scanOpenState, setScanOpenState] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [visitType, setVisitType] = useState<"new" | "followup">("new");
