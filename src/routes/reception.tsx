@@ -22,6 +22,8 @@ import { AppShell } from "@/components/AppShell";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { StaffAuth } from "@/components/StaffAuth";
 import { HealthPassScanner } from "@/components/medical/HealthPassScanner";
+import type { HealthPass } from "@/lib/health-pass";
+import { slotFor, type VisitKind } from "@/lib/clinic-queue";
 import { QrCode } from "lucide-react";
 import {
   getMyClinicMembership,
@@ -210,6 +212,26 @@ function Reception() {
     await refresh(clinic.id);
   };
 
+  const bookFromPass = async (p: HealthPass, kind: VisitKind) => {
+    if (!clinic) return false;
+    const time = new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
+    const ok = await addWalkIn({
+      clinicId: clinic.id,
+      patientName: p.name,
+      patientPhone: p.phone ?? "",
+      visitType: kind === "followup" ? "followup" : "new",
+      slot: slotFor(kind, time),
+    });
+    if (!ok) {
+      toast.error("تعذر تسجيل الحجز. حاول مرة أخرى.");
+      return false;
+    }
+    playNotification();
+    toast.success(kind === "urgent" ? "تم تسجيل حالة مستعجلة 🚨" : "تم تسجيل الحجز ✅");
+    await refresh(clinic.id);
+    return true;
+  };
+
   if (!loaded) {
     return (
       <AppShell title="دفتر الحجز" backTo="/">
@@ -290,7 +312,7 @@ function Reception() {
           >
             <QrCode className="h-5 w-5" />
           </button>
-          {scanOpen && <HealthPassScanner onClose={() => setScanOpen(false)} />}
+          {scanOpen && <HealthPassScanner onClose={() => setScanOpen(false)} onBook={bookFromPass} />}
           <button
             onClick={() => clinic && refresh(clinic.id)}
             aria-label="إعادة تحميل البيانات"

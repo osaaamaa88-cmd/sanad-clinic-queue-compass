@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle, Loader2 } from "lucide-react";
+import type { VisitKind } from "@/lib/clinic-queue";
 import { decodeHealthPass, type HealthPass } from "@/lib/health-pass";
 
 /** ماسح كارت سند للاستقبال — القراءة على الجهاز فقط ولا يُحفظ شيء. */
-export function HealthPassScanner({ onClose }: { onClose: () => void }) {
+export function HealthPassScanner({
+  onClose,
+  onBook,
+}: {
+  onClose: () => void;
+  onBook?: (p: HealthPass, kind: VisitKind) => Promise<boolean>;
+}) {
+  const [busy, setBusy] = useState<VisitKind | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState("وجّه الكاميرا لكارت المريض");
   const [pass, setPass] = useState<{ p: HealthPass; expired: boolean } | null>(null);
@@ -81,12 +89,42 @@ export function HealthPassScanner({ onClose }: { onClose: () => void }) {
                 <AlertTriangle className="h-4 w-4" /> الكارت قديم، اطلب من المريض تحديثه
               </p>
             )}
+            {(pass.p.allergies || pass.p.chronic) && (
+              <div className="mb-2 rounded-2xl border-2 border-destructive bg-destructive/10 p-3 text-sm font-bold text-destructive">
+                <p className="flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> تنبيه طبي</p>
+                {pass.p.allergies && <p className="mt-1">حساسية: {pass.p.allergies}</p>}
+                {pass.p.chronic && <p className="mt-1">أمراض مزمنة: {pass.p.chronic}</p>}
+              </div>
+            )}
             {row("الاسم", pass.p.name)}
             {row("الموبايل", pass.p.phone)}
             {row("الفصيلة", pass.p.bloodType)}
             {row("الحساسية", pass.p.allergies)}
             {row("أمراض مزمنة", pass.p.chronic)}
             {row("للطوارئ", [pass.p.contactName, pass.p.contactPhone].filter(Boolean).join(" — "))}
+            {onBook && (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {([
+                  ["new", "🩺 كشف جديد", "bg-success text-success-foreground"],
+                  ["followup", "🔄 إعادة كشف", "bg-primary text-primary-foreground"],
+                  ["urgent", "🚨 مستعجل", "bg-destructive text-destructive-foreground"],
+                ] as const).map(([k, label, cls]) => (
+                  <button
+                    key={k}
+                    disabled={busy !== null}
+                    onClick={async () => {
+                      setBusy(k);
+                      const ok = await onBook(pass.p, k);
+                      setBusy(null);
+                      if (ok) onClose();
+                    }}
+                    className={`flex min-h-12 items-center justify-center rounded-2xl px-1 text-xs font-black active:scale-95 disabled:opacity-60 ${cls}`}
+                  >
+                    {busy === k ? <Loader2 className="h-4 w-4 animate-spin" /> : label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
