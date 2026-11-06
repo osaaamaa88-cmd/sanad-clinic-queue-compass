@@ -271,7 +271,8 @@ function Reception() {
   const closed = clinic?.bookingsClosed ?? false;
   const nowServing = clinic?.nowServing ?? 0;
   const spec = clinic ? getSpecialty(clinic.specialtyId) : undefined;
-  const [scanOpen, setScanOpen] = [scanOpenState, setScanOpenState];
+  const scanOpen = scanOpenState;
+  const setScanOpen = setScanOpenState;
 
   return (
     <AppShell
