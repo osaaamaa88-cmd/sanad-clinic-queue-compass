@@ -4,6 +4,7 @@ import { Phone, MapPin, Clock, Filter, MessageCircle, HeartPulse } from "lucide-
 import { AppShell } from "@/components/AppShell";
 import { NearestHospitals } from "@/components/NearestHospitals";
 import { EmergencyVaultCard } from "@/components/EmergencyVaultCard";
+import { SanadHealthPassCard } from "@/components/medical/SanadHealthPassCard";
 import {
   listEmergencyFacilities,
   emergencyHotlines,
@@ -133,6 +134,7 @@ function EmergencyPage() {
       </div>
 
       <EmergencyVaultCard />
+      <SanadHealthPassCard />
 
       <Link
         to="/patient/first-aid"
