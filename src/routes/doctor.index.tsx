@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { DoctorBottomNav } from "@/components/DoctorBottomNav";
 import { RxComposer } from "@/components/RxComposer";
+import { DoctorLiveQueue } from "@/components/doctor/DoctorLiveQueue";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyClinicMembership } from "@/lib/mock-data";
@@ -41,6 +42,7 @@ function DoctorHome() {
   const [clinic, setClinic] = useState<Clinic>();
   const [loading, setLoading] = useState(true);
   const [rxOpen, setRxOpen] = useState(false);
+  const [rxPatient, setRxPatient] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -163,6 +165,7 @@ function DoctorHome() {
           </div>
         </div>
         <ModeSwitch current="doctor" />
+        <DoctorLiveQueue clinicId={clinic.id} onPrescribe={(n) => { setRxPatient(n); setRxOpen(true); }} />
         <div className="grid grid-cols-2 gap-3">
           {tools.map((t) => {
             const inner = (
@@ -218,13 +221,13 @@ function DoctorHome() {
       {rxOpen && (
         <RxComposer
           defaults={{
-            patient: "",
+            patient: rxPatient,
             doctor: String(c.doctor ?? ""),
             specialty: "",
             clinicAddress: String(c.address ?? ""),
             clinicPhone: String(c.phone ?? ""),
           }}
-          onClose={() => setRxOpen(false)}
+          onClose={() => { setRxOpen(false); setRxPatient(""); }}
         />
       )}
     </AppShell>

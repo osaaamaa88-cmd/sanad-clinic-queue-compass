@@ -21,6 +21,10 @@ import { playNotification } from "@/lib/sounds";
 import { AppShell } from "@/components/AppShell";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { StaffAuth } from "@/components/StaffAuth";
+import { HealthPassScanner } from "@/components/medical/HealthPassScanner";
+import type { HealthPass } from "@/lib/health-pass";
+import { slotFor, type VisitKind } from "@/lib/clinic-queue";
+import { QrCode } from "lucide-react";
 import {
   getMyClinicMembership,
   signOutStaff,
@@ -81,6 +85,7 @@ function Reception() {
   const [refreshing, setRefreshing] = useState(false);
   const [fromCache, setFromCache] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [scanOpenState, setScanOpenState] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [visitType, setVisitType] = useState<"new" | "followup">("new");
@@ -207,6 +212,26 @@ function Reception() {
     await refresh(clinic.id);
   };
 
+  const bookFromPass = async (p: HealthPass, kind: VisitKind) => {
+    if (!clinic) return false;
+    const time = new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
+    const ok = await addWalkIn({
+      clinicId: clinic.id,
+      patientName: p.name,
+      patientPhone: p.phone ?? "",
+      visitType: kind === "followup" ? "followup" : "new",
+      slot: slotFor(kind, time),
+    });
+    if (!ok) {
+      toast.error("تعذر تسجيل الحجز. حاول مرة أخرى.");
+      return false;
+    }
+    playNotification();
+    toast.success(kind === "urgent" ? "تم تسجيل حالة مستعجلة 🚨" : "تم تسجيل الحجز ✅");
+    await refresh(clinic.id);
+    return true;
+  };
+
   if (!loaded) {
     return (
       <AppShell title="دفتر الحجز" backTo="/">
@@ -268,6 +293,8 @@ function Reception() {
   const closed = clinic?.bookingsClosed ?? false;
   const nowServing = clinic?.nowServing ?? 0;
   const spec = clinic ? getSpecialty(clinic.specialtyId) : undefined;
+  const scanOpen = scanOpenState;
+  const setScanOpen = setScanOpenState;
 
   return (
     <AppShell
@@ -277,6 +304,15 @@ function Reception() {
       right={
         <div className="flex shrink-0 items-center gap-1.5">
           {clinic && <NotificationsBell audience="clinic" clinicId={clinic.id} />}
+          <button
+            onClick={() => setScanOpen(true)}
+            aria-label="مسح كارت سند"
+            title="مسح كارت سند"
+            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-secondary"
+          >
+            <QrCode className="h-5 w-5" />
+          </button>
+          {scanOpen && <HealthPassScanner onClose={() => setScanOpen(false)} onBook={bookFromPass} />}
           <button
             onClick={() => clinic && refresh(clinic.id)}
             aria-label="إعادة تحميل البيانات"

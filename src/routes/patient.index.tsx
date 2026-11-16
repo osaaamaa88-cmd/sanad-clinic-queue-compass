@@ -26,6 +26,7 @@ import { AppShell } from "@/components/AppShell";
 import { Reveal } from "@/components/motion/Reveal";
 import { NemoBreathingCard } from "@/components/NemoBreathingCard";
 import { QueueTrackerCard } from "@/components/QueueTrackerCard";
+import { SanadHealthPassCard } from "@/components/medical/SanadHealthPassCard";
 import { HealthActivityCarousel } from "@/components/HealthActivityCarousel";
 import { QuickBookingDrawer } from "@/components/booking/QuickBookingDrawer";
 import heart3d from "@/assets/3d-heart.png";
@@ -438,6 +439,7 @@ function PatientHome() {
         </div>
       </Reveal>
       {upcomingBooking && <QueueTrackerCard key={upcomingBooking.code} />}
+      <SanadHealthPassCard />
 
       {/* ===== كارت المتابعة الصحية والمجسم أُدمج في شبكة البينتو أعلاه ===== */}
       {locOpen && (
