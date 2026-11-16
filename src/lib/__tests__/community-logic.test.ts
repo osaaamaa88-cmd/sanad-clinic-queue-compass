@@ -6,7 +6,7 @@ import {
   nextCursor,
   sortComments,
   type FeedPost,
-} from "@/components/community/community-logic";
+} from "../../components/community/community-logic.ts";
 
 const post = (id: string, created_at: string) => ({ id, created_at }) as FeedPost;
 
