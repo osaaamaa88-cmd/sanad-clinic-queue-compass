@@ -74,3 +74,14 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## توقيع نسخة المتجر (Release signing)
+
+بناء أندرويد على GitHub ينتج APK تجريبي و AAB موقّعة للنشر على Google Play.
+التوقيع يحتاج 4 أسرار في GitHub (Settings → Secrets → Actions):
+`KEYSTORE_BASE64` و `KEYSTORE_PASSWORD` و `KEY_PASSWORD` و `KEY_ALIAS`.
+
+ملاحظة مهمة: مخزن المفاتيح من نوع PKCS12 (الافتراضي في keytool) يحمي المفتاح
+الخاص بكلمة سر المخزن نفسها، لذلك يجب أن تكون قيمة `KEY_PASSWORD` مساوية
+لقيمة `KEYSTORE_PASSWORD`، وإلا فشل توقيع الـ AAB بخطأ
+"key associated with <alias> not a private key".
