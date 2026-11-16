@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeEgyptianMobile, bloodPressureError, sugarError, parseReading } from "../input-validation";
+import { normalizeEgyptianMobile, bloodPressureError, sugarError, parseReading } from "../input-validation.ts";
 
 test("accepts 010/011/012/015 mobiles with spaces, +20 and Arabic digits", () => {
   assert.equal(normalizeEgyptianMobile("010 1234 5678"), "01012345678");
