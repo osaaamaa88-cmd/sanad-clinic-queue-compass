@@ -32,3 +32,8 @@ dist-ssr
 *.sw?
 dev-log.txt
 shot-*.png
+
+# Secrets
+.env
+.env.*
+!.env.example
