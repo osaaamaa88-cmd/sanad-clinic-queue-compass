@@ -51,7 +51,7 @@ export function CommentsSheet({
   const repliesOf = useMemo(() => {
     const m: Record<string, CommunityComment[]> = {};
     for (const c of items) if (c.parent_id) (m[c.parent_id] ??= []).push(c);
-    for (const k in m) m[k].sort((a, b) => a.created_at.localeCompare(b.created_at));
+    for (const k in m) m[k]?.sort((a, b) => a.created_at.localeCompare(b.created_at));
     return m;
   }, [items]);
 

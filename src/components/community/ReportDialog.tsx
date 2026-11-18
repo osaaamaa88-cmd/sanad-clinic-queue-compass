@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export const REPORT_REASONS = [
+const REPORT_REASONS = [
   { id: "spam", label: "محتوى مزعج أو غير مرغوب" },
   { id: "harassment", label: "إساءة أو مضايقة" },
   { id: "medical_misinformation", label: "معلومة طبية مضللة" },

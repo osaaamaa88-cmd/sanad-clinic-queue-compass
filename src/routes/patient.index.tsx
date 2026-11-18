@@ -3,22 +3,15 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useDoctorClinicId } from "@/lib/use-doctor-mode";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft,
   ClipboardList,
-  Clock,
-  Droplets,
   Globe2,
-  HeartPulse,
   Hospital,
   MapPin,
   MessageCircleHeart,
   Search,
-  Sparkles,
   Star,
   Siren,
   ScanLine,
-  Users,
-  Wind,
   X,
 } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
@@ -38,46 +31,14 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 const StoryViewer = lazy(() =>
   import("@/components/StoryViewer").then((m) => ({ default: m.StoryViewer })),
 );
-import { useQueryClient } from "@tanstack/react-query";
-import { clinicsQuery } from "@/lib/directory-queries";
-import { getClinicProfileExtras, type ClinicProfileExtras } from "@/lib/clinic-profile";
-import { getClinicStories, type StoryItem } from "@/lib/stories";
+import { type StoryItem } from "@/lib/stories";
 import { Button } from "@/components/ui/button";
 import { LocationPickerModal } from "@/components/LocationPickerModal";
-import { getPatientSession, getSavedBookings } from "@/lib/patient-session";
-import { updateSavedBookingStatuses, type SavedBooking } from "@/lib/patient-session";
-import { svrGetPatientBookingStatuses } from "@/lib/data.functions";
-import { getCachedProfile } from "@/lib/user-profile-cache";
-import { bpStatus, parseReadings, READINGS_KEY, sugarStatus } from "@/lib/organ-insights";
-import {
-  defaultLocation,
-  distanceKm,
-  getPatientLocation,
-  savePatientLocation,
-  type PatientLocation,
-} from "@/lib/patient-location";
-import { toast } from "sonner";
-
-const HYDRATION_KEY = "sanad.patient.hydration";
-
-function todayKey() {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getTodayHydration() {
-  if (typeof window === "undefined") return 0;
-  try {
-    const raw = window.localStorage.getItem(HYDRATION_KEY);
-    if (!raw) return 0;
-    const saved = JSON.parse(raw) as { day?: string; count?: number };
-    const count = typeof saved.count === "number" && Number.isFinite(saved.count) ? saved.count : 0;
-    return saved.day === todayKey() ? Math.max(0, Math.min(8, count)) : 0;
-  } catch (error) {
-    console.error("[PatientHome] Failed to read hydration progress:", error);
-    return 0;
-  }
-}
+import { distanceKm, savePatientLocation } from "@/lib/patient-location";
+import { usePatientHomeData } from "@/hooks/use-patient-home-data";
+import { AllSpecialtiesSheet } from "@/components/patient-home/AllSpecialtiesSheet";
+import { ClinicCapsule } from "@/components/patient-home/ClinicCapsule";
+import { HydrationTracker } from "@/components/patient-home/HydrationTracker";
 
 export const Route = createFileRoute("/patient/")({
   staticData: { sitemap: true },
@@ -107,102 +68,27 @@ function PatientHome() {
   useEffect(() => {
     if (doctorClinicId) void goDoctor({ to: "/doctor", replace: true });
   }, [doctorClinicId, goDoctor]);
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [clinicsLoaded, setClinicsLoaded] = useState(false);
-  const [profiles, setProfiles] = useState<Record<string, ClinicProfileExtras>>({});
-  const [stories, setStories] = useState<Record<string, StoryItem[]>>({});
-  const [viewer, setViewer] = useState<{ clinic: Clinic; items: StoryItem[] } | null>(null);
+  const {
+    clinics,
+    clinicsLoaded,
+    profiles,
+    stories,
+    location,
+    setLocation,
+    patientName,
+    patientAvatar,
+    healthSnapshot,
+    upcomingBooking,
+    hydration,
+    setHydration,
+  } = usePatientHomeData();
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
   const [specialtiesOpen, setSpecialtiesOpen] = useState(false);
-  const [location, setLocation] = useState<PatientLocation>(defaultLocation);
   const [locOpen, setLocOpen] = useState(false);
-  const [patientName, setPatientName] = useState<string>("");
-  const [patientAvatar, setPatientAvatar] = useState<string | undefined>();
-  const [healthSnapshot, setHealthSnapshot] = useState(() =>
-    typeof window === "undefined" ? {} : parseReadings(window.localStorage.getItem(READINGS_KEY)),
-  );
+  const [viewer, setViewer] = useState<{ clinic: Clinic; items: StoryItem[] } | null>(null);
   const [selectedClinicForBooking, setSelectedClinicForBooking] = useState<Clinic | null>(null);
   const [bookingDrawerOpen, setBookingDrawerOpen] = useState(false);
-  const [hydration, setHydration] = useState(0);
-  const [hydrationReady, setHydrationReady] = useState(false);
-  const [upcomingBooking, setUpcomingBooking] = useState<SavedBooking | null>(null);
   const featuredClinicsRef = useRef<HTMLElement | null>(null);
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    setLocation(getPatientLocation());
-    setPatientName(getPatientSession()?.name?.trim() || "");
-    setPatientAvatar(getCachedProfile()?.avatar);
-    const refreshReadings = () =>
-      setHealthSnapshot(parseReadings(window.localStorage.getItem(READINGS_KEY)));
-    window.addEventListener("focus", refreshReadings);
-    window.addEventListener("storage", refreshReadings);
-    return () => {
-      window.removeEventListener("focus", refreshReadings);
-      window.removeEventListener("storage", refreshReadings);
-    };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    const refreshUpcomingBooking = async () => {
-      const saved = getSavedBookings().filter((booking) => (booking.queueNumber ?? 0) > 0);
-      if (!saved.length) {
-        if (active) setUpcomingBooking(null);
-        return;
-      }
-      try {
-        const { rows } = await svrGetPatientBookingStatuses({
-          data: { codes: saved.map((booking) => booking.code) },
-        });
-        if (!active) return;
-        const statuses = rows.flatMap((row) =>
-          ["waiting", "in", "done", "cancelled"].includes(row.status)
-            ? [{ code: row.code, status: row.status as SavedBooking["status"] }]
-            : [],
-        );
-        updateSavedBookingStatuses(statuses);
-        const current = new Map(statuses.map((row) => [row.code, row.status]));
-        setUpcomingBooking(
-          saved.find((booking) => {
-            const status = current.get(booking.code);
-            return status === "waiting" || status === "in";
-          }) ?? null,
-        );
-      } catch (error) {
-        console.error("[PatientHome] Could not refresh booking status", error);
-        toast.error("تعذّر تحديث حالة حجزك. تحقق من اتصالك بالإنترنت.");
-        if (active) {
-          setUpcomingBooking(
-            saved.find((booking) => booking.status === "waiting" || booking.status === "in") ??
-              null,
-          );
-        }
-      }
-    };
-    void refreshUpcomingBooking();
-    window.addEventListener("focus", refreshUpcomingBooking);
-    return () => {
-      active = false;
-      window.removeEventListener("focus", refreshUpcomingBooking);
-    };
-  }, []);
-
-  useEffect(() => {
-    setHydration(getTodayHydration());
-    setHydrationReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrationReady) return;
-    try {
-      window.localStorage.setItem(
-        HYDRATION_KEY,
-        JSON.stringify({ day: todayKey(), count: hydration }),
-      );
-    } catch (error) {
-      console.error("[PatientHome] Failed to save hydration progress:", error);
-    }
-  }, [hydration, hydrationReady]);
 
   useEffect(() => {
     if (selectedSpecialty) {
@@ -217,31 +103,6 @@ function PatientHome() {
     if (hour < 17) return "طاب يومك";
     return "مساء الخير";
   }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    queryClient.fetchQuery(clinicsQuery).then(async (list) => {
-      if (cancelled) return;
-      setClinics(list);
-      setClinicsLoaded(true);
-      const visible = list.slice(0, 10);
-      const results = await Promise.all(
-        visible.map(async (clinic) => {
-          const [profile, storySet] = await Promise.all([
-            getClinicProfileExtras(clinic.id),
-            getClinicStories(clinic.id),
-          ]);
-          return { id: clinic.id, profile, items: storySet.stories };
-        }),
-      );
-      if (cancelled) return;
-      setProfiles(Object.fromEntries(results.map((result) => [result.id, result.profile])));
-      setStories(Object.fromEntries(results.map((result) => [result.id, result.items])));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [queryClient]);
 
   const active = useMemo(
     () => clinics.filter((clinic) => clinic.availableNow).slice(0, 10),
@@ -318,7 +179,8 @@ function PatientHome() {
               aria-label="تغيير الموقع"
             >
               <MapPin className="h-3 w-3 text-primary" />
-              {location.city} · {new Date().toLocaleDateString("ar-EG", { day: "numeric", month: "long" })}
+              {location.city} ·{" "}
+              {new Date().toLocaleDateString("ar-EG", { day: "numeric", month: "long" })}
             </button>
           </div>
         </div>
@@ -661,41 +523,7 @@ function PatientHome() {
       <Reveal as="section" index={3} className="mt-6 grid gap-3 sm:grid-cols-2">
         <NemoBreathingCard />
 
-        <div className="card-medical-mint p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-extrabold text-foreground">متتبع شرب الماء</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {hydration}/8 أكواب • {Math.round((hydration / 8) * 100)}%
-              </p>
-            </div>
-            <Droplets className="h-5 w-5 text-primary" />
-          </div>
-          <div className="mt-3 grid grid-cols-4 gap-2">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setHydration(i + 1)}
-                className={`grid aspect-square min-h-11 min-w-11 place-items-center rounded-full border transition active:scale-95 ${
-                  i < hydration
-                    ? "border-primary/40 bg-primary/20 text-primary"
-                    : "border-border bg-secondary/50 text-muted-foreground"
-                }`}
-                aria-label={`كوب ${i + 1}`}
-              >
-                <Droplets className="h-4 w-4" />
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setHydration(0)}
-            className="mt-2 min-h-11 text-xs font-bold text-muted-foreground transition hover:text-primary"
-          >
-            إعادة تعيين
-          </button>
-        </div>
+        <HydrationTracker hydration={hydration} onHydrationChange={setHydration} />
       </Reveal>
 
       {specialtiesOpen && (
@@ -721,233 +549,5 @@ function PatientHome() {
         onOpenChange={setBookingDrawerOpen}
       />
     </AppShell>
-  );
-}
-
-const specialtyTabs = [
-  { id: "popular", label: "الشائعة 🔥" },
-  { id: "surgical", label: "جراحية 🩺" },
-  { id: "family", label: "أطفال ونساء 👶" },
-  { id: "therapy", label: "علاجات وحركة 🦴" },
-] as const;
-
-function AllSpecialtiesSheet({
-  counts,
-  selected,
-  onSelect,
-  onClose,
-}: {
-  counts: Record<string, number>;
-  selected: string | null;
-  onSelect: (id: string) => void;
-  onClose: () => void;
-}) {
-  const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<(typeof specialtyTabs)[number]["id"]>("popular");
-  const [closing, setClosing] = useState(false);
-  const visibleSpecialties = specialties.filter((specialty) => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return normalizedQuery
-      ? specialty.name.toLowerCase().includes(normalizedQuery)
-      : specialty.category === tab;
-  });
-
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") requestClose();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  });
-
-  function requestClose() {
-    if (closing) return;
-    setClosing(true);
-    window.setTimeout(onClose, 220);
-  }
-
-  function chooseSpecialty(id: string) {
-    onSelect(id);
-    requestClose();
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-[80]"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="specialties-title"
-    >
-      <button
-        type="button"
-        aria-label="إغلاق التخصصات"
-        onClick={requestClose}
-        className={`absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-200 ${closing ? "opacity-0" : "opacity-100"}`}
-      />
-      <section
-        className={`absolute inset-x-0 bottom-0 mx-auto max-h-[88vh] w-full max-w-3xl overflow-hidden rounded-t-2xl border border-border bg-card shadow-gold ${closing ? "animate-sheet-down" : "animate-sheet-up"}`}
-      >
-        <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-muted" />
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b border-border px-4 pb-4 pt-3 sm:px-6">
-          <div className="min-w-0">
-            <h2 id="specialties-title" className="text-lg font-extrabold">
-              كل التخصصات الطبية
-            </h2>
-            <p className="text-xs text-muted-foreground">اختار التخصص المناسب ليظهر أطباؤه فوراً</p>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={requestClose}
-            aria-label="إغلاق"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        <div className="max-h-[calc(88vh-78px)] overflow-y-auto px-4 pb-8 pt-4 sm:px-6">
-          <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-3 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/40">
-            <Search className="h-5 w-5 shrink-0 text-primary" />
-            <input
-              autoFocus
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="ابحث عن تخصص…"
-              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-            />
-            {query && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setQuery("")}
-                aria-label="مسح البحث"
-                className="h-7 w-7"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </label>
-          <div
-            className="mt-4 flex gap-2 overflow-x-auto pb-1"
-            role="tablist"
-            aria-label="فئات التخصصات"
-          >
-            {specialtyTabs.map((item) => (
-              <Button
-                key={item.id}
-                type="button"
-                role="tab"
-                aria-selected={tab === item.id}
-                variant={tab === item.id ? "default" : "secondary"}
-                size="sm"
-                onClick={() => {
-                  setTab(item.id);
-                  setQuery("");
-                }}
-                className="shrink-0 rounded-full"
-              >
-                {item.label}
-              </Button>
-            ))}
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {visibleSpecialties.map((specialty) => {
-              const SpecialtyIcon = specialtyIcons[specialty.id] ?? Hospital;
-              const isSelected = selected === specialty.id;
-              return (
-                <Button
-                  key={specialty.id}
-                  type="button"
-                  variant="ghost"
-                  onClick={() => chooseSpecialty(specialty.id)}
-                  className={`min-h-20 min-w-0 items-start justify-start gap-3 whitespace-normal rounded-xl border p-3 text-right transition active:scale-[0.97] ${isSelected ? "border-primary bg-primary-soft/30 shadow-soft" : "border-border bg-background hover:border-primary/50 hover:bg-background"}`}
-                >
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
-                    <SpecialtyIcon className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-bold leading-5 break-words sm:text-sm">
-                      {specialty.name}
-                    </span>
-                    <span className="block text-xs leading-4 text-muted-foreground">
-                      {counts[specialty.id] ?? 0} عيادة مفتوحة
-                    </span>
-                  </span>
-                </Button>
-              );
-            })}
-            {visibleSpecialties.length === 0 && (
-              <p className="col-span-full py-8 text-center text-sm text-muted-foreground">
-                لا يوجد تخصص بهذا الاسم
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-/* كبسولة عيادة زجاجية للكواروسيل الأفقي */
-function ClinicCapsule({
-  clinic,
-  profile,
-  onQuickBook,
-}: {
-  clinic: Clinic;
-  profile?: ClinicProfileExtras;
-  onQuickBook?: (clinic: Clinic) => void;
-}) {
-  const specialty = specialties.find((item) => item.id === clinic.specialtyId);
-  const rating = profile?.reviewsCount ? profile.ratingAvg : clinic.rating;
-  return (
-    <article className="group flex w-64 shrink-0 snap-start flex-col rounded-2xl border border-border bg-card p-3 text-right shadow-soft transition active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-lg">
-      <Link
-        to="/patient/clinic/$id"
-        params={{ id: clinic.id }}
-        className="flex min-w-0 items-start gap-2.5"
-      >
-        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-primary-soft text-primary">
-          <img
-            src={profile?.avatarUrl || defaultDoctorAvatar()}
-            alt={clinic.doctor}
-            className="h-full w-full object-cover"
-          />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-extrabold">{clinic.doctor}</span>
-          <span className="block truncate text-xs text-muted-foreground">
-            {specialty?.name} • {clinic.area}
-          </span>
-          <span className="mt-1 flex items-center gap-1 text-xs font-bold text-warning">
-            {clinic.isDemo ? (
-              "بيانات تجريبية"
-            ) : (
-              <>
-                <Star className="h-3 w-3 fill-warning" />
-                {rating ? rating.toFixed(1) : "جديد"}
-              </>
-            )}
-            <span className="text-muted-foreground">• {clinic.distanceKm.toFixed(1)} كم</span>
-          </span>
-          <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-            <Users className="h-3.5 w-3.5" /> {clinic.waitingCount} منتظر
-          </span>
-        </span>
-      </Link>
-      <Button
-        size="sm"
-        onClick={() => onQuickBook?.(clinic)}
-        className="btn-liquid-primary mt-2.5 w-full rounded-full py-2 text-xs font-extrabold transition active:scale-95"
-      >
-        حجز سريع
-      </Button>
-    </article>
   );
 }

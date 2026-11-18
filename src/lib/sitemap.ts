@@ -12,13 +12,11 @@ declare module "@tanstack/react-router" {
   }
 }
 
-export const sitemapRouteInventoryVersion = 1;
-
 type RouteMatch =
   | { routeParams: Record<string, unknown>; foundRoute?: AnyRoute; parseError?: unknown }
   | [AnyRoute[], Record<string, unknown>, AnyRoute | undefined];
 
-export function isSitemapRouteIncluded(route: AnyRoute | undefined): boolean {
+function isSitemapRouteIncluded(route: AnyRoute | undefined): boolean {
   if (!route || route.isRoot || route.options.staticData?.sitemap !== true) return false;
   for (let ancestor = route.parentRoute; ancestor; ancestor = ancestor.parentRoute) {
     if (ancestor.options.staticData?.sitemap === "exclude-subtree") return false;
@@ -37,7 +35,7 @@ export function sitemapStaticPaths(router: AnyRouter): string[] {
   return [...paths].sort();
 }
 
-export function sitemapPathForLocation(
+function sitemapPathForLocation(
   router: AnyRouter,
   location: Pick<ParsedLocation, "pathname" | "publicHref">,
   routeId: string,

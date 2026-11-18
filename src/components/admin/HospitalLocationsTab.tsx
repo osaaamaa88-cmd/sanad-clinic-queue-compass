@@ -200,7 +200,10 @@ function EditSheet({
           <button
             onClick={() => {
               const c = parseCoords(paste);
-              if (!c) return toast.error("مش لاقي إحداثيات في النص");
+              if (!c) {
+                toast.error("مش لاقي إحداثيات في النص");
+                return;
+              }
               setLat(String(c[0]));
               setLng(String(c[1]));
               moveTo(c[0], c[1]);

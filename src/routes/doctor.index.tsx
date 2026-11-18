@@ -1,10 +1,10 @@
 import { ModeSwitch } from "@/components/ModeSwitch";
+import { LoadingState } from "@/components/LoadingState";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Eye,
   ListOrdered,
-  Loader2,
   Megaphone,
   MessagesSquare,
   Pill,
@@ -68,14 +68,12 @@ function DoctorHome() {
         <div className="mt-4">
           <ModeSwitch current="doctor" />
         </div>
-        <div className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> جاري التحميل…
-        </div>
+        <LoadingState />
       </AppShell>
     );
   }
 
-  const c = clinic as unknown as Record<string, unknown>;
+  const c: Exclude<Clinic, undefined> & Partial<Record<"name" | "now_serving", unknown>> = clinic;
   const tools = [
     {
       label: "الروشتة الذكية",
@@ -149,9 +147,7 @@ function DoctorHome() {
             <div className="flex items-center gap-2">
               <span
                 className={`h-2.5 w-2.5 rounded-full ${
-                  clinic.availableNow
-                    ? "animate-pulse bg-white"
-                    : "bg-white/40"
+                  clinic.availableNow ? "animate-pulse bg-white" : "bg-white/40"
                 }`}
                 aria-hidden="true"
               />
@@ -165,7 +161,13 @@ function DoctorHome() {
           </div>
         </div>
         <ModeSwitch current="doctor" />
-        <DoctorLiveQueue clinicId={clinic.id} onPrescribe={(n) => { setRxPatient(n); setRxOpen(true); }} />
+        <DoctorLiveQueue
+          clinicId={clinic.id}
+          onPrescribe={(n) => {
+            setRxPatient(n);
+            setRxOpen(true);
+          }}
+        />
         <div className="grid grid-cols-2 gap-3">
           {tools.map((t) => {
             const inner = (
@@ -174,7 +176,7 @@ function DoctorHome() {
                   <t.icon className="h-5 w-5" />
                 </span>
                 <span className="mt-2 block text-sm font-extrabold text-foreground">{t.label}</span>
-                              </>
+              </>
             );
             const cls =
               "tile-3d group flex min-h-28 flex-col justify-between rounded-3xl border border-border/60 p-4 text-right";
@@ -197,7 +199,7 @@ function DoctorHome() {
               <Eye className="h-5 w-5" />
             </span>
             <span className="mt-2 block text-sm font-extrabold text-foreground">صفحة عيادتي</span>
-                      </Link>
+          </Link>
         </div>
       </div>
       {/* Floating Quick Bar (Executive) */}
@@ -227,7 +229,10 @@ function DoctorHome() {
             clinicAddress: String(c.address ?? ""),
             clinicPhone: String(c.phone ?? ""),
           }}
-          onClose={() => { setRxOpen(false); setRxPatient(""); }}
+          onClose={() => {
+            setRxOpen(false);
+            setRxPatient("");
+          }}
         />
       )}
     </AppShell>

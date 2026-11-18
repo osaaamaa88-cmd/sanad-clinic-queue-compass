@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { authErrorMessage } from "@/components/StaffAuth";
+import { authErrorMessage } from "@/lib/auth-error-message";
 import { checkPassword } from "@/lib/password-policy";
 import { PasswordStrength } from "@/components/settings/PasswordStrength";
 

@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { fetchGeminiText, parseGeminiJson } from "./gemini";
+import { truncateClientKey } from "./limits";
 
 export type FoodAnalysis = {
   name: string;
@@ -9,10 +11,6 @@ export type FoodAnalysis = {
   fiber: number;
   items: { name: string; amount: string; calories: number }[];
   advice: string;
-};
-
-type GeminiParts = {
-  candidates?: { content?: { parts?: { text?: string }[] } }[];
 };
 
 const PROMPT = `أنت أخصائي تغذية مصري. حلّل الطعام (صورة أو وصف) وقدّر الكميات بواقعية مع مراعاة الأكلات المصرية والعربية.
@@ -37,7 +35,7 @@ export const analyzeFood = createServerFn({ method: "POST" })
     if (!image && !text) throw new Error("ارفع صورة أو اكتب اسم الأكل");
     if (image && image.length > 6_000_000) throw new Error("الصورة كبيرة جداً");
     const mime = d?.mime && /^image\/(jpeg|png|webp)$/.test(d.mime) ? d.mime : "image/jpeg";
-    return { image, mime, text, sessionKey: String(d?.sessionKey ?? "").slice(0, 80) };
+    return { image, mime, text, sessionKey: truncateClientKey(d?.sessionKey) };
   })
   .handler(async ({ data }): Promise<FoodAnalysis> => {
     await assertNutritionRateLimit("analyzeFood", data.sessionKey);
@@ -48,29 +46,15 @@ export const analyzeFood = createServerFn({ method: "POST" })
     ];
     if (data.text) parts.push({ text: `الوصف: ${data.text}` });
     if (data.image) parts.push({ inline_data: { mime_type: data.mime, data: data.image } });
-    const res = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            thinkingConfig: { thinkingLevel: "low" },
-          },
-        }),
-      },
-    );
-    const json = (await res.json().catch(() => ({}))) as GeminiParts;
-    if (!res.ok) {
-      if (res.status === 429) throw new Error("ضغط كبير على الخدمة، جرّب بعد دقيقة.");
+    const result = await fetchGeminiText({ key, model: "gemini-3.8-flash", parts });
+    if (!result.ok) {
+      if (result.status === 429) throw new Error("ضغط كبير على الخدمة، جرّب بعد دقيقة.");
       throw new Error("تعذر تحليل الأكل دلوقتي");
     }
-    const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
+    const raw = result.text;
     let o: Record<string, unknown>;
     try {
-      o = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      o = parseGeminiJson(raw);
     } catch {
       throw new Error("ماقدرناش نفهم الصورة، جرّب صورة أوضح");
     }
@@ -121,7 +105,7 @@ export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
       recent: (Array.isArray(d?.recent) ? d.recent : [])
         .slice(0, 15)
         .map((s) => String(s).slice(0, 60)),
-      sessionKey: String(d?.sessionKey ?? "").slice(0, 80),
+      sessionKey: truncateClientKey(d?.sessionKey),
     }),
   )
   .handler(async ({ data }): Promise<{ alternatives: Alternative[]; error?: string }> => {
@@ -140,29 +124,19 @@ export const suggestEgyptianAlternatives = createServerFn({ method: "POST" })
 أعد JSON فقط بدون أي نص آخر:
 {"alternatives":[{"name":"","amount":"الكمية","calories":0,"protein":0,"carbs":0,"fat":0,"saving":"مقارنة قصيرة بالأصل","tip":"طريقة تحضير صحية مصرية قصيرة"}]}`;
     try {
-      const res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-        {
-          method: "POST",
-          headers: { "content-type": "application/json", "x-goog-api-key": key },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              thinkingConfig: { thinkingLevel: "low" },
-            },
-          }),
-        },
-      );
-      const json = (await res.json().catch(() => ({}))) as GeminiParts;
-      if (!res.ok) {
-        console.error("suggest alternatives failed", res.status);
-        if (res.status === 429)
+      const result = await fetchGeminiText({
+        key,
+        model: "gemini-3.8-flash",
+        parts: [{ text: prompt }],
+      });
+      if (!result.ok) {
+        console.error("suggest alternatives failed", result.status);
+        if (result.status === 429)
           return { alternatives: [], error: "ضغط كبير على الخدمة، جرّب بعد دقيقة." };
         return { alternatives: [], error: "تعذر اقتراح بدائل دلوقتي" };
       }
-      const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
-      const o = JSON.parse(raw.replace(/```json|```/g, "").trim()) as {
+      const raw = result.text;
+      const o = parseGeminiJson(raw) as {
         alternatives?: unknown;
       };
       const n = (v: unknown) => Math.max(0, Math.round(Number(v) || 0));

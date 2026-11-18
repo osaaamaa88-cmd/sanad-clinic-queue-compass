@@ -23,7 +23,7 @@ export const Route = createFileRoute("/messages/")({
 
 type ClinicLite = { id: string; doctor: string; avatar_url: string };
 
-export function formatChatTime(iso: string) {
+function formatChatTime(iso: string) {
   const d = new Date(iso);
   const now = new Date();
   if (d.toDateString() === now.toDateString())

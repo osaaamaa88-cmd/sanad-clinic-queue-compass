@@ -22,7 +22,7 @@ export const Route = createFileRoute("/patient/first-aid")({
 
 type AidCard = { id: string; icon: string; title: string; steps: string[]; warn: string };
 
-const CARDS: AidCard[] = [
+const CARDS: [AidCard, ...AidCard[]] = [
   {
     id: "faint",
     icon: "🫨",

@@ -35,7 +35,7 @@ export function PostCard({
   actions,
 }: {
   post: FeedPost;
-  image?: string;
+  image?: string | undefined;
   reveal: boolean;
   actions: PostActions;
 }) {
@@ -71,7 +71,9 @@ export function PostCard({
   };
 
   const name = (
-    <span className="truncate text-sm font-extrabold">{isDoctorPost ? post.doctor_name : post.author_name}</span>
+    <span className="truncate text-sm font-extrabold">
+      {isDoctorPost ? post.doctor_name : post.author_name}
+    </span>
   );
 
   return (
@@ -84,7 +86,12 @@ export function PostCard({
           className={`grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full text-sm font-black ${isDoctorPost ? "gradient-gold text-gold-foreground" : post.is_anonymous ? "bg-secondary text-muted-foreground" : "bg-primary-soft text-primary"}`}
         >
           {isDoctorPost && post.doctor_avatar ? (
-            <img src={post.doctor_avatar} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <img
+              src={post.doctor_avatar}
+              alt=""
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
           ) : post.is_anonymous ? (
             <Lock className="h-4 w-4" />
           ) : (
@@ -100,7 +107,9 @@ export function PostCard({
             ) : (
               name
             )}
-            {isDoctorPost && <BadgeCheck className="h-4 w-4 shrink-0 text-success" aria-label="طبيب موثّق" />}
+            {isDoctorPost && (
+              <BadgeCheck className="h-4 w-4 shrink-0 text-success" aria-label="طبيب موثّق" />
+            )}
           </div>
           <div className="truncate text-xs text-muted-foreground">
             {timeAgo(post.created_at)}
@@ -119,10 +128,19 @@ export function PostCard({
           </button>
           {menu && (
             <>
-              <button type="button" aria-label="إغلاق" className="fixed inset-0 z-30" onClick={() => setMenu(false)} />
+              <button
+                type="button"
+                aria-label="إغلاق"
+                className="fixed inset-0 z-30"
+                onClick={() => setMenu(false)}
+              />
               <div className="absolute left-0 top-12 z-40 w-48 overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-soft">
                 {[
-                  { icon: Bookmark, label: post.my_saved ? "إلغاء الحفظ" : "حفظ", fn: actions.onSave },
+                  {
+                    icon: Bookmark,
+                    label: post.my_saved ? "إلغاء الحفظ" : "حفظ",
+                    fn: actions.onSave,
+                  },
                   { icon: Share2, label: "مشاركة / نسخ الرابط", fn: actions.onShare },
                   { icon: EyeOff, label: "إخفاء المنشور", fn: actions.onHide },
                   ...(!post.is_mine ? [{ icon: Flag, label: "إبلاغ", fn: actions.onReport }] : []),
@@ -151,7 +169,9 @@ export function PostCard({
         <div
           className={`card-bg-${post.bg_style || "navy"} card-ink mx-4 mt-3 grid min-h-56 place-items-center rounded-2xl px-6 py-10 text-center`}
         >
-          <p className={`font-card-${post.font_style || "alexandria"} whitespace-pre-wrap text-2xl leading-relaxed`}>
+          <p
+            className={`font-card-${post.font_style || "alexandria"} whitespace-pre-wrap text-2xl leading-relaxed`}
+          >
             {post.body}
           </p>
         </div>
@@ -159,7 +179,9 @@ export function PostCard({
         <>
           {post.body && (
             <div className="px-4 pt-2">
-              <p className={`whitespace-pre-wrap text-[15px] leading-relaxed ${!expanded && long ? "line-clamp-6" : ""}`}>
+              <p
+                className={`whitespace-pre-wrap text-[15px] leading-relaxed ${!expanded && long ? "line-clamp-6" : ""}`}
+              >
                 {post.body}
               </p>
               {long && !expanded && (
@@ -175,13 +197,27 @@ export function PostCard({
           )}
           {post.image_path && post.kind === "voice" && (
             <div className="px-4 pt-2">
-              {image ? <audio src={image} controls preload="none" className="h-11 w-full" /> : <div className="community-skeleton h-11 w-full rounded-full" />}
+              {image ? (
+                <audio src={image} controls preload="none" className="h-11 w-full" />
+              ) : (
+                <div className="community-skeleton h-11 w-full rounded-full" />
+              )}
             </div>
           )}
           {post.image_path && post.kind !== "voice" && (
-            <button type="button" onClick={onImageTap} className="relative mt-2 block w-full" aria-label="عرض الصورة">
+            <button
+              type="button"
+              onClick={onImageTap}
+              className="relative mt-2 block w-full"
+              aria-label="عرض الصورة"
+            >
               {image ? (
-                <img src={image} alt="صورة مرفقة" loading="lazy" className="max-h-[28rem] w-full bg-secondary object-contain" />
+                <img
+                  src={image}
+                  alt="صورة مرفقة"
+                  loading="lazy"
+                  className="max-h-[28rem] w-full bg-secondary object-contain"
+                />
               ) : (
                 <div className="community-skeleton h-60 w-full" />
               )}
@@ -212,7 +248,11 @@ export function PostCard({
           <div className="flex items-center gap-1.5 text-xs font-extrabold">
             <BadgeCheck className="h-4 w-4 text-success" />
             إجابة طبيب ·{" "}
-            <Link to="/patient/clinic/$id" params={{ id: top.clinic_id }} className="underline-offset-2 hover:underline">
+            <Link
+              to="/patient/clinic/$id"
+              params={{ id: top.clinic_id }}
+              className="underline-offset-2 hover:underline"
+            >
               {top.author_name}
             </Link>
           </div>
@@ -244,7 +284,9 @@ export function PostCard({
           aria-label="مفيد"
           className={`flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-bold ${post.my_liked ? "text-destructive" : "text-muted-foreground"}`}
         >
-          <Heart className={`h-5 w-5 ${post.my_liked ? "fill-current" : ""} ${pop ? "community-pop" : ""}`} />
+          <Heart
+            className={`h-5 w-5 ${post.my_liked ? "fill-current" : ""} ${pop ? "community-pop" : ""}`}
+          />
           مفيد
         </button>
         <button
@@ -292,7 +334,11 @@ export function PostCard({
             <X className="h-5 w-5" />
           </button>
           <div className="h-full w-full overflow-auto [touch-action:pinch-zoom]">
-            <img src={image} alt="صورة مرفقة" className="mx-auto min-h-full w-full object-contain" />
+            <img
+              src={image}
+              alt="صورة مرفقة"
+              className="mx-auto min-h-full w-full object-contain"
+            />
           </div>
         </div>
       )}

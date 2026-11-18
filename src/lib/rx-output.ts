@@ -1,7 +1,39 @@
 import type { RxPayload } from "@/lib/chat";
 
+/** Minimal local Web Bluetooth types (not in lib.dom). */
+interface BluetoothRemoteGATTCharacteristic {
+  properties: { write?: boolean; writeWithoutResponse?: boolean };
+  writeValue(value: BufferSource): Promise<void>;
+  writeValueWithoutResponse(value: BufferSource): Promise<void>;
+}
+
+interface BluetoothRemoteGATTService {
+  getCharacteristics(): Promise<BluetoothRemoteGATTCharacteristic[]>;
+}
+
+interface BluetoothRemoteGATTServer {
+  connect(): Promise<BluetoothRemoteGATTServer>;
+  disconnect(): void;
+  getPrimaryServices(): Promise<BluetoothRemoteGATTService[]>;
+}
+
+interface BluetoothDevice {
+  gatt: BluetoothRemoteGATTServer;
+}
+
+interface BluetoothAdapter {
+  requestDevice(options: {
+    acceptAllDevices: boolean;
+    optionalServices: string[];
+  }): Promise<BluetoothDevice>;
+}
+
+interface BluetoothNavigator extends Navigator {
+  bluetooth?: BluetoothAdapter;
+}
+
 /** Renders the prescription onto a canvas (works with Arabic on any printer). */
-export function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
+function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
   const pad = 20;
   const lines: { t: string; size: number; bold?: boolean; color?: string; dir?: "ltr" | "rtl" }[] =
     [];
@@ -74,7 +106,7 @@ export function renderRxCanvas(rx: RxPayload, width = 576): HTMLCanvasElement {
 const GOLD = "#b08d57",
   INK = "#3a3a3a";
 /** Gold "real clinic paper" design used for the downloaded image. */
-export function renderRxFancy(rx: RxPayload): HTMLCanvasElement {
+function renderRxFancy(rx: RxPayload): HTMLCanvasElement {
   const W = 1000,
     P = 56;
   const m = document.createElement("canvas").getContext("2d")!;
@@ -252,11 +284,9 @@ export async function downloadRx(rx: RxPayload): Promise<"shared" | "downloaded"
   );
   const name = `roshta-${(rx.patient || "patient").replace(/\s+/g, "-")}.png`;
   const file = new File([blob], name, { type: "image/png" });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const nav = navigator as any;
-  if (nav.canShare?.({ files: [file] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
+  if (navigator.canShare?.({ files: [file] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) {
     try {
-      await nav.share({ files: [file], title: "روشتة سند" });
+      await navigator.share({ files: [file], title: "روشتة سند" });
       return "shared";
     } catch (e) {
       if ((e as Error).name === "AbortError") return "shared";
@@ -274,9 +304,6 @@ export async function downloadRx(rx: RxPayload): Promise<"shared" | "downloaded"
   return "downloaded";
 }
 
-export const bluetoothSupported = () =>
-  typeof navigator !== "undefined" && "bluetooth" in navigator;
-
 const SERVICES = [
   "000018f0-0000-1000-8000-00805f9b34fb",
   "0000ff00-0000-1000-8000-00805f9b34fb",
@@ -287,13 +314,14 @@ const SERVICES = [
 
 /** Prints to a Bluetooth thermal printer (ESC/POS raster). */
 export async function printRxBluetooth(rx: RxPayload) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const bt = (navigator as any).bluetooth;
+  const bt = (navigator as BluetoothNavigator).bluetooth;
   if (!bt) throw new Error("المتصفح ده مش بيدعم البلوتوث. استخدم Chrome على أندرويد أو الكمبيوتر.");
-  const device = await bt.requestDevice({ acceptAllDevices: true, optionalServices: SERVICES });
-  const server = await device.gatt.connect();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let ch: any = null;
+  const device: BluetoothDevice = await bt.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: SERVICES,
+  });
+  const server: BluetoothRemoteGATTServer = await device.gatt.connect();
+  let ch: BluetoothRemoteGATTCharacteristic | null = null;
   for (const s of await server.getPrimaryServices()) {
     for (const c of await s.getCharacteristics()) {
       if (c.properties.write || c.properties.writeWithoutResponse) {
@@ -313,8 +341,10 @@ export async function printRxBluetooth(rx: RxPayload) {
   for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
-      if (px[i] * 0.3 + px[i + 1] * 0.59 + px[i + 2] * 0.11 < 128)
-        img[y * bw + (x >> 3)] |= 0x80 >> (x & 7);
+      if ((px[i] ?? 0) * 0.3 + (px[i + 1] ?? 0) * 0.59 + (px[i + 2] ?? 0) * 0.11 < 128) {
+        const idx = y * bw + (x >> 3);
+        img[idx] = (img[idx] ?? 0) | (0x80 >> (x & 7));
+      }
     }
   const header = new Uint8Array([
     0x1b,

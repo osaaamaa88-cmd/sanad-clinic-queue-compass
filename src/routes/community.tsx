@@ -44,7 +44,8 @@ export const Route = createFileRoute("/community")({
       { title: "مجتمع سند — اسأل واستشر أطباء مصر" },
       {
         name: "description",
-        content: "مجتمع سند الطبي: انشر سؤالك أو صورة تحليلك، وتلقَّ ردود أطباء معتمدين وتجارب المرضى.",
+        content:
+          "مجتمع سند الطبي: انشر سؤالك أو صورة تحليلك، وتلقَّ ردود أطباء معتمدين وتجارب المرضى.",
       },
       { property: "og:title", content: "مجتمع سند — اسأل واستشر أطباء مصر" },
       { property: "og:description", content: "اسأل، شارك تجربتك، واحصل على إجابات أطباء موثّقين." },
@@ -115,9 +116,19 @@ function CommunityPage() {
       .catch(() => {});
   }, [userId]);
 
-  const params = { tab, specialty, answered, followerKey };
+  const params = useMemo(
+    () => ({ tab, specialty, answered, followerKey }),
+    [tab, specialty, answered, followerKey],
+  );
   const queryKey = useMemo(
-    () => ["community-feed", tab, specialty, tab === "questions" ? answered : "all", followerKey, userId ?? "anon"],
+    () => [
+      "community-feed",
+      tab,
+      specialty,
+      tab === "questions" ? answered : "all",
+      followerKey,
+      userId ?? "anon",
+    ],
     [tab, specialty, answered, followerKey, userId],
   );
 
@@ -147,13 +158,14 @@ function CommunityPage() {
     if (!el) return;
     const io = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting && feed.hasNextPage && !feed.isFetchingNextPage) void feed.fetchNextPage();
+        if (e?.isIntersecting && feed.hasNextPage && !feed.isFetchingNextPage)
+          void feed.fetchNextPage();
       },
       { rootMargin: "600px" },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [feed.hasNextPage, feed.isFetchingNextPage, feed.fetchNextPage]);
+  }, [feed, feed.hasNextPage, feed.isFetchingNextPage, feed.fetchNextPage]);
 
   // "New posts" badge: poll every 60s while the tab is visible.
   useEffect(() => {
@@ -169,8 +181,7 @@ function CommunityPage() {
       }
     }, 60_000);
     return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryKey, feed.data?.pages[0]?.[0]?.id]);
+  }, [queryKey, feed.data?.pages[0]?.[0]?.id, params]);
 
   const refresh = useCallback(async () => {
     setHasNew(false);
@@ -197,7 +208,11 @@ function CommunityPage() {
       try {
         await setLiked(p.id, userId!, on);
       } catch {
-        patchPost(p.id, (x) => ({ ...x, my_liked: !on, likes_count: x.likes_count + (on ? -1 : 1) }));
+        patchPost(p.id, (x) => ({
+          ...x,
+          my_liked: !on,
+          likes_count: x.likes_count + (on ? -1 : 1),
+        }));
         toast.error("تعذّر الحفظ، حاول تاني");
       }
     },
@@ -293,11 +308,14 @@ function CommunityPage() {
       <div
         className="pb-32"
         onTouchStart={(e) => {
-          pullStart.current = window.scrollY <= 0 ? e.touches[0].clientY : null;
+          const t = e.touches[0];
+          pullStart.current = window.scrollY <= 0 && t ? t.clientY : null;
         }}
         onTouchMove={(e) => {
           if (pullStart.current == null) return;
-          setPull(Math.max(0, Math.min(80, e.touches[0].clientY - pullStart.current)));
+          const t = e.touches[0];
+          if (!t) return;
+          setPull(Math.max(0, Math.min(80, t.clientY - pullStart.current)));
         }}
         onTouchEnd={() => {
           if (pull > 64) void refresh();
@@ -306,7 +324,10 @@ function CommunityPage() {
         }}
       >
         {pull > 0 && (
-          <div className="grid h-10 place-items-center text-xs font-bold text-muted-foreground" style={{ opacity: pull / 80 }}>
+          <div
+            className="grid h-10 place-items-center text-xs font-bold text-muted-foreground"
+            style={{ opacity: pull / 80 }}
+          >
             {pull > 64 ? "اترك للتحديث" : "اسحب للتحديث"}
           </div>
         )}
@@ -380,7 +401,8 @@ function CommunityPage() {
           onClick={() => setRulesOpen(true)}
           className="flex min-h-11 w-full items-center gap-2 px-4 text-xs font-bold text-muted-foreground"
         >
-          <Info className="h-4 w-4" /> للتوعية فقط ولا يغني عن الكشف — في الطوارئ 123 · قواعد المجتمع
+          <Info className="h-4 w-4" /> للتوعية فقط ولا يغني عن الكشف — في الطوارئ 123 · قواعد
+          المجتمع
         </button>
 
         {hasNew && (
@@ -410,7 +432,11 @@ function CommunityPage() {
         ) : feed.isError ? (
           <div className="p-8 text-center text-sm text-muted-foreground">
             <p>تعذّر تحميل المنشورات</p>
-            <button type="button" onClick={() => void feed.refetch()} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-bold text-primary-foreground">
+            <button
+              type="button"
+              onClick={() => void feed.refetch()}
+              className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-bold text-primary-foreground"
+            >
               إعادة المحاولة
             </button>
           </div>
@@ -438,7 +464,13 @@ function CommunityPage() {
           </div>
         ) : (
           posts.map((p, i) => (
-            <PostCard key={p.id} post={p} image={images[p.image_path]} reveal={i < 4} actions={actions} />
+            <PostCard
+              key={p.id}
+              post={p}
+              image={images[p.image_path]}
+              reveal={i < 4}
+              actions={actions}
+            />
           ))
         )}
         <div ref={sentinel} className="h-10" />
@@ -490,7 +522,9 @@ function CommunityPage() {
           onClose={() => setCommentsFor(null)}
           requireAuth={requireAuth}
           onReport={(commentId) => requireAuth() && setReport({ commentId })}
-          onCountChange={(d) => patchPost(commentsFor.id, (x) => ({ ...x, comments_count: x.comments_count + d }))}
+          onCountChange={(d) =>
+            patchPost(commentsFor.id, (x) => ({ ...x, comments_count: x.comments_count + d }))
+          }
         />
       )}
       {report && <ReportDialog onClose={() => setReport(null)} onSubmit={submitReport} />}

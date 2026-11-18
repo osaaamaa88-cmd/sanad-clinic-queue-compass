@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { playNotification } from "@/lib/sounds";
+import { usePolling } from "@/hooks/use-polling";
 import {
   Bell,
   X,
@@ -84,10 +85,8 @@ export function NotificationsBell({
 
   useEffect(() => {
     ensureNotificationPermission();
-    pull();
-    const t = window.setInterval(pull, 20000);
-    return () => window.clearInterval(t);
-  }, [pull]);
+  }, []);
+  usePolling(pull, 20000);
 
   const openPanel = async () => {
     setOpen(true);
@@ -153,7 +152,18 @@ export function NotificationsBell({
                       <button
                         onClick={() => {
                           setOpen(false);
-                          if (n.url) navigate({ to: n.url } as never);
+                          if (!n.url) return;
+                          // URLs are stored as plain strings: narrow to a real route first.
+                          const queue = /^\/patient\/queue\/([^/]+)$/.exec(n.url);
+                          if (queue) {
+                            const id = queue[1];
+                            if (id) navigate({ to: "/patient/queue/$id", params: { id } });
+                          } else if (n.url === "/doctor-settings") {
+                            navigate({ to: "/doctor-settings" });
+                          } else if (n.url.startsWith("/")) {
+                            // Any other same-origin path (e.g. written by older code).
+                            window.location.assign(n.url);
+                          }
                         }}
                         className="flex w-full items-start gap-3 rounded-2xl border border-border bg-background p-3 text-right"
                       >

@@ -7,5 +7,11 @@ export async function celebrate() {
     .map((v) => styles.getPropertyValue(v).trim())
     .filter(Boolean);
   const { default: confetti } = await import("canvas-confetti");
-  void confetti({ particleCount: 90, spread: 70, origin: { y: 0.7 }, colors, disableForReducedMotion: true });
+  void confetti({
+    particleCount: 90,
+    spread: 70,
+    origin: { y: 0.7 },
+    colors,
+    disableForReducedMotion: true,
+  });
 }

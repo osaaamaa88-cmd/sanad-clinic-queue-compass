@@ -88,8 +88,8 @@ export const svrAddStory = createServerFn({ method: "POST" })
       fileName?: string;
       contentType?: string;
       base64?: string;
-      durationHours?: number;
-      cardStyle?: string;
+      durationHours?: number | undefined;
+      cardStyle?: string | undefined;
     }) => {
       if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
       const base64 = String(data.base64 ?? "");

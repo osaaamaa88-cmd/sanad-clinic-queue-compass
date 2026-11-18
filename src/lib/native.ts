@@ -3,7 +3,7 @@ import { Capacitor } from "@capacitor/core";
 
 export const isNative = () => typeof window !== "undefined" && Capacitor.isNativePlatform();
 
-export async function hapticLight() {
+async function hapticLight() {
   try {
     if (isNative()) {
       const { Haptics, ImpactStyle } = await import("@capacitor/haptics");
@@ -130,7 +130,7 @@ export async function syncNativeMedReminders(meds: NativeMed[]) {
       m.times
         .filter((t) => /^\d{2}:\d{2}$/.test(t))
         .map((t) => {
-          const [hour, minute] = t.split(":").map(Number);
+          const [hour = 0, minute = 0] = t.split(":").map(Number);
           return {
             id: hashId(`${m.id}-${t}`),
             title: `تذكير دواء: ${m.name}`,
@@ -163,7 +163,13 @@ export function installAndroidBack(toast: (msg: string) => unknown) {
         ).filter((el) => el.getAttribute("data-state") !== "closed" && el.offsetParent !== null);
         const top = overlays[overlays.length - 1];
         if (top) {
-          const esc = { key: "Escape", code: "Escape", keyCode: 27, bubbles: true, cancelable: true };
+          const esc = {
+            key: "Escape",
+            code: "Escape",
+            keyCode: 27,
+            bubbles: true,
+            cancelable: true,
+          };
           top.dispatchEvent(new KeyboardEvent("keydown", esc));
           document.dispatchEvent(new KeyboardEvent("keydown", esc));
           window.dispatchEvent(new CustomEvent("sanad:back"));

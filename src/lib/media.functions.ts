@@ -7,7 +7,7 @@ import {
   isKycDocumentWithinLimit,
 } from "@/lib/kyc-document";
 
-export const MEDIA_LIMITS = { avatar: 5 * 1024 * 1024, media: 50 * 1024 * 1024 } as const;
+const MEDIA_LIMITS = { avatar: 5 * 1024 * 1024, media: 50 * 1024 * 1024 } as const;
 type Kind = "avatar" | "cover" | "post" | "story" | "kyc";
 
 async function assertClinicOwner(
@@ -101,12 +101,12 @@ export const svrFinalizeUpload = createServerFn({ method: "POST" })
       kind: Kind;
       path: string;
       contentType: string;
-      caption?: string;
+      caption?: string | undefined;
       highlightId?: string | null;
-      storyKind?: "story" | "urgent";
-      tag?: string;
-      permanent?: boolean;
-      durationHours?: number;
+      storyKind?: "story" | "urgent" | undefined;
+      tag?: string | undefined;
+      permanent?: boolean | undefined;
+      durationHours?: number | undefined;
     }) => {
       if (!d || typeof d.clinicId !== "string" || typeof d.path !== "string")
         throw new Error("Invalid input");

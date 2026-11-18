@@ -57,7 +57,7 @@ function asRecord(value: unknown): JsonRecord {
     : {};
 }
 
-export async function callGemini(prompt: string, text?: string, image?: string, mime?: string) {
+async function callGemini(prompt: string, text?: string, image?: string, mime?: string) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("الخدمة غير مضبوطة");
   const parts: JsonRecord[] = [{ text: prompt }];

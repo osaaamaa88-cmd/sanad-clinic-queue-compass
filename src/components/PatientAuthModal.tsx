@@ -8,12 +8,13 @@ import {
   type PatientSession,
 } from "@/lib/patient-session";
 import { lovable } from "@/integrations/lovable";
+import { GoogleMark } from "@/components/GoogleMark";
 import { patientOAuthCallback } from "@/lib/patient-auth-return";
 
 type Props = {
   onDone: (s: PatientSession) => void;
   onClose: () => void;
-  title?: string;
+  title?: string | undefined;
 };
 
 /** Sign-in sheet shown when a guest tries an action that needs their identity. */
@@ -170,28 +171,5 @@ export function PatientAuthForm({ onDone }: { onDone: (s: PatientSession) => voi
         إخلاء المسؤولية الطبية وشروط الاستخدام
       </Link>
     </>
-  );
-}
-
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-      <path
-        fill="#4285F4"
-        d="M23 12.2c0-.8-.1-1.4-.2-2H12v3.8h6.2c-.1 1-.8 2.6-2.4 3.6l-.1.1 3.5 2.7.2.1c2.2-2 3.6-5 3.6-8.3"
-      />
-      <path
-        fill="#34A853"
-        d="M12 23.5c3.2 0 5.8-1 7.7-2.8l-3.7-2.8c-1 .7-2.3 1.2-4 1.2-3.1 0-5.7-2-6.6-4.8l-.1.1-3.7 2.8v.1C3.5 20.9 7.4 23.5 12 23.5"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.4 14.3c-.3-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3V9.6L1.6 6.8l-.1.1C.7 8.4.3 10.2.3 12s.4 3.6 1.2 5.1z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 5c2.2 0 3.7.9 4.6 1.7l3.3-3.2C17.8 1.6 15.2.5 12 .5 7.4.5 3.5 3.1 1.5 6.9l3.9 3c.9-2.8 3.5-4.9 6.6-4.9"
-      />
-    </svg>
   );
 }

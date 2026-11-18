@@ -15,7 +15,9 @@ export function kindOf(b: Pick<Booking, "slot" | "visitType">): VisitKind {
 }
 
 /** الطابور الحي: المستعجل أولاً، ثم بالترتيب. المنتهي والملغي يُستبعد. */
-export function liveQueue<T extends Pick<Booking, "slot" | "visitType" | "status" | "queueNumber">>(rows: T[]): T[] {
+export function liveQueue<T extends Pick<Booking, "slot" | "visitType" | "status" | "queueNumber">>(
+  rows: T[],
+): T[] {
   return rows
     .filter((r) => r.status === "waiting" || r.status === "in")
     .sort((a, b) => {

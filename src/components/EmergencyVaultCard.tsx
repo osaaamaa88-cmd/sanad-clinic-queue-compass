@@ -4,7 +4,13 @@ import { toast } from "sonner";
 import { loadVault, saveVault, type EmergencyVault } from "@/lib/offline-db";
 
 type Form = Omit<EmergencyVault, "id" | "updatedAt">;
-const empty: Form = { bloodType: "", allergies: "", chronic: "", contactName: "", contactPhone: "" };
+const empty: Form = {
+  bloodType: "",
+  allergies: "",
+  chronic: "",
+  contactName: "",
+  contactPhone: "",
+};
 
 /** بطاقة طوارئ محفوظة على الهاتف فقط وتعمل بدون إنترنت. */
 export function EmergencyVaultCard() {
@@ -46,7 +52,10 @@ export function EmergencyVaultCard() {
           </p>
         </div>
         {!editing && (
-          <button onClick={() => setEditing(true)} className="min-h-11 px-3 text-xs font-bold text-primary">
+          <button
+            onClick={() => setEditing(true)}
+            className="min-h-11 px-3 text-xs font-bold text-primary"
+          >
             {saved ? "تعديل" : "املأ الكارت"}
           </button>
         )}
@@ -84,7 +93,10 @@ export function EmergencyVaultCard() {
             </div>
           ))}
           {form.contactPhone && (
-            <a href={`tel:${form.contactPhone}`} className="col-span-2 flex min-h-11 items-center justify-center rounded-xl bg-destructive text-sm font-extrabold text-destructive-foreground">
+            <a
+              href={`tel:${form.contactPhone}`}
+              className="col-span-2 flex min-h-11 items-center justify-center rounded-xl bg-destructive text-sm font-extrabold text-destructive-foreground"
+            >
               اتصل بـ {form.contactName || form.contactPhone}
             </a>
           )}

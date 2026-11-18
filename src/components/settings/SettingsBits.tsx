@@ -1,7 +1,6 @@
+import { type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
 import { ArrowLeft, type LucideIcon } from "lucide-react";
-import { DEFAULT_PREFS, PREFS_EVENT, readPrefs, setPref, type AppPrefs } from "@/lib/app-prefs";
 
 export function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -49,6 +48,21 @@ export function SwitchRow({
   );
 }
 
+/** Routes LinkRow may point to: static pages need no params, `$id` pages need one. */
+type LinkRowTarget =
+  | {
+      to:
+        | "/privacy"
+        | "/terms"
+        | "/reception"
+        | "/messages"
+        | "/doctor/stories"
+        | "/patient/health"
+        | "/developer";
+      params?: undefined;
+    }
+  | { to: "/tv/$id" | "/patient/clinic/$id"; params: { id: string } };
+
 export function LinkRow({
   icon: Icon,
   title,
@@ -59,13 +73,11 @@ export function LinkRow({
   icon: LucideIcon;
   title: string;
   hint?: string;
-  to: string;
-  params?: Record<string, string>;
-}) {
+} & LinkRowTarget) {
   return (
     <Link
-      to={to as never}
-      params={params as never}
+      to={to}
+      {...(params !== undefined ? { params } : {})}
       className="flex min-h-16 items-center gap-3 rounded-3xl tile-3d border border-border bg-card p-4 transition active:scale-[0.99]"
     >
       <Icon className="h-6 w-6 shrink-0 text-primary" />
@@ -76,16 +88,4 @@ export function LinkRow({
       <ArrowLeft className="h-4 w-4 text-muted-foreground" />
     </Link>
   );
-}
-
-/** Reactive device preferences; reads after hydration to avoid mismatches. */
-export function usePrefs(): [AppPrefs, <K extends keyof AppPrefs>(k: K, v: AppPrefs[K]) => void] {
-  const [prefs, setPrefs] = useState<AppPrefs>(DEFAULT_PREFS);
-  useEffect(() => {
-    const sync = () => setPrefs(readPrefs());
-    sync();
-    window.addEventListener(PREFS_EVENT, sync);
-    return () => window.removeEventListener(PREFS_EVENT, sync);
-  }, []);
-  return [prefs, (k, v) => setPrefs(setPref(k, v))];
 }

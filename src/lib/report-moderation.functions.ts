@@ -80,8 +80,8 @@ export const godListReports = createServerFn({ method: "POST" }).handler(
 export const godModerateContent = createServerFn({ method: "POST" })
   .inputValidator(
     (d: {
-      postId?: string;
-      commentId?: string;
+      postId?: string | undefined;
+      commentId?: string | undefined;
       action: "hide" | "restore" | "delete" | "reject";
     }) => d,
   )
@@ -108,7 +108,7 @@ export const godModerateContent = createServerFn({ method: "POST" })
         const hidden = data.action === "hide";
         const { error } = await supabaseAdmin
           .from("community_posts")
-          .update({ is_hidden: hidden } as never)
+          .update({ is_hidden: hidden })
           .eq("id", data.postId);
         if (error) throw new Error(error.message);
       }
@@ -119,7 +119,7 @@ export const godModerateContent = createServerFn({ method: "POST" })
         const hidden = data.action === "hide";
         const { error } = await supabaseAdmin
           .from("community_comments")
-          .update({ is_hidden: hidden } as never)
+          .update({ is_hidden: hidden })
           .eq("id", data.commentId);
         if (error) throw new Error(error.message);
       }

@@ -5,6 +5,9 @@ import { compareName, compareNumber } from "../kyc-match.ts";
 test("matches syndicate number written in Arabic digits", () => {
   assert.equal(compareNumber("123456", "رقم القيد: ١٢٣٤٥٦"), "match");
 });
+test("matches syndicate number written in Eastern Arabic digits", () => {
+  assert.equal(compareNumber("123456", "۱۲۳۴۵۶"), "match");
+});
 test("flags a different syndicate number", () => {
   assert.equal(compareNumber("123456", "123457"), "mismatch");
 });

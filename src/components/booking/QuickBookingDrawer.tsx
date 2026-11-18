@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -78,7 +77,9 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
       setSubmitting(true);
       try {
         await ensurePatientAuthIdentity();
-        const dayLabel = `${days[dayIdx].label} — ${days[dayIdx].date}`;
+        const day = days[dayIdx];
+        if (!day) return;
+        const dayLabel = `${day.label} — ${day.date}`;
         const b = await createBooking({
           clinicId: clinic.id,
           patientName: who.name,
@@ -175,7 +176,7 @@ export function QuickBookingDrawer({ clinic, isOpen, onOpenChange }: QuickBookin
                     <a
                       href={whatsappLink(
                         clinic.phone,
-                        `أهلاً، حجزت عند ${clinic.doctor} يوم ${days[dayIdx].date} الساعة ${slot}. كود الحجز: ${bookedCode}.`,
+                        `أهلاً، حجزت عند ${clinic.doctor} يوم ${days[dayIdx]?.date ?? ""} الساعة ${slot}. كود الحجز: ${bookedCode}.`,
                       )}
                       target="_blank"
                       rel="noopener noreferrer"

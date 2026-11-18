@@ -17,8 +17,8 @@ declare global {
     __lovableEvents?: LovableEvents;
     __lovableReportRuntimeError?: (payload: {
       message: string;
-      stack?: string;
-      filename?: string;
+      stack?: string | undefined;
+      filename?: string | undefined;
     }) => void;
   }
 }

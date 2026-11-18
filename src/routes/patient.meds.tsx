@@ -8,9 +8,10 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/patient/meds")({
   staticData: { sitemap: true },
-  validateSearch: (search: Record<string, unknown>): { rx?: string } => ({
-    rx: typeof search.rx === "string" ? search.rx : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { rx?: string } => {
+    const rx = typeof search.rx === "string" ? search.rx : undefined;
+    return rx !== undefined ? { rx } : {};
+  },
   head: () => ({
     meta: [
       { title: "سند — تذكير مواعيد الأدوية" },
@@ -25,7 +26,7 @@ type Med = {
   name: string;
   dose: string;
   times: string[]; // "HH:MM"
-  notes?: string;
+  notes?: string | undefined;
   createdAt: string;
 };
 
@@ -178,7 +179,6 @@ function Meds() {
               }
             } else {
               // Fallback in-app alert
-              console.info("[سند]", title, body);
             }
           }
         });
@@ -233,7 +233,7 @@ function Meds() {
     } | null;
     meds.forEach((m) =>
       m.times.forEach((t) => {
-        const [h, mi] = t.split(":").map(Number);
+        const [h = 0, mi = 0] = t.split(":").map(Number);
         let diff = h * 60 + mi - nowMin;
         if (diff < 0) diff += 24 * 60;
         if (!best || diff < best.diff) best = { med: m, t, diff };

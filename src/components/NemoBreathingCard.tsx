@@ -41,10 +41,7 @@ export function NemoBreathingCard({ forceOpen = false }: { forceOpen?: boolean }
   const duration = phase.key === "inhale" ? 4 : phase.key === "exhale" ? 8 : 0.3;
 
   return (
-    <section
-      aria-label="تمرين التهدئة مع نيمو"
-      className="card-medical-mint order-4 p-4"
-    >
+    <section aria-label="تمرين التهدئة مع نيمو" className="card-medical-mint order-4 p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Wind className="h-5 w-5 text-primary" aria-hidden="true" />

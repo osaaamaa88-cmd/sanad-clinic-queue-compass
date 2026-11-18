@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { BadgeCheck, CalendarPlus, Play, Share2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -64,7 +64,6 @@ export const Route = createFileRoute("/p/$postId")({
 
 function PostPage() {
   const { post } = Route.useLoaderData();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(true);
 
   useEffect(() => {

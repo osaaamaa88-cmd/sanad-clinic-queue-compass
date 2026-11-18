@@ -69,7 +69,9 @@ export function StoryComposer({
           className="fixed inset-x-0 bottom-0 z-[101] flex max-h-[92vh] flex-col rounded-t-[28px] border-t border-border bg-card focus:outline-none"
         >
           <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-muted-foreground/30" />
-          <Drawer.Title className="px-4 py-3 text-center text-base font-extrabold">حالة جديدة</Drawer.Title>
+          <Drawer.Title className="px-4 py-3 text-center text-base font-extrabold">
+            حالة جديدة
+          </Drawer.Title>
           <div className="flex-1 space-y-3 overflow-y-auto px-4 pb-4">
             <div
               className={`relative grid aspect-[9/12] max-h-[46vh] w-full place-items-center overflow-hidden rounded-3xl ${preview ? "bg-surface-deep" : `card-bg-${bg}`}`}
@@ -146,7 +148,13 @@ export function StoryComposer({
             </p>
           </div>
           <div className="flex gap-2 border-t border-border p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => pick(e.target.files?.[0])}
+            />
             <button
               type="button"
               onClick={() => fileRef.current?.click()}

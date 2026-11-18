@@ -27,9 +27,10 @@ import { Button } from "@/components/ui/button";
 import { safePatientReturnPath } from "@/lib/patient-auth-return";
 
 export const Route = createFileRoute("/patient/login")({
-  validateSearch: (search: Record<string, unknown>): { returnTo?: string } => ({
-    returnTo: safePatientReturnPath(search.returnTo),
-  }),
+  validateSearch: (search: Record<string, unknown>): { returnTo?: string } => {
+    const returnTo = safePatientReturnPath(search.returnTo);
+    return returnTo !== undefined ? { returnTo } : {};
+  },
   staticData: { sitemap: false },
   head: () => ({
     meta: [

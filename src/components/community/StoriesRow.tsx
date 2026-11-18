@@ -50,9 +50,7 @@ function Circle({
       onClick={onClick}
       className="flex w-[68px] shrink-0 flex-col items-center gap-1 active:scale-95 transition-transform"
     >
-      <span
-        className={`block rounded-full p-[2.5px] ${ring ? "gradient-story" : "bg-border"}`}
-      >
+      <span className={`block rounded-full p-[2.5px] ${ring ? "gradient-story" : "bg-border"}`}>
         <span className="grid h-[63px] w-[63px] place-items-center overflow-hidden rounded-full border-2 border-background bg-secondary">
           {children}
         </span>
@@ -100,7 +98,13 @@ export function StoriesRow({
   const openClinic = async (c: Clinic) => {
     const s = await getClinicStories(c.id);
     if (s.stories.length)
-      setOpen({ items: s.stories, title: c.doctor, avatar: c.avatar, clinicId: c.id, phone: c.phone });
+      setOpen({
+        items: s.stories,
+        title: c.doctor,
+        avatar: c.avatar,
+        clinicId: c.id,
+        phone: c.phone,
+      });
     else void navigate({ to: "/patient/clinic/$id", params: { id: c.id } });
   };
 
@@ -108,7 +112,11 @@ export function StoriesRow({
     <>
       <div className="-mx-4 flex max-h-[100px] gap-3 overflow-x-auto px-4 [scrollbar-width:none]">
         {isDoctor ? (
-          <Circle label="قصة العيادة" ring={false} onClick={() => void navigate({ to: "/doctor/stories" })}>
+          <Circle
+            label="قصة العيادة"
+            ring={false}
+            onClick={() => void navigate({ to: "/doctor/stories" })}
+          >
             <Plus className="h-6 w-6 text-primary" />
           </Circle>
         ) : (
@@ -140,7 +148,12 @@ export function StoriesRow({
           </Circle>
         ))}
         {others.map((g) => (
-          <Circle key={g.authorId} label={g.authorName} ring={!g.allViewed} onClick={() => setMember(g)}>
+          <Circle
+            key={g.authorId}
+            label={g.authorName}
+            ring={!g.allViewed}
+            onClick={() => setMember(g)}
+          >
             <span className="text-lg font-black text-primary">{g.authorName.charAt(0)}</span>
           </Circle>
         ))}

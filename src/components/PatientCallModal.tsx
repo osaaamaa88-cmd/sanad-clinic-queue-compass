@@ -1,10 +1,10 @@
 import { BellRing } from "lucide-react";
 
-export type PatientCallModalProps = {
+type PatientCallModalProps = {
   patientName: string;
   doctorName: string;
   queueNumber: number;
-  room?: string;
+  room?: string | undefined;
   onAcknowledge: () => void;
 };
 

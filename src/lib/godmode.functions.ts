@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createSupabaseKeyFetch } from "./supabase-fetch";
 
 const PAGE = 20;
 
@@ -24,15 +25,7 @@ export const getAppSettings = createServerFn({ method: "GET" }).handler(async ()
   const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
   const sb = createClient(process.env.SUPABASE_URL!, key, {
     auth: { persistSession: false },
-    global: {
-      fetch: (input, init) => {
-        const h = new Headers(init?.headers);
-        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`)
-          h.delete("Authorization");
-        h.set("apikey", key);
-        return fetch(input, { ...init, headers: h });
-      },
-    },
+    global: { fetch: createSupabaseKeyFetch(key) },
   });
   const { data } = await sb
     .from("app_settings")

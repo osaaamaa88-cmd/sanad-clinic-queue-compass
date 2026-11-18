@@ -55,11 +55,15 @@ export function PatientBottomNav() {
       className={`dock-autohide pointer-events-none fixed inset-x-0 bottom-0 z-[80] flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] mb-3 ${hidden ? "translate-y-[140%] opacity-0" : "translate-y-0 opacity-100"}`}
     >
       {/* شريط التنقل السفلي — كبسولة زجاج سائل عائمة (Liquid Glass Dock) */}
-      <div className={`glass-liquid glass-dock grid ${hidden ? "pointer-events-none" : "pointer-events-auto"} h-16 w-full max-w-md grid-cols-5 rounded-full px-2`}>
+      <div
+        className={`glass-liquid glass-dock grid ${hidden ? "pointer-events-none" : "pointer-events-auto"} h-16 w-full max-w-md grid-cols-5 rounded-full px-2`}
+      >
         {(() => {
           const idx = items.findIndex((it) => it.matches(pathname));
           if (idx < 0) return null;
-          const emergency = items[idx].to === "/patient/emergency";
+          const item = items[idx];
+          if (!item) return null;
+          const emergency = item.to === "/patient/emergency";
           return (
             <span
               aria-hidden="true"
@@ -90,7 +94,9 @@ export function PatientBottomNav() {
             >
               <span
                 className={`relative grid h-9 w-14 place-items-center rounded-full transition-transform duration-200 ${
-                  active ? `scale-[1.08] ${emergency ? "text-destructive" : "text-primary-foreground"}` : ""
+                  active
+                    ? `scale-[1.08] ${emergency ? "text-destructive" : "text-primary-foreground"}`
+                    : ""
                 }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.6 : 2} />

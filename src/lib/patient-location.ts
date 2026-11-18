@@ -8,7 +8,7 @@ export type PatientLocation = {
 
 const KEY = "sanad.patient.location";
 
-export const egyptAreas: PatientLocation[] = [
+export const egyptAreas: [PatientLocation, ...PatientLocation[]] = [
   { name: "المهندسين", city: "الجيزة", lat: 30.0566, lng: 31.2005 },
   { name: "الدقي", city: "الجيزة", lat: 30.0384, lng: 31.2114 },
   { name: "6 أكتوبر", city: "الجيزة", lat: 29.9381, lng: 30.9137 },

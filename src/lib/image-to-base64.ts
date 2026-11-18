@@ -17,7 +17,7 @@ export async function imageToBase64(
     c.height = Math.round(img.height * scale);
     c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
     const preview = c.toDataURL("image/jpeg", 0.85);
-    return { data: preview.split(",")[1], mime: "image/jpeg", preview };
+    return { data: preview.split(",")[1] ?? "", mime: "image/jpeg", preview };
   } finally {
     URL.revokeObjectURL(url);
   }

@@ -108,7 +108,7 @@ export type RxPayload = {
   advice?: string;
   tests?: string;
   doctor: string;
-  specialty?: string;
+  specialty?: string | undefined;
   clinicAddress?: string;
   clinicPhone?: string;
   clinicHours?: string;
@@ -152,7 +152,7 @@ export async function sendRx(conversationId: string, rx: RxPayload): Promise<boo
     sender_id: uid,
     body: "💊 روشتة طبية",
     kind: "rx",
-    payload: rx as never,
+    payload: rx,
   });
   return !error;
 }

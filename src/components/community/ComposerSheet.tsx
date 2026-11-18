@@ -23,7 +23,14 @@ const FONTS = [
 type PostType = "question" | "experience" | "tip" | "card";
 const DRAFT_KEY = "sanad_community_draft_v1";
 
-type Draft = { type: PostType; body: string; spec: string; anon: boolean; bg: string; font: string };
+type Draft = {
+  type: PostType;
+  body: string;
+  spec: string;
+  anon: boolean;
+  bg: string;
+  font: string;
+};
 
 export function ComposerSheet({
   initialType,
@@ -85,7 +92,8 @@ export function ComposerSheet({
   const isCard = type === "card";
   const pii = detectPersonalData(body);
   const selfHarm = body.trim().length > 3 && hasSelfHarmIntent(body);
-  const emergency = !selfHarm && body.trim().length > 3 && runLocalTriage(body).urgency === "emergency";
+  const emergency =
+    !selfHarm && body.trim().length > 3 && runLocalTriage(body).urgency === "emergency";
 
   const pick = async (input?: File) => {
     if (!input) return;
@@ -101,21 +109,30 @@ export function ComposerSheet({
     if (busy) return;
     if (pii.length) return void toast.error("احذف البيانات الشخصية قبل النشر");
     if (isCard && !body.trim()) return void toast.error("اكتب نص البطاقة");
-    if (!isCard && !body.trim() && !file && !voice) return void toast.error("اكتب نصاً أو أضف صورة أو تسجيلاً");
+    if (!isCard && !body.trim() && !file && !voice)
+      return void toast.error("اكتب نصاً أو أضف صورة أو تسجيلاً");
     setBusy(true);
     try {
       let image_path = "";
       if (!isCard && !file && voice) {
-        const ext = voice.type.includes("mp4") ? "m4a" : voice.type.includes("ogg") ? "ogg" : "webm";
+        const ext = voice.type.includes("mp4")
+          ? "m4a"
+          : voice.type.includes("ogg")
+            ? "ogg"
+            : "webm";
         image_path = `${userId}/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage.from("community").upload(image_path, voice, { contentType: voice.type });
+        const { error } = await supabase.storage
+          .from("community")
+          .upload(image_path, voice, { contentType: voice.type });
         if (error) throw error;
       }
       if (!isCard && file) {
         const small = await compressImage(file, 1440, 0.8);
         const ext = small.name.split(".").pop() || "jpg";
         image_path = `${userId}/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage.from("community").upload(image_path, small, { contentType: small.type });
+        const { error } = await supabase.storage
+          .from("community")
+          .upload(image_path, small, { contentType: small.type });
         if (error) throw error;
       }
       const { error } = await supabase.from("community_posts").insert({
@@ -150,9 +167,19 @@ export function ComposerSheet({
   ];
 
   return (
-    <div className="community-sheet fixed inset-0 z-[120] flex flex-col bg-background" dir="rtl" role="dialog" aria-modal="true">
+    <div
+      className="community-sheet fixed inset-0 z-[120] flex flex-col bg-background"
+      dir="rtl"
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="flex items-center justify-between border-b border-border px-4 py-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
-        <button type="button" onClick={onClose} aria-label="إغلاق" className="grid h-11 w-11 place-items-center rounded-full hover:bg-secondary">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="إغلاق"
+          className="grid h-11 w-11 place-items-center rounded-full hover:bg-secondary"
+        >
           <X className="h-5 w-5" />
         </button>
         <span className="text-base font-extrabold">منشور جديد</span>
@@ -187,7 +214,9 @@ export function ComposerSheet({
         </div>
 
         {isCard ? (
-          <div className={`card-bg-${bg} card-ink relative mx-4 mt-3 grid min-h-[45vh] place-items-center rounded-2xl px-6`}>
+          <div
+            className={`card-bg-${bg} card-ink relative mx-4 mt-3 grid min-h-[45vh] place-items-center rounded-2xl px-6`}
+          >
             <textarea
               autoFocus
               value={body}
@@ -219,7 +248,11 @@ export function ComposerSheet({
             {preview ? (
               <>
                 <div className="relative mt-2 overflow-hidden rounded-2xl border border-border">
-                  <img src={preview} alt="" className="max-h-80 w-full bg-secondary object-contain" />
+                  <img
+                    src={preview}
+                    alt=""
+                    className="max-h-80 w-full bg-secondary object-contain"
+                  />
                   <button
                     type="button"
                     onClick={() => {
@@ -245,7 +278,13 @@ export function ComposerSheet({
                 <ImagePlus className="h-5 w-5" /> أضف صورة (تحليل، أشعة، روشتة...)
               </button>
             )}
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(e) => pick(e.target.files?.[0])}
+            />
             {!file && <VoiceRecorder value={voice} onChange={setVoice} />}
           </div>
         )}
@@ -254,28 +293,46 @@ export function ComposerSheet({
           {pii.length > 0 && (
             <div className="flex gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-sm font-bold text-foreground">
               <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
-              المنشور فيه {pii.map((k) => PERSONAL_DATA_LABEL[k]).join("، ")}. احذفه عشان نقدر ننشر ونحمي خصوصيتك.
+              المنشور فيه {pii.map((k) => PERSONAL_DATA_LABEL[k]).join("، ")}. احذفه عشان نقدر ننشر
+              ونحمي خصوصيتك.
             </div>
           )}
           {selfHarm && (
             <div className="space-y-2 rounded-2xl border border-primary/40 bg-primary-soft p-3 text-sm leading-relaxed">
               <p className="font-extrabold">إنت مش لوحدك 💙</p>
-              <p>لو حاسس بخطر على نفسك دلوقتي اتصل بالإسعاف. ولو محتاج حد يسمعك، خط الدعم النفسي لوزارة الصحة شغال 24 ساعة.</p>
+              <p>
+                لو حاسس بخطر على نفسك دلوقتي اتصل بالإسعاف. ولو محتاج حد يسمعك، خط الدعم النفسي
+                لوزارة الصحة شغال 24 ساعة.
+              </p>
               <div className="flex flex-wrap gap-2">
-                <a href={`tel:${AMBULANCE_LINE}`} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-destructive px-4 font-bold text-destructive-foreground">
+                <a
+                  href={`tel:${AMBULANCE_LINE}`}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-destructive px-4 font-bold text-destructive-foreground"
+                >
                   <Phone className="h-4 w-4" /> {AMBULANCE_LINE}
                 </a>
-                <a href={`tel:${PSYCH_SUPPORT_LINE}`} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary px-4 font-bold text-primary-foreground">
+                <a
+                  href={`tel:${PSYCH_SUPPORT_LINE}`}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary px-4 font-bold text-primary-foreground"
+                >
                   <Phone className="h-4 w-4" /> {PSYCH_SUPPORT_LINE}
                 </a>
-                <a href={MENTAL_HEALTH_PORTAL_URL} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 font-bold">
+                <a
+                  href={MENTAL_HEALTH_PORTAL_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 font-bold"
+                >
                   بوابة الصحة النفسية
                 </a>
               </div>
             </div>
           )}
           {emergency && (
-            <a href={`tel:${AMBULANCE_LINE}`} className="flex min-h-11 items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-sm font-bold">
+            <a
+              href={`tel:${AMBULANCE_LINE}`}
+              className="flex min-h-11 items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-sm font-bold"
+            >
               <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
               لو الحالة طارئة متستناش رد، اتصل {AMBULANCE_LINE} فوراً.
             </a>
@@ -326,7 +383,12 @@ export function ComposerSheet({
               <span className="flex items-center gap-2">
                 <Lock className="h-4 w-4" /> انشر بدون اسم
               </span>
-              <input type="checkbox" checked={anon} onChange={(e) => setAnon(e.target.checked)} className="h-5 w-5 accent-primary" />
+              <input
+                type="checkbox"
+                checked={anon}
+                onChange={(e) => setAnon(e.target.checked)}
+                className="h-5 w-5 accent-primary"
+              />
             </label>
           )}
           <p className="text-xs leading-relaxed text-muted-foreground">

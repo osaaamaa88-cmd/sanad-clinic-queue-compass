@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { truncateClientKey } from "./limits";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -18,7 +19,7 @@ async function assertNotificationRateLimit(scope: string, identity?: string, lim
 /** Public: notifications for one patient device key. */
 export const svrListPatientNotifications = createServerFn({ method: "POST" })
   .inputValidator((data: { recipientKey: string }) => ({
-    recipientKey: String(data?.recipientKey ?? "").slice(0, 80),
+    recipientKey: truncateClientKey(data?.recipientKey),
   }))
   .handler(async ({ data }) => {
     await assertNotificationRateLimit("patient-list");
@@ -97,7 +98,7 @@ export const svrListClinicNotifications = createServerFn({ method: "POST" })
 /** Mark a patient's notifications read (device key scoped). */
 export const svrMarkPatientNotificationsRead = createServerFn({ method: "POST" })
   .inputValidator((data: { recipientKey: string }) => ({
-    recipientKey: String(data?.recipientKey ?? "").slice(0, 80),
+    recipientKey: truncateClientKey(data?.recipientKey),
   }))
   .handler(async ({ data }) => {
     await assertNotificationRateLimit("patient-read");

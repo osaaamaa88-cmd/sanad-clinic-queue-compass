@@ -1,13 +1,12 @@
 import {
   svrGetClinicProfile,
-  svrClinicQueueStats,
   svrToggleFollow,
   svrIsFollowing,
   svrUpdateClinicProfile,
   svrDeleteClinicPost,
 } from "@/lib/profile.functions";
 
-export type ClinicPost = {
+type ClinicPost = {
   id: string;
   url: string;
   mediaType: "image" | "video";
@@ -23,13 +22,6 @@ export type ClinicProfileExtras = {
   followers: number;
   ratingAvg: number;
   reviewsCount: number;
-};
-
-export type QueueStats = {
-  nowServing: number;
-  waiting: number;
-  delayMinutes: number;
-  bookingsClosed: boolean;
 };
 
 const FOLLOW_KEY = "sanad_follower_key";
@@ -61,20 +53,6 @@ export async function getClinicProfileExtras(clinicId: string): Promise<ClinicPr
       ratingAvg: 0,
       reviewsCount: 0,
     };
-  }
-}
-
-export async function getQueueStats(clinicId: string): Promise<QueueStats | null> {
-  try {
-    const r = await svrClinicQueueStats({ data: { clinicId } });
-    return {
-      nowServing: r.nowServing,
-      waiting: r.waiting,
-      delayMinutes: r.delayMinutes,
-      bookingsClosed: r.bookingsClosed,
-    };
-  } catch {
-    return null;
   }
 }
 

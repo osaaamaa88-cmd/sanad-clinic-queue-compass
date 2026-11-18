@@ -8,7 +8,10 @@ export const Route = createFileRoute("/patient/scan")({
       { title: "مسح كود العيادة | سند" },
       { name: "description", content: "امسح كود QR الخاص بالعيادة أو كارت الطوارئ بالكاميرا." },
       { property: "og:title", content: "مسح كود العيادة | سند" },
-      { property: "og:description", content: "امسح كود QR الخاص بالعيادة أو كارت الطوارئ بالكاميرا." },
+      {
+        property: "og:description",
+        content: "امسح كود QR الخاص بالعيادة أو كارت الطوارئ بالكاميرا.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -29,7 +32,9 @@ function ScanPage() {
     const canvas = document.createElement("canvas");
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+        });
         const v = videoRef.current!;
         v.srcObject = stream;
         await v.play();
@@ -41,7 +46,11 @@ function ScanPage() {
             canvas.height = v.videoHeight;
             const c = canvas.getContext("2d", { willReadFrequently: true })!;
             c.drawImage(v, 0, 0);
-            const code = jsQR(c.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+            const code = jsQR(
+              c.getImageData(0, 0, canvas.width, canvas.height).data,
+              canvas.width,
+              canvas.height,
+            );
             if (code?.data) return handle(code.data);
           }
           window.setTimeout(loop, 250);
@@ -56,7 +65,8 @@ function ScanPage() {
       navigator.vibrate?.(60);
       try {
         const u = new URL(text, window.location.origin);
-        if (u.origin === window.location.origin) return void navigate({ to: u.pathname + u.search });
+        if (u.origin === window.location.origin)
+          return void navigate({ to: u.pathname + u.search });
       } catch {
         /* not a URL */
       }
@@ -71,16 +81,23 @@ function ScanPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 pb-32" dir="rtl">
-      <Link to="/patient" className="inline-flex min-h-11 items-center gap-2 font-bold text-foreground">
+      <Link
+        to="/patient"
+        className="inline-flex min-h-11 items-center gap-2 font-bold text-foreground"
+      >
         <ArrowRight className="h-5 w-5" /> رجوع
       </Link>
-      <h1 className="mt-2 flex items-center gap-2 text-xl font-extrabold"><ScanLine className="h-6 w-6 text-primary" /> امسح الكود</h1>
+      <h1 className="mt-2 flex items-center gap-2 text-xl font-extrabold">
+        <ScanLine className="h-6 w-6 text-primary" /> امسح الكود
+      </h1>
       <div className="relative mt-4 aspect-square w-full overflow-hidden rounded-3xl bg-surface-deep">
         <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
         <div className="pointer-events-none absolute inset-10 rounded-2xl border-4 border-primary/80" />
       </div>
       <p className="mt-4 text-center font-bold text-muted-foreground">{status}</p>
-      {result && <p className="mt-2 break-all rounded-2xl bg-card p-3 text-sm text-foreground">{result}</p>}
+      {result && (
+        <p className="mt-2 break-all rounded-2xl bg-card p-3 text-sm text-foreground">{result}</p>
+      )}
     </div>
   );
 }

@@ -1,9 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Sparkles, Lock, Loader2, BookOpen } from "lucide-react";
+import { Sparkles, Loader2, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { GoogleMark } from "@/components/GoogleMark";
+import { AuthModeToggle } from "@/components/doctor-settings/AuthModeToggle";
+import { LoadingState } from "@/components/LoadingState";
+import { DoctorSignupFields } from "@/components/doctor-settings/DoctorSignupFields";
 import { StorySplash, DOCTOR_STORY_SEEN_KEY } from "@/components/StorySplash";
-import { StaffAuth, authErrorMessage } from "@/components/StaffAuth";
+import { StaffAuth } from "@/components/StaffAuth";
+import { authErrorMessage } from "@/lib/auth-error-message";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import {
@@ -14,6 +19,7 @@ import {
 } from "@/lib/mock-data";
 import { getCachedProfile, saveCachedProfile } from "@/lib/user-profile-cache";
 import { normalizeEgyptianMobile } from "@/lib/input-validation";
+import { validateDoctorSignup } from "@/lib/doctor-signup";
 import { svrCreateMyClinic } from "@/lib/staff.functions";
 import { resetDoctorModeCache } from "@/lib/use-doctor-mode";
 
@@ -124,16 +130,15 @@ function DoctorEntry() {
 
   const doSignup = async () => {
     setSignupError("");
-    if (!name.trim()) return setSignupError("من فضلك اكتب اسم الطبيب");
-    if (!phone.trim()) return setSignupError("من فضلك اكتب رقم الموبايل / الواتساب");
-    if (!email.trim()) return setSignupError("من فضلك اكتب البريد الإلكتروني");
-    if (pass.length < 8) return setSignupError("كلمة السر لازم تكون ٨ حروف أو أرقام على الأقل");
-    const licenseDigits = medicalLicense.replace(/\D/g, "");
-    const syndicateDigits = syndicateNo.replace(/\D/g, "");
-    if (licenseDigits.length < 4)
-      return setSignupError("من فضلك اكتب رقم ترخيص مزاولة المهنة (٤ أرقام على الأقل)");
-    if (syndicateDigits.length < 3)
-      return setSignupError("من فضلك اكتب رقم القيد بنقابة الأطباء (٣ أرقام على الأقل)");
+    const { error, licenseDigits, syndicateDigits } = validateDoctorSignup({
+      name,
+      phone,
+      email,
+      pass,
+      medicalLicense,
+      syndicateNo,
+    });
+    if (error) return setSignupError(error);
     setCreating(true);
     const cleanPhone = phone.trim().replace(/\D/g, "");
     const formattedPhone = cleanPhone.startsWith("20")
@@ -190,9 +195,7 @@ function DoctorEntry() {
   if (loading) {
     return (
       <AppShell title="لوحة الطبيب" backTo="/">
-        <div className="mt-10 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> جاري التحميل…
-        </div>
+        <LoadingState />
       </AppShell>
     );
   }
@@ -258,7 +261,11 @@ function DoctorEntry() {
             disabled={creating}
             className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl gradient-primary py-3 text-sm font-extrabold text-primary-foreground disabled:opacity-60"
           >
-            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {creating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
             افتح عيادتي
           </button>
           <Link
@@ -283,24 +290,7 @@ function DoctorEntry() {
 
   return (
     <AppShell title="بوابة فريق العيادة" subtitle="طبيب • سكرتير • استقبال" backTo="/">
-      <div className="grid grid-cols-2 gap-2">
-        {(
-          [
-            ["login", "تسجيل الدخول"],
-            ["signup", "حساب طبيب جديد"],
-          ] as const
-        ).map(([m, label]) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={`rounded-xl py-2.5 text-sm font-bold ${
-              mode === m ? "gradient-primary text-white" : "border border-border bg-card"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <AuthModeToggle mode={mode} setMode={setMode} signupLabel="حساب طبيب جديد" />
 
       <div className="mt-4">
         {mode === "login" ? (
@@ -342,109 +332,24 @@ function DoctorEntry() {
               </div>
             </div>
 
-            <div className="mt-4 space-y-4 rounded-2xl border border-border bg-card p-4">
-              <Field
-                label="اسم الطبيب *"
-                value={name}
-                onChange={setName}
-                placeholder="د. الاسم الكامل"
-              />
-              <div>
-                <label className="text-xs font-bold text-muted-foreground">التخصص *</label>
-                <div className="mt-2 -mx-1 overflow-x-auto px-1">
-                  <div className="flex gap-2">
-                    {specialties.map((s) => (
-                      <button
-                        key={s.id}
-                        onClick={() => setSpec(s.id)}
-                        className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${
-                          spec === s.id ? "gradient-primary text-white" : "bg-secondary"
-                        }`}
-                      >
-                        {s.emoji} {s.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-muted-foreground">
-                  رقم الموبايل / الواتساب *
-                </label>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  inputMode="tel"
-                  placeholder="01xxxxxxxxx"
-                  className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-muted-foreground">
-                  البريد الإلكتروني *
-                </label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  type="email"
-                  dir="ltr"
-                  placeholder="doctor@email.com"
-                  className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
-                />
-              </div>
-              <div>
-                <label className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-                  <Lock className="h-3.5 w-3.5" /> كلمة السر *
-                </label>
-                <input
-                  value={pass}
-                  onChange={(e) => setPass(e.target.value)}
-                  type="password"
-                  dir="ltr"
-                  placeholder="٨ حروف أو أرقام على الأقل"
-                  className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-muted-foreground">
-                    رقم ترخيص مزاولة المهنة *
-                  </label>
-                  <input
-                    value={medicalLicense}
-                    onChange={(e) => setMedicalLicense(e.target.value.replace(/\D/g, ""))}
-                    inputMode="numeric"
-                    dir="ltr"
-                    placeholder="أرقام فقط"
-                    className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-muted-foreground">
-                    رقم القيد بنقابة الأطباء *
-                  </label>
-                  <input
-                    value={syndicateNo}
-                    onChange={(e) => setSyndicateNo(e.target.value.replace(/\D/g, ""))}
-                    inputMode="numeric"
-                    dir="ltr"
-                    placeholder="أرقام فقط"
-                    className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base font-bold outline-none focus:border-primary"
-                  />
-                </div>
-              </div>
-              <div className="rounded-xl bg-secondary p-3">
-                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  بعد تفعيل الحساب، ارفع مستند الترخيص من إعدادات العيادة ليتمكن فريق التوثيق من
-                  مراجعته بأمان.
-                </p>
-              </div>
-              {signupError && (
-                <p className="rounded-xl bg-destructive/10 px-3 py-2 text-xs font-bold text-destructive">
-                  {signupError}
-                </p>
-              )}
-            </div>
+            <DoctorSignupFields
+              name={name}
+              setName={setName}
+              spec={spec}
+              setSpec={setSpec}
+              phone={phone}
+              setPhone={setPhone}
+              email={email}
+              setEmail={setEmail}
+              pass={pass}
+              setPass={setPass}
+              medicalLicense={medicalLicense}
+              setMedicalLicense={setMedicalLicense}
+              syndicateNo={syndicateNo}
+              setSyndicateNo={setSyndicateNo}
+              signupError={signupError}
+              licenseNoteClassName="mt-2 text-xs leading-relaxed text-muted-foreground"
+            />
 
             <label className="mt-5 flex cursor-pointer items-start gap-2 rounded-2xl border border-border bg-card p-3 text-xs leading-relaxed">
               <input
@@ -472,52 +377,5 @@ function DoctorEntry() {
         )}
       </div>
     </AppShell>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <div>
-      <label className="text-xs font-bold text-muted-foreground">{label}</label>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-base outline-none focus:border-primary"
-      />
-    </div>
-  );
-}
-
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-      <path
-        fill="#4285F4"
-        d="M23 12.2c0-.8-.1-1.4-.2-2H12v3.8h6.2c-.1 1-.8 2.6-2.4 3.6l-.1.1 3.5 2.7.2.1c2.2-2 3.6-5 3.6-8.3"
-      />
-      <path
-        fill="#34A853"
-        d="M12 23.5c3.2 0 5.8-1 7.7-2.8l-3.7-2.8c-1 .7-2.3 1.2-4 1.2-3.1 0-5.7-2-6.6-4.8l-.1.1-3.7 2.8v.1C3.5 20.9 7.4 23.5 12 23.5"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.4 14.3c-.3-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3V9.6L1.6 6.8l-.1.1C.7 8.4.3 10.2.3 12s.4 3.6 1.2 5.1z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 5c2.2 0 3.7.9 4.6 1.7l3.3-3.2C17.8 1.6 15.2.5 12 .5 7.4.5 3.5 3.1 1.5 6.9l3.9 3c.9-2.8 3.5-4.9 6.6-4.9"
-      />
-    </svg>
   );
 }

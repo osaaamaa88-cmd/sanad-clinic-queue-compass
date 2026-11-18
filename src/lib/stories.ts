@@ -14,7 +14,7 @@ export type StoryItem = {
   kind: "story" | "urgent";
   highlightId: string | null;
   createdAt: string;
-  tag?: string;
+  tag?: string | undefined;
   views?: number;
 };
 
@@ -39,7 +39,7 @@ export async function addStory(input: {
   tag?: string;
   permanent?: boolean;
   durationHours?: 12 | 24;
-  cardStyle?: string;
+  cardStyle?: string | undefined;
 }): Promise<{ ok: boolean; error?: string }> {
   if (input.file) {
     const { uploadMedia } = await import("@/lib/media-upload");
@@ -141,5 +141,8 @@ export function markStoryViewed(storyId: string) {
 /** Parses a pen-card story style stored in the tag ("card:<bg>:<font>"). */
 export function parseCardStyle(tag?: string): { bg: string; font: string } | null {
   const m = /^card:([a-z]+):([a-z]+)$/.exec(tag ?? "");
-  return m ? { bg: m[1], font: m[2] } : null;
+  if (!m) return null;
+  const bg = m[1];
+  const font = m[2];
+  return bg && font ? { bg, font } : null;
 }

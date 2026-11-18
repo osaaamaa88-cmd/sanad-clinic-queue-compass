@@ -40,7 +40,7 @@ export async function fetchMemberStories(myId: string | null): Promise<MemberSto
       items: [],
       allViewed: true,
     };
-    const url = s.image_path ? urls[s.image_path] ?? "" : "";
+    const url = s.image_path ? (urls[s.image_path] ?? "") : "";
     g.items.push({
       id: s.id,
       url,

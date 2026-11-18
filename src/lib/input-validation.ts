@@ -26,7 +26,7 @@ export function parseReading(input: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export const VITAL_LIMITS = {
+const VITAL_LIMITS = {
   systolic: [60, 260],
   diastolic: [30, 160],
   sugar: [20, 700],

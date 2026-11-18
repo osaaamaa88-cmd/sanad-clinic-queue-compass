@@ -5,7 +5,7 @@ export type Specialty = {
   category: "popular" | "surgical" | "family" | "therapy";
 };
 
-export const specialties: Specialty[] = [
+export const specialties: [Specialty, ...Specialty[]] = [
   { id: "dental", name: "أسنان", emoji: "🦷", category: "popular" },
   { id: "internal", name: "باطنة", emoji: "🩺", category: "popular" },
   { id: "pediatrics", name: "أطفال", emoji: "👶", category: "family" },

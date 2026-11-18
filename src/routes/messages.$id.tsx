@@ -6,7 +6,6 @@ import {
   Camera,
   Check,
   CheckCheck,
-  FileText,
   ImageOff,
   Loader2,
   Phone,
@@ -16,7 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { RxComposer, printRx } from "@/components/RxComposer";
+import { RxComposer } from "@/components/RxComposer";
+import { printRx } from "@/lib/rx-print";
 import { getSpecialty } from "@/lib/mock-data";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -390,7 +390,8 @@ function ChatScreen() {
             </div>
             {msgs.map((m, i) => {
               const mine = m.sender_id === uid;
-              const newDay = i === 0 || dayOf(msgs[i - 1].created_at) !== dayOf(m.created_at);
+              const prev = msgs[i - 1];
+              const newDay = i === 0 || !prev || dayOf(prev.created_at) !== dayOf(m.created_at);
               return (
                 <div key={m.id}>
                   {newDay && (
