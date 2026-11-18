@@ -4,6 +4,13 @@
  */
 import { useEffect, useState } from "react";
 
+declare global {
+  interface Window {
+    /** Safari's prefixed AudioContext. */
+    webkitAudioContext?: typeof AudioContext;
+  }
+}
+
 const KEY = "sanad.sound.enabled";
 const listeners = new Set<(on: boolean) => void>();
 let ctx: AudioContext | null = null;
@@ -13,7 +20,7 @@ export function isSoundOn(): boolean {
   return window.localStorage.getItem(KEY) !== "0";
 }
 
-export function setSoundOn(on: boolean) {
+function setSoundOn(on: boolean) {
   try {
     window.localStorage.setItem(KEY, on ? "1" : "0");
   } catch {
@@ -40,9 +47,7 @@ function audio(): AudioContext | null {
   if (typeof window === "undefined") return null;
   try {
     if (!ctx) {
-      const C =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const C = window.AudioContext || window.webkitAudioContext;
       ctx = new C();
     }
     if (ctx.state === "suspended") void ctx.resume();
@@ -134,7 +139,7 @@ export function playClick() {
 }
 
 /** Apple Pay–style confirmation: two bright glass notes. */
-export function playSuccess() {
+function playSuccess() {
   if (!isSoundOn()) return;
   bell(1318.5, 0, 0.5, 0.11); // E6
   bell(1975.5, 0.11, 0.9, 0.1); // B6

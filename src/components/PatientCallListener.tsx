@@ -15,7 +15,7 @@ type ActiveCall = {
   patientName: string;
   doctorName: string;
   queueNumber: number;
-  room?: string;
+  room?: string | undefined;
 };
 
 export function PatientCallListener() {

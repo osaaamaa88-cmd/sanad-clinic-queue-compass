@@ -101,7 +101,10 @@ function DoctorStories() {
   };
 
   const publish = async () => {
-    if (!clinicId || (!file && !caption.trim())) return toast.error("أضف صورة أو نصًا أولًا");
+    if (!clinicId || (!file && !caption.trim())) {
+      toast.error("أضف صورة أو نصًا أولًا");
+      return;
+    }
     setBusy(true);
     let hl: string | null = null;
     if (permanent) {
@@ -109,12 +112,14 @@ function DoctorStories() {
       if (!hl && newHl.trim()) hl = await createHighlight(clinicId, newHl.trim(), "✨");
       if (!hl) {
         setBusy(false);
-        return toast.error("اختر هايلايت أو أنشئ واحدًا");
+        toast.error("اختر هايلايت أو أنشئ واحدًا");
+        return;
       }
     }
     if (pen && !caption.trim()) {
       setBusy(false);
-      return toast.error("اكتب نص الحالة أولًا");
+      toast.error("اكتب نص الحالة أولًا");
+      return;
     }
     const r = await addStory({
       clinicId,
@@ -128,7 +133,10 @@ function DoctorStories() {
       kind: tag === "تنويه هام" || tag === "تأخير في المواعيد" ? "urgent" : "story",
     });
     setBusy(false);
-    if (!r.ok) return toast.error(r.error || "تعذر النشر");
+    if (!r.ok) {
+      toast.error(r.error || "تعذر النشر");
+      return;
+    }
     toast.success("تم نشر القصة");
     setFile(null);
     setPreview("");

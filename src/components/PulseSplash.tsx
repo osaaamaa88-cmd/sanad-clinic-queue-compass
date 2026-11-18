@@ -33,7 +33,11 @@ export function PulseSplash({
           <img src={sanadLogo} alt="" width={400} height={400} className="h-16 w-16" />
         </div>
       </div>
-      <svg viewBox="0 0 200 40" className="mt-6 h-8 w-56 text-primary drop-shadow-[0_0_6px_var(--primary)]" fill="none">
+      <svg
+        viewBox="0 0 200 40"
+        className="mt-6 h-8 w-56 text-primary drop-shadow-[0_0_6px_var(--primary)]"
+        fill="none"
+      >
         <path
           className="sanad-ekg"
           d="M0 20 H60 L70 8 L80 32 L90 4 L100 36 L110 20 H200"

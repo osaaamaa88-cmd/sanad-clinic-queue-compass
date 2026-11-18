@@ -1,6 +1,6 @@
 import type { FeedTab } from "./community-logic";
 
-export const TABS: { id: FeedTab; label: string }[] = [
+const TABS: { id: FeedTab; label: string }[] = [
   { id: "for_you", label: "لك" },
   { id: "questions", label: "أسئلة" },
   { id: "doctors", label: "أطباء" },

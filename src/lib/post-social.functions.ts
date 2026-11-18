@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { truncateClientKey } from "./limits";
 
-const BUCKET = "clinic-media";
 const SIGN_TTL = 60 * 60 * 24 * 7; // 7 days, so shared link previews keep working
 
 type CommentRow = {
@@ -30,7 +30,7 @@ export type PostComment = ReturnType<typeof mapComments>[number];
 export const svrGetPost = createServerFn({ method: "POST" })
   .inputValidator((data: { postId: string; viewerKey?: string }) => {
     if (!data || typeof data.postId !== "string") throw new Error("Invalid input");
-    return { postId: data.postId, viewerKey: String(data.viewerKey ?? "").slice(0, 80) };
+    return { postId: data.postId, viewerKey: truncateClientKey(data.viewerKey) };
   })
   .handler(async ({ data }) => {
     data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
@@ -101,7 +101,7 @@ export const svrPostsSocialCounts = createServerFn({ method: "POST" })
     const ids = Array.isArray(data?.postIds)
       ? data.postIds.filter((i) => typeof i === "string").slice(0, 80)
       : [];
-    return { postIds: ids, viewerKey: String(data?.viewerKey ?? "").slice(0, 80) };
+    return { postIds: ids, viewerKey: truncateClientKey(data?.viewerKey) };
   })
   .handler(async ({ data }) => {
     data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
@@ -134,7 +134,7 @@ export const svrPostsSocialCounts = createServerFn({ method: "POST" })
 export const svrTogglePostLike = createServerFn({ method: "POST" })
   .inputValidator((data: { postId: string; viewerKey: string; like: boolean }) => {
     if (!data || typeof data.postId !== "string") throw new Error("Invalid input");
-    const key = String(data.viewerKey ?? "").slice(0, 80);
+    const key = truncateClientKey(data.viewerKey);
     if (!key) throw new Error("Invalid input");
     return { postId: data.postId, viewerKey: key, like: Boolean(data.like) };
   })
@@ -170,7 +170,7 @@ export const svrTogglePostLike = createServerFn({ method: "POST" })
 export const svrAddPostComment = createServerFn({ method: "POST" })
   .inputValidator((data: { postId: string; viewerKey: string; name?: string; body: string }) => {
     if (!data || typeof data.postId !== "string") throw new Error("Invalid input");
-    const key = String(data.viewerKey ?? "").slice(0, 80);
+    const key = truncateClientKey(data.viewerKey);
     const body = String(data.body ?? "")
       .trim()
       .slice(0, 500);
@@ -223,7 +223,7 @@ export const svrAddClinicReply = createServerFn({ method: "POST" })
       .trim()
       .slice(0, 500);
     if (!body) throw new Error("Invalid input");
-    return { postId: data.postId, body, viewerKey: String(data.viewerKey ?? "").slice(0, 80) };
+    return { postId: data.postId, body, viewerKey: truncateClientKey(data.viewerKey) };
   })
   .handler(async ({ data, context }) => {
     data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);
@@ -267,7 +267,7 @@ export const svrDeletePostComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { commentId: string; viewerKey?: string }) => {
     if (!data || typeof data.commentId !== "string") throw new Error("Invalid input");
-    return { commentId: data.commentId, viewerKey: String(data.viewerKey ?? "").slice(0, 80) };
+    return { commentId: data.commentId, viewerKey: truncateClientKey(data.viewerKey) };
   })
   .handler(async ({ data, context }) => {
     data.viewerKey = await (await import("@/lib/device-key.server")).deviceIdentity(data.viewerKey);

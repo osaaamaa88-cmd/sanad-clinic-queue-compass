@@ -12,8 +12,8 @@ export async function signMediaRefs(
   const groups: Record<string, string[]> = { avatars: [], "clinic-media": [] };
   for (const r of new Set(refs.filter(Boolean))) {
     if (r.startsWith("http")) out.set(r, r);
-    else if (r.startsWith(AVATAR_PREFIX)) groups.avatars.push(r.slice(AVATAR_PREFIX.length));
-    else groups["clinic-media"].push(r);
+    else if (r.startsWith(AVATAR_PREFIX)) groups.avatars?.push(r.slice(AVATAR_PREFIX.length));
+    else groups["clinic-media"]?.push(r);
   }
   for (const [bucket, paths] of Object.entries(groups)) {
     if (!paths.length) continue;

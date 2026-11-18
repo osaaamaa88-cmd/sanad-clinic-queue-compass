@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-export type AuditEvent = "login" | "medical_query" | "profile_access" | "appointment_booked";
+type AuditEvent = "login" | "medical_query" | "profile_access" | "appointment_booked";
 const EVENTS: AuditEvent[] = ["login", "medical_query", "profile_access", "appointment_booked"];
 
 /** Server-side helper: records an audit event. Never throws. */
@@ -13,12 +13,12 @@ export async function writeAudit(event: AuditEvent, userId: string | null, detai
       ""
     ).trim();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("audit_logs" as never).insert({
+    await supabaseAdmin.from("audit_logs").insert({
       event,
       user_id: userId,
       ip_address: ip.slice(0, 64) || null,
       details: details.slice(0, 200),
-    } as never);
+    });
   } catch {
     /* never break the caller */
   }

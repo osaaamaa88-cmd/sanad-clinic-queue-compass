@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Trash2, Loader2, CheckCircle2, RefreshCw } from "lucide-react";
 import { adminListDeletionRequests, adminResolveDeletionRequest } from "@/lib/account.functions";
@@ -23,7 +23,9 @@ export function DeletionRequestsTab() {
   const list = useServerFn(adminListDeletionRequests);
   const resolve = useServerFn(adminResolveDeletionRequest);
 
-  const load = async () => {
+  // Stable (depends only on the stable `list` server fn) so the mount
+  // effect can list it without re-fetching on every render.
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -34,11 +36,11 @@ export function DeletionRequestsTab() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [list]);
 
   useEffect(() => {
     void load();
-  }, [list]);
+  }, [load]);
 
   const markDone = async (id: string) => {
     if (!window.confirm("تأكيد تنفيذ الحذف الكامل وإغلاق الطلب؟")) return;

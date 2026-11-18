@@ -16,7 +16,8 @@ import { isSeniorModeOn, isVoiceModeOn, setSeniorMode, setVoiceMode } from "@/li
 import { ModeSwitch } from "@/components/ModeSwitch";
 import { SoundToggle, ThemeSetting } from "@/components/SoundControls";
 import { AccountDeletion } from "@/components/AccountDeletion";
-import { LinkRow, SettingsSection, SwitchRow, usePrefs } from "@/components/settings/SettingsBits";
+import { LinkRow, SettingsSection, SwitchRow } from "@/components/settings/SettingsBits";
+import { usePrefs } from "@/hooks/use-prefs";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 
 export const Route = createFileRoute("/settings")({
@@ -68,7 +69,12 @@ export function SettingsPage() {
       </header>
 
       <SettingsSection title="حسابي">
-        <LinkRow icon={HeartPulse} to="/patient/health" title="ملفي الطبي" hint="القراءات والحساسية والأمراض" />
+        <LinkRow
+          icon={HeartPulse}
+          to="/patient/health"
+          title="ملفي الطبي"
+          hint="القراءات والحساسية والأمراض"
+        />
         <ModeSwitch current="patient" />
       </SettingsSection>
 

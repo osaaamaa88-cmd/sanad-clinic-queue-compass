@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { X, Trash2, AlertTriangle, Send, Eye, CalendarPlus } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { markStoryViewed, parseCardStyle, type StoryItem } from "@/lib/stories";
@@ -40,9 +40,9 @@ export function StoryViewer({
   title: string;
   startIndex?: number;
   isOwner?: boolean;
-  avatar?: string;
-  clinicId?: string;
-  phone?: string;
+  avatar?: string | undefined;
+  clinicId?: string | undefined;
+  phone?: string | undefined;
   onClose: () => void;
   onDelete?: (storyId: string) => void;
   /** Custom view tracking (member statuses); defaults to clinic story views. */
@@ -66,10 +66,10 @@ export function StoryViewer({
   const current = items[index];
   const isPaused = paused || held || typing;
 
-  const close = () => {
+  const close = useCallback(() => {
     setClosing(true);
     window.setTimeout(onClose, 220);
-  };
+  }, [onClose]);
   const next = () => (index + 1 < items.length ? setIndex(index + 1) : close());
   const prev = () => setIndex(Math.max(0, index - 1));
 
@@ -101,8 +101,7 @@ export function StoryViewer({
       }
     }, 50);
     return () => window.clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current, isPaused, items.length]);
+  }, [current, isPaused, items.length, close]);
 
   useEffect(() => {
     const v = videoRef.current;

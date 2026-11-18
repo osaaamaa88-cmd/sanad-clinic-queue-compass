@@ -1,6 +1,6 @@
 // Shared rate limiter: Postgres-backed (check_rate_limit) with an in-memory fallback.
 const buckets = new Map<string, number[]>();
-export const AI_LIMIT_PER_MIN = 10;
+const AI_LIMIT_PER_MIN = 10;
 
 export async function clientIp(): Promise<string> {
   const { getRequestHeader } = await import("@tanstack/react-start/server");

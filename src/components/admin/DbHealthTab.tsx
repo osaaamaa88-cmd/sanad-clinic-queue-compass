@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Database, AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
 import { adminDbHealth } from "@/lib/health.functions";
+import { usePolling } from "@/hooks/use-polling";
 
 type Health = Awaited<ReturnType<typeof adminDbHealth>>;
 
@@ -17,11 +18,7 @@ export function DbHealthTab() {
       })
       .catch((e) => setErr(String(e?.message ?? e)));
   }, [get]);
-  useEffect(() => {
-    load();
-    const t = setInterval(load, 30_000);
-    return () => clearInterval(t);
-  }, [load]);
+  usePolling(load, 30_000);
 
   const down = err || (h && !h.ok);
   return (

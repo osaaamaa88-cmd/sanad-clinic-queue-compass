@@ -22,7 +22,9 @@ export function HealthPassScanner({
     const canvas = document.createElement("canvas");
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+        });
         const v = videoRef.current!;
         v.srcObject = stream;
         await v.play();
@@ -34,7 +36,11 @@ export function HealthPassScanner({
             canvas.height = v.videoHeight;
             const c = canvas.getContext("2d", { willReadFrequently: true })!;
             c.drawImage(v, 0, 0);
-            const code = jsQR(c.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+            const code = jsQR(
+              c.getImageData(0, 0, canvas.width, canvas.height).data,
+              canvas.width,
+              canvas.height,
+            );
             if (code?.data) {
               const r = decodeHealthPass(code.data);
               if (r.ok) {
@@ -69,17 +75,31 @@ export function HealthPassScanner({
     ) : null;
 
   return (
-    <div className="fixed inset-0 z-[80] grid place-items-center bg-background/80 p-4 backdrop-blur" dir="rtl" role="dialog" aria-label="مسح كارت سند">
+    <div
+      className="fixed inset-0 z-[80] grid place-items-center bg-background/80 p-4 backdrop-blur"
+      dir="rtl"
+      role="dialog"
+      aria-label="مسح كارت سند"
+    >
       <div className="w-full max-w-sm rounded-3xl tile-3d border border-border bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-extrabold">كارت سند للمريض</h2>
-          <button onClick={onClose} aria-label="إغلاق" className="grid h-11 w-11 place-items-center rounded-full bg-secondary">
+          <button
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="grid h-11 w-11 place-items-center rounded-full bg-secondary"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
         {!pass ? (
           <>
-            <video ref={videoRef} playsInline muted className="aspect-square w-full rounded-2xl bg-secondary object-cover" />
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              className="aspect-square w-full rounded-2xl bg-secondary object-cover"
+            />
             <p className="mt-3 text-center text-sm text-muted-foreground">{status}</p>
           </>
         ) : (
@@ -91,7 +111,9 @@ export function HealthPassScanner({
             )}
             {(pass.p.allergies || pass.p.chronic) && (
               <div className="mb-2 rounded-2xl border-2 border-destructive bg-destructive/10 p-3 text-sm font-bold text-destructive">
-                <p className="flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> تنبيه طبي</p>
+                <p className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" /> تنبيه طبي
+                </p>
                 {pass.p.allergies && <p className="mt-1">حساسية: {pass.p.allergies}</p>}
                 {pass.p.chronic && <p className="mt-1">أمراض مزمنة: {pass.p.chronic}</p>}
               </div>
@@ -104,11 +126,13 @@ export function HealthPassScanner({
             {row("للطوارئ", [pass.p.contactName, pass.p.contactPhone].filter(Boolean).join(" — "))}
             {onBook && (
               <div className="mt-3 grid grid-cols-3 gap-2">
-                {([
-                  ["new", "🩺 كشف جديد", "bg-success text-success-foreground"],
-                  ["followup", "🔄 إعادة كشف", "bg-primary text-primary-foreground"],
-                  ["urgent", "🚨 مستعجل", "bg-destructive text-destructive-foreground"],
-                ] as const).map(([k, label, cls]) => (
+                {(
+                  [
+                    ["new", "🩺 كشف جديد", "bg-success text-success-foreground"],
+                    ["followup", "🔄 إعادة كشف", "bg-primary text-primary-foreground"],
+                    ["urgent", "🚨 مستعجل", "bg-destructive text-destructive-foreground"],
+                  ] as const
+                ).map(([k, label, cls]) => (
                   <button
                     key={k}
                     disabled={busy !== null}

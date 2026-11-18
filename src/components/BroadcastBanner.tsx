@@ -1,22 +1,24 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { X, Megaphone, Wrench } from "lucide-react";
 import { getAppSettings } from "@/lib/godmode.functions";
+import { usePolling } from "@/hooks/use-polling";
 
 type S = { maintenance: boolean; broadcast: string; broadcast_tone: string; updated_at: string };
 
 export function BroadcastBanner() {
   const [s, setS] = useState<S | null>(null);
   const [dismissed, setDismissed] = useState<string | null>(null);
-  useEffect(() => {
-    setDismissed(localStorage.getItem("sanad-broadcast-dismissed"));
-    const load = () =>
+  const load = useCallback(
+    () =>
       getAppSettings()
         .then((r) => setS(r as S))
-        .catch(() => {});
-    load();
-    const i = setInterval(load, 60000);
-    return () => clearInterval(i);
+        .catch(() => {}),
+    [],
+  );
+  useEffect(() => {
+    setDismissed(localStorage.getItem("sanad-broadcast-dismissed"));
   }, []);
+  usePolling(load, 60000);
   if (!s) return null;
   const key = `${s.updated_at}|${s.broadcast}`;
   const showMsg = s.broadcast && dismissed !== key;

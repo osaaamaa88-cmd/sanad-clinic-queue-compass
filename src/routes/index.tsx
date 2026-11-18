@@ -4,7 +4,6 @@ import { WelcomeGate, ENTRY_KEY } from "@/components/WelcomeGate";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PulseSplash } from "@/components/PulseSplash";
 import { StorySplash, STORY_SEEN_KEY } from "@/components/StorySplash";

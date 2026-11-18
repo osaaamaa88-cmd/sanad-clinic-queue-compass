@@ -1,5 +1,7 @@
 /** Browser-safe community rules: personal-data detection, paging, answer ordering. */
 
+import { toLatinDigits } from "../../lib/input-validation.ts";
+
 export type FeedTab = "for_you" | "questions" | "doctors" | "following";
 export type AnsweredFilter = "all" | "unanswered" | "answered";
 
@@ -43,6 +45,7 @@ export const FEED_PAGE_SIZE = 10;
 export function nextCursor(page: FeedPost[], pageSize = FEED_PAGE_SIZE): FeedCursor {
   if (page.length < pageSize) return null;
   const last = page[page.length - 1];
+  if (!last) return null;
   return { created_at: last.created_at, id: last.id };
 }
 
@@ -59,12 +62,7 @@ export function flattenPages(pages: FeedPost[][]): FeedPost[] {
   return out;
 }
 
-const toLatinDigits = (s: string) =>
-  s
-    .replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660))
-    .replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
-
-export type PersonalDataKind = "national_id" | "phone" | "email" | "link";
+type PersonalDataKind = "national_id" | "phone" | "email" | "link";
 
 /** Personal data that must be removed before a community post is published. */
 export function detectPersonalData(text: string): PersonalDataKind[] {
@@ -74,7 +72,8 @@ export function detectPersonalData(text: string): PersonalDataKind[] {
   if (/(?<!\d)[23]\d{13}(?!\d)/.test(compact)) found.push("national_id");
   if (/(?<!\d)(?:\+?20|0020)?0?1[0125]\d{8}(?!\d)/.test(compact)) found.push("phone");
   if (/[^\s@]+@[^\s@]+\.[a-z]{2,}/i.test(t)) found.push("email");
-  if (/(https?:\/\/|www\.)\S+|\b[a-z0-9-]+\.(com|net|org|eg|io|me|ly)\b/i.test(t)) found.push("link");
+  if (/(https?:\/\/|www\.)\S+|\b[a-z0-9-]+\.(com|net|org|eg|io|me|ly)\b/i.test(t))
+    found.push("link");
   return found;
 }
 

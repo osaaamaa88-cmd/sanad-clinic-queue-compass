@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { truncateClientKey } from "./limits";
 
 /** Public: profile media (signed URLs), posts, followers count and real rating average. */
 export const svrGetClinicProfile = createServerFn({ method: "POST" })
@@ -74,38 +75,11 @@ export const svrGetClinicProfile = createServerFn({ method: "POST" })
     };
   });
 
-/** Public: live queue numbers for the profile card. */
-export const svrClinicQueueStats = createServerFn({ method: "POST" })
-  .inputValidator((data: { clinicId: string }) => {
-    if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-    return { clinicId: data.clinicId };
-  })
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: clinic } = await supabaseAdmin
-      .from("clinics")
-      .select("now_serving, clinic_status, delay_minutes, bookings_closed")
-      .eq("id", data.clinicId)
-      .maybeSingle();
-    const { count: waiting } = await supabaseAdmin
-      .from("bookings")
-      .select("*", { count: "exact", head: true })
-      .eq("clinic_id", data.clinicId)
-      .eq("status", "waiting");
-    return {
-      nowServing: clinic?.now_serving ?? 0,
-      waiting: waiting ?? 0,
-      clinicStatus: clinic?.clinic_status ?? "normal",
-      delayMinutes: clinic?.delay_minutes ?? 0,
-      bookingsClosed: Boolean(clinic?.bookings_closed),
-    };
-  });
-
 /** Public: follow / unfollow a clinic with an anonymous device key. */
 export const svrToggleFollow = createServerFn({ method: "POST" })
   .inputValidator((data: { clinicId: string; followerKey: string; follow: boolean }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-    const key = String(data.followerKey ?? "").slice(0, 80);
+    const key = truncateClientKey(data.followerKey);
     if (!key) throw new Error("Invalid input");
     return { clinicId: data.clinicId, followerKey: key, follow: Boolean(data.follow) };
   })
@@ -139,7 +113,7 @@ export const svrToggleFollow = createServerFn({ method: "POST" })
 export const svrIsFollowing = createServerFn({ method: "POST" })
   .inputValidator((data: { clinicId: string; followerKey: string }) => {
     if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-    return { clinicId: data.clinicId, followerKey: String(data.followerKey ?? "").slice(0, 80) };
+    return { clinicId: data.clinicId, followerKey: truncateClientKey(data.followerKey) };
   })
   .handler(async ({ data }) => {
     data.followerKey = await (
@@ -203,81 +177,10 @@ export const svrUpdateClinicProfile = createServerFn({ method: "POST" })
       if (raw && !youtubeId(raw)) throw new Error("INVALID_YOUTUBE");
       patch.youtube_url = raw ? `https://www.youtube.com/watch?v=${youtubeId(raw)}` : "";
     }
-    const { error } = await supabaseAdmin
-      .from("clinics")
-      .update(patch as never)
-      .eq("id", data.clinicId);
+    const { error } = await supabaseAdmin.from("clinics").update(patch).eq("id", data.clinicId);
     if (error) {
       console.error("[svrUpdateClinicProfile]", error.message);
       throw new Error("UPDATE_FAILED");
-    }
-    return { ok: true as const };
-  });
-
-/** Doctor/secretary: upload avatar, cover, or a gallery post (base64 payload). */
-export const svrUploadClinicMedia = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (data: {
-      clinicId: string;
-      kind: "avatar" | "cover" | "post";
-      fileName: string;
-      contentType: string;
-      base64: string;
-      caption?: string;
-    }) => {
-      if (!data || typeof data.clinicId !== "string") throw new Error("Invalid input");
-      if (!["avatar", "cover", "post"].includes(data.kind)) throw new Error("Invalid kind");
-      const base64 = String(data.base64 ?? "");
-      if (!base64) throw new Error("Invalid file");
-      if (base64.length > 9_000_000) throw new Error("FILE_TOO_LARGE");
-      const contentType = String(data.contentType ?? "");
-      if (!/^(image|video)\//.test(contentType)) throw new Error("INVALID_TYPE");
-      return {
-        clinicId: data.clinicId,
-        kind: data.kind as "avatar" | "cover" | "post",
-        fileName: String(data.fileName ?? "file")
-          .slice(-60)
-          .replace(/[^a-zA-Z0-9._-]/g, "_"),
-        contentType,
-        base64,
-        caption: String(data.caption ?? "").slice(0, 300),
-      };
-    },
-  )
-  .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { assertClinicManager } = await import("@/lib/clinic-access.server");
-    await assertClinicManager(supabaseAdmin, data.clinicId, context.userId);
-
-    const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
-    const path = `${data.clinicId}/${data.kind}/${Date.now()}-${data.fileName}`;
-    const { error: upErr } = await supabaseAdmin.storage
-      .from("clinic-media")
-      .upload(path, bytes, { contentType: data.contentType, upsert: true });
-    if (upErr) {
-      console.error("[svrUploadClinicMedia] upload", upErr.message);
-      throw new Error("UPLOAD_FAILED");
-    }
-
-    if (data.kind === "post") {
-      const { error } = await supabaseAdmin.from("clinic_posts").insert({
-        clinic_id: data.clinicId,
-        media_url: path,
-        media_type: data.contentType.startsWith("video/") ? "video" : "image",
-        caption: data.caption,
-      });
-      if (error) {
-        console.error("[svrUploadClinicMedia] post insert", error.message);
-        throw new Error("UPLOAD_FAILED");
-      }
-    } else {
-      const patch = data.kind === "avatar" ? { avatar_url: path } : { cover_url: path };
-      const { error } = await supabaseAdmin.from("clinics").update(patch).eq("id", data.clinicId);
-      if (error) {
-        console.error("[svrUploadClinicMedia] clinic update", error.message);
-        throw new Error("UPLOAD_FAILED");
-      }
     }
     return { ok: true as const };
   });

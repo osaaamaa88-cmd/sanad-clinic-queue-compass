@@ -5,7 +5,70 @@ import {
   type FeedCursor,
   type FeedPost,
   type FeedTab,
+  type TopDoctorComment,
 } from "./community-logic";
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+/**
+ * Narrows one untyped RPC row to a FeedPost. The RPC returns JSON, so every
+ * field is read defensively instead of casting the whole page.
+ */
+function toFeedPost(row: unknown): FeedPost {
+  const r: Record<string, unknown> = isRecord(row) ? row : {};
+  const str = (key: string): string => {
+    const v = r[key];
+    return typeof v === "string" ? v : "";
+  };
+  const nullableStr = (key: string): string | null => {
+    const v = r[key];
+    return typeof v === "string" ? v : null;
+  };
+  const top = isRecord(r.top_doctor_comment)
+    ? ({
+        id: typeof r.top_doctor_comment.id === "string" ? r.top_doctor_comment.id : "",
+        author_name:
+          typeof r.top_doctor_comment.author_name === "string"
+            ? r.top_doctor_comment.author_name
+            : "",
+        clinic_id:
+          typeof r.top_doctor_comment.clinic_id === "string" ? r.top_doctor_comment.clinic_id : "",
+        avatar_url:
+          typeof r.top_doctor_comment.avatar_url === "string"
+            ? r.top_doctor_comment.avatar_url
+            : "",
+        body: typeof r.top_doctor_comment.body === "string" ? r.top_doctor_comment.body : "",
+        created_at:
+          typeof r.top_doctor_comment.created_at === "string"
+            ? r.top_doctor_comment.created_at
+            : "",
+      } satisfies TopDoctorComment)
+    : null;
+  return {
+    id: str("id"),
+    author_name: str("author_name"),
+    is_anonymous: r.is_anonymous === true,
+    is_mine: r.is_mine === true,
+    clinic_id: nullableStr("clinic_id"),
+    doctor_name: nullableStr("doctor_name"),
+    doctor_avatar: nullableStr("doctor_avatar"),
+    kind: str("kind"),
+    body: str("body"),
+    bg_style: str("bg_style"),
+    font_style: str("font_style"),
+    image_path: str("image_path"),
+    specialty_id: str("specialty_id"),
+    created_at: str("created_at"),
+    likes_count: Number(r.likes_count) || 0,
+    comments_count: Number(r.comments_count) || 0,
+    my_liked: r.my_liked === true,
+    my_saved: r.my_saved === true,
+    answered_by_doctor: r.answered_by_doctor === true,
+    top_doctor_comment: top,
+  };
+}
 
 export type FeedParams = {
   tab: FeedTab;
@@ -18,20 +81,16 @@ export type FeedParams = {
 export async function fetchFeedPage(params: FeedParams, cursor: FeedCursor): Promise<FeedPost[]> {
   const { data, error } = await supabase.rpc("community_feed_page", {
     p_limit: FEED_PAGE_SIZE,
-    p_cursor_created_at: cursor?.created_at,
-    p_cursor_id: cursor?.id,
+    ...(cursor ? { p_cursor_created_at: cursor.created_at, p_cursor_id: cursor.id } : {}),
     p_tab: params.tab,
-    p_specialty: params.specialty || undefined,
-    p_follower_key: params.followerKey || undefined,
+    ...(params.specialty ? { p_specialty: params.specialty } : {}),
+    ...(params.followerKey ? { p_follower_key: params.followerKey } : {}),
     p_answered: params.tab === "questions" ? params.answered : "all",
-    p_search: params.search || undefined,
+    ...(params.search ? { p_search: params.search } : {}),
   });
   if (error) throw error;
-  return ((data ?? []) as unknown as FeedPost[]).map((p) => ({
-    ...p,
-    likes_count: Number(p.likes_count) || 0,
-    comments_count: Number(p.comments_count) || 0,
-  }));
+  const rows = Array.isArray(data) ? data : [];
+  return rows.map(toFeedPost);
 }
 
 /** Signed image URLs cached ~50 minutes (they are issued for 60). */
@@ -85,7 +144,10 @@ export async function fetchComments(postId: string, page: number): Promise<Commu
     ? await supabase
         .from("community_comments")
         .select("id, post_id, author_id, author_name, clinic_id, body, created_at, parent_id")
-        .in("parent_id", top.map((t) => t.id))
+        .in(
+          "parent_id",
+          top.map((t) => t.id),
+        )
         .order("created_at", { ascending: true })
     : { data: [] };
   const rows = [...top, ...(replies ?? [])];

@@ -1,7 +1,7 @@
 /** 4-7-8 calming breath protocol used by Nemo. Pure + browser-safe. */
-export type BreathPhase = { key: "inhale" | "hold" | "exhale"; label: string; seconds: number };
+type BreathPhase = { key: "inhale" | "hold" | "exhale"; label: string; seconds: number };
 
-export const BREATH_PATTERN: BreathPhase[] = [
+const BREATH_PATTERN: [BreathPhase, ...BreathPhase[]] = [
   { key: "inhale", label: "شهيق بهدوء من أنفك", seconds: 4 },
   { key: "hold", label: "احبس نفسك براحة", seconds: 7 },
   { key: "exhale", label: "زفير ببطء من بُقّك", seconds: 8 },

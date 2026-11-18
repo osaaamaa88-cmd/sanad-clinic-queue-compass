@@ -40,7 +40,9 @@ export function useTheme() {
   return { mode, toggle };
 }
 
-type VTDoc = Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void>; finished: Promise<void> } };
+type VTDoc = Document & {
+  startViewTransition?: (cb: () => void) => { ready: Promise<void>; finished: Promise<void> };
+};
 
 /** Runs a theme toggle with a circular reveal expanding from the tap point. */
 export function circularReveal(e: { clientX: number; clientY: number }, run: () => void) {

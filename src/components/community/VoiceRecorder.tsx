@@ -4,7 +4,13 @@ import { toast } from "sonner";
 
 const MAX_SECONDS = 60;
 
-export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChange: (b: Blob | null) => void }) {
+export function VoiceRecorder({
+  value,
+  onChange,
+}: {
+  value: Blob | null;
+  onChange: (b: Blob | null) => void;
+}) {
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [url, setUrl] = useState("");
@@ -34,10 +40,13 @@ export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChang
   }
 
   async function start() {
-    if (typeof MediaRecorder === "undefined") return void toast.error("جهازك مش بيدعم التسجيل الصوتي");
+    if (typeof MediaRecorder === "undefined")
+      return void toast.error("جهازك مش بيدعم التسجيل الصوتي");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const type = ["audio/webm", "audio/mp4", "audio/ogg"].find((t) => MediaRecorder.isTypeSupported(t)) ?? "";
+      const type =
+        ["audio/webm", "audio/mp4", "audio/ogg"].find((t) => MediaRecorder.isTypeSupported(t)) ??
+        "";
       const rec = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
       const chunks: Blob[] = [];
       rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
@@ -65,7 +74,12 @@ export function VoiceRecorder({ value, onChange }: { value: Blob | null; onChang
     return (
       <div className="mt-2 flex items-center gap-2 rounded-2xl border border-border bg-card p-2">
         <audio src={url} controls className="h-11 flex-1" />
-        <button type="button" onClick={() => onChange(null)} aria-label="حذف التسجيل" className="grid h-11 w-11 place-items-center rounded-full bg-destructive/10 text-destructive">
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          aria-label="حذف التسجيل"
+          className="grid h-11 w-11 place-items-center rounded-full bg-destructive/10 text-destructive"
+        >
           <Trash2 className="h-5 w-5" />
         </button>
       </div>

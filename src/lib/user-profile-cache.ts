@@ -6,11 +6,11 @@
 export type CachedProfile = {
   userId: string;
   name: string;
-  email?: string;
-  avatar?: string;
-  phone?: string;
+  email?: string | undefined;
+  avatar?: string | undefined;
+  phone?: string | undefined;
   role: "patient" | "doctor" | "secretary";
-  clinicId?: string;
+  clinicId?: string | undefined;
   cachedAt: number;
 };
 

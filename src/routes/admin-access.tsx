@@ -75,6 +75,10 @@ type Analytics = {
   pendingClinics: number;
   verifiedClinics: number;
   disabledClinics: number;
+  usersTotal: number;
+  usersNewToday: number;
+  usersNewWeek: number;
+  usersByRole: { patient: number; doctor: number; secretary: number };
   topClinics: { id: string; count: number; doctor: string; specialtyId: string }[];
   topSpecialties: { specialtyId: string; count: number }[];
 };
@@ -627,6 +631,22 @@ function AnalyticsTab({
           <SummaryBox label="حجوزات" value={analytics.totalBookings} />
           <SummaryBox label="عيادات مسجلة" value={analytics.totalClinics} />
           <SummaryBox label="بانتظار التفعيل" value={pendingCount} tone="warn" />
+        </div>
+      </div>
+
+      {/* التسجيلات */}
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-primary" />
+          <p className="text-sm font-black">التسجيلات</p>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+          <SummaryBox label="المسجلون" value={analytics.usersTotal} />
+          <SummaryBox label="جدد اليوم" value={analytics.usersNewToday} />
+          <SummaryBox label="جدد هذا الأسبوع" value={analytics.usersNewWeek} />
+          <SummaryBox label="مرضى" value={analytics.usersByRole.patient} />
+          <SummaryBox label="أطباء" value={analytics.usersByRole.doctor} />
+          <SummaryBox label="سكرتارية" value={analytics.usersByRole.secretary} />
         </div>
       </div>
 

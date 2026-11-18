@@ -1,7 +1,8 @@
-export type KycDocumentType =
-  "syndicate_card" | "practice_license" | "national_id" | "other" | "unknown";
+import { toLatinDigits } from "./input-validation.ts";
 
-export type KycImageQuality = "clear" | "blurry" | "cropped" | "glare" | "unreadable" | "unknown";
+type KycDocumentType = "syndicate_card" | "practice_license" | "national_id" | "other" | "unknown";
+
+type KycImageQuality = "clear" | "blurry" | "cropped" | "glare" | "unreadable" | "unknown";
 
 export type KycScanResult = {
   found: boolean;
@@ -62,12 +63,8 @@ export function parseKycScanResult(value: unknown): KycScanResult {
   };
 }
 
-export function normalizeDigits(value: string): string {
-  return value.replace(/[٠-٩۰-۹]/g, (digit) => {
-    const code = digit.charCodeAt(0);
-    return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
-  });
-}
+/** تحويل الأرقام العربية/الفارسية إلى لاتينية — النسخة الكانونية في input-validation. */
+export const normalizeDigits = toLatinDigits;
 
 export function compareName(doctorName: string, documentName: string): "match" | "review" {
   const normalize = (value: string) =>

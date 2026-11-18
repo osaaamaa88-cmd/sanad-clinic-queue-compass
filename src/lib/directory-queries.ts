@@ -3,7 +3,7 @@ import { getVerifiedClinics } from "@/lib/mock-data";
 import { listHospitals } from "@/lib/hospitals.functions";
 
 /** Directory data changes rarely; keep it fresh for an hour so screens open instantly from cache. */
-export const DIRECTORY_STALE_MS = 60 * 60 * 1000;
+const DIRECTORY_STALE_MS = 60 * 60 * 1000;
 
 export const clinicsQuery = queryOptions({
   queryKey: ["directory", "clinics"],

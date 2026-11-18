@@ -17,7 +17,14 @@ import { celebrate } from "@/lib/confetti";
 export const STORY_SEEN_KEY = "sanad_story_seen_v1";
 export const DOCTOR_STORY_SEEN_KEY = "sanad_doctor_story_seen_v1";
 
-type Scene = { img: string; kicker: string; title: string; body: string; overlay?: "radar" | "verified"; hook?: string };
+type Scene = {
+  img: string;
+  kicker: string;
+  title: string;
+  body: string;
+  overlay?: "radar" | "verified";
+  hook?: string;
+};
 
 const patientScenes: Scene[] = [
   {
@@ -89,9 +96,24 @@ const SCENE_MS = 6500;
 
 function RadarOverlay() {
   const pins = [
-    { cls: "story-pin-a", icon: <MapPin className="h-4 w-4 text-story-glow" />, label: "د. سارة • أطفال", sub: "٤٠٠ م • مفتوحة الآن" },
-    { cls: "story-pin-b", icon: <Siren className="h-4 w-4 text-story-glow" />, label: "مستشفى حكومي", sub: "طوارئ ٢٤ ساعة" },
-    { cls: "story-pin-c", icon: <Zap className="h-4 w-4 text-story-glow" />, label: "د. أحمد • باطنة", sub: "حجز فوري" },
+    {
+      cls: "story-pin-a",
+      icon: <MapPin className="h-4 w-4 text-story-glow" />,
+      label: "د. سارة • أطفال",
+      sub: "٤٠٠ م • مفتوحة الآن",
+    },
+    {
+      cls: "story-pin-b",
+      icon: <Siren className="h-4 w-4 text-story-glow" />,
+      label: "مستشفى حكومي",
+      sub: "طوارئ ٢٤ ساعة",
+    },
+    {
+      cls: "story-pin-c",
+      icon: <Zap className="h-4 w-4 text-story-glow" />,
+      label: "د. أحمد • باطنة",
+      sub: "حجز فوري",
+    },
   ];
   return (
     <div className="pointer-events-none absolute inset-0 z-[5]" aria-hidden>
@@ -119,7 +141,13 @@ function RadarOverlay() {
   );
 }
 
-export function StorySplash({ onDone, variant = "patient" }: { onDone: () => void; variant?: "patient" | "doctor" }) {
+export function StorySplash({
+  onDone,
+  variant = "patient",
+}: {
+  onDone: () => void;
+  variant?: "patient" | "doctor";
+}) {
   const scenes = variant === "doctor" ? doctorScenes : patientScenes;
   const seenKey = variant === "doctor" ? DOCTOR_STORY_SEEN_KEY : STORY_SEEN_KEY;
   const navigate = useNavigate();
@@ -169,6 +197,7 @@ export function StorySplash({ onDone, variant = "patient" }: { onDone: () => voi
       const t = window.setTimeout(() => void celebrate(), 700);
       return () => window.clearTimeout(t);
     }
+    return;
   }, [last]);
 
   useEffect(() => {
@@ -187,6 +216,9 @@ export function StorySplash({ onDone, variant = "patient" }: { onDone: () => voi
     if (to) void navigate({ to });
   };
 
+  const scene = scenes[i];
+  if (!scene) return null;
+
   return (
     <div
       className="story-root fixed inset-0 z-[100] overflow-hidden bg-story-night"
@@ -198,7 +230,11 @@ export function StorySplash({ onDone, variant = "patient" }: { onDone: () => voi
       <div ref={emblaRef} className="absolute inset-0 overflow-hidden">
         <div className="flex h-full">
           {scenes.map((s, idx) => (
-            <div key={idx} aria-hidden={idx !== i} className="relative h-full min-w-0 flex-[0_0_100%] overflow-hidden">
+            <div
+              key={idx}
+              aria-hidden={idx !== i}
+              className="relative h-full min-w-0 flex-[0_0_100%] overflow-hidden"
+            >
               <img
                 src={s.img}
                 alt=""
@@ -215,9 +251,13 @@ export function StorySplash({ onDone, variant = "patient" }: { onDone: () => voi
       </div>
       <div className="story-shade pointer-events-none absolute inset-0" />
       <div className="story-grain pointer-events-none absolute inset-0" />
-      {scenes[i].overlay === "radar" && <RadarOverlay key={`radar-${i}`} />}
-      {scenes[i].overlay === "verified" && (
-        <div key={`ver-${i}`} className="pointer-events-none absolute inset-x-0 top-[34%] z-[6] flex flex-col items-center gap-2.5 px-6" aria-hidden>
+      {scene.overlay === "radar" && <RadarOverlay key={`radar-${i}`} />}
+      {scene.overlay === "verified" && (
+        <div
+          key={`ver-${i}`}
+          className="pointer-events-none absolute inset-x-0 top-[34%] z-[6] flex flex-col items-center gap-2.5 px-6"
+          aria-hidden
+        >
           {["✓ عيادة موثّقة", "⭐ بروفايل متكامل", "📅 حجز وطابور مباشر"].map((t, k) => (
             <span
               key={t}
@@ -229,9 +269,14 @@ export function StorySplash({ onDone, variant = "patient" }: { onDone: () => voi
           ))}
         </div>
       )}
-      {scenes[i].hook && (
-        <div key={`hook-${i}`} className="story-punch pointer-events-none absolute inset-x-0 top-[22%] z-[6] flex justify-center px-6">
-          <span className="rounded-xl bg-story-ink px-4 py-2 text-lg font-extrabold text-story-night shadow-gold">{scenes[i].hook}</span>
+      {scene.hook && (
+        <div
+          key={`hook-${i}`}
+          className="story-punch pointer-events-none absolute inset-x-0 top-[22%] z-[6] flex justify-center px-6"
+        >
+          <span className="rounded-xl bg-story-ink px-4 py-2 text-lg font-extrabold text-story-night shadow-gold">
+            {scene.hook}
+          </span>
         </div>
       )}
 
@@ -271,34 +316,44 @@ export function StorySplash({ onDone, variant = "patient" }: { onDone: () => voi
       {/* caption */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 mx-auto max-w-md px-6 pb-[max(env(safe-area-inset-bottom),24px)]">
         <div key={i} className="story-caption">
-          <p className="story-line text-sm font-bold text-story-glow" style={{ animationDelay: "150ms" }}>
-            {scenes[i].kicker}
+          <p
+            className="story-line text-sm font-bold text-story-glow"
+            style={{ animationDelay: "150ms" }}
+          >
+            {scene.kicker}
           </p>
           <h1
             className="story-line mt-2 text-[28px] font-extrabold leading-[1.35] text-story-ink"
             style={{ animationDelay: "350ms" }}
           >
-            {scenes[i].title}
+            {scene.title}
           </h1>
           <p
             className="story-line mt-3 text-base leading-7 text-story-ink/85"
             style={{ animationDelay: "600ms" }}
           >
-            {scenes[i].body}
+            {scene.body}
           </p>
         </div>
 
         {last && variant === "doctor" ? (
-          <div className="story-line pointer-events-auto mt-6 space-y-2.5" style={{ animationDelay: "850ms" }}>
+          <div
+            className="story-line pointer-events-auto mt-6 space-y-2.5"
+            style={{ animationDelay: "850ms" }}
+          >
             <button
               onClick={finish}
               className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-story-glow text-base font-extrabold text-story-night shadow-gold transition active:scale-[0.97]"
             >
-              <Stethoscope className="h-5 w-5" /> ابدأ عيادتك مع سند <ArrowLeft className="h-5 w-5" />
+              <Stethoscope className="h-5 w-5" /> ابدأ عيادتك مع سند{" "}
+              <ArrowLeft className="h-5 w-5" />
             </button>
           </div>
         ) : last ? (
-          <div className="story-line pointer-events-auto mt-6 space-y-2.5" style={{ animationDelay: "850ms" }}>
+          <div
+            className="story-line pointer-events-auto mt-6 space-y-2.5"
+            style={{ animationDelay: "850ms" }}
+          >
             <button
               onClick={() => choose("patient", "/patient/login")}
               className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-story-glow text-base font-extrabold text-story-night shadow-gold transition active:scale-[0.97]"

@@ -42,8 +42,16 @@ const securityHeaders = createMiddleware().server(async ({ next }) => {
   }
   const res = await next();
   try {
+    // `next()` may resolve to a bare Response or to a wrapper carrying one.
     const h =
-      (res as { response?: Response }).response?.headers ?? (res as unknown as Response).headers;
+      res instanceof Response
+        ? res.headers
+        : typeof res === "object" &&
+            res !== null &&
+            "response" in res &&
+            res.response instanceof Response
+          ? res.response.headers
+          : undefined;
     h?.set("X-Content-Type-Options", "nosniff");
     h?.set("Referrer-Policy", "strict-origin-when-cross-origin");
   } catch {

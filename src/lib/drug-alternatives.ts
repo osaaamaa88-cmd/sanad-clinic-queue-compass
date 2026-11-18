@@ -1,7 +1,7 @@
 // دليل البديل المصري للدواء الناقص — جدول محلي سريع يعمل أوفلاين.
 // الأسعار استرشادية بالجنيه المصري وتتغير — راجع الصيدلية دائماً.
 
-export type LocalAlt = {
+type LocalAlt = {
   name: string;
   company: string;
   strength: string;
@@ -16,7 +16,7 @@ export type LocalDrug = {
   alts: LocalAlt[];
 };
 
-export const LOCAL_ALTS: LocalDrug[] = [
+const LOCAL_ALTS: LocalDrug[] = [
   {
     keys: ["concor", "كونكور", "bisoprolol", "بيسوبرولول"],
     active: "بيسوبرولول فومارات",

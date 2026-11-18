@@ -1,79 +1,27 @@
 import { Reveal } from "@/components/motion/Reveal";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { directionsPath } from "@/lib/directions";
 import { ClientOnly } from "@tanstack/react-router";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { clinicsQuery, hospitalsQuery } from "@/lib/directory-queries";
+import { lazy, Suspense } from "react";
 import {
   Map as MapIcon,
   List,
-  MapPin,
-  Star,
   Stethoscope,
   Search as SearchIcon,
   X,
   ArrowUpDown,
-  BadgeCheck,
-  Users,
   ChevronLeft,
-  Navigation,
   LayoutGrid,
-  Route as RouteIcon,
-  Phone,
-  MessageCircle,
 } from "lucide-react";
 import { specialtyIcons } from "@/lib/specialty-icons";
-import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
 const ClinicsMap = lazy(() =>
   import("@/components/ClinicsMap").then((m) => ({ default: m.ClinicsMap })),
 );
-import { specialties, getSpecialty, whatsappLink, type Clinic } from "@/lib/mock-data";
-import { getPatientLocation, savePatientLocation, nearestArea } from "@/lib/patient-location";
-import { HOSPITAL_TYPES, type Hospital } from "@/lib/hospitals.functions";
-
-function kmBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
-  const R = 6371,
-    t = Math.PI / 180;
-  const dLat = (b.lat - a.lat) * t,
-    dLng = (b.lng - a.lng) * t;
-  const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLng / 2) ** 2;
-  return Math.round(2 * R * Math.asin(Math.sqrt(h)) * 10) / 10;
-}
-
-function hospitalToClinic(h: Hospital, pos: { lat: number; lng: number }): Clinic {
-  const lat = Number(h.lat),
-    lng = Number(h.lng);
-  return {
-    id: h.id,
-    doctor: h.name,
-    specialtyId: "emergency",
-    address: h.address || h.district,
-    area: h.governorate,
-    distanceKm: kmBetween(pos, { lat, lng }),
-    price: 0,
-    rating: 0,
-    reviews: 0,
-    availableNow: h.emergency_24h,
-    phone: h.emergency_phone || h.phone || "123",
-    nowServing: 0,
-    yourNumber: 0,
-    waitingCount: 0,
-    lat,
-    lng,
-    isVerified: true,
-    submittedAt: 0,
-    updatedAt: 0,
-    clinicStatus: "normal",
-    delayMinutes: 0,
-    bookingsClosed: false,
-    kind: "hospital",
-    approxLocation: !h.location_verified,
-    hospitalType: h.hospital_type,
-  };
-}
+import { specialties } from "@/lib/mock-data";
+import { ClinicListCard } from "@/components/search/ClinicListCard";
+import { ClinicSheet } from "@/components/search/ClinicSheet";
+import { HospitalCard } from "@/components/search/HospitalCard";
+import { useClinicSearch } from "@/hooks/use-clinic-search";
 
 export const Route = createFileRoute("/patient/search")({
   staticData: { sitemap: true },
@@ -97,68 +45,25 @@ export const Route = createFileRoute("/patient/search")({
 });
 
 function Search() {
-  const [view, setView] = useState<"list" | "map">("map");
-  const [spec, setSpec] = useState<string | null>(null);
-  const { data: clinics = [] } = useQuery(clinicsQuery);
-  const { data: hospitals = [] } = useQuery({
-    ...hospitalsQuery,
-    select: (rows: Hospital[]) => rows,
-  });
-  const [kind, setKind] = useState<"all" | "clinic" | "hospital">("all");
-  const applyGpsPosition = useCallback((p: { lat: number; lng: number }) => {
-    setPos(p);
-    const n = nearestArea(p.lat, p.lng);
-    savePatientLocation({
-      name: `بالقرب من ${n.name}`,
-      city: n.city,
-      lat: p.lat,
-      lng: p.lng,
-      gps: true,
-    });
-    setSort("nearest");
-  }, []);
-  const [q, setQ] = useState("");
-  const [sort, setSort] = useState<"nearest" | "price" | "reviews" | "rating">("nearest");
-  const [openNow, setOpenNow] = useState(false);
-  const [selected, setSelected] = useState<Clinic | null>(null);
-  const [pos, setPos] = useState<{ lat: number; lng: number }>({ lat: 30.0444, lng: 31.2357 });
-  useEffect(() => {
-    const saved = getPatientLocation();
-    setPos({ lat: saved.lat, lng: saved.lng });
-  }, []);
-  useEffect(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (p) => applyGpsPosition({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      () => {},
-      { timeout: 10000, enableHighAccuracy: true, maximumAge: 60000 },
-    );
-  }, [applyGpsPosition]);
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    const hosp = hospitals.map((h) => hospitalToClinic(h, pos));
-    let list = kind === "clinic" ? clinics : kind === "hospital" ? hosp : [...clinics, ...hosp];
-    if (spec) list = list.filter((c) => c.kind === "hospital" || c.specialtyId === spec);
-    if (openNow) list = list.filter((c) => c.availableNow);
-    if (term) {
-      list = list.filter((c) => {
-        const s = getSpecialty(c.specialtyId);
-        return (
-          c.doctor.toLowerCase().includes(term) ||
-          c.area.toLowerCase().includes(term) ||
-          c.address.toLowerCase().includes(term) ||
-          (s?.name.toLowerCase().includes(term) ?? false)
-        );
-      });
-    }
-    const ranked = list.filter((clinic) => !clinic.isDemo);
-    const demos = list.filter((clinic) => clinic.isDemo);
-    if (sort === "price") ranked.sort((a, b) => a.price - b.price);
-    else if (sort === "reviews") ranked.sort((a, b) => b.reviews - a.reviews);
-    else if (sort === "rating") ranked.sort((a, b) => b.rating - a.rating);
-    else ranked.sort((a, b) => a.distanceKm - b.distanceKm);
-    return [...ranked, ...demos];
-  }, [clinics, hospitals, pos, kind, spec, q, sort, openNow]);
+  const {
+    view,
+    setView,
+    spec,
+    setSpec,
+    kind,
+    setKind,
+    q,
+    setQ,
+    sort,
+    setSort,
+    openNow,
+    setOpenNow,
+    selected,
+    setSelected,
+    pos,
+    applyGpsPosition,
+    filtered,
+  } = useClinicSearch();
 
   return (
     <AppShell
@@ -323,7 +228,7 @@ function Search() {
               <ClinicsMap
                 clinics={filtered}
                 center={pos}
-                selectedId={selected?.id}
+                selectedId={selected?.id ?? null}
                 onSelect={(c) => setSelected(c)}
                 onLocate={applyGpsPosition}
               />
@@ -356,237 +261,14 @@ function Search() {
                   <HospitalCard c={c} />
                 </Reveal>
               );
-            const s = getSpecialty(c.specialtyId);
-            const SpecIcon = (s && specialtyIcons[s.id]) || Stethoscope;
             return (
               <Reveal key={c.id} index={i}>
-              <Link
-                to="/patient/clinic/$id"
-                params={{ id: c.id }}
-                className="block rounded-3xl tile-3d border border-border bg-card p-4 transition hover:shadow-soft"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary">
-                    <SpecIcon className="h-6 w-6" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate font-bold">{c.doctor}</p>
-                      {c.availableNow && (
-                        <span className="rounded-full bg-success px-2 py-0.5 text-xs font-bold text-success-foreground">
-                          متاح
-                        </span>
-                      )}
-                    </div>
-                    {c.isDemo && (
-                      <span className="mt-1 inline-flex rounded-full border border-warning/40 bg-warning/10 px-2 py-1 text-xs font-bold text-warning">
-                        بيانات تجريبية
-                      </span>
-                    )}
-                    <p className="text-xs text-muted-foreground">{s?.name}</p>
-                    <p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground">
-                      <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-                      <span className="line-clamp-2">
-                        {c.address} — {c.area}
-                      </span>
-                    </p>
-                    <div className="mt-2 flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        {c.isDemo ? (
-                          <span className="text-xs font-bold text-warning">تقييم تجريبي</span>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-warning text-warning" /> {c.rating}
-                          </span>
-                        )}
-                        <span className="flex items-center gap-1">
-                          <RouteIcon className="h-3 w-3" /> {c.distanceKm} كم
-                        </span>
-                      </div>
-                      <span className="rounded-lg bg-primary-soft px-2 py-1 text-sm font-extrabold text-primary">
-                        {c.price} ج
-                      </span>
-                    </div>
-                    <span className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl gradient-primary py-2.5 text-sm font-extrabold text-primary-foreground shadow-soft">
-                      عرض الطبيب والتواصل <ChevronLeft className="h-4 w-4" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
+                <ClinicListCard c={c} />
               </Reveal>
             );
           })}
         </div>
       )}
     </AppShell>
-  );
-}
-
-function Crescent({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <path d="M21 12.79 A9 9 0 1 1 11.21 3 A7 7 0 0 0 21 12.79 Z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function HospitalCard({ c }: { c: Clinic }) {
-  const dest = c.approxLocation ? encodeURIComponent(`${c.doctor} ${c.area}`) : `${c.lat},${c.lng}`;
-  return (
-    <div className="overflow-hidden rounded-3xl tile-3d border border-border bg-card shadow-soft transition hover:border-destructive/40">
-      <Link to="/hospital/$id" params={{ id: c.id }} className="block p-4">
-        <div className="flex items-start gap-3">
-          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-destructive to-destructive/70 text-destructive-foreground shadow-soft">
-            <Crescent className="h-7 w-7" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 font-extrabold leading-snug">{c.doctor}</p>
-            <p className="mt-0.5 text-xs font-semibold text-destructive">
-              مستشفى حكومي · {HOSPITAL_TYPES[c.hospitalType ?? ""] ?? "حكومي"}
-            </p>
-            <p className="mt-1.5 flex items-start gap-1 text-xs text-muted-foreground">
-              <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-              <span className="line-clamp-1">
-                {c.area} — {c.address}
-              </span>
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs font-bold">
-                <RouteIcon className="h-3 w-3" /> {c.distanceKm} كم
-              </span>
-              {c.availableNow && (
-                <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs font-bold text-success">
-                  طوارئ 24 ساعة
-                </span>
-              )}
-              <LocationBadge approx={!!c.approxLocation} />
-            </div>
-          </div>
-          <ChevronLeft className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
-        </div>
-      </Link>
-      <div className="grid grid-cols-2 border-t border-border">
-        <a
-          href={`tel:${c.phone}`}
-          className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-extrabold text-destructive hover:bg-destructive/5"
-        >
-          <Phone className="h-3.5 w-3.5" /> اتصال
-        </a>
-        <a
-          href={directionsPath(c.lat, c.lng, c.doctor)}
-          className="flex items-center justify-center gap-1.5 border-r border-border py-2.5 text-xs font-bold hover:bg-secondary"
-        >
-          <Navigation className="h-3.5 w-3.5" /> الاتجاهات
-        </a>
-      </div>
-    </div>
-  );
-}
-
-function LocationBadge({ approx }: { approx: boolean }) {
-  return approx ? (
-    <span className="rounded-full border border-dashed border-warning px-2 py-0.5 text-xs font-bold text-warning">
-      📍 موقع تقريبي
-    </span>
-  ) : (
-    <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs font-bold text-primary">
-      ✓ موقع مؤكد
-    </span>
-  );
-}
-
-function ClinicSheet({ clinic, onClose }: { clinic: Clinic; onClose: () => void }) {
-  const hospital = clinic.kind === "hospital";
-  const specialty = hospital
-    ? (HOSPITAL_TYPES[clinic.hospitalType ?? ""] ?? "مستشفى حكومي")
-    : getSpecialty(clinic.specialtyId)?.name;
-  const destination =
-    clinic.approxLocation || !Number.isFinite(clinic.lat) || !Number.isFinite(clinic.lng)
-      ? encodeURIComponent(`${clinic.doctor} ${clinic.area} ${clinic.address}`)
-      : `${clinic.lat},${clinic.lng}`;
-  useEffect(() => {
-    const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, [onClose]);
-  return (
-    <section
-      aria-label={`معاينة ${clinic.doctor}`}
-      className="sanad-map-preview fixed inset-x-3 z-[85] mx-auto max-w-xl rounded-lg border border-border bg-card p-4 shadow-soft animate-sheet-up"
-      dir="rtl"
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${hospital ? "bg-destructive/15 text-destructive" : "bg-primary-soft text-primary"}`}
-        >
-          {hospital ? <Crescent className="h-6 w-6" /> : <Stethoscope className="h-5 w-5" />}
-        </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="line-clamp-2 text-sm font-extrabold leading-snug">{clinic.doctor}</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {hospital ? "مستشفى حكومي · " : ""}
-            {specialty}
-          </p>
-          <p
-            className={`mt-1 text-xs font-semibold ${clinic.availableNow ? "text-success" : "text-muted-foreground"}`}
-          >
-            {hospital
-              ? clinic.availableNow
-                ? "طوارئ 24 ساعة"
-                : "مواعيد العمل غير مؤكدة"
-              : clinic.availableNow
-                ? "متاح الآن"
-                : "غير متاح الآن"}
-          </p>
-        </div>
-        <Button size="icon" variant="ghost" aria-label="إغلاق البطاقة" onClick={onClose}>
-          <X />
-        </Button>
-      </div>
-      <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">
-        {clinic.area} — {clinic.address}
-      </p>
-      {clinic.isDemo && (
-        <p className="mt-2 inline-flex rounded-full border border-warning/40 bg-warning/10 px-2 py-1 text-xs font-bold text-warning">
-          بيانات تجريبية
-        </p>
-      )}
-      {hospital && (
-        <div className="mt-2">
-          <LocationBadge approx={!!clinic.approxLocation} />
-        </div>
-      )}
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        {clinic.phone ? (
-          <Button asChild variant={hospital ? "destructive" : "default"}>
-            <a href={`tel:${clinic.phone}`}>
-              <Phone /> اتصال
-            </a>
-          </Button>
-        ) : (
-          <Button disabled variant="secondary">
-            <Phone /> لا يوجد رقم
-          </Button>
-        )}
-        <Button asChild variant="secondary">
-          <a href={directionsPath(clinic.lat, clinic.lng, clinic.doctor)}>
-            <Navigation /> الاتجاهات
-          </a>
-        </Button>
-      </div>
-      <Button asChild variant="link" className="mt-1 h-8 w-full text-xs">
-        {hospital ? (
-          <Link to="/hospital/$id" params={{ id: clinic.id }}>
-            تفاصيل المستشفى <ChevronLeft />
-          </Link>
-        ) : (
-          <Link to="/patient/clinic/$id" params={{ id: clinic.id }}>
-            عرض الطبيب <ChevronLeft />
-          </Link>
-        )}
-      </Button>
-    </section>
   );
 }

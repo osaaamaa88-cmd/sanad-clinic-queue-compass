@@ -24,7 +24,7 @@ export type PostSocial = {
 };
 
 /** Stable per-device key for likes and comments (same key used for follows). */
-export function getViewerKey(): string {
+function getViewerKey(): string {
   return getFollowerKey();
 }
 

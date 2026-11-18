@@ -64,7 +64,7 @@ export function setVoiceMode(on: boolean) {
 
 // --- Senior-friendly mode (كبار السن) --------------------------------------
 // Larger touch targets, automatic spoken replies, and slower clearer speech.
-export const SENIOR_KEY = "sanad_senior_mode";
+const SENIOR_KEY = "sanad_senior_mode";
 
 export function isSeniorModeOn(): boolean {
   try {
@@ -97,7 +97,7 @@ const PREFERRED_FEMALE_NAMES = [
 ];
 // Known male Arabic system voices to avoid.
 const MALE_VOICE_PATTERN = /maged|majed|tarik|tariq|hamed|naayf|arabic male|\bmale\b|ذكر/i;
-export const FEMALE_PITCH = 1.1;
+const FEMALE_PITCH = 1.1;
 
 /** Strip markdown/emojis/symbols and add breathing pauses so TTS reads clearly. */
 export function cleanForSpeech(text: string) {
@@ -114,7 +114,7 @@ export function cleanForSpeech(text: string) {
     .replace(/^[،\s]+|[،\s]+$/g, "")
     .trim();
 }
-export const FEMALE_RATE = 0.85;
+const FEMALE_RATE = 0.85;
 
 let cachedVoices: SpeechSynthesisVoice[] = [];
 function loadVoices() {
@@ -143,7 +143,7 @@ export function getBestFemaleArabicVoice(): SpeechSynthesisVoice | null {
 }
 
 /** Apply the warm female voice settings to any utterance. */
-export function applyFemaleVoice(u: SpeechSynthesisUtterance) {
+function applyFemaleVoice(u: SpeechSynthesisUtterance) {
   const v = getBestFemaleArabicVoice();
   u.lang = v?.lang ?? "ar-EG";
   if (v) u.voice = v;
@@ -309,16 +309,17 @@ type Rec = {
   abort?: () => void;
 };
 
+declare global {
+  interface Window {
+    /** Standard SpeechRecognition (Chrome) and the Safari/older-Chrome prefix. */
+    SpeechRecognition?: new () => Rec;
+    webkitSpeechRecognition?: new () => Rec;
+  }
+}
+
 function createBrowserRecognizer(): Rec | null {
   if (typeof window === "undefined") return null;
-  const C =
-    (
-      window as unknown as {
-        SpeechRecognition?: new () => Rec;
-        webkitSpeechRecognition?: new () => Rec;
-      }
-    ).SpeechRecognition ??
-    (window as unknown as { webkitSpeechRecognition?: new () => Rec }).webkitSpeechRecognition;
+  const C = window.SpeechRecognition ?? window.webkitSpeechRecognition;
   if (!C) return null;
   const r = new C();
   r.lang = "ar-EG";
@@ -410,7 +411,7 @@ function createRecorderRecognizer(): Rec | null {
       const { text } = await voiceTranscribe({
         data: {
           audio: btoa(binary),
-          mime: (blob.type || "audio/webm").split(";")[0],
+          mime: (blob.type || "audio/webm").split(";")[0] ?? "audio/webm",
           sessionKey: getVoiceSessionKey(),
         },
       });

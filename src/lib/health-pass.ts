@@ -1,17 +1,17 @@
 /** كارت سند الطبي: بيانات مضغوطة داخل QR، تُقرأ بدون إنترنت ولا تُرسل لأي خادم. */
 export type HealthPass = {
   name: string;
-  phone?: string;
-  bloodType?: string;
-  allergies?: string;
-  chronic?: string;
-  contactName?: string;
-  contactPhone?: string;
+  phone?: string | undefined;
+  bloodType?: string | undefined;
+  allergies?: string | undefined;
+  chronic?: string | undefined;
+  contactName?: string | undefined;
+  contactPhone?: string | undefined;
   /** وقت الإصدار (ms) */
   issuedAt: number;
 };
 
-export const PASS_PREFIX = "SANAD1:";
+const PASS_PREFIX = "SANAD1:";
 /** صلاحية الكارت: 30 يومًا ثم يُطلب تحديثه */
 export const PASS_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -53,8 +53,14 @@ export function decodeHealthPass(text: string, now = Date.now()): DecodeResult {
     if (typeof o?.n !== "string" || !o.n || typeof o.t !== "number")
       return { ok: false, error: "الكارت ناقص البيانات" };
     const pass: HealthPass = {
-      name: o.n, phone: o.p, bloodType: o.b, allergies: o.a, chronic: o.c,
-      contactName: o.en, contactPhone: o.ep, issuedAt: o.t,
+      name: o.n,
+      phone: o.p,
+      bloodType: o.b,
+      allergies: o.a,
+      chronic: o.c,
+      contactName: o.en,
+      contactPhone: o.ep,
+      issuedAt: o.t,
     };
     return { ok: true, pass, expired: now - o.t > PASS_TTL_MS };
   } catch {

@@ -5,7 +5,7 @@ export type PatientSession = {
   name: string;
   phone: string;
   /** Supabase auth user id when the patient signed in with Google */
-  userId?: string;
+  userId?: string | undefined;
   via: "guest" | "google";
   savedAt: number;
 };

@@ -6,21 +6,16 @@ type PH = typeof import("posthog-js").default;
 let ph: PH | null = null;
 let consented = false;
 
-export const ANALYTICS_CONSENT_KEY = "sanad_analytics_consent";
+const ANALYTICS_CONSENT_KEY = "sanad_analytics_consent";
 
 /** Opt-in state. When false, PostHog is never loaded and events are dropped. */
-export function analyticsConsented(): boolean {
+function analyticsConsented(): boolean {
   if (typeof window === "undefined") return false;
   return localStorage.getItem(ANALYTICS_CONSENT_KEY) === "1";
 }
 
-/** Reads persisted consent at startup — call once before first capture attempt. */
-export function loadAnalyticsConsent(): boolean {
-  consented = analyticsConsented();
-  return consented;
-}
-
-/** Opt-in/out toggle. Opting out stops the loaded client immediately. */
+/** Opt-in/out toggle. Opting out stops the loaded client immediately.
+ *  Public API for the settings screen ("الإعدادات ← تحسين التطبيق"). */
 export function setAnalyticsConsent(allowed: boolean) {
   if (typeof window === "undefined") return;
   consented = allowed;
@@ -40,11 +35,9 @@ function allowed(): boolean {
 }
 
 export function scrubPath(path: string): string {
-  return path
-    .split("?")[0]
-    .split("#")[0]
-    .replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, ":id")
-    .replace(/\/\d{3,}(?=\/|$)/g, "/:id");
+  const noQuery = path.split("?")[0] ?? path;
+  const noHash = noQuery.split("#")[0] ?? noQuery;
+  return noHash.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, ":id").replace(/\/\d{3,}(?=\/|$)/g, "/:id");
 }
 
 async function ensureAnalytics(): Promise<PH | null> {

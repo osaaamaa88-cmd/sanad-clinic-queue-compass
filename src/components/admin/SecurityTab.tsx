@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ShieldCheck, AlertTriangle, Activity, Sparkles, Check } from "lucide-react";
 import { securityScan, resolveErrorLog } from "@/lib/security.functions";
+import { usePolling } from "@/hooks/use-polling";
 
 type Scan = Awaited<ReturnType<typeof securityScan>>;
 
@@ -23,11 +24,7 @@ export function SecurityTab() {
       setBusy(false);
     }
   }, [scan]);
-  useEffect(() => {
-    run();
-    const t = setInterval(run, 60_000);
-    return () => clearInterval(t);
-  }, [run]);
+  usePolling(run, 60_000);
 
   const h = s?.health ?? 0;
   const tone = h >= 90 ? "text-success" : h >= 70 ? "text-warning" : "text-destructive";

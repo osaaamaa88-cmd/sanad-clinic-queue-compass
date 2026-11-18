@@ -1,10 +1,5 @@
 export const KYC_DOCUMENT_LIMIT = 10 * 1024 * 1024;
-export const KYC_DOCUMENT_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-] as const;
+const KYC_DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"] as const;
 
 export function isKycDocumentType(value: string): value is (typeof KYC_DOCUMENT_TYPES)[number] {
   return (KYC_DOCUMENT_TYPES as readonly string[]).includes(value);

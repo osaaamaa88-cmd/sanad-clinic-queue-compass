@@ -1,16 +1,16 @@
 // Browser-safe rules that compare what a doctor typed with what was read from their card.
 
-const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+import { toLatinDigits } from "./input-validation.ts";
 
-export function toLatinDigits(value: string): string {
-  return value.replace(/[٠-٩]/g, (d) => String(AR_DIGITS.indexOf(d)));
-}
+// الأرقام العربية/الفارسية إلى لاتينية — النسخة الكانونية في input-validation
+// (تغطي ٠-٩ و۰-۹؛ النسخة المحلية القديمة كانت تغطي ٠-٩ فقط).
+export { toLatinDigits };
 
 export function onlyDigits(value: string): string {
   return toLatinDigits(value).replace(/\D/g, "");
 }
 
-export function normalizeArabicName(value: string): string {
+function normalizeArabicName(value: string): string {
   return value
     .replace(/[\u064B-\u0652\u0640]/g, "")
     .replace(/[أإآ]/g, "ا")
@@ -24,7 +24,7 @@ export function normalizeArabicName(value: string): string {
 }
 
 /** Share of the typed name's words found on the card (0..1). */
-export function nameMatchScore(typed: string, extracted: string): number {
+function nameMatchScore(typed: string, extracted: string): number {
   const a = normalizeArabicName(typed).split(" ").filter(Boolean);
   const b = new Set(normalizeArabicName(extracted).split(" ").filter(Boolean));
   if (!a.length || !b.size) return 0;

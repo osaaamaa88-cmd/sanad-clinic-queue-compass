@@ -1,12 +1,9 @@
+import { toLatinDigits } from "./input-validation.ts";
+
 export type LabStatus = "normal" | "high" | "low" | "unknown";
 
 function normalizeLabDigits(value: string): string {
-  return value
-    .replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 0x0660))
-    .replace(/[۰-۹]/g, (digit) => String(digit.charCodeAt(0) - 0x06f0))
-    .replace(/[٫]/g, ".")
-    .replace(/[٬]/g, ",")
-    .replace(/[−﹣]/g, "-");
+  return toLatinDigits(value).replace(/[٫]/g, ".").replace(/[٬]/g, ",").replace(/[−﹣]/g, "-");
 }
 
 function parseLabNumber(value: string): number {
@@ -21,12 +18,18 @@ export function checkStatus(value: string, range: string, given: LabStatus): Lab
   if (isNaN(v)) return given;
   const normalizedRange = normalizeLabDigits(range).replace(/,/g, "");
   const nums = (normalizedRange.match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
-  if (/^\s*(<|≤|up to|less|حتى|أقل)/i.test(normalizedRange) && nums.length === 1)
-    return v > nums[0] ? "high" : "normal";
-  if (/^\s*(>|≥|more|أكثر|أكبر)/i.test(normalizedRange) && nums.length === 1)
-    return v < nums[0] ? "low" : "normal";
-  if (nums.length === 2 && nums[0] < nums[1])
-    return v < nums[0] ? "low" : v > nums[1] ? "high" : "normal";
+  const lo = nums[0];
+  const hi = nums[1];
+  if (
+    /^\s*(<|≤|up to|less|حتى|أقل)/i.test(normalizedRange) &&
+    nums.length === 1 &&
+    lo !== undefined
+  )
+    return v > lo ? "high" : "normal";
+  if (/^\s*(>|≥|more|أكثر|أكبر)/i.test(normalizedRange) && nums.length === 1 && lo !== undefined)
+    return v < lo ? "low" : "normal";
+  if (nums.length === 2 && lo !== undefined && hi !== undefined && lo < hi)
+    return v < lo ? "low" : v > hi ? "high" : "normal";
   return given;
 }
 

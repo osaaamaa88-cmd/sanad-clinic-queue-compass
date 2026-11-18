@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Stethoscope, UserRound, ArrowLeftRight } from "lucide-react";
 
 const KEY = "sanad_app_mode";
-export function rememberMode(mode: "patient" | "doctor") {
+function rememberMode(mode: "patient" | "doctor") {
   try {
     localStorage.setItem(KEY, mode);
   } catch {

@@ -1,9 +1,10 @@
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { fetchGeminiText, parseGeminiJson } from "./gemini";
 import { specialties } from "./mock-data";
 
-export type AiTriage = {
+type AiTriage = {
   specialtyIds: string[];
   urgency: "emergency" | "soon" | "routine";
   summary: string;
@@ -33,30 +34,18 @@ export const aiTriage = createServerFn({ method: "POST" })
 شكوى المريض: "${data.need}"`;
     for (const model of MODELS) {
       try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-          {
-            method: "POST",
-            headers: { "content-type": "application/json", "x-goog-api-key": key },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: prompt }] }],
-              generationConfig: {
-                responseMimeType: "application/json",
-                thinkingConfig: { thinkingLevel: "low" },
-              },
-            }),
-            signal: AbortSignal.timeout(40_000),
-          },
-        );
-        if (!res.ok) {
-          if (res.status === 429 || res.status >= 500) continue;
+        const result = await fetchGeminiText({
+          key,
+          model,
+          parts: [{ text: prompt }],
+          signal: AbortSignal.timeout(40_000),
+        });
+        if (!result.ok) {
+          if (result.status === 429 || result.status >= 500) continue;
           return null;
         }
-        const json = (await res.json().catch(() => ({}))) as {
-          candidates?: { content?: { parts?: { text?: string }[] } }[];
-        };
-        const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
-        const o = JSON.parse(raw.replace(/```json|```/g, "").trim()) as {
+        const raw = result.text;
+        const o = parseGeminiJson(raw) as {
           specialtyIds?: unknown;
           urgency?: unknown;
           summary?: unknown;

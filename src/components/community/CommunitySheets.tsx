@@ -8,7 +8,15 @@ const CATEGORIES = [
   { id: "therapy", label: "علاجات" },
 ] as const;
 
-function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+function Sheet({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <Drawer.Root open onOpenChange={(o) => !o && onClose()}>
       <Drawer.Portal>
@@ -18,7 +26,9 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
           className="fixed inset-x-0 bottom-0 z-[101] flex max-h-[85vh] flex-col rounded-t-[28px] border-t border-border bg-card pb-[env(safe-area-inset-bottom)] focus:outline-none"
         >
           <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-muted-foreground/30" />
-          <Drawer.Title className="px-4 py-3 text-center text-base font-extrabold">{title}</Drawer.Title>
+          <Drawer.Title className="px-4 py-3 text-center text-base font-extrabold">
+            {title}
+          </Drawer.Title>
           <div className="overflow-y-auto px-4 pb-6">{children}</div>
         </Drawer.Content>
       </Drawer.Portal>

@@ -347,18 +347,23 @@ export const adminListBookings = createServerFn({ method: "GET" }).handler(async
 export const adminAnalytics = createServerFn({ method: "GET" }).handler(async () => {
   await assertAdmin();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const [bookingsRes, clinicsRes] = await Promise.all([
+  const [bookingsRes, clinicsRes, staffRes] = await Promise.all([
     supabaseAdmin.from("bookings").select("clinic_id"),
-    supabaseAdmin.from("clinics").select("id, doctor, specialty_id, is_verified, is_disabled"),
+    supabaseAdmin
+      .from("clinics")
+      .select("id, doctor, specialty_id, is_verified, is_disabled, owner_id"),
+    supabaseAdmin.from("clinic_staff").select("user_id"),
   ]);
   if (bookingsRes.error) throw new Error(bookingsRes.error.message);
   if (clinicsRes.error) throw new Error(clinicsRes.error.message);
+  if (staffRes.error) throw new Error(staffRes.error.message);
   const clinics = (clinicsRes.data ?? []) as {
     id: string;
     doctor: string;
     specialty_id: string;
     is_verified: boolean;
     is_disabled: boolean;
+    owner_id: string | null;
   }[];
   const bookings = (bookingsRes.data ?? []) as { clinic_id: string }[];
   const clinicMap = new Map(clinics.map((c) => [c.id, c]));
@@ -381,12 +386,37 @@ export const adminAnalytics = createServerFn({ method: "GET" }).handler(async ()
   const topSpecialties = Array.from(perSpecialty.entries())
     .map(([specialtyId, count]) => ({ specialtyId, count }))
     .sort((a, b) => b.count - a.count);
+  // إحصائيات التسجيلات: عدد المستخدمين من Auth مع تقسيمهم حسب الدور
+  // (مالك عيادة = طبيب، في طاقم عيادة = سكرتير، غير ذلك = مريض) — نفس منطق تبويب المستخدمين.
+  const ownerIds = new Set(clinics.map((c) => c.owner_id).filter((id): id is string => !!id));
+  const staffIds = new Set(((staffRes.data ?? []) as { user_id: string }[]).map((s) => s.user_id));
+  const allUsers: { id: string; created_at: string }[] = [];
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw new Error(error.message);
+    const users = data.users ?? [];
+    allUsers.push(...users.map((u) => ({ id: u.id, created_at: u.created_at })));
+    if (users.length < 1000) break;
+  }
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const weekStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const usersByRole = { patient: 0, doctor: 0, secretary: 0 };
+  for (const u of allUsers) {
+    if (ownerIds.has(u.id)) usersByRole.doctor++;
+    else if (staffIds.has(u.id)) usersByRole.secretary++;
+    else usersByRole.patient++;
+  }
   return {
     totalBookings: bookings.length,
     totalClinics: clinics.length,
     pendingClinics: clinics.filter((c) => !c.is_verified).length,
     verifiedClinics: clinics.filter((c) => c.is_verified).length,
     disabledClinics: clinics.filter((c) => c.is_disabled).length,
+    usersTotal: allUsers.length,
+    usersNewToday: allUsers.filter((u) => new Date(u.created_at) >= todayStart).length,
+    usersNewWeek: allUsers.filter((u) => new Date(u.created_at) >= weekStart).length,
+    usersByRole,
     topClinics,
     topSpecialties,
   };

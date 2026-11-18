@@ -1,5 +1,5 @@
 // Common drugs in the Egyptian market (trade name, active ingredient, form). Doctors can still type any free name.
-export type Drug = { n: string; a: string; f: string; ar?: string };
+type Drug = { n: string; a: string; f: string; ar?: string | undefined };
 
 const raw = `Augmentin 1g|Amoxicillin + Clavulanate|أقراص
 Augmentin 625mg|Amoxicillin + Clavulanate|أقراص
@@ -486,10 +486,12 @@ Ophthalmic Fucithalmic|Fusidic acid|قطرة عين|فيوسيثالميك`;
 const map = new Map<string, Drug>();
 for (const l of raw.split("\n")) {
   const [n, a, f] = l.split("|");
+  if (!n || !a || !f) continue;
   map.set(n.toLowerCase(), { n, a, f });
 }
 for (const l of extra.split("\n")) {
   const [n, a, f, ar] = l.split("|");
+  if (!n || !a || !f) continue;
   const k = n.toLowerCase(),
     cur = map.get(k);
   if (cur) cur.ar = ar;
@@ -497,11 +499,19 @@ for (const l of extra.split("\n")) {
 }
 // Attach Arabic names to strength variants of the same brand (e.g. "Augmentin 625mg").
 const brandAr = new Map<string, string>();
-for (const d of map.values())
-  if (d.ar) brandAr.set(d.n.split(" ")[0].toLowerCase(), d.ar.split(" ")[0]);
-for (const d of map.values()) if (!d.ar) d.ar = brandAr.get(d.n.split(" ")[0].toLowerCase());
+for (const d of map.values()) {
+  if (!d.ar) continue;
+  const first = d.n.split(" ")[0];
+  const arFirst = d.ar.split(" ")[0];
+  if (first && arFirst) brandAr.set(first.toLowerCase(), arFirst);
+}
+for (const d of map.values()) {
+  if (d.ar) continue;
+  const first = d.n.split(" ")[0];
+  if (first) d.ar = brandAr.get(first.toLowerCase());
+}
 
-export const DRUGS: Drug[] = [...map.values()];
+const DRUGS: Drug[] = [...map.values()];
 
 const norm = (x: string) =>
   x
@@ -543,7 +553,7 @@ export function doseForForm(f: string): string | null {
   return null;
 }
 
-export const DOSE_PRESETS = [
+export const DOSE_PRESETS: [string, ...string[]] = [
   "قرص كل 8 ساعات بعد الأكل لمدة أسبوع",
   "قرص كل 12 ساعة بعد الأكل لمدة 5 أيام",
   "قرص مرة يومياً بعد الفطار",

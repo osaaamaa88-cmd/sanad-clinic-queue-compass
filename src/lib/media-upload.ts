@@ -2,9 +2,9 @@ import { toast } from "sonner";
 import { svrCreateUploadTicket, svrFinalizeUpload } from "@/lib/media.functions";
 import { KYC_DOCUMENT_LIMIT, isKycDocumentType } from "@/lib/kyc-document";
 
-export type UploadKind = "avatar" | "cover" | "post" | "story" | "kyc";
+type UploadKind = "avatar" | "cover" | "post" | "story" | "kyc";
 const MB = 1024 * 1024;
-export const LIMITS = { avatar: 5 * MB, media: 50 * MB, kyc: KYC_DOCUMENT_LIMIT };
+const LIMITS = { avatar: 5 * MB, media: 50 * MB, kyc: KYC_DOCUMENT_LIMIT };
 const MAX_DIM: Record<UploadKind, number> = {
   avatar: 512,
   cover: 1600,
@@ -60,12 +60,12 @@ export async function uploadMedia(input: {
   clinicId: string;
   kind: UploadKind;
   file: File;
-  caption?: string;
+  caption?: string | undefined;
   highlightId?: string | null;
-  storyKind?: "story" | "urgent";
-  tag?: string;
-  permanent?: boolean;
-  durationHours?: 12 | 24;
+  storyKind?: "story" | "urgent" | undefined;
+  tag?: string | undefined;
+  permanent?: boolean | undefined;
+  durationHours?: 12 | 24 | undefined;
 }): Promise<{ ok: boolean; error?: string }> {
   const { kind } = input;
   const isImage = input.file.type.startsWith("image/");

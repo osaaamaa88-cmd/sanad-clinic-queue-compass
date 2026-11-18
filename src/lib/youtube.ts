@@ -5,5 +5,5 @@ export function youtubeId(input: string): string | null {
   const m = s.match(
     /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{11})/i,
   );
-  return m ? m[1] : null;
+  return m?.[1] ?? null;
 }

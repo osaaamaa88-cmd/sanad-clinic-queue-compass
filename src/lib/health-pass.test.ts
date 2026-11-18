@@ -4,7 +4,12 @@ import { decodeHealthPass, encodeHealthPass, PASS_TTL_MS } from "./health-pass.t
 
 describe("health pass", () => {
   it("round-trips Arabic data", () => {
-    const code = encodeHealthPass({ name: "أسامة محمد", bloodType: "O+", allergies: "بنسلين", issuedAt: 1000 });
+    const code = encodeHealthPass({
+      name: "أسامة محمد",
+      bloodType: "O+",
+      allergies: "بنسلين",
+      issuedAt: 1000,
+    });
     const r = decodeHealthPass(code, 2000);
     assert.equal(r.ok && r.pass.name, "أسامة محمد");
     assert.equal(r.ok && r.pass.allergies, "بنسلين");

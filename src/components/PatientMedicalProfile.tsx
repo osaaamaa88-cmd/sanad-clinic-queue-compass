@@ -84,6 +84,7 @@ export function PatientMedicalProfile({
 
   const organs = useMemo(() => buildOrgans(snap), [snap]);
   const organ = organs.find((o) => o.id === selected) ?? organs[0];
+  if (!organ) return null;
   const score = healthScore(snap);
   const alerts = organs.filter((o) => o.status === "alert" || o.status === "watch");
   const uniqueAlerts = alerts.filter(

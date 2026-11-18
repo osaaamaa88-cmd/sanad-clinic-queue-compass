@@ -17,7 +17,7 @@ export function AvatarActionSheet({
   busy?: boolean;
   onFile: (file: File) => void | Promise<void>;
   onRemove: () => void | Promise<void>;
-  onViewStory?: () => void;
+  onViewStory?: (() => void) | undefined;
 }) {
   const camRef = useRef<HTMLInputElement>(null);
   const galRef = useRef<HTMLInputElement>(null);

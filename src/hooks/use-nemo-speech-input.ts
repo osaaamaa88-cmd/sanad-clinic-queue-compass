@@ -14,7 +14,9 @@ async function startVoiceActivity(isActive: () => boolean, onVoice: () => void) 
   let stream: MediaStream | null = null;
   let ctx: AudioContext | null = null;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true },
+    });
     ctx = new AudioContext();
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 512;
@@ -116,13 +118,16 @@ export function useNemoSpeechInput(options: SpeechInputOptions = {}) {
     };
     // Voice activity detection: while the mic still hears the patient's voice,
     // keep pushing the silence timer back so a slow speaker is never cut off.
-    void startVoiceActivity(() => recognizerRef.current === recognizer, () => {
-      if (!silenceTimerRef.current) return;
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = setTimeout(() => {
-        if (recognizerRef.current === recognizer) recognizer.stop();
-      }, optionsRef.current.silenceMs ?? 1600);
-    });
+    void startVoiceActivity(
+      () => recognizerRef.current === recognizer,
+      () => {
+        if (!silenceTimerRef.current) return;
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          if (recognizerRef.current === recognizer) recognizer.stop();
+        }, optionsRef.current.silenceMs ?? 1600);
+      },
+    );
     try {
       recognizer.start();
       setListening(true);

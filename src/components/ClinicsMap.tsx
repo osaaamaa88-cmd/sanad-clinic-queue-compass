@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { Cross, LocateFixed, Maximize, Minus, Plus, Stethoscope } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cn } from "@/lib/utils";
@@ -60,7 +60,9 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
   const [gpsError, setGpsError] = useState("");
   const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  const fit = (animate = true) => {
+  // Only refs are read, so the callback is stable; the markers effect can
+  // safely list it as a dependency without re-running every render.
+  const fit = useCallback((animate = true) => {
     const L = engine.current;
     const instance = map.current;
     if (!L || !instance) return;
@@ -73,10 +75,13 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
         duration: 0.45,
       });
     else instance.setView(latest.current.center, 13, { animate: animate && !reducedMotion() });
-  };
+  }, []);
 
   useEffect(() => {
     let disposed = false;
+    // The markers map is never reassigned; capture it so cleanup clears the
+    // same map the effect populated instead of reading a possibly stale ref.
+    const markersMap = markers.current;
     (async () => {
       const L = (await import("leaflet")).default;
       // The plugin augments the browser Leaflet instance; never evaluate it during SSR.
@@ -149,7 +154,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
       map.current?.remove();
       map.current = null;
       group.current = null;
-      markers.current.clear();
+      markersMap.clear();
       patient.current = null;
       patientPulse.current = null;
     };
@@ -217,7 +222,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
     });
     cluster.addLayers(additions);
     if (geometryChanged) fit(false);
-  }, [clinics, ready]);
+  }, [clinics, ready, fit]);
 
   const previousSelection = useRef<string | null | undefined>(null);
   useEffect(() => {
@@ -242,7 +247,7 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
     if (!ready) return;
     patient.current?.setLatLng(center);
     patientPulse.current?.setLatLng(center);
-  }, [center.lat, center.lng, ready]);
+  }, [center, ready]);
 
   const locate = () => {
     if (!navigator.geolocation) {
@@ -272,9 +277,8 @@ export const ClinicsMap = forwardRef<HTMLDivElement, ClinicsMapProps>(function C
           instance?.setView(point, 14, { animate: !reducedMotion() });
           return;
         }
-        const nearest = valid.reduce(
-          (best, c) => (kmBetween(point, c) < kmBetween(point, best) ? c : best),
-          valid[0],
+        const nearest = valid.reduce((best, c) =>
+          kmBetween(point, c) < kmBetween(point, best) ? c : best,
         );
         const nearestPoint =
           markers.current.get(nearest.id)?.marker.getLatLng() ?? L.latLng(nearest.lat, nearest.lng);

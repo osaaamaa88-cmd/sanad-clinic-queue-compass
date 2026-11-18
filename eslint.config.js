@@ -6,7 +6,20 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  // Generated files are not linted: Lovable/Supabase regenerate them, so
+  // formatting them would be overwritten churn. admin-access.tsx is out of
+  // scope for this phase (separate registration-stats branch work); its
+  // prettier/exhaustive-deps findings stay until that file is next touched.
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      "src/integrations/supabase/**",
+      "src/generated/**",
+      "src/routes/admin-access.tsx",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -33,7 +46,17 @@ export default tseslint.config(
         },
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
+      // `_`-prefixed names are intentionally unused (same convention as
+      // tsc's noUnusedLocals/noUnusedParameters, e.g. omitting keys via
+      // rest destructuring in EmergencyVaultCard).
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
   eslintPluginPrettier,

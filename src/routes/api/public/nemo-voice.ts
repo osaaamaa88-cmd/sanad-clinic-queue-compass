@@ -12,7 +12,10 @@ export const Route = createFileRoute("/api/public/nemo-voice")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for") ?? "anon";
+        const ip =
+          request.headers.get("cf-connecting-ip") ??
+          request.headers.get("x-forwarded-for") ??
+          "anon";
         const now = Date.now();
         const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW);
         if (recent.length >= LIMIT) return new Response("rate_limited", { status: 429 });

@@ -7,8 +7,7 @@ export const PSYCH_SUPPORT_LINE = "16328";
 export const AMBULANCE_LINE = "123";
 
 /** Ministry of Health mental-health portal (Arabic). */
-export const MENTAL_HEALTH_PORTAL_URL =
-  "https://mentalhealth.mohp.gov.eg/mental/web/ar";
+export const MENTAL_HEALTH_PORTAL_URL = "https://mentalhealth.mohp.gov.eg/mental/web/ar";
 
 /** Warm local reply shown/said when self-harm intent is detected. Includes both lines. */
 export const SELF_HARM_LOCAL_REPLY =

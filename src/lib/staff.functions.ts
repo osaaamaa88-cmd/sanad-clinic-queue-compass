@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createSupabaseKeyFetch } from "./supabase-fetch";
 
 /** Public: create a doctor account via normal sign-up (email confirmation) + its unverified clinic. */
 export const svrRegisterDoctor = createServerFn({ method: "POST" })
@@ -80,15 +81,7 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
     const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY!;
     const pub = createClient(process.env.SUPABASE_URL!, key, {
       auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
-      global: {
-        fetch: (input, init) => {
-          const h = new Headers(init?.headers);
-          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`)
-            h.delete("Authorization");
-          h.set("apikey", key);
-          return fetch(input, { ...init, headers: h });
-        },
-      },
+      global: { fetch: createSupabaseKeyFetch(key) },
     });
     const { data: res, error } = await pub.auth.signUp({
       email: data.email,
@@ -98,7 +91,7 @@ export const svrRegisterDoctor = createServerFn({ method: "POST" })
           full_name: data.doctor,
           role: "doctor",
         },
-        emailRedirectTo: data.redirectTo,
+        ...(data.redirectTo ? { emailRedirectTo: data.redirectTo } : {}),
       },
     });
     if (error) {

@@ -70,7 +70,9 @@ export function hasSelfHarmIntent(text: string): boolean {
         (previous === "مش" &&
           needle[0] !== undefined &&
           ["بفكر", "افكر", "عايز", "عايزه", "ناوي", "ناويه", "هنتحر"].includes(needle[0])) ||
-        (previousTwo === "مش" && ["عايز", "عايزه", "ناوي", "ناويه"].includes(previous));
+        (previousTwo === "مش" &&
+          previous !== undefined &&
+          ["عايز", "عايزه", "ناوي", "ناويه"].includes(previous));
       if (negated) return false;
       return true;
     });
@@ -363,11 +365,12 @@ export function runLocalTriage(need: string): TriageResult {
     };
   }
   const names = picked.map((r) => getSpecialty(r.id)?.name ?? r.id).join(" أو ");
+  const first = picked[0];
   return {
     specialtyIds: picked.map((r) => r.id),
     urgency,
     summary: `على حسب كلامك، التخصص الأنسب ليك: ${names}.`,
-    advice: picked[0].advice,
+    advice: first?.advice ?? "جرّب تكتب مكان الألم أو العرض بشكل أوضح.",
   };
 }
 
@@ -394,7 +397,7 @@ export function getLocalNemoReply(text: string, triage: TriageResult): string {
     return `${triage.summary} ${triage.advice} هل تقدر توضح مكان الألم أو العرض، ومنذ متى بدأ؟`;
   }
 
-  const specialty = getSpecialty(triage.specialtyIds[0])?.name ?? "طب الأسرة";
+  const specialty = getSpecialty(triage.specialtyIds[0] ?? "")?.name ?? "طب الأسرة";
   const urgencyAdvice =
     triage.urgency === "soon" ? "لو الأعراض مستمرة أو بتزيد، تواصل مع طبيب قريباً." : triage.advice;
   return `ألف سلامة عليك يا غالي، من وصفك ممكن يكون تخصص ${specialty} مناسباً كبداية. ${urgencyAdvice} قل لي مكان الألم ومنذ متى بدأ، وهل عندك أعراض تانية؟`;

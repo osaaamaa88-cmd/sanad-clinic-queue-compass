@@ -11,26 +11,8 @@ async function buildSnapshot() {
   today.setHours(0, 0, 0, 0);
   const since = today.toISOString();
   const week = new Date(Date.now() - 7 * 864e5).toISOString();
-  const sbAny = sb as unknown as SupabaseClient;
+  const sbAny: SupabaseClient = sb;
   type CountBuilder = ReturnType<ReturnType<typeof sbAny.from>["select"]>;
-  type ClinicRow = {
-    doctor: string | null;
-    specialty_id: string | null;
-    area: string | null;
-    is_verified: boolean | null;
-    is_disabled: boolean | null;
-    clinic_status: string | null;
-    rating: number | null;
-    reviews: number | null;
-    price: number | null;
-  };
-  type ErrorRow = { created_at: string; screen: string | null; message: string };
-  type BookingRow = {
-    created_at: string;
-    status: string | null;
-    visit_type: string | null;
-    clinic_id: string | null;
-  };
   const count = async (t: string, f?: (q: CountBuilder) => CountBuilder) => {
     let q: CountBuilder = sbAny.from(t).select("id", { count: "exact", head: true });
     if (f) q = f(q);

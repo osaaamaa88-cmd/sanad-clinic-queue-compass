@@ -27,7 +27,7 @@ export async function initSentry() {
       event.exception?.values?.forEach((v) => {
         if (v.value) v.value = redact(v.value);
       });
-      if (event.user) event.user = { id: event.user.id };
+      if (event.user?.id !== undefined) event.user = { id: event.user.id };
       return event;
     },
   });

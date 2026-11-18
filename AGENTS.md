@@ -26,3 +26,11 @@
 - Member (patient) statuses live in their own 24h table separate from clinic stories; replies to clinic stories go to clinic chat, never patient-to-patient DMs. Why: privacy between patients.
 
 - Page transitions use native View Transitions with a nav-direction attribute (tab/push/pop, `src/lib/nav-direction.ts`); never put transform/filter animations on the route wrapper, because that breaks the fixed bottom navigation.
+
+## اتفاقيات الصيانة (المراحل أ–هـ)
+
+- **أين يذهب الكود المشترك:** الخطافات في `src/hooks/use-*.ts` (اسم الملف kebab-case، واسم الدالة `useCamelCase`)؛ الدوال الخالصة والمساعدات في `src/lib/*`؛ مكونات العرض المشتركة في `src/components/*`. ملف يصدّر مكوّنًا يصدّر مكونات فقط (قاعدة react-refresh) — أي دالة/ثابت/خطاف غير مكوّن يعيش في ملف مجاور (`godmode-utils.ts` بجانب `godmode-shared.tsx`، ‏`rx-print.ts` بجانب `RxComposer.tsx`).
+- **لا `any` جديد** في الكود اليدوي — الـ lint يفرضها كخطأ؛ وإن استحال التضييق فعرّف واجهة محلية صغيرة بدل التحويل (`as never`/`as unknown as` ممنوعان إلا باستثناء موثّق).
+- **لا تلمس الملفات المولّدة/المورّدة:** ‏`src/integrations/supabase/**` و`src/generated/**` و`src/routeTree.gen.ts` (يعيد Lovable/Supabase توليدها) و`src/components/ui/*` (shadcn مورّدة) — ولا `src/lib/admin.functions.ts` و`src/routes/admin-access.tsx` (فرع منفصل).
+- **لا barrel:** حُذف `src/index.ts` (بلا مستوردين) فلا يُعاد إنشاؤه — استورد من الملف مباشرة.
+- **التحقق بعد كل خطوة:** ‏`npx tsc --noEmit` + `bun test` (99/99) + `bun run build` + `npm run lint` (صفر أخطاء)؛ كوميت منفصل لكل خطوة برسالة عربية موجزة؛ ولا دفع إلى GitHub بلا موافقة المستخدم، ولا إعادة كتابة للتاريخ المنشور.

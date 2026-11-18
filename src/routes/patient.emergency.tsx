@@ -168,7 +168,7 @@ function EmergencyPage() {
                 { id: "pharmacy", label: "صيدليات" },
               ] as { id: TypeFilter; label: string }[]
             ).map((t) => {
-              const I = t.id === "all" ? LayoutGrid : typeIcons[t.id];
+              const I = t.id === "all" ? LayoutGrid : (typeIcons[t.id] ?? LayoutGrid);
               return (
                 <button
                   key={t.id}
